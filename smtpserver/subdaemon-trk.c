@@ -294,10 +294,11 @@ static void new_ipv4_timeslot( state )
 
 	    /* If there have been excesses, keep FOREVER,
 	       otherwise keep for about two hours... */
-	    if (r[i].excesses2  || r[i].excesses3 ||
-		r[i].afails2    || r[i].mails2    ||
-		r[i].aborts2    ||
-		r[i].recipients2  ) continue;
+	    if (r[i].excesses   || r[i].excesses2  || r[i].excesses3 ||
+		r[i].afails     || r[i].afails2    ||
+		r[i].mails      || r[i].mails2     ||
+		r[i].aborts     || r[i].aborts2    ||
+		r[i].recipients || r[i].recipients2  ) continue;
 
 	    /* See if now ALL slots are ZERO value.. */
 	    if (memcmp(zerocountset, r[i].countset,
