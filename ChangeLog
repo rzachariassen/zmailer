@@ -1,3 +1,18 @@
+2004-07-11  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c, smtpserver/cfgread.c,
+	  smtpserver/policytest.c, smtpserver/smtpauth.c,
+	  smtpserver/smtphook.c,   smtpserver/smtpserver.h:
+	    More of perl-hook machinery.
+
+	* smtpserver/policytest.c:
+	    Reorganized  pt_mailfrom()  logic.
+
+	* smtpserver/smtpserver.c, smtpserver/smtpauth.c,
+	  smtpserver/smtpserver.h:
+	    Treat whoson result equal to authentication
+	    (to some extent.)
+
 2004-07-10  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpchild.c,

@@ -237,14 +237,12 @@ void smtp_auth(SS,buf,cp)
 		     uname, 1, SS->authuser);
 	  return;
 	}
-	if (SS->authuser != NULL) {
+	if (SS->authuser) {
 	  type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
 	  policytest(&SS->policystate, POLICY_AUTHFAIL,
 		     uname, 1, SS->authuser);
 	  return;
 	}
-
-
 
 	if (*cp == ' ') ++cp;
 	if (strict_protocol < 1)
@@ -403,6 +401,12 @@ void smtp_auth(SS,buf,cp)
 	    if (zpw == NULL) {
 	      SS->authuser = uname;
 	      type(SS, 235, NULL, "Authentication successful.");
+#if DO_PERL_EMBED
+	      {
+		int rc;
+		ZSMTP_hook_setuser(SS->authuser, "login", &rc);
+	      }
+#endif
 	    } else {
 	      type(SS, 535, NULL, "%s", zpw);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
@@ -428,6 +432,13 @@ void smtp_auth(SS,buf,cp)
 	  int len, inlen, outlen, out2len;
 	  int result;
 	  char *auth_type;
+
+	  if (SS->authuser) {
+	    type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
+	    policytest(&SS->policystate, POLICY_AUTHFAIL,
+		       uname, 1, SS->authuser);
+	    return;
+	  }
 
 	  /* make sure mechanism (p) is a valid string */
 	  for (q = (char*)cp; *q != '\0' && isascii(*q); q++) {
@@ -586,7 +597,13 @@ void smtp_auth(SS,buf,cp)
 	      result = sasl_getprop(SS->sasl.conn, SASL_USERNAME,
 				    (const void **)&SS->authuser); 
 	      /* XX: check result == SASL_OK ?? */
-	  
+	      if (result == SASL_OK) {
+#if DO_PERL_EMBED
+		int rc;
+		ZSMTP_hook_setuser(SS->authuser, "saslauth", &rc);
+#endif
+	      }
+
 # if 0
 	      /* get realm? */
 	      sasl_getprop(SS->sasl.conn, SASL_REALM, (const void **) &data);

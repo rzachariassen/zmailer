@@ -348,9 +348,12 @@ typedef struct SmtpState {
     int  rcpt_count;
     int  ok_rcpt_count;
     int  sender_ok;
+
     /* For BDAT -command */
     int  bdata_blocknum;
     int  mvbstate;
+
+    /* Who have we been authenticated as ? */
     char *authuser;
 
     char ident_username[MAXHOSTNAMELEN + MAXHOSTNAMELEN + 2];
@@ -439,6 +442,7 @@ extern int log_rcvd_tls_mode, log_rcvd_tls_peer;
 extern int auth_login_without_tls;
 extern char *smtpauth_via_pipe;
 extern char *contentfilter;
+extern char *perlhookpath;
 extern int debug_content_filter;
 extern int strict_protocol;
 extern int rcptlimitcnt;
@@ -735,7 +739,11 @@ extern int rbl_dns_test __((struct policystate *, const int, const u_char *, cha
 /* smtphook.c */
 #ifdef DO_PERL_EMBED
 
-extern int ZSMTP_hook_init __((const int, const char **, const char **, const char *));
-extern int ZSMTP_hook_authuser_mailfrom __((struct policystate *, const char *, const int));
+extern int ZSMTP_hook_init          __((const int, char **, const char **, const char *));
+extern void ZSMTP_hook_atexit       __((void));
+extern int ZSMTP_hook_set_ipaddress __((const char *, int *));
+extern int ZSMTP_hook_setuser       __((const char *, const char *, int *));
+extern int ZSMTP_hook_mailfrom      __((struct policystate *, const char *, const int, int *));
+extern int ZSMTP_hook_rcptto        __((struct policystate *, const char *, const int, int *));
 
 #endif

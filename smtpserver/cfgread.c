@@ -348,6 +348,10 @@ static void cfparam(str, size, cfgfilename, linenum)
     else if (cistrcmp(name, "debug-contentfilter") == 0) {
       debug_content_filter = 1;
     }
+    else if (cistrcmp(name, "perl-hook") == 0 && param1) {
+      if (access(param1, X_OK) == 0)
+	perlhookpath = strdup(param1);
+    }
 
     /* A few facility enablers: (default: off) */
 

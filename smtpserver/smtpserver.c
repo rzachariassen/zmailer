@@ -558,11 +558,12 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 }
 
 
-int main __((int, char **));
+int main __((const int, char **, const char **));
 
-int main(argc, argv)
-int argc;
-char **argv;
+int main(argc, argv, envp)
+     const int argc;
+     char **argv;
+     const char **envp;
 {
 	int inetd, errflg, raddrlen, version, i = 0;
 	const char *mailshare;
@@ -917,6 +918,14 @@ char **argv;
 #ifdef HAVE_OPENSSL
 	Z_init(); /* Some things for private processors */
 #endif /* - HAVE_OPENSSL */
+
+#ifdef DO_PERL_EMBED
+	if (perlhookpath) {
+	  atexit(ZSMTP_hook_atexit);
+	  ZSMTP_hook_init(argc, argv, envp, perlhookpath);
+	}
+#endif
+
 	if (!allow_source_route)
 	  allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
@@ -1518,6 +1527,12 @@ char **argv;
 						      sizeof(SS.whoson_data)))) {
 		      strcpy(SS.whoson_data,"-unregistered-");
 		    }
+#if DO_PERL_EMBED
+		    else {
+		      int rc;
+		      ZSMTP_hook_setuser(SS.whoson_data, "whoson", &rc);
+		    }
+#endif
 		  } else {
 		    strcpy(SS.whoson_data,"NOT-CHECKED");
 		    SS.whoson_result = -1;
