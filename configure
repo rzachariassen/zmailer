@@ -4297,7 +4297,7 @@ fi
 
 if test "$ac_cv_header_db_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_db_open" = yes ; then
+  if test "$ac_cv_lib_c_db_open2" = yes ; then
     LIBDB=""
     t_found_at="libc(3)"
     DBTYPE="btree"
@@ -4306,7 +4306,7 @@ if test "$ac_cv_header_db_h" = yes ; then
 EOF
 
   else
-    if test "$ac_cv_lib_db_db_open" = yes ; then
+    if test "$ac_cv_lib_db_db_open2" = yes ; then
       LIBDB="-ldb"
       t_found_at="db library"
       DBTYPE="btree"
@@ -4325,16 +4325,16 @@ db_open();
 EOF
 if { (eval echo configure:4327: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
-  ac_cv_lib_c_db_open=yes
+  ac_cv_lib_c_db_open2=yes
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  ac_cv_lib_c_db_open=no
+  ac_cv_lib_c_db_open2=no
 fi
 rm -f conftest*
-      if test "$ac_cv_lib_c_db_open" = no; then
-	if test "x$ac_cv_lib_db_db_open" = x; then # not set
+      if test "$ac_cv_lib_c_db_open2" = no; then
+	if test "x$ac_cv_lib_db_db_open2" = x; then # not set
 	  t_oldLibs="$LIBS"
 	  LIBS="$LIBS -ldb"
 	  cat > conftest.$ac_ext <<EOF
@@ -4347,15 +4347,15 @@ db_open();
 EOF
 if { (eval echo configure:4349: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
-  ac_cv_lib_db_db_open=yes
+  ac_cv_lib_db_db_open2=yes
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  ac_cv_lib_db_db_open=no
+  ac_cv_lib_db_db_open2=no
 fi
 rm -f conftest*
-	  if test "$ac_cv_lib_db_db_open" = yes; then
+	  if test "$ac_cv_lib_db_db_open2" = yes; then
 	    LIBDB="-ldb"
 	    t_found_at="db library"
 	    DBTYPE="btree"
@@ -4368,7 +4368,7 @@ EOF
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  { echo "configure: error: config.cache inconsistency! (db) Delete it, and redo!" 1>&2; exit 1; }
+	  { echo "configure: error: config.cache inconsistency! (db2) Delete it, and redo!" 1>&2; exit 1; }
 	fi
       else # Has it in the libc!
 	LIBDB=""
