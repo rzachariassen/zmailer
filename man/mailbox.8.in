@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "9 Apr 1998"
+.TH MAILBOX 8 "18 Jun 1998"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -183,6 +183,7 @@ or
 .IP \-S
 This option enables ``Return-Receipt-To:'' message header recognition
 and processing along with sending receipt to given address.
+.I (Newer sendmails don't anymore support this facility per default..)
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
