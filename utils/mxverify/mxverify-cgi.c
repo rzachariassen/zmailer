@@ -693,15 +693,10 @@ void htmlwrite(str, len)
 {
 	int i;
 	for (i = 0; i < len; ++i) {
-	  if (str[i] == '\n' ||
-	      (str[i] >= ' ' && str[i] < 127)) {
-	    if (str[i] == '\n')
-	      fprintf(stdout, "\n");
-	    else
-	      fprintf(stdout, "&#%d;", str[i]);
-	  }
+	  if (str[i] == '\n')
+	    fprintf(stdout, "\n");
 	  else
-	    fprintf(stdout, "\\0x%02X", str[i]);
+	    fprintf(stdout, "&#%d;", str[i]);
 	}
 }
 
@@ -853,16 +848,6 @@ void smtptest(thatuser, ai)
 	rc = readsmtp(sock); /* Read response.. */
 	if (rc < 0 || rc > 299) goto end_test_1;
 
-	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
-	fprintf(stdout, " RCPT TO:&lt;postmaster@");
-	htmlwrite(thatdomain,strlen(thatdomain));
-	fprintf(stdout,"&gt;\n");
-	rc = writesmtp(sock, smtpline);
-	if (rc == ETIMEDOUT) wtout = 1;
-	if (rc != EX_OK) goto end_test_1;
-	rc = readsmtp(sock); /* Read response.. */
-	if (rc < 0 || rc > 299) goto end_test_1;
-
 	if (thatdomain != thatuser) {
 	  sprintf(smtpline, "RCPT TO:<%s>\r\n", thatuser);
 	  fprintf(stdout, " RCPT TO:&lt;");
@@ -874,6 +859,17 @@ void smtptest(thatuser, ai)
 	  rc = readsmtp(sock); /* Read response.. */
 	  if (rc < 0 || rc > 299) goto end_test_1;
 	}
+
+	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
+	fprintf(stdout, " RCPT TO:&lt;postmaster@");
+	htmlwrite(thatdomain,strlen(thatdomain));
+	fprintf(stdout,"&gt;\n");
+	rc = writesmtp(sock, smtpline);
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+	if (rc < 0 || rc > 299) goto end_test_1;
+
 
 	rc = 0; /* All fine, no complaints! */
 
