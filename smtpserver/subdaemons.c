@@ -48,8 +48,11 @@ int subdaemons_init __((void))
 	  ratetracker_server_pid = fork();
 	  if (ratetracker_server_pid == 0) { /* CHILD */
 
+	    if (logfp) fclose(logfp); logfp = NULL;
+
 	    report(NULL," [smtpserver ratetracker subsystem]");
 
+	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_ratetracker);
 
 	    sleep(10);
@@ -65,8 +68,13 @@ int subdaemons_init __((void))
 	  router_server_pid = fork();
 	  if (router_server_pid == 0) { /* CHILD */
 
+	    if (logfp) fclose(logfp); logfp = NULL;
+
 	    report(NULL," [smtpserver router subsystem]");
 
+	    close(ratetracker_rdz_fd); /* Our sister server's handle */
+
+	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_router);
 
 	    sleep(10);
@@ -82,8 +90,14 @@ int subdaemons_init __((void))
 	  contentfilter_server_pid = fork();
 	  if (contentfilter_server_pid == 0) { /* CHILD */
 
+	    if (logfp) fclose(logfp); logfp = NULL;
+
 	    report(NULL," [smtpserver contentfilter subsystem]");
 
+	    close(ratetracker_rdz_fd); /* Our sister server's handle */
+	    close(router_rdz_fd);      /* Our sister server's handle */
+
+	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
 
 	    sleep(10);
@@ -113,11 +127,18 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
 
-	/* Close all (possible) FDs above magic value of ZERO */
+	/* Don't close files/handles, the system shuts down
+	   without it just fine */
+#if 0
+	/* Close all FDs, except our rendezvous socket..
+	   We use 'EOF' indication on it to detect when last
+	   potential client has gone, and therefore it is not
+	   good to inherit these to other subdaemon instances..
+	 */
 	for (n = 0; n < subdaemon_nofiles; ++n)
 	  if (n != rendezvous_socket)
 	    close(n);
-
+#endif
 #if 0
 	{
 	  extern int logstyle;
@@ -144,7 +165,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	for (;;) {
 
 	  ppid = getppid();
-	  if ( (ppid <= 1) && (rendezvous_socket < 0) &&
+	  if ( (rendezvous_socket < 0) &&
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
 					  -> kill self! */
 

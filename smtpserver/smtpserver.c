@@ -1056,6 +1056,9 @@ char **argv;
 	    killprevious(0, pidfile);	/* deposit pid */
 	  }
 
+	  /* Start our subdaemons here just before opening SMTP sockets */
+	  subdaemons_init();
+
 	  if (bindport <= 0) {
 	    struct servent *service;
 #ifdef	IPPORT_SMTP
@@ -1122,8 +1125,6 @@ char **argv;
 	    logfp = NULL;
 	  }
 #endif
-
-	  subdaemons_init();
 
 #if 0
 	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);

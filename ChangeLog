@@ -1,3 +1,23 @@
+2004-04-09  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Move the subdaemons_init() again.  Place it now right
+	    after becoming stand-alone daemon right before creating
+	    listening sockets.
+
+	* smtpserver/subdaemon-ctf.c:
+	    Minor coding style edit (use calloc() instead of malloc+memset).
+
+	* smtpserver/subdaemon-trk.c:
+	    Add timeout handling into fdgets() code.  The intention being,
+	    that system not responding properly within user-supplied time-
+	    limit can be detected.
+
+	* smtpserver/subdaemons.c:
+	    Rework subdaemon forking code to properly close client-end
+	    of the rendezvous-sockets within the subdaemons.  Don't close
+	    quite every possible file descriptor, but do close several..
+
 2004-04-08  Matti Aarnio  <mea@zmailer.org>
 
 	* doc/guides/smtp-policy:

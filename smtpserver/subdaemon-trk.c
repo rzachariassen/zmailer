@@ -461,28 +461,46 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 /* ------------------------------------------------------------------ */
 
 int
-fdgets (buf, buflen, fd)
+fdgets (buf, buflen, fd, timeout)
      char *buf;
-     int buflen, fd;
+     int buflen, fd, timeout;
 {
 	int i, rc;
 	char c;
+
+	if (fd < 0) return -1;
+	fd_nonblockingmode(fd);
 
 	for (i = 0; i < buflen-1;) {
 	  for (;;) {
 	    rc = read(fd, &c, 1);
 	    if (rc >= 0) break;
 	    if (errno == EINTR) continue;
-	    break;
+	    if (errno == EWOULDBLOCK) {
+	      fd_set rdset;
+	      struct timeval tv;
+	      _Z_FD_ZERO(rdset);
+	      tv.tv_sec = timeout;
+	      tv.tv_usec = 0;
+	      _Z_FD_SET(fd, rdset);;
+	      rc = select(fd+1, &rdset, NULL, NULL, &tv);
+	      if (rc == 0) {
+		i = 0;
+		goto read_end; /* TIMEOUT!  D'UH! */
+	      }
+	    }
 	  }
 	  if (rc == 0) { /* EOF seen! */
 	    break;
 	  }
 	  buf[i++] = c;
-	  buf[i]   = 0;
 	  if (c == '\n') break;
 	}
+ read_end:;
 	buf[i] = 0;
+
+	fd_blockingmode(fd);
+
 	if (i == 0) return -1;
 	return i;
 }
@@ -558,7 +576,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	  errno = 0;
 
 	  *buf = 0;
-	  if (fdgets( buf, sizeof(buf)-1, state->fd_io ) < 0) {
+	  if (fdgets( buf, sizeof(buf)-1, state->fd_io, 5 ) < 0) {
 	    /* something failed! */
 	    /* type(NULL,0,NULL,"call_subdaemon_trk; 10-B");*/
 	  }
@@ -591,7 +609,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	/* type(NULL,0,NULL,"call_subdaemon_trk; 16"); */
 
 	*buf = 0;
-	fdgets( buf, sizeof(buf)-1, state->fd_io );
+	fdgets( buf, sizeof(buf)-1, state->fd_io, 5 );
 
 	if (state->outfp && ferror(state->outfp))
 	  return -6; /* Uh ok.. */

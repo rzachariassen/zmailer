@@ -86,9 +86,7 @@ subdaemon_handler_ctf_init ( statep )
 
 	  int piperd[2], pipewr[2]; /* per parent */
 
-	  *statep = state = malloc(sizeof(*state));
-	  memset(state, 0, sizeof(*state));
-
+	  *statep = state = calloc(1,sizeof(*state));
 
 	  pipe(piperd);
 	  pipe(pipewr);
