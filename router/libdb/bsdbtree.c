@@ -104,7 +104,7 @@ open_btree(sip, flag, comment)
 		  db = NULL;
 unlink("/tmp/ -mark1- ");
 		  err = db_open(sip->file, DB_BTREE,
-				DB_NOMMAP|DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
+				DB_NOMMAP|((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 				0644, NULL, NULL, &db);
 unlink("/tmp/ -mark2- ");
 #else

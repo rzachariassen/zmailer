@@ -86,7 +86,7 @@ open_bhash(sip, flag, comment)
 		  int err;
 		  db = NULL;
 		  err = db_open(sip->file, DB_HASH,
-				DB_NOMMAP|DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
+				DB_NOMMAP|((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 				0644, NULL, NULL, &db);
 #else
 		  db = dbopen(sip->file, flag, 0, DB_HASH, NULL);
