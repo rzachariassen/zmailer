@@ -1,13 +1,13 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8zm "2003-Nov-23"
+.TH SMTP 8zm "2004-Aug-22"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
 .SH SYNOPSIS
 .IP \fBsmtp\fR 5em
-[\fB\-678deEHMrPsVxXW\fR]
+[\fB\-1678deEHMrPsVxXW\fR]
 [\fB\-A\fR\ \fI/path/to/smtp-auth-secrets.txt\fR]
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fIheloname\fR]
@@ -39,6 +39,10 @@ in a single SMTP conversation.
 The destination host might in fact be served by any available mail exchanger
 for that host.
 .SH OPTIONS
+.IP \-1
+Worsen system performance, send only one message per connection to given
+target system.
+(That is, reopen the connection for each messge.)
 .IP \-6
 Prefer IPv6 type socket and addresses, if available.
 .IP \-7

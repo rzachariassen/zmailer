@@ -1,3 +1,13 @@
+2004-08-22  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c, man/smtp.8.in:
+	    Added  -1  option to order SMTP connection closure
+	    after each message having been delivered.  This isn't
+	    quite the same thing, as "one MAIL-transaction per connection"
+	    under all operational conditions, if 'listexpand's'
+	    EZMLM-mode is used, but it definitely is for all normal
+	    cases without it.
+
 2004-08-20  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtphook.c, smtpserver/smtpserver.h,

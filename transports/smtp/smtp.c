@@ -448,6 +448,7 @@ main(argc, argv)
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
 	volatile const char *smtphost = NULL;
+	int one_per_connection = 0;
 
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
@@ -531,7 +532,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "A:c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:678");
+	  c = getopt(argc, argv, "A:c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:1678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -655,6 +656,9 @@ main(argc, argv)
 	    break;
 	  case 'W':		/* Enable RFC974 WKS checks */
 	    checkwks = 1;
+	    break;
+	  case '1':
+	    one_per_connection = 1;
 	    break;
 	  case '8':
 	    force_8bit = 1;
@@ -948,6 +952,18 @@ main(argc, argv)
 
 	  smtpstatus = process(&SS, (struct ctldesc *)dp, smtpstatus,
 			       (char*)smtphost, noMX);
+
+	  if (one_per_connection) {
+	    if (SS.smtpfp)
+	      smtp_flush(&SS); /* Flush in every case */
+	    if (SS.smtpfp)
+	      smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
+	    if (SS.smtpfp) {
+	      smtpclose(&SS, 0);
+	      if (logfp)
+		fprintf(logfp, "%s#\t(closed SMTP channel - final close)\n", logtag());
+	    }
+	  }
 
 	  if (SS.verboselog)
 	    fclose(SS.verboselog);
