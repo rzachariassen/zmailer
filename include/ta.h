@@ -202,7 +202,7 @@ extern int headers_need_mime2 __(( struct rcpt *rp ));
  
 
 /* writeheaders.c: */
-extern int writeheaders __((struct rcpt *rp, FILE *fp, const char *newline, int use_cvt, int maxwidth));
+extern int writeheaders __((struct rcpt *rp, FILE *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
 
 /* buildbndry.c: */
 extern char *mydomain __((void));

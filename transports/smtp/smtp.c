@@ -23,7 +23,14 @@
 			   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
 
 			 */
+
 #define DefCharset "ISO-8859-1"
+
+
+#define CHUNK_MAX_SIZE 64000
+
+#define DO_CHUNKING 1
+
 
 #include "hostenv.h"
 #include <stdio.h>
@@ -268,6 +275,12 @@ typedef struct {
   char *smtphost;		/* strdup()ed name of the remote host */
   char *myhostname;		/* strdup()ed name of my outbound interface */
 
+  FILE *verboselog;		/* verboselogfile */
+
+  int hsize;			/* Output state variables */
+  int msize;
+
+  int pipelining;		/* Are we pipelining ? */
   int pipebufsize;		/* Responce collection buffering */
   int pipebufspace;
   char *pipebuf;
@@ -276,11 +289,7 @@ typedef struct {
   char **pipecmds;
   struct rcpt **pipercpts;	/* recipients -""- */
 
-  FILE *verboselog;		/* verboselogfile */
-
-  int hsize;			/* Output state variables */
-  int msize;
-  int rcptcnt;
+  int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
 #define RCPTSTATE_OK  0x01 /* At least one OK   state   */
 #define RCPTSTATE_400 0x02 /* At least one TEMP failure */
@@ -362,7 +371,8 @@ extern RETSIGTYPE sig_alarm __((int));
 extern int getmyhostname();
 extern void stashmyaddresses();
 extern void getdaemon();
-
+extern int  has_readable __((int));
+extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS));
 
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
@@ -1065,10 +1075,14 @@ deliver(SS, dp, startrp, endrp)
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
+	int chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 	time_t env_start, body_start, body_end;
 	struct rcpt *more_rp = NULL;
+	char **chunkptr = NULL;
+	char *chunkblk = NULL;
 
 	if (no_pipelining) pipelining = 0;
+	SS->pipelining = pipelining;
 
 	convertmode = _CONVERT_NONE;
 	if (conv_prohibit >= 0) {
@@ -1282,7 +1296,54 @@ deliver(SS, dp, startrp, endrp)
 	if (!SS->smtpfp)
 	  return EX_TEMPFAIL;
 
-	if (pipelining) {
+	chunkptr = NULL;
+	SS->chunksize = 0;
+	SS->chunkbuf  = NULL;
+
+#ifndef DO_CHUNKING
+	chunking = 0;
+#endif
+
+	if (chunking) {
+
+	  chunkptr = & chunkblk;
+
+	  chunkblk = emalloc(256);
+
+	  /* We do surprising things here, we construct
+	     at first the headers (and perhaps some of
+	     the body) into a buffer, then write it out
+	     in BDAT transaction. */
+
+	  time(&endtime);
+	  notary_setxdelay((int)(endtime-starttime));
+	  /* Now it is time to do synchronization .. */
+	  if (SS->smtpfp)
+	    r = smtp_sync(SS, EX_OK); /* Up & until "DATA".. */
+	  if (r != EX_OK) {
+	    /* XX:
+	       #error  Uncertain of what to do ...
+	       ... reports were given at each recipient, and if all failed,
+	       we failed too.. (there should not be any positive diagnostics
+	       to report...)
+	     */
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
+	      if (rp->status == EX_OK) {
+		/* NOTARY: address / action / status / diagnostic / wtt */
+		notaryreport(rp->addr->user,FAILED,NULL,NULL);
+		diagnostic(rp, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
+	      }
+	    if (SS->smtpfp)
+	      smtpwrite(SS, 0, "RSET", 0, NULL);
+	    return r;
+	  }
+
+	  /* OK, we synced, lets continue with BDAT ...
+	     The RFC 1830 speaks of more elaborate
+	     pipelining with BDAT, but lets do this
+	     with checkpoints at first */
+
+	} else if (pipelining) {
 	  /* In PIPELINING mode ... send "DATA" */
 	  r = smtpwrite(SS, 1, "DATA", pipelining, NULL);
 	  if (r != EX_OK) { /* failure on pipes ? */
@@ -1355,24 +1416,55 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(SS->verboselog,"%s\n",*hdrs++);
 	}
 
-	if ((SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
-				      convertmode, 0)) < 0 ||
-	    (fprintf(SS->smtpfp, "\r\n"), fflush(SS->smtpfp),
-	     ferror(SS->smtpfp))) {
+	if (chunkptr && !chunkblk)
+	  SS->hsize = -1;
+	else
+	  SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
+				   convertmode, 0, chunkptr);
+
+	if (SS->hsize >= 0 && chunkptr) {
+
+	  chunkblk = erealloc(chunkblk, SS->hsize+2);
+	  if (chunkblk) {
+	    memcpy(chunkblk + SS->hsize, "\r\n", 2);
+	    SS->hsize += 2;
+	  } else {
+	    SS->hsize = -1;
+	  }
+
+	} else if (SS->hsize >= 0) {
+
+	  fprintf(SS->smtpfp, "\r\n");
+	  fflush(SS->smtpfp);
+	  if (ferror(SS->smtpfp))
+	    SS->hsize = -1;
+
+	}
+
+	if (chunkblk) {
+	  SS->chunksize  = SS->hsize;
+	  SS->chunkspace = SS->hsize;
+	  SS->chunkbuf   = chunkblk;
+	}
+	
+	if (SS->hsize < 0) {
 	  for (rp = startrp; rp != endrp; rp = rp->next)
 	    if (rp->status == EX_OK) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      /* NOTARY: address / action / status / diagnostic / wtt */
 	      notaryreport(rp->addr->user,FAILED,
-			   "5.4.2 (Message write timed out)",
-			   "smtp; 566 (Message write timed out)"); /* XX: FIX THE STATUS? */
+			   "5.4.2 (Message header write failure)",
+			   "smtp; 566 (Message header write failure)"); /* XX: FIX THE STATUS? */
 	      diagnostic(rp, EX_TEMPFAIL, 0, "%s", "header write error");
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
 	  if (SS->smtpfp)
 	    smtpwrite(SS, 0, "RSET", 0, NULL);
+
+	  if (chunkptr && chunkblk) free(chunkblk);
+
 	  return EX_TEMPFAIL;
 	}
 
@@ -1384,7 +1476,9 @@ deliver(SS, dp, startrp, endrp)
 	
 	/* Append the message body itself */
 
-	if ((r = appendlet(SS, dp, convertmode)) != EX_OK) {
+	r = appendlet(SS, dp, convertmode);
+
+	if (r != EX_OK) {
 	fail:
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
@@ -1411,6 +1505,9 @@ deliver(SS, dp, startrp, endrp)
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
 	  }
+
+	  if (chunkptr && chunkblk) free(chunkblk);
+
 	  return EX_TEMPFAIL;
 	}
 	/*
@@ -1422,8 +1519,15 @@ deliver(SS, dp, startrp, endrp)
 	/* RFC-1123 says: 10 minutes! */
 	tout = timeout;
 	timeout = ALARM_DOTTOOK;
+
 	dotmode = 1;
-	r = smtpwrite(SS, 1, ".", 0, NULL);
+
+	if (chunking) {
+	  r = bdat_flush(SS, 1);
+	} else {
+	  r = smtpwrite(SS, 1, ".", 0, NULL);
+	}
+
 	timeout = tout;
 	if (r != EX_OK)
 	  goto fail;
@@ -1474,6 +1578,9 @@ deliver(SS, dp, startrp, endrp)
 
 	if (r != EX_OK && SS->smtpfp && !getout)
 	  smtpwrite(SS, 0, "RSET", 0, NULL);
+
+	if (chunkptr && chunkblk) free(chunkblk);
+
 	return r;
 }
 
@@ -1711,6 +1818,39 @@ appendlet(SS, dp, convertmode)
 }
 
 
+#ifdef DO_CHUNKING
+
+extern inline int ssputc __(( SmtpState *, int, FILE * ));
+
+int inline
+ssputc(SS, ch, fp)
+     SmtpState *SS;
+     int ch;
+     FILE *fp;
+{
+  if (SS->chunkbuf == NULL) {
+    putc(ch, fp);
+    if (ferror(fp)) return EOF;
+  }
+  if (SS->chunksize > CHUNK_MAX_SIZE) {
+    if (bdat_flush(SS, 0)) /* Not yet the last one! */
+      return EOF;
+  }
+  if (SS->chunksize >= SS->chunkspace) {
+    SS->chunkspace <<= 1; /* Double the size */
+  }
+  SS->chunkbuf[SS->chunksize] = ch;
+  SS->chunksize += 1;
+  return 0;
+}
+
+#else
+
+#define ssputc(SS,ch,fp) putc((ch),(fp))
+
+#endif
+
+
 #if 0
 # define VLFPRINTF(x) if(SS->verboselog)fprintf x
 #else
@@ -1753,7 +1893,7 @@ writebuf(SS, buf, len)
 	  if (state && c != '\n') {
 	    state = 0;
 	    if (c == '.') {
-	      if (putc(c, fp) == EOF || putc(c, fp) == EOF) {
+	      if (ssputc(SS, c, fp) == EOF || ssputc(SS, c, fp) == EOF) {
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
 		notaryreport(NULL,FAILED,"5.4.2 (body write error, 1)",
@@ -1763,7 +1903,7 @@ writebuf(SS, buf, len)
 	      }
 	      VLFPRINTF((SS->verboselog,".."));
 	    } else {
-	      if (putc(c, fp) == EOF) {
+	      if (ssputc(SS, c, fp) == EOF) {
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
 		notaryreport(NULL,FAILED,"5.4.2 (body write error, 2)",
@@ -1774,7 +1914,7 @@ writebuf(SS, buf, len)
 	      VLFPRINTF((SS->verboselog,"%c",c));
 	    }
 	  } else if (c == '\n') {
-	    if (putc('\r', fp) == EOF || putc(c, fp) == EOF) {
+	    if (ssputc(SS, '\r', fp) == EOF || ssputc(SS, c, fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 3)",
@@ -1785,7 +1925,7 @@ writebuf(SS, buf, len)
 	    VLFPRINTF((SS->verboselog,"\r\n"));
 	    state = 1;
 	  } else {
-	    if (putc(c, fp) == EOF) {
+	    if (ssputc(SS, c, fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 4)",
@@ -1886,18 +2026,18 @@ writemimeline(SS, buf, len, convertmode)
 	    SS->lastch = c;
 	  } else if (qp_conv) {
 	    if (column > 70 && c != '\n') {
-	      putc('=',fp);
-	      putc('\r',fp);
-	      putc('\n',fp);
+	      ssputc(SS, '=',  fp);
+	      ssputc(SS, '\r', fp);
+	      ssputc(SS, '\n', fp);
 	      SS->lastch = '\n';
 	      VLFPRINTF((SS->verboselog,"=\r\n"));
 	      column = 0;
 	    }
 	    /* Trailing SPACE/TAB ? */
 	    if (n < 3 && (c == ' ' || c == '\t')) {
-	      putc('=',fp);
-	      putc(i2h[(c >> 4) & 15],fp);
-	      putc(i2h[(c)      & 15],fp);
+	      ssputc(SS, '=', fp);
+	      ssputc(SS, i2h[(c >> 4) & 15], fp);
+	      ssputc(SS, i2h[(c)      & 15], fp);
 	      SS->lastch = i2h[(c) & 15];
 	      column += 2;
 	      VLFPRINTF((SS->verboselog,"=%02X",c));
@@ -1907,9 +2047,9 @@ writemimeline(SS, buf, len, convertmode)
 	    if (c == '='  ||  c > 126 ||
 		(c != '\n' && c != '\t' && c < 32)) {
 
-	      putc('=',fp);
-	      putc(i2h[(c >> 4) & 15],fp);
-	      putc(i2h[(c)      & 15],fp);
+	      ssputc(SS, '=', fp);
+	      ssputc(SS, i2h[(c >> 4) & 15], fp);
+	      ssputc(SS, i2h[(c)      & 15], fp);
 	      SS->lastch = i2h[(c) & 15];
 	      column += 2;
 	      VLFPRINTF((SS->verboselog,"=%02X",c));
@@ -1918,7 +2058,7 @@ writemimeline(SS, buf, len, convertmode)
 	  } /* .... end convertmode	*/
 
 	  if (column == 0 && c == '.') {
-	    if (putc(c, fp) == EOF) {
+	    if (ssputc(SS, c, fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 5)",
@@ -1930,7 +2070,7 @@ writemimeline(SS, buf, len, convertmode)
 	  }
 
 	  if (c == '\n') {
-	    if (putc('\r', fp) == EOF) {
+	    if (ssputc(SS, '\r', fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 6)",
@@ -1941,7 +2081,7 @@ writemimeline(SS, buf, len, convertmode)
 	    VLFPRINTF((SS->verboselog,"\r"));
 	    column = -1;
 	  }
-	  if (putc(c, fp) == EOF) {
+	  if (ssputc(SS, c, fp) == EOF) {
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.2 (body write error, 7)",
@@ -2991,6 +3131,43 @@ smtp_flush(SS)
 	SS->pipeindex = 0;
 }
 
+
+int bdat_flush(SS, lastflg)
+	SmtpState *SS;
+	int lastflg;
+{
+	int pos, i, wrlen, r;
+	char linebuf[80];
+
+	if (lastflg)
+	  sprintf(linebuf, "BDAT %d LAST", SS->chunksize);
+	else
+	  sprintf(linebuf, "BDAT %d", SS->chunksize);
+
+	r = smtpwrite(SS, 1, linebuf, SS->pipelining, NULL);
+	/* XX: BDAT syncing processing ??? */
+	if (r != EX_OK)
+	  return r;
+
+	for (pos = 0; pos < SS->chunksize; pos += wrlen) {
+	  wrlen = SS->chunksize - pos;
+	  if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
+	  i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
+	  if (i != wrlen)
+	    return EX_TEMPFAIL;
+	  fflush(SS->smtpfp);
+	  if (ferror(SS->smtpfp))
+	    return EX_TEMPFAIL;
+	}
+	SS->chunksize = 0;
+
+	if (lastflg)
+	  r = smtp_sync(SS, r);
+
+	return r;
+}
+
+
 #ifdef	HAVE_SELECT
 
 int select_sleep(fd,timeout)
@@ -3147,7 +3324,7 @@ char **statusp;
 
 
 int
-smtp_sync(SS,r)
+smtp_sync(SS, r)
 	SmtpState *SS;
 	int r;
 {

@@ -127,6 +127,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
 	- To support RFC-1830 SMTP extension: CHUNKING
+		[ 27-Feb-1998: code in place, and works against
+		               ZMailer's receiver code.. ]
 
 - IPv6 stuff:
 	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address

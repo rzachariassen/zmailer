@@ -1,3 +1,15 @@
+1998-02-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Recognize several error conditions within  s_getc()
+	    in connection with read(2) call.
+
+	* transports/smtp/smtp.c, include/ta.h,
+	  transports/libta/writeheaders.c:
+	    Implemented the outbound RFC 1830 CHUNKING (BDAT)
+	    method for message sending; needed revised methods
+	    on header writing -- to a buffer.
+
 1998-02-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* utils/makedb/dblook.c, utils/makedb/makedb.c:

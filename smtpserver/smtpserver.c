@@ -1057,8 +1057,16 @@ SmtpState *SS;
     if (SS->s_status)
 	return SS->s_status;
     if (SS->s_readout >= SS->s_bufread) {
+    redo:
 	rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
-	if (rc <= 0) {
+	if (rc < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+		goto redo;
+	    /* Other results are serious errors -- maybe */
+	    SS->s_status = EOF;
+	    return EOF;
+	}
+	if (rc == 0) {
 	    SS->s_status = EOF;
 	    return EOF;
 	}
