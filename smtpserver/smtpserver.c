@@ -3232,6 +3232,7 @@ type220headers(SS, identflg, xlatelang, curtime)
        *  %% -- '%' character
        *  %H -- SS->myhostname
        *  %I -- '+IDENT' if 'identflg' is set
+       *  %i -- SS->rhostaddr
        *  %V -- VersionNumb
        *  %T -- curtime string
        *  %X -- xlatelang parameter
@@ -3251,6 +3252,11 @@ type220headers(SS, identflg, xlatelang, curtime)
 	  case 'H':
 	    len = strlen(SS->myhostname);
 	    memcpy(l, SS->myhostname, freespc < len ? freespc : len);
+	    l += len;
+	    break;
+	  case 'i':
+	    len = strlen(SS->rhostaddr);
+	    memcpy(l, SS->rhostaddr, freespc < len ? freespc : len);
 	    l += len;
 	    break;
 	  case 'I':

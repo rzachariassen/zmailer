@@ -657,6 +657,11 @@ contentfilter_proc(ctfstatep, fname)
 	  return NULL;
 	}
 
+	/* Free the reply state, if such exists */
+
+	if (ctfstate->pbuf) free(ctfstate->pbuf);
+	ctfstate->pbuf = NULL;
+
 	/* We have seen  "#hungry\n",  now we go and send our little thingie
 	   down the pipe... */
 
@@ -709,7 +714,7 @@ contentfilter_proc(ctfstatep, fname)
 	    int i;
 	    rc = sscanf(ctfstate->buf, "%i %i %i", &i, &i, &i);
 	  }
-	  if (rc < 3) {
+	  if (rc < 2) {
 	    /* BAD! */
 	    continue;
 	  }

@@ -895,6 +895,7 @@ PARAM  enable-router
 #  %% -- '%' character
 #  %H -- SS->myhostname
 #  %I -- '+IDENT' if 'identflg' is set
+#  %i -- remote IP address in text literal form
 #  %V -- VersionNumb
 #  %T -- curtime string
 #  %X -- xlatelang parameter

@@ -121,6 +121,7 @@ PARAM   no-multiline-replies    # except to EHLO (Bloody M$ RFC821/AppE violator
 #  %%  =  '%' character
 #  %H  =  myhostname
 #  %I  =  '+IDENT' if 'identflg' is set
+#  %i -- remote IP address in text literal form
 #  %V  =  VersionNumb
 #  %T  =  curtime string
 #  %X  =  xlatelang parameter
