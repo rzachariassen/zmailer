@@ -1,5 +1,8 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* include/libz.h, transports/mailbox/mailbox.c:
+	    Match prototypes of crc32() and pjwhash32() properly..
+
 	* router/daemonsub.c, router/functions.c, router/prototypes.h:
 	  router/router.c, include/libsh.h, libsh/builtins.c, router/db.c,
 	    Couple additional fixes on memory allocation/free strategies.

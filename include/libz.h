@@ -253,3 +253,8 @@ extern int  resources_query_pipesize __((int fildes));
 /* crc32.c */
 extern unsigned long crc32  __((const void *));
 extern unsigned long crc32n __((const void *, int));
+
+/* pjwhash32.c */
+extern unsigned long pjwhash32 __((const char *));
+extern unsigned long pjwhash32n __((const char *, int));
+
