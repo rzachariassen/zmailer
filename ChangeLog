@@ -1,5 +1,8 @@
 1999-07-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.51-pre1
+
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.h:
 	    Limit the length of the "HELO/EHLO" string, and the length
 	    of reported reversed hostname in the "rcvdfrom" envelope

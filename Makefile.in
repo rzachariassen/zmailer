@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	50-s19
+PATCHLEVEL =	51-pre1
 
 srcdir = @srcdir@
 VPATH = @srcdir@

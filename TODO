@@ -339,8 +339,3 @@ router + TA library + TA programs:
 
 	Generic: RFC-1342 aka. non-US-ASCII chars in the headers..
 		 Auto-conversion and wrapping
-
-- On the zmailer@nic.funet.fi -list there has been also talk about
-  a desire to replace the zmsh with some other language, like Scheme..
-  I am not sure a lispish language is good one -- should postmasters
-  be Lisp-Hackers to configure the ZMailer ?
