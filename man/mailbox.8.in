@@ -18,7 +18,7 @@ mailbox \- zmailer local delivery transport agent
 .I logfile
 ]
 [
-.B \-8abCDHPrV
+.B \-8abCDHPrSV
 ]
 .SH DESCRIPTION
 .I mailbox
@@ -161,7 +161,7 @@ This uses much of similar method as
 option, but directory names are derived from much more smoothly
 distributing hash function over user names, namely:
 .IR pjwhash32() .
-
+.P
 With one
 .IR \-P ,
 the calculated hash value is used by formula:
@@ -173,13 +173,16 @@ the formula is more complex: upper directory uses formula:
 .I 'A' + (hash / 26) % 26
 and lower uses formula:
 .I 'A'+(hash % 26)
-
+.P
 The result of these
 .I \-P[P]
 derived directory paths is something like:
 .I $MAILBOX/X/username
 or
 .I $MAILBOX/Y/X/username
+.IP \-S
+This option enables ``Return-Receipt-To:'' message header recognition
+and processing along with sending receipt to given address.
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
