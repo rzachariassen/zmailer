@@ -1463,7 +1463,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp)
 	    smtpwrite(SS, 0, "RSET", 0, NULL);
 
-	  if (chunkptr && chunkblk) free(chunkblk);
+	  if (SS->chunkbuf) free(SS->chunkbuf);
 
 	  return EX_TEMPFAIL;
 	}
@@ -1506,7 +1506,7 @@ deliver(SS, dp, startrp, endrp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
 	  }
 
-	  if (chunkptr && chunkblk) free(chunkblk);
+	  if (SS->chunkbuf) free(SS->chunkbuf);
 
 	  return EX_TEMPFAIL;
 	}
@@ -1579,7 +1579,7 @@ deliver(SS, dp, startrp, endrp)
 	if (r != EX_OK && SS->smtpfp && !getout)
 	  smtpwrite(SS, 0, "RSET", 0, NULL);
 
-	if (chunkptr && chunkblk) free(chunkblk);
+	if (SS->chunkbuf) free(SS->chunkbuf);
 
 	return r;
 }
@@ -1833,11 +1833,15 @@ ssputc(SS, ch, fp)
     if (ferror(fp)) return EOF;
   }
   if (SS->chunksize > CHUNK_MAX_SIZE) {
-    if (bdat_flush(SS, 0)) /* Not yet the last one! */
+    if (bdat_flush(SS, 0) != EX_OK) /* Not yet the last one! */
       return EOF;
   }
   if (SS->chunksize >= SS->chunkspace) {
+    char *s;
     SS->chunkspace <<= 1; /* Double the size */
+    SS->chunkbuf = realloc(SS->chunkbuf, SS->chunkspace);
+    if (SS->chunkbuf == NULL)
+      return EOF;
   }
   SS->chunkbuf[SS->chunksize] = ch;
   SS->chunksize += 1;
