@@ -382,6 +382,7 @@ sh_lreplace(avl, il)
 		return NULL;
 	}
 	if ('0' <= tmp->string[0] && tmp->string[0] <= '9') {
+	  fieldidx = -1;
 	  if (sscanf(tmp->string,"%i",&fieldidx) != 1 ||
 	      fieldidx < 0 || fieldidx > 99) {
 	    fprintf(stderr, lreplace_usage, car(avl)->string);
