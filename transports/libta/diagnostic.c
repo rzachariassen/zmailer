@@ -465,7 +465,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 
 	  syslogmsg = strrchr(message, '\r');
 	  if (!syslogmsg) syslogmsg = message;
-	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
+	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, syslogmsg);
 	}
 	fflush(stdout);
 }
