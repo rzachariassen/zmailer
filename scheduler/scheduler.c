@@ -1241,6 +1241,7 @@ if (novp == (void*)0x55555555L) abort();
 	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 
 	      ++i;
+	      ++ovp_count;
 	      ovp = novp;
 	    }
 	    if (verbose)
@@ -1267,6 +1268,9 @@ if (novp == (void*)0x55555555L) abort();
 	  ovp = novp;
 	}
 	
+
+	if (verbose)
+	  sfprintf(sfstdout," -- Synced %d OLD vertices\n", ovp_count);
 
 	oldcfp->rcpnts_failed = newcfp->rcpnts_failed;
 	oldcfp->haderror |= newcfp->haderror;
