@@ -1745,7 +1745,7 @@ void
  type821err(SmtpState * SS, const int code, const char *status,
 	    const char *inbuf, const char *msg,...)
 #else
- type821err(SS, code, status, inbuf, msg,...)
+ type821err(SS, code, status, inbuf, msg)
 SmtpState *SS;
 const int code;
 const char *status, *inbuf, *msg;
