@@ -37,6 +37,25 @@
   sfprintf(fp,"SYS.SchedulerMasterStarts       %10u\n",
 	   M.sys.SchedulerMasterStarts);
 
+  PIDTEST(ts.pid, ts.pid)
+  sfprintf(fp,"SC.SchedulerTimeserverPID       %10u",
+	   M.ts.pid);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+  sfprintf(fp,"SC.SchedulerTimeserverTime      %10lu\n",
+	   (unsigned long)
+#ifdef HAVE_SELECT
+	   M.ts.tv.tv_sec
+#else
+	   M.ts.time_sec
+#endif
+	   );
+  sfprintf(fp,"SC.SchedulerTimeserverStarts    %10u\n",
+	   M.sc.schedulerTimeserverStarts);
+  sfprintf(fp,"SC.SchedulerTimeserverStarttime %10u\n",
+	   M.sc.schedulerTimeserverStarts);
+
+
   PIDTEST(sys.SmtpServerMasterPID, sys.SmtpServerMasterStartTime)
   sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",
 	   M.sys.SmtpServerMasterPID);

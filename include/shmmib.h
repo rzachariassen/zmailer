@@ -206,7 +206,10 @@ struct MIB_MtaEntrySc {
   uint		MQ2sockCommandShow7;	/* spares.. */
   uint		MQ2sockCommandShow8;
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		schedulerTimeserverStarts;
+  uint		schedulerTimeserverStartTime;
+
+  uint	space[30]; /* Add to tail without need to change MAGIC */
 
 };
 

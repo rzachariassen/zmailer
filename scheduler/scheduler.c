@@ -3099,6 +3099,10 @@ static void init_timeserver()
 
 	  int space_check_count = 0;
 
+	  MIBMtaEntry->sc.schedulerTimeserverStartTime = time(NULL);
+	  MIBMtaEntry->sc.schedulerTimeserverStarts ++;
+
+
 #ifdef HAVE_SETPROCTITLE
 	  setproctitle("[TimeServer]");
 #else
