@@ -66,7 +66,10 @@ extern conscell *sh_car       __((conscell *avl, conscell *il));
 static conscell *run_cadr     __((conscell *avl, conscell *il));
 static conscell *run_caddr    __((conscell *avl, conscell *il));
 static conscell *run_cadddr   __((conscell *avl, conscell *il));
-static conscell *run_listexpand __((conscell *avl, conscell *il));
+static conscell *run_listexpand   __((conscell *avl, conscell *il));
+#if 0
+static conscell *run_newattribute __((conscell *avl, conscell *il));
+#endif
 
 static int run_stability ARGCV;
 static int run_process   ARGCV;
@@ -126,6 +129,9 @@ struct shCmd fnctns[] = {
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
 {	"listaddresses",run_listaddrs,	NULL,	NULL,	SH_ARGV	},
 {	"listexpand",	NULL,	run_listexpand,	NULL,	SH_ARGV	},
+#if 0
+{	"newattribute",	NULL,	run_newattribute, NULL,	SH_ARGV	},
+#endif
 {	"homedirectory",run_homedir,	NULL,	NULL,	0	},
 {	"rfc822date",	run_822date,	NULL,	NULL,	0	},
 {	"filepriv",	run_filepriv,	NULL,	NULL,	SH_ARGV	},
@@ -233,6 +239,33 @@ run_trace(argc, argv)
 	}
 	return 0;
 }
+
+
+int gensym;
+const char *gs_name = "g%d";
+
+static int
+run_gensym(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	printf(gs_name, gensym++);
+	putchar('\n');
+	return 0;
+}
+
+static void
+free_gensym()
+{
+	int i;
+	char buf[30];
+
+	for (i=0; i<gensym; ++i) {
+		sprintf(buf, gs_name, i);
+		v_purge(buf);
+	}
+}
+
 
 /* hostname -- get system hostname or set my idea of the hostname */
 
@@ -1729,6 +1762,77 @@ run_listexpand(avl, il)
 } /* end-of: run_listexpand() */
 
 
+#if 0
+/* newattribute()
+#(originally ZMSH script)
+#
+# Usage: newattribute <oldattribute> <key1> <value1> [ <key2> <value2> ] ...
+#
+# Returns a new attribute list symbol with the <keyN> <valueN>
+# attributes added to the contents of the <oldattribute> list.
+#
+#newattribute (oldattribute) {
+#	local a null value
+##echo "newattribute(old=$oldattribute,args=$*)" > /dev/tty
+#	a=$(gensym)
+#	eval $a=\$$oldattribute
+#	while [ "$#" != 0 ];
+#	do
+#		value=$(get $a "$1")
+#		if [ x"$value" != x"$2" ]; then
+#			null=$(setf $(get $a "$1") "$2")
+#		fi
+#		shift ; shift
+#	done
+#	echo "$a"
+#}
+*/
+
+static conscell *
+run_newattribute(avl, il)
+	conscell *avl, *il;
+{
+	conscell *oldattrname, *oldattr;
+	conscell *newname, *newvalue;
+	conscell *newalist = NULL;
+	conscell *d, **dp;
+	char symbuf[20];
+	memtypes omem = stickymem;
+
+	oldattrname = cdar(avl); /* The CDR (next) of the arg list.. */
+	newname = newvalue = NULL;
+	if (oldattrname)
+	  newname = cdr(oldattrname);
+	if (newname)
+	  newvalue = cdr(newname);
+
+	oldattr = NULL;
+	if (oldattrname && STRING(oldattrname))
+	  oldattr = v_find(oldattrname->string);
+
+	if (!oldattr || !newvalue) {
+	USAGE:
+	  return NULL; /* BOO! */
+	}
+
+	stickymem = MEM_MALLOC;
+	newalist = s_copy_tree(cdr(oldattr));
+	dp = & car(newalist);
+	d  = *dp;
+
+ XXX: REGENERATE THE LIST CONTENT
+
+	sprintf(symbuf, gs_name, gensym++);
+	v_set(symbuf,newalist);
+
+	stickymem = omem;
+
+	il = v_find(symbuf);
+	return il;
+} /* end-of: run_newattribute() */
+#endif
+
+
 static int
 run_listaddrs(argc, argv)
 	int argc;
@@ -2152,30 +2256,6 @@ run_runas(argc, argv)
 	return r;
 }
 
-int gensym;
-const char *gs_name = "g%d";
-
-static int
-run_gensym(argc, argv)
-	int argc;
-	const char *argv[];
-{
-	printf(gs_name, gensym++);
-	putchar('\n');
-	return 0;
-}
-
-static void
-free_gensym()
-{
-	int i;
-	char buf[30];
-
-	for (i=0; i<gensym; ++i) {
-		sprintf(buf, gs_name, i);
-		v_purge(buf);
-	}
-}
 
 static int
 run_uid2login(argc, argv)

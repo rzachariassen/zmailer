@@ -59,6 +59,7 @@ static conscell *sh_get		CSARGS2;
 static conscell *sh_length	CSARGS2;
 static conscell *sh_last	CSARGS2;
 static conscell *sh_lappend     CSARGS2;
+static conscell *sh_lreplace    CSARGS2;
 
 #define CSARGV2 __((int argc, const char *argv[]))
 
@@ -124,6 +125,7 @@ struct shCmd builtins[] = {
 {	"true",		sh_true,	NULL,	NULL,	0		},
 {	"false",	sh_false,	NULL,	NULL,	0		},
 {	"lappend",	NULL,	sh_lappend,	NULL,	SH_ARGV		},
+{	"lreplace",	NULL,	sh_lreplace,	NULL,	SH_ARGV		},
 {	NULL,		NULL,		NULL,	NULL,	0		},
 };
 
@@ -331,6 +333,112 @@ sh_lappend(avl, il)
 
 	while (cdr(d)) tmp = cdr(d); /* Scan to the end of the list */
 	cdr(d) = data;
+
+	stickymem = omem;
+	return NULL; /* Be quiet, don't force the caller
+			to store the result into heap just
+		        for latter discard... */
+}
+
+/*
+ *  call: lreplace list_var_name fieldidx $new_value
+ *  The varname is looked up, and indicated element of it
+ *  is replaced with a new value.
+ *
+ *  This processes 1) linear lists where index is decimal value,
+ *  and 2) key/value pair lists where 'index' is key name
+ *
+ *  If you are referring beyond end of the list (or to a key
+ *  which does not exist), the value (or key + value) is (are)
+ *  appended to the variable.
+ */
+
+static conscell *
+sh_lreplace(avl, il)
+	conscell *avl, *il;
+{
+	conscell *plist, *key, *d, *tmp, *data, **dp;
+	memtypes omem = stickymem;
+	int fieldidx;
+	char *fieldname;
+
+	const char *lreplace_usage =
+	  "Usage: %s variable-name fieldidx $new_value\n"
+"    where 'fieldidx' can be 1) numeric for index in a list, or\n"
+"    2) key/value list's key name\n";
+
+	key = cdar(avl);
+	if (key == NULL 
+	    || !STRING(key)) {
+		fprintf(stderr, lreplace_usage, car(avl)->string);
+		return NULL;
+	}
+	d = v_find(key->string);
+	if (!d) return NULL;
+
+	tmp = cdr(key);  /* Numeric value for field index */
+	if (!STRING(tmp)) {
+		fprintf(stderr, lreplace_usage, car(avl)->string);
+		return NULL;
+	}
+	if ('0' <= tmp->string[0] && tmp->string[0] <= '9') {
+	  if (sscanf(tmp->string,"%i",&fieldidx) != 1 ||
+	      fieldidx < 0 || fieldidx > 99) {
+	    fprintf(stderr, lreplace_usage, car(avl)->string);
+	    return NULL;
+	  }
+	  fieldname = NULL;
+	} else {
+	  fieldname = tmp->string;
+	}
+
+	stickymem = MEM_MALLOC;
+
+	tmp = cdr(tmp); /* data is the next elt after the field index */
+#if 0
+	if (LIST(tmp))  /* If it is a LIST object, descend into it */
+	  tmp = car(tmp);
+#endif
+	data = s_copy_tree(tmp);
+
+	dp = &car(cdr(d)); /* This is variable pointing object */
+	d = *dp;
+	if (fieldname) {
+	  while (d != NULL) {
+	    /* Ok, this is key/value pairs in a linear list */
+	    if (STRING(d) && strcmp(d->string,fieldname)==0) {
+	      /* Move pointers to the value */
+	      dp = &cdr(d);
+	      d = *dp;
+	      break;
+	    }
+	    dp = &cdr(d);
+	    d = *dp;
+	    if (d != NULL) { /* To be safe in case not key/value pairs */
+	      dp = &cdr(d);
+	      d = *dp;
+	    }
+	  }
+	  if (d == NULL) {
+	    /* Append the pair */
+	    d = newstring(strsave(fieldname));
+	    *dp = d;
+	    dp = &cdr(d);
+	    d = NULL;
+	  }
+	} else {
+	  while(fieldidx-- > 0 && d != NULL) {
+	    dp = &cdr(d);
+	    d = *dp;
+	  }
+	}
+
+	*dp = data;		/* Replace the element */
+	if (d) {
+	  cdr(data) = cdr(d);
+	  cdr(d) = NULL;	/* Disconnect and discard old data */
+	  s_free_tree(d);
+	}
 
 	stickymem = omem;
 	return NULL; /* Be quiet, don't force the caller
