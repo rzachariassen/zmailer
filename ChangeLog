@@ -19,6 +19,9 @@
 	    The code is being used both as classical  fgets(),  but also
 	    by returning exact number of characters collected.
 
+	    I am doubtfull that the previous state was in any way capable
+	    to produce system security threat.
+
 2001-05-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/fqdnaliases.cf, proto/cf/process.cf,
