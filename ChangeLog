@@ -1,3 +1,10 @@
+2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
+	    Changed the code from "scan the input to determine future
+	    space needs" to "(re)expand as more space is needed" to
+	    make sure there is no discrepancy in between the two.
+
 2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:

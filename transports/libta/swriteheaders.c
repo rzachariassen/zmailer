@@ -64,31 +64,18 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	      if (*WriteTabs == '0') {
 		/* Expand line TABs */
 		int col = 0;
-		p = s;
-		for (; linelen > 0; --linelen, ++p) {
-		  if (*p == '\t')
-		    col += 8 - (col & 7); /* 1 thru 8 */
-		  else
-		    ++col;
-		}
-		linelen = col;
-	      }
 
-	      allocsize = hsize + linelen + newlinelen + 8;
-	      if (allocsize >= chunkspace) {
-		chunkspace = allocsize + 1;
-		*chunkbufp = realloc(*chunkbufp, chunkspace );
-	      }
-	      if (*chunkbufp == NULL) return -1;
-
-	      p = hsize + (*chunkbufp);
-
-	      if (*WriteTabs == '0') {
-		/* Expand line TABs */
-		int col = 0;
-		/* Here the LINELEN is EXPANDED size, not input size! */
 		for (; linelen > 0; --linelen, ++s) {
 		  char c1 = *s;
+
+		  allocsize = hsize + linelen + newlinelen + 8;
+		  if (allocsize >= chunkspace) {
+		    chunkspace = allocsize + 9;
+		    *chunkbufp = realloc(*chunkbufp, chunkspace );
+		    if (*chunkbufp == NULL) return -1;
+		    p = hsize + (*chunkbufp);
+		  }
+
 		  if (c1 == '\t') {
 		    int c2 = col + 8 - (col & 7);
 		    while (col < c2) { /* 1 thru 8 loops */
@@ -106,6 +93,14 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		    ++hsize;
 		  }
 		}
+	      }
+
+	      allocsize = hsize + linelen + newlinelen + 8;
+	      if (allocsize >= chunkspace) {
+		chunkspace = allocsize + 9;
+		*chunkbufp = realloc(*chunkbufp, chunkspace );
+		if (*chunkbufp == NULL) return -1;
+		p = hsize + (*chunkbufp);
 	      }
 
 	      if (linelen > 0)
