@@ -1,4 +1,4 @@
-	configure  options of ZMailer package, per version 2.99.49p10
+	configure  options of ZMailer package, per version 2.99.50s17
 
 
 The  configure  script has three kinds of parameters for it:
@@ -52,6 +52,11 @@ Options:
 
 	--with-gcc
 		Compile with GCC even when you have "cc" around.
+
+	--with-generic-include="-I/..."
+		Include option for local overriders; some things may
+		be installed into e.g. /usr/local/include, and the
+		system compiler won't check that without this...
 
 	--with-zconfig=/FILE/PATH
 		Where the runtime   zmailer.conf   file is located
@@ -205,3 +210,20 @@ Options:
 		prefix to "include" and "lib" subdirectories, at which
 		the ``whoson-*.tar.gz'' client include and library files
 		are stored at.
+
+	--with-getpwnam-library="-L.. -l.."
+		Linking options for non-std getpwnam() libraries; these
+		are used at smtpserver, and at mailbox programs.
+
+	--with-openssl-prefix=/dir/path (defines both include and lib)
+	--with-openssl-include=/dir/incl/path
+	--with-openssl-lib=/dir/lib/path
+		If you want to use OpenSSL; see  doc/guides/openssl
+
+	--with-privateauth
+		Use "private/" in a part of smtpserver program module
+		compilations. (Specifically: zpwmatch.c)
+
+	--with-privatembox
+		Use "private/" in a part of mailbox program module
+		compilarions. (Specifically: sieve.c)
