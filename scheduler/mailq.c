@@ -1225,51 +1225,49 @@ static struct ctlfile *readmq2cfp(fname)
 
 	once = 1;
 	for (s = s0; i > 0; ++s, --i) {
-	  if (*s == '\n' || once) {
 
-	    char c;
-	    char *p;
+	  char c;
+	  char *p;
 
-	    if (*s == '\n') {
-	      --i; ++s;
-	    }
-	    c = *s;
-	    once = 0;
+	  if (*s == '\n') {
 	    --i; ++s;
-	    --i; ++s;
-	    if (i > 0)
-	      p = memchr(s, '\n', i);
-	    else
-	      break;
-	    if (!p) break;
-	    switch(c) {
-	    case _CF_FORMAT:
-	      *p = 0;
-	      cfp->format = 0;
-	      sscanf(s, "%i", &cfp->format);
-	      i -= (p - s);
-	      s = p;
-	      break;
-	    case _CF_LOGIDENT:
-	      cfp->logident = s;
-	      *p = 0;
-	      i -= (p - s);
-	      s = p;
-	      break;
-	    case _CF_MSGHEADERS:
-	      for (;i > 1; ++s, --i) {
-		if (s[0] == '\n' && s[1] == '\n') {
-		  *s = 0;
-		  break;
-		}
+	  }
+	  c = *s;
+	  once = 0;
+	  --i; ++s;
+	  --i; ++s;
+	  if (i > 0)
+	    p = memchr(s, '\n', i);
+	  else
+	    break;
+	  if (!p) break;
+	  switch(c) {
+	  case _CF_FORMAT:
+	    *p = 0;
+	    cfp->format = 0;
+	    sscanf(s, "%i", &cfp->format);
+	    i -= (p - s);
+	    s = p;
+	    break;
+	  case _CF_LOGIDENT:
+	    cfp->logident = s;
+	    *p = 0;
+	    i -= (p - s);
+	    s = p;
+	    break;
+	  case _CF_MSGHEADERS:
+	    for (;i > 1; ++s, --i) {
+	      if (s[0] == '\n' && s[1] == '\n') {
+		*s = 0;
+		break;
 	      }
-	      break;
-	    default:
-	      *p = 0;
-	      i -= (p - s);
-	      s = p;
-	      break;
 	    }
+	    break;
+	  default:
+	    *p = 0;
+	    i -= (p - s);
+	    s = p;
+	    break;
 	  }
 	}
 
