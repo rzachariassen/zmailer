@@ -6,22 +6,22 @@
 package ZMailer::MAILQ;
 
 use integer;
-use strict;
+#use strict;
 use IO::Handle '_IOLBF';
 use IO::Socket;
 use MD5;
-
-use Getopt::Std;
 
 %main::opts = {};
 $main::Q = undef;
 $main::chan = '';
 $main::host = '';
 
-getopt('Q:',\%main::opts);
-if ($main::opts{'Q'}) {
-    $main::Q = $main::opts{'Q'};
-}
+& ZMailer::MAILQ::getopts('vQU:',\%main::opts);
+
+$main::opts{'Q'} = 'undef' if (!defined $main::opts{'Q'});
+
+# printf "Option v: %s\n",$main::opts{'v'};
+# printf "Option Q: %s\n",$main::opts{'Q'};
 
 local($main::s);
 
@@ -31,34 +31,51 @@ $main::host = '127.0.0.1' unless (defined $main::host);
 $main::s = & ZMailer::MAILQ::new($main::host,'174');
 
 # $main::s->setdebug(1);
- 
-#if (!defined $main::s) {
-#    printf("ZMailer::MAILQ::new() yielded UNDEF\n");
-#} else {
-#    printf("ZMailer::MAILQ::new() yielded connection, salt='%s'\n", $main::s->{salt});
-#}
 
-$main::s->login("nobody","nobody");
+if (defined $main::opts{'U'}) {
+    local($user,$passwd) = split('/:,', $main::opts{'U'});
+    $main::s->login($user,$passwd);
+} else {
+    $main::s->login("nobody","nobody");
+}
 
-printf("login responce: '%s'\n",$main::s->{resp});
+if ($main::s->{resp} =~ m/^-/) {
+    printf("login responce: '%s'\n",$main::s->{resp});
+}
 
+if ($main::opts{'Q'} == 3) {
+    local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
+    printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
+    exit 0;
+} elsif ($main::opts{'Q'} == 2) {
+    local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE SHORT");
+    printf "SHOW QUEUE SHORT:\n%s\n",join("\n",@main::rc);
+    exit 0;
+} elsif ($main::opts{'Q'} == 1) {
+    local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE THREADS");
+    printf "SHOW QUEUE THREADS:\n%s\n",join("\n",@main::rc);
+    exit 0;
+}
 
 local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE THREADS");
-printf "SHOW QUEUE THREADS: rc=%s\n",$main::rc;
+# printf "SHOW QUEUE THREADS: rc=%s\n",$main::rc;
 foreach $main::l (@main::rc) {
-    printf("%s\n",$main::l);
+    # printf("%s\n",$main::l);
     if ($main::l =~ m/^    /o) {
 	local(@main::rc2);
 	($main::chan,$main::host,$main::rc) = split('/',$main::l);
+	$main::chan =~ s/[ \t]+//g;
 	($main::rc,@main::rc2) = $main::s->showcmd("SHOW THREAD ${main::chan} ${main::host}");
-	printf("SHOW THREAD ${main::chan} ${main::host}\n\t%s\n",
-	       join("\n\t",@main::rc2));
-	next;
+	# printf("SHOW THREAD ${main::chan} ${main::host}\n\t%s\n",
+	#         join("\n\t",@main::rc2));
+
+	printf "%s/%s:\n",$main::chan,$main::host;
+	foreach $main::ll (@main::rc2) {
+	    & mqprintv2($main::ll, $main::opts{'v'});
+	}
     }
 }
 
-#local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
-#printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
 
 #local($main::rc,@main::rc) = $main::s->etrncmd("ETRN mea.tmt.tele.fi");
 #printf "ETRN mea.tmt.tele.fi:\n%s\n",join("\n",@main::rc);
@@ -67,7 +84,80 @@ $main::s->bye();
 
 exit 0;
 
+sub mqprintv2 {
+    local($ll, $vv) = @_;
+
+    local(@ll) = split("\t",$ll);
+
+# Fields are:
+#
+#     SHOW THREAD channel host
+#              Reports details usable to implement  mailq-v1  like
+#              interface.  The details are TAB separated fields in
+#              a line until an LF.  Fields are:
+#
+#                 0) filepath under $POSTOFFICE/transport/
+#                 1) error address in brackets
+#                 2) recipient line offset within the control file
+#                 3) message expiry time (time_t)
+#                 4) next wakeup time (time_t)
+#                 5) last feed time (time_t)
+#                 6) count of attempts at the delivery
+#                 7) "retry in NNN" or a pending on "channel"/"thread"
+#                 8) possible diagnostic message from previous delivery attempt
+#
+
+    printf "\t%s: diag: %s\n", $ll[0], $ll[8];
+
+}
+
+
 # --------------------  ZMailer::MAILQ::  -----------------------
+
+sub getopts {
+    local($argumentative, $hash) = @_;
+    local(@args,$_,$first,$rest);
+    local($errs) = 0;
+    local @EXPORT;
+
+    @args = split( / */, $argumentative );
+    while(@ARGV && ($_ = $ARGV[0]) =~ /^-(.)(.*)/) {
+        ($first,$rest) = ($1,$2);
+        $pos = index($argumentative,$first);
+        if($pos >= 0) {
+            if(defined($args[$pos+1]) and ($args[$pos+1] eq ':')) {
+                shift(@ARGV);
+                if($rest eq '') {
+                    ++$errs unless @ARGV;
+                    $rest = shift(@ARGV);
+                }
+		$$hash{$first} = $rest;
+            } else {
+		$$hash{$first} += 1;
+
+                if($rest eq '') {
+                    shift(@ARGV);
+                }
+                else {
+                    $ARGV[0] = "-$rest";
+                }
+            }
+        }
+        else {
+            warn "Unknown option: $first\n";
+            ++$errs;
+            if($rest ne '') {
+                $ARGV[0] = "-$rest";
+            }
+            else {
+                shift(@ARGV);
+            }
+        }
+    }
+    $errs == 0;
+}
+
+
 
 sub new {
     my($host,$port) = @_;

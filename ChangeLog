@@ -5,6 +5,15 @@
 	    Playing with MAILQ-V2 code to get (experimental) version
 	    of detailed reporting a'la old mailq-v1 code.
 
+	* scheduler/mailq.pl:
+	    Now this PERL mailq supports functions:
+		mailq
+		mailq -Q
+		mailq -QQ
+		mailq -QQQ
+	    and has also option '-U' for logging with non-default
+	    username/password pair.
+
 2000-06-07  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/libta/ctlopen.c:
