@@ -2960,7 +2960,7 @@ if (SS->verboselog)
 
 	memset(&upeername, 0, sizeof(upeername));
 	upeernamelen = sizeof(upeername);
-	getpeername(s, (struct sockaddr*) &upeername, &upeernamelen);
+	getsockname(s, (struct sockaddr*) &upeername, &upeernamelen);
 
 #if defined(AF_INET6) && defined(INET6)
 	if (upeername.sai6.sin6_family == AF_INET6) {
@@ -2981,7 +2981,7 @@ if (SS->verboselog)
 		    ntohs(upeername.sai.sin_port));
 	  } else
 	    {
-	      strcat(SS->ipaddress, "|UNKNOWN-PEER-ADDRESS");
+	      strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
 	    }
 
 	notary_setwttip(SS->ipaddress);
