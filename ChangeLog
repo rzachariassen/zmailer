@@ -10,6 +10,8 @@
 	        PARAMmailqpath = "UNIX:/path/to/af_unix/mailq/port"
 		PARAMmailqpath = "TCP:174"
 	    * mailq -p /path/to/af_unix/mailq/port
+	    * mailq -p mailq    (check /etc/services for tcp/mailq)
+	    * mailq -p 174      (default case)
 
 	    Those are for running multiple schedulers in the system,
 	    and allowing each different mailq port.

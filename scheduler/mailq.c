@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <pwd.h>
+#include <stdlib.h>
 #include "mail.h"
 #include "scheduler.h"
 #include "zmalloc.h"
@@ -245,8 +246,10 @@ main(argc, argv)
 
 	  if (status < 2 || summary) {
 
-	    if (port == NULL &&
-		(serv = getservbyname(port ? port : "mailq", "tcp")) == NULL) {
+	    if (port && isdigit(*port)) {
+	      portnum = atol(port);
+	    } else if (port == NULL &&
+		       (serv = getservbyname(port ? port : "mailq", "tcp")) == NULL) {
 
 	      fprintf(stderr,"%s: cannot find 'mailq' tcp service\n",progname);
 
@@ -738,6 +741,7 @@ parse(fp)
 	names[L_CHANNEL] = "Channels:";
 	names[L_END]     = "End:";
 
+	bufsize = 0;
 	if (GETLINE(buf,bufsize,bufspace,fp))
 	  return 0;
 
@@ -755,20 +759,16 @@ parse(fp)
 	  /* We ignore the classical mailq data, just read it fast */
 	  while (1) {
 	    int c;
-	    buf[bufsize-1] = 0;
-	    if (fgets(buf, bufsize, fp) == NULL)
+	    bufsize = 0;
+	    if (GETLINE(buf, bufsize, bufspace, fp))
 	      return 1; /* EOF ? */
-	    if (buf[bufsize-1] != 0) {
-	      /* A VERY long string */
-	      while ((c = getc(fp)) != '\n' && c != EOF) ;
-	      continue;
-	    }
 	    if (memcmp(buf,"End:",4) == 0)
 	      return 1;
 	  }
 	  /* NOT REACHED */
 	}
 
+	bufsize = 0;
 	if (GETLINE(buf,bufsize,bufspace,fp))
 	  return 0;
 	if (!EQNSTR(buf, names[L_CTLFILE]))
@@ -780,7 +780,8 @@ parse(fp)
 	spt_ids[L_HOST   ] = sp_init();
 	while (1) {
 
-	  if (fgets(buf, bufsize-1, fp) == NULL)
+	  bufsize = 0;
+	  if (GETLINE(buf, bufsize, bufspace, fp))
 	    break;
 
 	  switch ((int)list) {
@@ -1040,6 +1041,7 @@ void query2(fpi, fpo)
 	unsigned char digbuf[16];
 
 	/* XX: Authenticate the query - get challenge */
+	bufsize = 0;
 	if (GETLINE(challenge, bufsize, bufspace, fpi))
 	  return;
 
@@ -1056,6 +1058,7 @@ void query2(fpi, fpo)
 	    return;
 	}
 
+	bufsize = 0;
 	if (GETLINE(buf, bufsize, bufspace, fpi))
 	    return;
 
