@@ -306,6 +306,8 @@ pick_next_thread(proc)
 	struct threadgroup  *thg  = proc->thg;
 	int once;
 
+	proc->pthread = NULL;
+
 	if (thg->cep->flags & CFG_QUEUEONLY)
 	  return 0; /* We are QUEUE ONLY group, no auto-switch! */
 

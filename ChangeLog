@@ -3,6 +3,9 @@
 	* scheduler/threads.c, scheduler/update.c:
 	    Trying to understand why 'deferred' diagnostics causes
 	    practically immediate reissuance of a task..
+	    Understanding dawns, thread rescheduling was implemented
+	    in fumes, so crazy it was (but then, I don't drink nor
+	    smoke...)
 
 	* router/functions.c:
 	    Router function "$(dequote ...)" was previously castrated

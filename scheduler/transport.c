@@ -348,7 +348,8 @@ ta_hungry(proc)
 
 	  if (proc->overfed == 0 && proc->pthread)
 	    /* If we have a thread here still, reschedule it... */
-	    thread_reschedule(proc->pthread,0,-1);
+	    if (! thread_reschedule(proc->pthread,0,-1))
+	      proc->pthread = NULL;
 
 	  return;
 	}
@@ -427,7 +428,7 @@ ta_hungry(proc)
 	     This TA may have other things to poke at! */
 
 	  thr0 = proc->pthread;
-	  proc->pthread = NULL;
+	  /* proc->pthread = NULL; */ /* NO KILL YET! */
 
 	  /* Disconnect the previous thread from the proc. */
 
@@ -447,9 +448,12 @@ ta_hungry(proc)
 	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
 	    /* We have WORK !  We are reconnected to the new thread! */
+	    /* Picked a new thread, which isn't same as THR0! */
 
-	    if (thr0 && thread_reschedule(thr0, 0, -1))
-	      delete_thread(thr0);
+	    /* Picked something, reschedule the old thread,
+	       and if it got destroyed (by expiry) loose it... */
+	    if (thr0 && !thread_reschedule(thr0, 0, -1))
+	      thr0 = NULL;
 
 	    if (verbose)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
@@ -530,9 +534,8 @@ ta_hungry(proc)
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
 	  
-	  if (thr0 && thread_reschedule(thr0, 0, -1))
-	    delete_thread(thr0);
-
+	  /* Failed to pick anything, reschedule the old thread. */
+	  if (thr0) thread_reschedule(thr0, 0, -1);
 	  return;
 
 	default: /* CFSTATE_ERROR: "0" */
@@ -951,9 +954,7 @@ if (verbose)
 	  proc->pthread->thrkids -= 1;
 
 	  /* Conditionally reschedule the thread */
-	  if (thread_reschedule(proc->pthread,0,-1))
-	    /* possibly need to delete it too! */
-	    delete_thread(proc->pthread);
+	  thread_reschedule(proc->pthread,0,-1);
 
 	  proc->pthread = NULL;
 
