@@ -806,6 +806,7 @@ char *argv[];
     char *dbtype = NULL;
     void *dbf = NULL;
     char *argv0 = argv[0];
+    int err;
 
     progname = argv[0];
 
@@ -879,28 +880,31 @@ char *argv[];
     if (cistrcmp(dbtype, "bhash") == 0)
 	typ = 4;
 #endif
-    if (typ == 0)
+
+    switch (typ) {
+    case 0:
 	usage(argv0, "unknown dbtype", 0);
+	break;
 
 #ifdef HAVE_NDBM
-    if (typ == 1) {
+    case 1:
 	ndbmfile = dbm_open(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644);
 	dbf = ndbmfile;
-    }
+	break;
 #endif
+
 #ifdef HAVE_GDBM
-    if (typ == 2) {
+    case 2:
 	/* Play loose .. don't do syncs while writing */
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".gdbm");	/* ALWAYS append this */
 	gdbmfile = gdbm_open(dbasename, 0, GDBM_NEWDB | GDBM_FAST, 0644, NULL);
 	dbf = gdbmfile;
-    }
+	break;
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-#ifdef HAVE_DB_CREATE
-    if (typ == 3) {
-        int err;
+#if defined(HAVE_DB_CREATE)
+    case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 	dbfile = NULL;
@@ -910,9 +914,10 @@ char *argv[];
 			     DB_CREATE|DB_TRUNCATE, 0644);
 	if (!err)
 	  dbf = dbfile;
-    }
-    if (typ == 4) {
-        int err;
+	break;
+
+    case 4:
+
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 	dbfile = NULL;
@@ -922,37 +927,43 @@ char *argv[];
 			     DB_CREATE|DB_TRUNCATE, 0644);
 	if (!err)
 	  dbf = dbfile;
-    }
-#elif defined(HAVE_DB_OPEN2)
-    if (typ == 3) {
+	break;
+
+#else
+#if defined(HAVE_DB_OPEN2)
+    case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 	dbfile = NULL;
 	db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
 		0644, NULL, NULL, &dbfile);
 	dbf = dbfile;
-    }
-    if (typ == 4) {
+	break;
+
+    case 4:
 	dbfile = NULL;
 	db_open(dbasename, DB_HASH,  DB_CREATE|DB_TRUNCATE,
 		0644, NULL, NULL, &dbfile);
 	dbf = dbfile;
-    }
+	break;
 #else
-    if (typ == 3) {
+    case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 	dbfile = dbopen(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644,
 			DB_BTREE, NULL);
 	dbf = dbfile;
-    }
-    if (typ == 4) {
+	break;
+
+    case 4:
 	dbfile = dbopen(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644,
 			DB_HASH, NULL);
 	dbf = dbfile;
+	break;
+#endif
+#endif
+#endif
     }
-#endif
-#endif
     if (dbf == NULL)
 	usage(argv0, "Can't open dbase file", errno);
 
