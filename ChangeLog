@@ -4,6 +4,10 @@
 	    Fix the  LogFreeSpace-kB-G  to be filled (instead of
 	    overwriting  SpoolFreeSpace-kB-G !)
 
+	* include/shmmib.h, transports/smtp/smtp.c, scheduler/mailq.inc:
+	    Added smtp TA process creation counter, and a gauge to
+	    observe how many there are running in parallel.
+
 2003-05-26  Matti Aarnio  <mea@zmailer.org>
 
 	* bin/mkdep.in, bin/mklibdep.in, compat/rmail/Makefile.in,
