@@ -1,3 +1,10 @@
+1998-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    A screwup in DBAT dot-processing algorithm.
+	    Basically BDAT phase did line-start dot-duplication,
+	    which is done all right in DATA phase :-/
+
 1998-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf:

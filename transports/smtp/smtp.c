@@ -309,6 +309,7 @@ typedef struct {
   int alarmcnt;
   int column;
   int lastch;
+  int chunking;
 
   char *chunkbuf;		/* CHUNKING, RFC-1830 */
   int   chunksize, chunkspace;
@@ -1086,7 +1087,6 @@ deliver(SS, dp, startrp, endrp)
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
-	int chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 	time_t env_start, body_start, body_end;
 	struct rcpt *more_rp = NULL;
 	char **chunkptr = NULL;
@@ -1095,6 +1095,8 @@ deliver(SS, dp, startrp, endrp)
 
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
+
+	SS->chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 
 	convertmode = _CONVERT_NONE;
 	if (conv_prohibit >= 0) {
@@ -1359,10 +1361,10 @@ deliver(SS, dp, startrp, endrp)
 	SS->chunkbuf  = NULL;
 
 #ifndef DO_CHUNKING
-	chunking = 0;
+	SS->chunking = 0;
 #endif
 
-	if (chunking) {
+	if (SS->chunking) {
 
 	  chunkptr = & chunkblk;
 
@@ -1591,7 +1593,7 @@ deliver(SS, dp, startrp, endrp)
 
 	dotmode = 1;
 
-	if (chunking) {
+	if (SS->chunking) {
 	  r = bdat_flush(SS, 1);
 	} else {
 	  r = smtpwrite(SS, 1, ".", 0, NULL);
@@ -1965,7 +1967,7 @@ writebuf(SS, buf, len)
 
 	  if (state && c != '\n') {
 	    state = 0;
-	    if (c == '.') {
+	    if (c == '.' && !SS->chunking) {
 	      if (ssputc(SS, c, fp) == EOF || ssputc(SS, c, fp) == EOF) {
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
@@ -2130,7 +2132,7 @@ writemimeline(SS, buf, len, convertmode)
 	    }
 	  } /* .... end convertmode	*/
 
-	  if (column == 0 && c == '.') {
+	  if (column == 0 && c == '.' && !SS->chunking) {
 	    if (ssputc(SS, c, fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
