@@ -607,7 +607,7 @@ fi
 		    return (((hold "$defer" "$address" $attr)))
 
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
-	    (.+)\+.+
+	    ([^+]+)\+.+
 		# Try expanding 'user+', and then plain 'user'
 		key="\1+"
 		if $(didexpand 'aliases+') && a="$(aliases "\1+")"; then
@@ -627,7 +627,7 @@ fi
 		fi
 		# For a "user+" there is no homedirectory, try plusless below
 		;;
-	    (.+)\+(.*)
+	    ([^+]+)\+(.*)
 		# It was 'user+', try now plain 'user' for
 		# aliases, and .forward
 		key="\1"

@@ -1,5 +1,12 @@
 2001-03-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/cf/aliases.cf:
+	    The FOO+TAG needs to cut off at the first '+' char, not
+	    by the last (or whatever the REGEXP code happens to use)
+
+	* libsh/regex.c libsh/regex.h:
+	    Updated this pair to a very recent GLIBC contained version.
+
 	* transports/smtp/smtp.c:
 	    At response wait timeout, do have a GOAL TIME of when
 	    to timeout, not returning to it over and over again..
