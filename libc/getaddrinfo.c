@@ -543,14 +543,16 @@ static struct gaih gaih[] = {
 };
 
 int
-getaddrinfo __((const char *name, const char *service,
-		const struct addrinfo *hints, struct addrinfo **pai));
+_getaddrinfo_ __((const char *name, const char *service,
+		  const struct addrinfo *hints, struct addrinfo **pai,
+		  FILE *vlog));
 int
-getaddrinfo (name, service, hints, pai)
+_getaddrinfo_ (name, service, hints, pai, vlog)
      const char *name;
      const char *service;
      const struct addrinfo *hints;
      struct addrinfo **pai;
+     FILE *vlog;
 {
   int i = 0, j = 0, last_i = 0;
   struct addrinfo *p = NULL, **end;
@@ -641,6 +643,19 @@ getaddrinfo (name, service, hints, pai)
     freeaddrinfo (p);
 
   return last_i ? -(last_i & GAIH_EAI) : EAI_NONAME;
+}
+
+int
+getaddrinfo __((const char *name, const char *service,
+		  const struct addrinfo *hints, struct addrinfo **pai));
+int
+getaddrinfo (name, service, hints, pai)
+     const char *name;
+     const char *service;
+     const struct addrinfo *hints;
+     struct addrinfo **pai;
+{
+  return _getaddrinfo_(name, service, hints, pai, NULL);
 }
 
 void freeaddrinfo __((ai))
