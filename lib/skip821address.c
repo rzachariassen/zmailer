@@ -19,7 +19,7 @@ char *skip821address(s)
       ++s;
       if (*s == 0)
 	break;
-      continue,
+      continue;
     }
     if (c == quote) /* 'c' is non-zero here */
       quote = 0;
