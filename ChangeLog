@@ -1,5 +1,8 @@
 1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* doc/guides/openssl, doc/guides/configure:
+	    A bit of updates...
+
 	* smtpserver/cfgread.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
 	  smtpserver/smtptls.c, proto/smtpserver.conf.in,
