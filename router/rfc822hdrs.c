@@ -500,9 +500,18 @@ hdr_print(h, fp)
 			break;
 		}
 		if ((ap = h->h_contents.r->r_from) != NULL) {
+		    if (ap->a_tokens == NULL) {
+			if (ap->a_pname[0] != '(') {
+			  fprintf(fp, " from");
+			  col += 5;
+			}
+			fprintf(fp, " %s", ap->a_pname);
+			col += strlen(ap->a_pname)+1;
+		    } else {
 			fprintf(fp, " from ");
 			col += 6;
 			col += printAddress(fp, ap->a_tokens, 0);
+		    }
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
 			cl = printAddress(fp, ap->a_tokens, col+6);

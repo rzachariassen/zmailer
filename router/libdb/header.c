@@ -52,11 +52,11 @@ struct headerinfo optional_hdrs[] = {
 { "encrypted",		Encrypted,	nilUserType,	normal		},
 { "errors-to",		AddressList,	Sender,		normal		},
 { "obsoletes",		MessageIDList,	nilUserType,	normal		},
-#if 0
+#if 0 /* Don't parse these .. */
+{ "received",		Received,	nilUserType,	normal		},
 { "keywords",		PhraseList,	nilUserType,	normal		},
 { "references",		References,	nilUserType,	normal		},
 { "in-reply-to",	References,	nilUserType,	normal		},
-{ "received",		Received,	nilUserType,	normal		},
 #endif
 };
 
@@ -74,7 +74,11 @@ struct headerinfo envelope_hdrs[] = {
 { "identinfo",	nilHeaderSemantics,	nilUserType,	eIdentinfo	},
 { "loginname",		UserAtDomain,	nilUserType,	ePrettyLogin	},
 { "notaryret",	nilHeaderSemantics,	nilUserType,	eNotaryRet	},
-{ "rcvdfrom",		UserAtDomain,	nilUserType,	eRcvdFrom	},
+#if 1
+{ "rcvdfrom",	nilHeaderSemantics,	nilUserType,	eRcvdFrom	},
+#else
+{ "rcvdfrom",		DomainName,	nilUserType,	eRcvdFrom	},
+#endif
 { "to",			AddressList,	Recipient,	eTo		},
 { "todsn",	nilHeaderSemantics,	Recipient,	eToDSN		},
 { "user",		Mailbox,	nilUserType,	eUser		},

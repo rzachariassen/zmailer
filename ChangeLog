@@ -1,5 +1,11 @@
 1999-07-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822.c, router/rfc822hdrs.c, router/libta/header.c:
+	    A bit more gymnastics to get rid of:
+	        Received: from localhost (user '...' uid#1234) by ...
+	    and to replace it with:
+	        Received: (from localhost user '...' uid#1234) by ...
+
 	* transports/smtp/smtp.c:
 	    Fixed the errorneous 'Final-Recipient:' lines in the
 	    delivery reports.

@@ -1230,10 +1230,10 @@ sequencer(e, file)
 	    /* ts = strnsave("", totlen); */
 	    ts = tmalloc(totlen); /* Alloc the space */
 	    if (h) {
-	      sprintf(ts, "rcvdfrom localhost (user: '%s' uid#%ld fake: %s)",
+	      sprintf(ts, "rcvdfrom (from localhost user: '%s' uid#%ld fake: %s)",
 		      s, (long) e->e_statbuf.st_uid, h->h_lines->t_pname);
 	    } else
-	      sprintf(ts, "rcvdfrom localhost (user: '%s' uid#%ld)",
+	      sprintf(ts, "rcvdfrom (from localhost user: '%s' uid#%ld)",
 		      s, (long) e->e_statbuf.st_uid);
 
 	  } else {
@@ -1242,7 +1242,7 @@ sequencer(e, file)
 	    s = uidpwnam(e->e_statbuf.st_uid);
 	    totlen = 60 + strlen(s);
 	    ts = tmalloc(totlen);
-	    sprintf(ts, "rcvdfrom localhost (user: '%s', uid#%ld)",
+	    sprintf(ts, "rcvdfrom (from localhost user: '%s', uid#%ld)",
 		    s, (long) e->e_statbuf.st_uid);
 	  }
 
