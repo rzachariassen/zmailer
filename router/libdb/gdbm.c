@@ -106,8 +106,8 @@ open_gdbm(sip, roflag, comment)
 		if (db == NULL) {
 		  ++deferit;
 		  v_set(DEFER, DEFER_IO_ERROR);
-		  fprintf(stderr, "%s: cannot open %s!\n",
-			  comment, sip->file);
+		  fprintf(stderr, "%s: cannot open %s! (%s)\n",
+			  comment, sip->file, gdbm_strerror(gdbm_errno));
 		  return NULL;
 		}
 	}

@@ -1,5 +1,10 @@
 2004-03-31  Matti Aarnio  <mea@zmailer.org>
 
+	* router/libdb/gdbm.c:
+	    Eugene Crosser reports odd gdbm database opening problems
+	    in, and I see the same in Solaris, but not in Linux...
+	    Adding now some extra debug stuff to see what goes wrong.
+
 	* include/sleepycatdb.h, lib/sleepycatdb.c, man/smtpserver.8.in,
 	  smtpserver/policytest.h, smtpserver/policytest.c:
 	    Dot in some notes about SleepyCat DB RPC mechanisms..
