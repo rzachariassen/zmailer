@@ -471,12 +471,12 @@ static int mq2cmd_show(mq,s)
 
   mode = -1;
 
-  if (strcmp(t,"CONDENSED") == 0)
+  if (strcmp(t,"SHORT") == 0)
     mode = MQ2MODE_QQ;
   else if (strcmp(t,"THREADS") == 0)
     mode = MQ2MODE_FULL;
 
-  if (! (mode & mq->auth)) /* If not allowed operation, exit! */
+  if (mode < 0 || ! (mode & mq->auth)) /* If not allowed operation, exit! */
     return -1;
 
   mq2_puts(mq, "+OK until LF.LF\n");

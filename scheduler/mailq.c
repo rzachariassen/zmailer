@@ -1028,7 +1028,7 @@ void query2(fpi, fpo)
 	if (schedq) {
 
 	  if (schedq > 1)
-	    strcpy(buf,"SHOW QUEUE CONDENSED\n");
+	    strcpy(buf,"SHOW QUEUE SHORT\n");
 	  else
 	    strcpy(buf,"SHOW QUEUE THREADS\n");
 

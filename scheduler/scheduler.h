@@ -215,6 +215,8 @@ struct mailq {
 	char		*outbuf;
 };
 
-#define MQ2MODE_SNMP	0001
-#define MQ2MODE_QQ	0002
-#define MQ2MODE_FULL	0004
+#define MQ2MODE_SNMP	0x0001
+#define MQ2MODE_QQ	0x0002
+#define MQ2MODE_FULL	0x0004
+#define MQ2MODE_ETRN	0x0008
+#define MQ2MODE_KILL	0x0010

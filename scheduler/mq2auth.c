@@ -35,6 +35,47 @@ struct mq2pw {
 	int auth;
 };
 
+struct mq2keys {
+  long value;
+  char *name;
+};
+static struct mq2keys keys[] =
+{
+  { 0,			"NONE"	},
+  { MQ2MODE_SNMP,	"SNMP"	},
+  { MQ2MODE_QQ,		"QQ"	},
+  { MQ2MODE_FULL,	"TT"	},
+  { MQ2MODE_ETRN,	"ETRN"	},
+  { MQ2MODE_KILL,	"KILL"	},
+  /* other modes ? */
+  { 0x7fffffff,		"ALL"	},
+  { 0, NULL },
+};
+
+
+static long mq2authtokens(s)
+     char *s;
+{
+  char *p = s;
+  long rc = 0;
+  struct mq2keys *m;
+
+  while (p && *p) {
+    s = p;
+    while (*p && *p != ' ') ++p;
+    if (*p) *p = 0; else p = NULL;
+    for (m = keys;m->name;++m) {
+      if (strcmp(m->name,s)==0) {
+	rc |= m->value;
+	break;
+      }
+    }
+    if (p) *p++ = ' ';
+  }
+  return rc;
+}
+
+
 
 static struct mq2pw * authuser(user)
      char *user;
@@ -65,10 +106,7 @@ static struct mq2pw * authuser(user)
       *s++ = '\000';
       mpw.attrs = s;
 
-      /* XXXX: FIXME!  SOME KEYWORDS INSTEAD OF MAGIC INTEGER! */
-
-      mpw.auth = 0;
-      sscanf(s,"%i",&mpw.auth);
+      mpw.auth = mq2authtokens(s);
       return & mpw;
     }
   }

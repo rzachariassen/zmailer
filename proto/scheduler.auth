@@ -4,7 +4,7 @@
 # Fields are double-colon (':') separated, and are:
 #   - Username
 #   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
-#   - Enabled attributes (keywords - should be, some day..)
+#   - Enabled attributes (tokens, space separated)
 #
 # Default-account for 'mailq' is 'nobody' with password 'nobody'.
 # Third field is at the moment a WORK IN PROGRESS!
@@ -13,4 +13,14 @@
 #   OWNER:      root
 #   PROTECTION: 0600
 #
-nobody:nobody:0x0001
+# Attribute tokens:
+#	ALL	well, a wild-card enabling everything
+#	SNMP	"SHOW SNMP"
+#	QQ	"SHOW QUEUE SHORT"
+#	TT	"SHOW QUEUE THREADS", "SHOW THREAD channel/host"
+#	ETRN	"START THREAD channel host"
+#	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
+#
+nobody:nobody:SNMP ETRN
+#watcher:zzzzz:SNMP QQ TT ETRN
+#root:zzzzzzz:ALL
