@@ -459,7 +459,9 @@ ta_hungry(proc)
 	  /* Unlink me from the active chain */
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+
 	  if (proc->pthread) {
+
 	    if (proc->pthread->proc == proc) /* Was chain head */
 	      proc->pthread->proc = proc->pnext;
 
@@ -871,10 +873,6 @@ if (verbose)
 	  pipes_shutdown_child(tofd);
 	close(fromfd);
 
-	/* Remove this entry from the chains */
-	if (proc->pnext) proc->pnext->pprev = proc->pprev;
-	if (proc->pprev) proc->pprev->pnext = proc->pnext;
-
 	/* Reschedule the vertices that are left
 	   (that were not reported on).		*/
 
@@ -909,6 +907,10 @@ if (verbose)
 	      proc->thg->idleproc = proc->pnext;
 	  }
 	}
+
+	/* Remove this entry from the chains */
+	if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	if (proc->pprev) proc->pprev->pnext = proc->pnext;
 
 	/* If e.g. RESCHEDULE has not destroyed this thread-group.. */
 	if (proc->thg) {
