@@ -262,8 +262,8 @@ struct config_entry *cep;
 		}
 	}
 
-	thr->vertices   = vtx;
-	thr->lastvertex = vtx;
+	thr->thvertices   = vtx;
+	thr->lastthvertex = vtx;
 	thr->jobs       = 1;
 	vtx->thread     = thr;
 	thr->channel    = strsave(vtx->orig[L_CHANNEL]->name);
@@ -320,7 +320,7 @@ pick_next_thread(proc)
 
 	  if (thr->proc == NULL) {
 
-	    struct vertex  * vp = thr->vertices;
+	    struct vertex  * vp = thr->thvertices;
 	    struct web     * ho = vp->orig[L_HOST];
 	    struct web     * ch = vp->orig[L_CHANNEL];
 
@@ -416,8 +416,8 @@ struct vertex *ap, *vp;
 	  ap->previtem->nextitem = vp;
 	ap->previtem = vp;
 	vp->nextitem = ap;
-	if (ap == thr->vertices)
-	  thr->vertices = vp;
+	if (ap == thr->thvertices)
+	  thr->thvertices = vp;
 	vp->thread = thr;
 }
 
@@ -429,16 +429,16 @@ static void _thread_linktail(thr,vp)
 struct thread *thr;
 struct vertex *vp;
 {
-	if (thr->vertices != NULL) {
-	  thr->lastvertex->nextitem = vp;
-	  vp->previtem    = thr->lastvertex;
+	if (thr->thvertices != NULL) {
+	  thr->lastthvertex->nextitem = vp;
+	  vp->previtem    = thr->lastthvertex;
 	} else {
-	  thr->vertices   = vp;
+	  thr->thvertices = vp;
 	  vp->previtem    = NULL;
 	}
-	vp->nextitem    = NULL;
-	vp->thread      = thr;
-	thr->lastvertex = vp;
+	vp->nextitem      = NULL;
+	vp->thread        = thr;
+	thr->lastthvertex = vp;
 }
 
 void thread_linkin(vp,cep,cfgid, ce_fillin)
@@ -641,10 +641,12 @@ struct vertex *vtx;
 	if (vtx->nextitem != NULL)
 	  vtx->nextitem->previtem = vtx->previtem;
 
-	if (thr->vertices   == vtx)
-	  thr->vertices   = vtx->nextitem;
-	if (thr->lastvertex == vtx)
-	  thr->lastvertex = vtx->previtem;
+	if (thr) {
+	  if (thr->thvertices   == vtx)
+	    thr->thvertices     = vtx->nextitem;
+	  if (thr->lastthvertex == vtx)
+	    thr->lastthvertex   = vtx->previtem;
+	}
 
 	vtx->nextitem = NULL;
 	vtx->previtem = NULL;
@@ -673,14 +675,14 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (thr && thr->proc) {
+	if (thr && thr->proc)
 	  assert_pvertex_null(vp);
-	  unthread(vp);
-	}
+
+	unthread(vp);
 
 	/* The thread can now be EMPTY! */
 
-	if (thr && (thr->vertices == NULL))
+	if (thr && (thr->thvertices == NULL))
 	  delete_thread(thr, ok);
 }
 
@@ -719,7 +721,7 @@ struct thread *thr;
 	    emalloc(ur_size * sizeof (struct vertex *));
 	}
 	/* 2) Store the vertices into a re-arrange array (and count) */
-	for (n = 0, vp = thr->vertices; vp != NULL; vp = vp->nextitem) {
+	for (n = 0, vp = thr->thvertices; vp != NULL; vp = vp->nextitem) {
 	  if (n >= ur_size) {
 	    ur_size *= 2;
 	    ur_arr = (struct vertex **)realloc((char *)ur_arr,
@@ -760,8 +762,8 @@ struct thread *thr;
 	ur_arr[n-1]->nextitem = NULL;
 	/* 5) Finish the re-arrangement by saving the head,
 	      and tail pointers */
-	thr->vertices   = ur_arr[  0];
-	thr->lastvertex = ur_arr[n-1];
+	thr->thvertices   = ur_arr[  0];
+	thr->lastthvertex = ur_arr[n-1];
 }
 
 
@@ -780,7 +782,7 @@ thread_start(thr)
 struct thread *thr;
 {
 	int rc;
-	struct vertex      *vp  = thr->vertices;
+	struct vertex      *vp  = thr->thvertices;
 	struct threadgroup *thg = thr->thgrp;
 	struct config_entry *ce = &(thr->thgrp->ce);
 	struct web         *ho  = vp->orig[L_HOST];
@@ -846,7 +848,7 @@ struct thread *thr;
 	    goto re_pick;
 
 	  proc->pthread  = thr;
-	  proc->pvertex  = thr->vertices;
+	  proc->pvertex  = thr->thvertices;
 
 	  /* Thread-groups are made such that here at thread_start() we
 	     can always switch over in between threads */
@@ -881,11 +883,11 @@ struct thread *thr;
 	  proc->state   = CFSTATE_LARVA;
 	  proc->overfed = 1;
 
-	  proc->pvertex = thr->vertices;
+	  proc->pvertex = thr->thvertices;
 	  proc->pthread = thr;
 
-	  thr->proc           = proc;
-	  thr->vertices->proc = proc;
+	  thr->proc             = proc;
+	  thr->thvertices->proc = proc;
 
 	  ta_hungry(proc);
 
@@ -895,7 +897,7 @@ struct thread *thr;
 	/* Check resource limits - MaxTa, MaxChan, MaxThrGrpTa */
 	/* If resources are exceeded, reschedule.. */
 
-	vp = thr->vertices;
+	vp = thr->thvertices;
 
 	if (numkids >= ce->maxkids)
 	  vp->ce_pending = SIZE_L;
@@ -936,9 +938,9 @@ struct thread *thr;
 	   mtime, if in AGEORDER..) */
 	thread_vertex_shuffle(thr);
 
-	rc = start_child(thr->vertices,
-			 thr->vertices->orig[L_CHANNEL],
-			 thr->vertices->orig[L_HOST]);
+	rc = start_child(thr->thvertices,
+			 thr->thvertices->orig[L_CHANNEL],
+			 thr->thvertices->orig[L_HOST]);
 
 	if (!rc)
 	  thr->attempts += 1;
@@ -1013,7 +1015,7 @@ struct thread *thr;
 int index;
 time_t retrytime;
 {
-	struct vertex *vtx = thr->vertices;
+	struct vertex *vtx = thr->thvertices;
 	time_t wakeup = 0;
 	int skew;
 
@@ -1409,7 +1411,7 @@ struct thread *th;
 	register time_t oo = now+1;
 	register struct vertex *vp;
 
-	vp = th->vertices;
+	vp = th->thvertices;
 	while (vp) {
 	  if (vp->cfp->mtime < oo)
 	    oo = vp->cfp->mtime;
@@ -1480,7 +1482,7 @@ void thread_report(fp,mqmode)
 	      continue; /* Next! */
 
 	    {
-	      struct vertex *vp = thr->vertices;
+	      struct vertex *vp = thr->thvertices;
 	      while (vp != NULL) {
 		rcptsum += vp->ngroup;
 		vp = vp->nextitem;
@@ -1489,9 +1491,9 @@ void thread_report(fp,mqmode)
 
 	    if (mqmode & MQ2MODE_FULL) {
 	      width = sfprintf(fp,"    %s/%s/%d",
-			       /* thr->vertices->orig[L_CHANNEL]->name */
+			       /* thr->thvertices->orig[L_CHANNEL]->name */
 			       thr->channel,
-			       /* thr->vertices->orig[L_HOST]->name */
+			       /* thr->thvertices->orig[L_HOST]->name */
 			       thr->host,
 			       thr->thgrp->withhost);
 	      if (width < 0) break; /* error.. */
@@ -1542,10 +1544,11 @@ void thread_report(fp,mqmode)
 	      saytime((long)oldest_age_on_thread(thr), timebuf, 1);
 	      sfprintf(fp, " QA=%s", timebuf);
 
-	      if (thr->vertices && thr->vertices->ce_pending)
-		if (thr->vertices->ce_pending != SIZE_L)
-		  sfprintf(fp, "%s", (thr->vertices->ce_pending == L_CHANNEL ?
-				      " channelwait" : " threadwait"));
+	      if (thr->thvertices && thr->thvertices->ce_pending)
+		if (thr->thvertices->ce_pending != SIZE_L)
+		  sfprintf(fp, "%s",
+			   (thr->thvertices->ce_pending ==
+			    L_CHANNEL ? " channelwait" : " threadwait"));
 	      sfprintf(fp, "\n");
 	    }
 	  }

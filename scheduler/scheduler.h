@@ -121,8 +121,8 @@ struct thread {
 	struct thread	*nextthg;	/* Next one in thread GROUP	    */
 	struct thread	*prevthg;	/* previous one..		    */
 	struct threadgroup *thgrp;	/* our group-leader		    */
-	struct vertex	*vertices;	/* First one of the vertices	    */
-	struct vertex	*lastvertex;	/* Last one of the vertices	    */
+	struct vertex	*thvertices;	/* First one of the thread vertices */
+	struct vertex	*lastthvertex;	/* Last one of the thread vertices  */
 	struct procinfo	*proc;		/* NULL or ptr to xport proc	    */
 	int		jobs;		/* How many items in this thread    */
 };

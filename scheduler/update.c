@@ -255,6 +255,8 @@ unctlfile(cfp, no_unlink)
 }
 
 /* unvertex() .. the ``vp'' CAN'T be invalid.. */
+/* As a side-effect; THR where this VTX is one of members *may*
+   become deleted in case the VTX (kids-)count goes to zero.. */
 void unvertex(vp, justfree, ok)
 	register struct vertex *vp;
 	int justfree, ok;

@@ -359,7 +359,7 @@ ta_hungry(proc)
 	    thread_vertex_shuffle(thr);
 
 	    thr->attempts += 1;
-	    proc->pvertex = thr->vertices;
+	    proc->pvertex = thr->thvertices;
 	    proc->pthread = thr;
 
 	    thr->proc           = proc;
