@@ -987,7 +987,8 @@ if (debug)
 	      cfp->fd = -1;
 	      cfp->haderror = 0;
 	      cfp->head = NULL;
-	      cfp->nlines = 0;
+	      cfp->nlines        = 0;
+	      cfp->msgbodyoffset = 0;
 	      cfp->contents = NULL;
 	      cfp->logident = NULL;
 	      cfp->id = 0;
@@ -1258,6 +1259,10 @@ static struct ctlfile *readmq2cfp(fname)
 	  free(cfp);
 	  return NULL;
 	}
+
+	sprintf(path, "%s/queue/%s", postoffice, fname);
+	if (lstat(path, &stbuf) == 0)
+	  cfp->msgbodyoffset = stbuf.st_size;
 
 	s0[i] = 0;
 
@@ -1589,12 +1594,12 @@ void query2(fpi, fpo)
 	      if (cfp) {
 		if (j == 0) {
 		  /* First recipient in the group */
-		  printf("\t ");
+		  printf("\t");
 		  if (cfp->logident) {
-		    printf(" id\t%s, ", cfp->logident);
+		    printf(" id\t%s,", cfp->logident);
 		  }
 		  if (verbose > 1) {
-		    printf(" bytes %ld", (long)cfp->nlines);
+		    printf(" bytes %ld", (long)cfp->msgbodyoffset);
 		  }
 		  printf("\n");
 
