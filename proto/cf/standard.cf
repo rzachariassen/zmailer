@@ -276,7 +276,7 @@ elif [ ! -z "$preowner" -a ! -z "$postowner" ]; then
 fi
 
 #| Domains with these toplevels will not be canonicalized via DNS lookup
-#| This list is from ISOC table of 16-April-95
+#| This list is from ISOC table of 16-April-95  + "su"
 
 toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba
 	bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz
@@ -293,7 +293,7 @@ toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba
 	to tp tr tt tv tw tz ua ug uk um us uy uz va vc ve vg
 	vi vn vu wf ws ye yu za zm zr zw"
 
-relation -lt incore istoplevel
+relation -lbt incore istoplevel
 
 for x in $toplevels
 do

@@ -14,8 +14,115 @@
 
 provide canonicalize
 
+
+focus (address) {
+	local domain tmp seenuucp
+
+	domain=''
+	seenuucp=false
+	tsift "$address" in
+	(.*)<@>(.*)
+			canonicalize "\1\2"
+			return
+			;; # degenerate case
+	(.+)<@(.+)%(.+)>(.*)
+			address="\1%\2<@\3>\4"
+			continue
+			 ;;	# ripple % to @
+	(.+)%(.+)<@($orgdomains)>(.*)
+			address="\1<@\2>\4"
+			continue
+			;;
+	(.*)<@\[(.)\]>(.*)
+			break
+			;;
+	(.*)<@(.+)\.uucp>(.*)
+			address="\1<@\2>\3"
+			seenuucp=true
+			continue
+			;;
+	(.*)<@(.)>([,:])?(.*)
+			if [ "\2" = "$uucpname" ]; then
+				canonicalize "\1\4" ; return
+			elif [ $seenuucp = false ]; then
+				domain=$(deliver "\2") ||
+				domain=$(canon "\2")
+			fi
+			;;
+	(.*)<@(.+)>(.*)	tmp="\2"
+			if [ -z "$domain" ]; then
+				ssift "$tmp" in
+				.+\.(.+).?
+					if [ $(istoplevel "\1") ] ; then
+						domain="$tmp"
+						break;
+					fi
+					;;
+				.*	if [ $seenuucp = false ]; then
+						domain=$(deliver "$tmp") ||
+						domain=$(canon "$tmp")
+					fi
+					;;
+				tfiss
+			fi
+			[ "$domain" ] && address="\1<@$domain>\3"
+			;;
+	(.*)<@(.)>(.*)	if [ $seenuucp = true ]; then
+				address="\1<@\2.uucp>\3"
+			fi ;;
+	tfist
+	echo "$address"
+}	# end of focus
+
+#
+# Safeguard if canon() is not there
+#
+case "$(type canon)" in
+*"not found")
+	canon () { echo "$@" } ;;
+esac
+#
+# Safeguard if deliver() is not there
+#
+case "$(type deliver)" in
+*"not found")
+	deliver () { return 1 } ;;
+esac
+
+
+#
+# Returns canonical name of the given host
+#
+canonical (host) {
+	local tmp
+#
+#  Now a big question:
+#
+#	Do you want to put your system to hold for the DNS lookups at
+#	the router, or will you let the SMTP transport agents to handle
+#	such things in much more parallel fashion as they can under the
+#	scheduler.  If you want to do the holding, use $(canon ..) version.
+#
+#	If you don't do $(canon ..), this MTA will not rewrite remote
+#	hostname CNAME mappings.  (Which IMO isn't all that bad [mea])
+#
+
+	tmp="$(deliver "$host")" && return "$tmp"
+
+	# Not locally known, is it multi-component domain with
+	# known toplevel ?   If not, lets do $(canon ..) anyway!
+	tsift "$host" in
+	.+\.(.)
+		[ $(istoplevel "\1") ] && return "$host"
+		;;
+	tfist
+	tmp="$(canon "$host")" && return "$tmp"
+
+	return "$host"
+}
+
 canonicalize (address) {
-	address="$(dequote \"$address\")"
+	address="$(dequote "$address")"
 #
 # We need string ssift to detect '|' because '|' is not RFC822 special
 #
@@ -52,7 +159,7 @@ canonicalize (address) {
 		continue
 		;;
 	@([^,:]+)([,:].+)			# route-addr
-		address="<@$(canonical \"\1\")>\2\3"
+		address="<@$(canonical "\1")>\2\3"
 		break
 		;;
 #
@@ -67,7 +174,7 @@ canonicalize (address) {
 		break				# canonical uucp names
 		;;
 	(.*)@([^@]*)				# addr-spec, rightmost '@'
-		address="\1<@$(canonical \"\2\")>"
+		address="\1<@$(canonical "\2")>"
 		break
 		;;
 #
@@ -112,44 +219,6 @@ canonicalize (address) {
 	echo "$address"
 }
 
-
-#
-# Returns canonical name of the given host
-#
-canonical (host) {
-	local tmp
-#
-#  Now a big question:
-#
-#	Do you want to put your system to hold for the DNS lookups at
-#	the router, or will you let the SMTP transport agents to handle
-#	such things in much more parallel fashion as they can under the
-#	scheduler.  If you want to do the holding, use $(canon ..) version.
-#
-#	If you don't do $(canon ..), this MTA will not rewrite remote
-#	hostname CNAME mappings.  (Which IMO isn't all that bad [mea])
-#
-
-#	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"
-	tmp="$(deliver "$host")" || tmp="$host"
-
-	echo "$tmp"
-}
-
-#
-# Safeguard if canon() is not there
-#
-case "$(type canon)" in
-*"not found")
-	canon () { echo "$@" } ;;
-esac
-#
-# Safeguard if deliver() is not there
-#
-case "$(type deliver)" in
-*"not found")
-	deliver () { return 1 } ;;
-esac
 
 
 #
@@ -222,69 +291,3 @@ xx_canonicalize (address) {
 	tfiss
 	echo "$address"
 }	# end of canonicalize
-
-focus (address) {
-	local domain tmp seenuucp
-
-	domain=''
-	seenuucp=false
-	tsift "$address" in
-	(.*)<@>(.*)
-			canonicalize "\1\2"
-			return
-			;; # degenerate case
-	(.+)<@(.+)%(.+)>(.*)
-			address="\1%\2<@\3>\4"
-			continue
-			 ;;	# ripple % to @
-	(.+)%(.+)<@($orgdomains)>(.*)
-			address="\1<@\2>\4"
-			continue
-			;;
-	(.*)<@\[(.)\]>(.*)
-			break
-			;;
-	(.*)<@(.+)\.uucp>(.*)
-			address="\1<@\2>\3"
-			seenuucp=true
-			continue
-			;;
-	(.*)<@(.)>([,:])?(.*)
-			if [ "\2" = "$uucpname" ]; then
-				canonicalize "\1\4" ; return
-			elif [ $seenuucp = false ]; then
-				domain=$(deliver "\2") ||
-				domain=$(canon "\2")
-			fi
-			;;
-	(.*)<@(.+)>(.*)	tmp="\2"
-			if [ -z "$domain" ]; then
-				ssift "$tmp" in
-				.+\.(.+).?
-					if [ $(istoplevel "\1") ] ; then
-						domain="$tmp"
-						break;
-					fi
-					;;
-				.*	if [ $seenuucp = false ]; then
-						domain=$(deliver "$tmp") ||
-						domain=$(canon "$tmp")
-					fi
-					;;
-				tfiss
-			fi
-			[ "$domain" ] && address="\1<@$domain>\3"
-			;;
-	(.*)<@(.)>(.*)	if [ $seenuucp = true ]; then
-				address="\1<@\2.uucp>\3"
-			fi ;;
-	tfist
-	echo "$address"
-}	# end of focus
-
-case "$(type canon)" in
-*"not found")
-	canon () {
-		echo $@
-	} ;;
-esac

@@ -102,9 +102,10 @@ routeuser (quad, domain) {
 	# the 'channel',  and the 'username' strings, we CAN'T
 	# use 'attributes' element, because .forward recursion
 	# will have subsequently DIFFERENT values for it.
+	# Use of 'host' field means we can't use 
 
 	user="$(user $quad)"
-	key="$(channel $quad)$user"
+	key="$chan$(host $quad)$user"
 	didexpand=$(expansions "$key")
 
 	[ -n "$didexpand" ] &&
@@ -379,7 +380,7 @@ routeuser (quad, domain) {
 	[ -z "$didexpand" ] &&
 	  db add expansions "$key" user &&
 	    priv=$(getpriv "644" $priv "$forward" .forward) &&
-	      return $(listaddresses -e '"'"\\\\$user"'"' -c "$forward .forward expansion" < "$forward" | \
+	      return $(listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" < "$forward" | \
 			 maprrouter $(newattribute $attr privilege $priv) \
 					"$forward" "$host")
 
@@ -397,9 +398,16 @@ routeuser (quad, domain) {
 	if [ -n "$PUNTHOST" ]; then
 		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
 	elif [ -n "$didexpand" ]; then
-		case $(expansions "$key") in
+		case "$didexpand" in
 		user|alias)
 			db add expansions "$key" other
+			;;
+		local)
+			# This is nasty special case -- a failing .forward
+			# will generate "\user" which in turn will generate
+			# didexpand="local" and $user without the leading \
+			# Treat it as local delivery.
+			return (((local "$(host $quad)" "$user" $(attributes $quad))))
 			;;
 		*)	# the address just disappears... we've got it already
 			#log expansion "$(expansions "$key"):"
