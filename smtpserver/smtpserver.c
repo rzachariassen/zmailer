@@ -124,6 +124,7 @@ int configuration_ok = 0;
 int gotalarm;
 int unknown_cmd_limit = 10;
 int sum_sizeoption_value = 0;
+int always_flush_replies = 0;
 
 char logtag[16];
 
@@ -1740,6 +1741,9 @@ int insecure;
 	char c, co;
 	int i;
 
+	if (always_flush_replies)
+	  typeflush(SS);
+
 	i = s_gets(SS, buf, sizeof(buf), &rc, &co, &c );
 
 	if (i <= 0)	/* EOF ??? */
@@ -1923,6 +1927,9 @@ int insecure;
 	    break;
 #ifdef HAVE_OPENSSL
 	case StartTLS:
+
+	    always_flush_replies = 1;
+
 	    smtp_starttls(SS, buf, cp);
 	    break;
 #endif /* - HAVE_OPENSSL */

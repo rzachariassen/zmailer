@@ -726,10 +726,11 @@ main(argc, argv)
 	      setvbuf(SS.verboselog, NULL, _IONBF, 0);
 	  }
 
+
+#ifdef HAVE_OPENSSL
 	  if (SS.verboselog)
 	    fprintf(SS.verboselog, "# tls_conf_file='%s'\n", tls_conf_file);
 
-#ifdef HAVE_OPENSSL
 	  if (tls_conf_file && !tls_available) {
 	    /* -S /path/to/SmtpSSL.conf */
 

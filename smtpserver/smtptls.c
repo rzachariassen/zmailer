@@ -125,6 +125,7 @@ Z_SSL_flush(SS)
 {
     int in = SS->sslwrin;
     int ou = SS->sslwrout;
+    int rc, e;
 
     SS->sslwrin = SS->sslwrout = 0;
 
@@ -132,7 +133,18 @@ Z_SSL_flush(SS)
       return 0;
 
     /* this is blocking write */
-    return SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
+    rc = SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
+    e  = SSL_get_error(SS->ssl, rc);
+    switch (e) {
+    case SSL_ERROR_WANT_READ:
+    case SSL_ERROR_WANT_WRITE:
+      errno = EAGAIN;
+      rc = -1;
+      break;
+    default:
+      break;
+    }
+    return rc;
 }
 
 
@@ -145,6 +157,16 @@ Z_read(SS, ptr, len)
     if (SS->sslmode) {
       /* This can be Non-Blocking READ */
       int rc = SSL_read(SS->ssl, (char*)ptr, len);
+      int e  = SSL_get_error(SS->ssl, rc);
+      switch (e) {
+      case SSL_ERROR_WANT_READ:
+      case SSL_ERROR_WANT_WRITE:
+	errno = EAGAIN;
+	rc = -1;
+	break;
+      default:
+	break;
+      }
       return rc;
     }
     return read(SS->inputfd, (char*)ptr, len);

@@ -1,3 +1,17 @@
+2000-04-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Moved one instance of  tls_conf_file  inside HAVE_OPENSSL
+	    conditional.  Oops..
+
+	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
+	  transports/smtp/smtp.h:
+	    Try to combat certain TLS related problems mentioned before.
+
+	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
+	    Under TLS do always flush replies - to simulate one other
+	    MTA running under TLS wrapper.
+
 2000-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/db.c:

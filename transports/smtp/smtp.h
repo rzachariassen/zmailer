@@ -392,6 +392,7 @@ typedef struct {
   char *sslwrbuf;
   int   sslwrspace, sslwrin, sslwrout;
   /* space, how much stuff in, where the output cursor is */
+  int   wantreadwrite;		/* <0: read, =0: nothing, >0: write */
 #endif /* - HAVE_OPENSSL */
   char *tls_cipher_info;
   char *tls_ccert_subject;

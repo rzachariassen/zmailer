@@ -38,6 +38,7 @@ extern int demand_TLS_mode;
 extern int tls_available;
 
 int	tls_peer_verified = 0;
+int	tls_use_read_ahead = 0;
 
 char   *tls_CAfile = NULL;
 char   *tls_CApath = NULL;
@@ -114,93 +115,6 @@ void mail_queue_path(buf, subdir, filename)
   sprintf(buf, "%s/%s/%s", po, subdir, filename);
 }
 
-
- /*
-  * Wrapper routines around read/write and read_wait/write_wait.
-  * If TLS is active, we must use the appropriate SSL function
-  * instead of the direct one.
-  *
-  * We do live quite comfortable here, as smtp_stream can only handle
-  * one connection at a time, so we also only take to care of one
-  * filedescriptor, which is saved as "tls_fd".
-  *
-  * You may note, that tls_read_wait() and tls_write_wait()
-  * seem to be of no real use here. The reason is, that there is no
-  * equivalent to "select()" available for the SSL connection. But I
-  * already have prepared the wrapper functions, so once this equivalent
-  * is available, we can immediately use it.
-  *
-  * We explicitly leave out the select() calls in TLS mode, as there
-  * is buffering included in the SSL_* routines and we don't want to
-  * have it hanging! Consider that there are still bytes in the SSL buffer,
-  * but no new bytes arrive at the interface, then select() on the read
-  * channel would wait erronously.
-  *
-  * The SSL_read() and SSL_write() calls are blocking anyway, so we can
-  * live without select() at this time.
-  */
-
-int     tls_read(SS, fd, buf, count)
-     SmtpState *SS;
-     int fd;
-     void *buf;
-     size_t count;
-{
-    int     i;
-    int     ret;
-    char    mybuf[40];
-    char   *mybuf2;
-
-    vlog = SS->verboselog;
-
-    if (SS->sslmode) {
-	ret = SSL_read(SS->ssl, buf, count);
-	if (tls_loglevel >= 4) {
-	    mybuf2 = (char *) buf;
-	    if (ret > 0) {
-		i = 0;
-		while ((i < 39) && (i < ret) && (mybuf2[i] != 0)) {
-		    mybuf[i] = mybuf2[i];
-		    i++;
-		}
-		mybuf[i] = '\0';
-		msg_info(SS, "Read %d chars: %s", ret, mybuf);
-	    }
-	}
-	return (ret);
-    } else
-	return (read(fd, buf, count));
-}
-
-int     tls_write(SS, fd, buf, count)
-     SmtpState *SS;
-     int fd;
-     void *buf;
-     size_t count;
-{
-    int     i;
-    char    mybuf[40];
-    char   *mybuf2;
-
-    vlog = SS->verboselog;
-
-    if (SS->sslmode) {
-      if (tls_loglevel >= 4) {
-	mybuf2 = (char *) buf;
-	if (count > 0) {
-	  i = 0;
-	  while ((i < 39) && (i < count) && (mybuf2[i] != 0)) {
-	    mybuf[i] = mybuf2[i];
-	    i++;
-	  }
-	  mybuf[i] = '\0';
-	  msg_info(SS, "Write %d chars: %s", count, mybuf);
-	}
-      }
-      return (SSL_write(SS->ssl, buf, count));
-    } else
-      return (write(fd, buf, count));
-}
 
 /* skeleton taken from OpenSSL crypto/err/err_prn.c */
 
@@ -724,6 +638,8 @@ int     tls_init_clientengine(SS, cfgpath)
       if (tls_loglevel > 4) tls_loglevel = 4;
     } else if (strcasecmp(n, "demand-tls-mode") == 0) {
       demand_TLS_mode = 1;
+    } else if (strcasecmp(n, "use-tls-readahead") == 0) {
+      tls_use_read_ahead = 1;
     }
   }
   fclose(fp);
@@ -1044,9 +960,8 @@ int     tls_start_clienttls(SS,peername)
 	     tls_protocol, tls_cipher_name,
 	     tls_cipher_usebits, tls_cipher_algbits);
 
-#if 0
-    SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
-#endif
+    if (tls_use_read_ahead)
+      SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
 
     /* Mark the mode! */
     SS->sslmode = 1;
@@ -1163,18 +1078,19 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 #ifdef HAVE_OPENSSL
 	  if (SS->sslmode) {
 	    r = SSL_write(SS->ssl, p, len);
-	    e = errno; /* FIXME: Some SSL function ??? */
-	    if (r < 0) {
-	      e = SSL_get_error(SS->ssl, r);
-	      if (e == SSL_ERROR_WANT_WRITE) {
-		/* Right, so we want to wait a bit, and retry.. */
-		e = EAGAIN;
-	      } else {
-		/* XXX: Err... What ??? */
-		e = ETIMEDOUT; /* not precisely.. */
-		gotalarm = 1;  /* Well, sort of.. */
-		break;
-	      }
+	    e = SSL_get_error(SS->ssl, r);
+	    switch (e) {
+	    case SSL_ERROR_WANT_READ:
+	      SS->wantreadwrite = -1;
+	      e = EAGAIN;
+	      break;
+	    case SSL_ERROR_WANT_WRITE:
+	      SS->wantreadwrite = 1;
+	      e = EAGAIN;
+	      break;
+	    default:
+	      SS->wantreadwrite = 0;
+	      break;
 	    }
 	  } else
 #endif /* - HAVE_OPENSSL */
@@ -1202,7 +1118,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	    {
 	      /* Write blocked, lets select (and sleep) for write.. */
 	      struct timeval tv, t0;
-	      fd_set wrset;
+	      fd_set wrset, rdset;
 
 #if 1 /* Remove after debug tests */
 	      if (SS->verboselog)
@@ -1211,12 +1127,26 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	      i = sffileno(sfp);
 	      _Z_FD_ZERO(wrset);
-	      _Z_FD_SET(i, wrset);
+	      _Z_FD_ZERO(rdset);
+
+#ifdef HAVE_OPENSSL
+	      if (SS->sslmode) {
+		if (SS->wantreadwrite < 0)
+		  _Z_FD_SET(i, rdset); /* READ WANTED */
+		else if (SS->wantreadwrite > 0)
+		  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+		else
+		  ; /* FIXME! What???  No reading, nor writing ??? */
+	      } else
+#endif /* - HAVE_OPENSSL */
+		{
+		  _Z_FD_SET(i, wrset);
+		}
 
 	      tv.tv_sec = timeout_tcpw;
 	      tv.tv_usec = 0;
 
-	      r = select(i+1, NULL, &wrset, NULL, &tv);
+	      r = select(i+1, &rdset, &wrset, NULL, &tv);
 	      e = errno;
 
 #if 1 /* Remove after debug tests */
@@ -1302,10 +1232,19 @@ int smtp_nbread(SS, buf, spc)
 	if (SS->sslmode) {
 	  r = SSL_read(SS->ssl, buf, spc);
 	  e = SSL_get_error(SS->ssl, r);
-	  if (e == SSL_ERROR_WANT_READ) {
+	  switch (e) {
+	  case SSL_ERROR_WANT_READ:
+	    SS->wantreadwrite = -1;
 	    e = EAGAIN;
-	  } else
-	    e = EINTR;
+	    break;
+	  case SSL_ERROR_WANT_WRITE:
+	    SS->wantreadwrite =  1;
+	    e = EAGAIN;
+	    break;
+	  default:
+	    SS->wantreadwrite =  0;
+	    break;
+	  }
 	} else {
 #endif /* - HAVE_OPENSSL */
 	  /* Normal read(2) */
