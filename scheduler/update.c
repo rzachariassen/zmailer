@@ -93,7 +93,7 @@ update(fd, diagnostic)
 	  /* Lone newline.. old-style indications from the transporter */
 	  if (proc->tofd >= 0 &&
 	      proc->hungry == 0) {
-	    proc->hungry = 1;
+	    proc->hungry += 1;
 	    mytime(&now);
 	    proc->hungertime = now;
 	    ++hungry_childs;
@@ -105,8 +105,6 @@ update(fd, diagnostic)
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->hungry)
 	    feed_child(proc);
-	  if (proc->fed)
-	    ++proc->overfed;
 	  flush_child(proc);
 	  return;
 	}
@@ -190,12 +188,6 @@ update(fd, diagnostic)
 		 Pick next, and feed it! */
 	      pick_next_vertex(proc, 1, 0);
 
-	      /* Feed *one* */
-	      if (proc->hungry)
-		feed_child(proc);
-	      if (proc->fed)
-		proc->overfed += 1;
-
 #if 1 /* YES OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
@@ -203,9 +195,7 @@ update(fd, diagnostic)
 		if (proc->hungry)
 		  feed_child(proc);
 
-		if (proc->fed)
-		  proc->overfed += 1;
-		else
+		if (!proc->fed)
 		  break; /* Huh! Feed/flush failure! */
 
 		/* See if we should, and can feed more! */
@@ -220,6 +210,11 @@ update(fd, diagnostic)
 		pick_next_vertex(proc, 1, 0);
 		/* If it got next,  ``proc->fed'' is now zero.. */
 	      }
+#else
+	      /* Feed *one* */
+	      if (proc->hungry)
+		feed_child(proc);
+
 #endif
 	      flush_child(proc);
 	      proc->hungry = 0; /* ... satiated.. */

@@ -133,7 +133,7 @@ struct procinfo *proc;
 	  memcpy(proc->cmdbuf,"#idle\n", len);
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
-	  proc->overfed = 1;
+	  /* proc->overfed = 1; */
 	}
 	proc->cmdlen = len;
 
@@ -324,6 +324,7 @@ struct procinfo *proc;
 	/* It was fed (to buffer), clear this flag.. */
 	proc->hungry = 0;
 	proc->fed = 1;
+	proc->overfed += 1;
 
 	if (verbose)
 	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);
