@@ -126,6 +126,8 @@ int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
 char *  mailqsock;
 char *  notifysock;
 
+int    interim_report_interval = 5*60; /* 5 minutes */
+
 static int vtxprep_skip;
 static int vtxprep_skip_any;
 static int vtxprep_skip_lock;
@@ -800,6 +802,20 @@ main(argc, argv)
 	  spt_mesh[i]->symbols = sp_init();
 	}
 	zopenlog("scheduler", LOG_PID, LOG_MAIL);
+
+	mustexit = gotalarm = dumpq = rereadcf = 0;
+	canexit = 0;
+	SIGNAL_IGNORE(SIGPIPE);
+	SIGNAL_HANDLE(SIGALRM, sig_alarm);	/* process agenda */
+	SIGNAL_HANDLE(SIGUSR2, sig_iot);	/* dump queue info */
+
+	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* split */
+	SIGNAL_HANDLE(SIGQUIT, sig_quit);	/* Slow shutdown */
+
+	/* call it to create the timeserver -- if possible */
+	init_timeserver(); /* Will take around 3-4 secs.. */
+
+
 	if (optind < argc) {
 	  /* process the specified control files only */
 	  for (; optind < argc; ++optind) {
@@ -819,14 +835,6 @@ main(argc, argv)
 	  killpidfile(pidfile);
 	  exit(0);
 	}
-	mustexit = gotalarm = dumpq = rereadcf = 0;
-	canexit = 0;
-	SIGNAL_IGNORE(SIGPIPE);
-	SIGNAL_HANDLE(SIGALRM, sig_alarm);	/* process agenda */
-	SIGNAL_HANDLE(SIGUSR2, sig_iot);	/* dump queue info */
-
-	/* call it to create the timeserver -- if possible */
-	init_timeserver(); /* Will take around 3-4 secs.. */
 
 	queryipcinit();
 
@@ -835,10 +843,7 @@ main(argc, argv)
 	vtxprep_skip_lock = 0;
 	syncweb(dirq);
 
-
 	canexit = 1;
-	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* split */
-	SIGNAL_HANDLE(SIGQUIT, sig_quit);	/* Slow shutdown */
 #ifdef	MALLOC_TRACE
 	mal_leaktrace(1);
 #endif	/* MALLOC_TRACE */
@@ -880,7 +885,6 @@ main(argc, argv)
 	    /* Do it recursively every now and then,
 	       so that if we forget some jobs, they will
 	       become relearned soon enough.          */
-#if 1
 	    int wrk;
 	    i = dirqueuescan(".", dirq, (now >= next_idlecleanup));
 	    mytime(&now);
@@ -889,53 +893,29 @@ main(argc, argv)
 	    if (wrk > 10) wrk = 10; /* But limit to 10... */
 	    next_dirscan = now + sweepinterval + wrk; /* 10 .. 20 second
 							 sweep interval */
-#else
-	    /* SAH dirqueuescan() is not deterministic and is _highly_
-	     * sensitive to the number of files to be scanned.  This
-	     * means that the degenerate cases (like us!) could be 
-	     * spending ages here.  We guard the call, so we only call
-	     * dirqueuescan when we actually need more work to do (with a 4
-	     * second fudge factor).  Also, next_dirscan is set to a default.
-	     * NOTE: we (optimistically?) budget for 32 msgs/sec
-	     */
-	     next_dirscan = now + sweepinterval;  /* 10 seconds interval     */
-	     i = sweepinterval << 5 ; i += 64 ;   /* 32/sec + 2 sec.         */
-	     if (dirq->wrksum < i ) { /* Do delayed count? Can use wrkcount? */
-	        /* NOTE: Ask Mike if he wants delayed to count, if not use
-		 *       dirq->wrkcount 
-		 */
-		/* SAH Change newents_limit to allow more then 400 !! 
-		 * Ideally, we want it to pickup ALL the new jobs.  However,
-		 * we should limit it to prevent it toasting the machine. 
-		 * *Sigh*
-		 */
-		i = dirqueuescan(".", dirq, 1);
-		/* SAH This potentially took a LONG time (5+ sec), so reset
-		 * now before setting timeouts. Do a quick estimated of time
-		 * needed to send the msgs, assuming 32 msgs/sec.
-		 */
-		mytime(&now);
-		i = dirq->wrksum; i >>= 5;  /* work divided by 32/sec        */
-		next_dirscan = now + i - 2; /* 2 second fudge factor         */
-	     }
-#endif
 	  }
 
 	  if (now >= next_idlecleanup) {
 	    idle_cleanup();
 
-	    next_idlecleanup = now + idle_sweepinterval; /* 120 second
-							    interval */
+	    if (next_idlecleanup == 0)  next_idlecleanup = now;
+
+	    /* At regular intervals... */
+	    next_idlecleanup += idle_sweepinterval;
 	  }
 
 	  if (now >= next_expiry2_scan) {
+	    if (next_expiry2_scan == 0)  next_expiry2_scan = now;
 	    i = doexpiry2();
 	    if (i == 0) 
-	      next_expiry2_scan = now + expiry2_sweepinterval;
+	      /* At regular intervals... */
+	      next_expiry2_scan += expiry2_sweepinterval;
 	  }
 
 	  if (now >= next_interim_report_time) {
-	    next_interim_report_time = now + 120; /* every 2 minutes */
+	    if (next_interim_report_time == 0) next_interim_report_time = now;
+	    /* At regular intervals... */
+	    next_interim_report_time += interim_report_interval;
 	    interim_report_run();
 	  }
 
@@ -1797,10 +1777,11 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  cfp->contents = NULL;
 	}
 
-	if (!reread) {
-	  ++MIBMtaEntry->mtaStoredMessages;
-	  ++global_wrkcnt;
-	}
+	/* if (!reread) { */
+	/* INC there in every case! */
+	++MIBMtaEntry->mtaStoredMessages;
+	++global_wrkcnt;
+	/* } */
 
 	return cfp;
 }
@@ -1818,7 +1799,7 @@ slurp(fd, ino)
 	register char *s;
 	register int i;
 	char *contents;
-	int *offset, *ip, *lp;
+	int *offset;
 	int offsetspace;
 	struct stat stbuf;
 	struct ctlfile *cfp;
@@ -1911,13 +1892,17 @@ slurp(fd, ino)
 	cfp = (struct ctlfile *)erealloc((void*)cfp,
 					 (u_int) (sizeof(struct ctlfile) +
 						  i * (sizeof offset[0])));
-	lp = &(cfp->offset[0]);
-	ip = &(offset[0]);
-	/* copy over the offsets */
-	while (--i >= 0)
-	  *lp++ = *ip++;
-	cfp->id = ino;
-	/* cfp->mid = NULL; */
+	if (cfp) {
+	  /* copy over the offsets */
+	  memcpy(&(cfp->offset[0]), offset, sizeof(offset[0]) * i);
+
+	  cfp->id = ino;
+	  /* cfp->mid = NULL; */
+	} else {
+	  /* realloc() failed.. */
+	  free(contents);
+	}
+
 	free(offset);	/* release the block */
 	return cfp;
 }
@@ -2027,6 +2012,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	/* copy offsets into local array */
 	offspc = 16;
 	offarr = (struct offsort *)emalloc(offspc * sizeof(struct offsort));
+
+	if (!offarr) {
+	  /* malloc() failure.. */
+	  sfprintf(sfstderr,"malloc failed, discarding job: '%s'\n", file);
+	  cfp_free(cfp, NULL);
+	  return NULL;
+	}
+
 
 	mypid = getpid();
 	opcnt = 0;
@@ -2149,6 +2142,12 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		offarr = (struct offsort *)erealloc(offarr,
 						    sizeof(struct offsort) *
 						    offspc);
+		if (!offarr) {
+		  /* realloc() failure.. */
+		  sfprintf(sfstderr,"realloc() failed, discarding job: '%s'\n", file);
+		  cfp_free(cfp, NULL);
+		  return NULL;
+		}
 	      }
 	      offarr[opcnt].offset = *lp + 2;
 	      strlower(cp);
@@ -2378,6 +2377,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	   report to syslog. */
 	taspoolid(path2, cfp->mtime, cfp->id);
 	cfp->spoolid = strsave(path2);
+	if (!cfp->spoolid) {
+	  /* malloc() failure.. */
+	  sfprintf(sfstderr,"malloc() failed, discarding job: '%s'\n", file);
+	  cfp_free(cfp, NULL);
+	  free(offarr);
+	  return NULL;
+	}
 
 	cfp->fd = -1;
 	/* sort it to get channels and channel/hosts together */
@@ -2446,6 +2452,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      u_int alloc_size = (u_int) (sizeof (struct vertex) +
 					  (i - svn - 1) * sizeof (int));
 	      vp = (struct vertex *)emalloc(alloc_size);
+	      if (!vp) {
+		/* malloc() failure.. */
+		sfprintf(sfstderr,"malloc() failed, discarding job: '%s'\n", file);
+		cfp_free(cfp, NULL);
+		free(offarr);
+		return NULL;
+	      }
+
 	      memset((char*)vp, 0, alloc_size);
 	      vp->cfp             = cfp;
 	      vp->next[L_CTLFILE] = NULL;
@@ -2497,6 +2511,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  u_int alloc_size = (u_int) (sizeof (struct vertex) +
 				      (i - svn - 1) * sizeof (int));
 	  vp = (struct vertex *)emalloc(alloc_size);
+	  if (!vp) {
+	    /* malloc() failure.. */
+	    sfprintf(sfstderr,"malloc() failed, discarding job: '%s'\n", file);
+	    cfp_free(cfp, NULL);
+	    free(offarr);
+	    return NULL;
+	  }
 	  memset((void*)vp, 0, alloc_size);
 	  vp->cfp = cfp;
 	  vp->next[L_CTLFILE] = NULL;
@@ -2555,9 +2576,10 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 
 	{
 	  Sfio_t *vfp = vfp_open(cfp);
-	  if (vfp != NULL && cfp->mid != NULL)
-	    sfprintf(vfp, "scheduler processing %s\n", cfp->mid);
-	  if (vfp) sfclose(vfp);
+	  if (vfp) {
+	    if (cfp->mid) sfprintf(vfp, "scheduler processing %s\n", cfp->mid);
+	    sfclose(vfp);
+	  }
 	}
 
 	return cfp;

@@ -1209,7 +1209,7 @@ struct spblk *spl;
 	  nvp = vp->next[L_CTLFILE];
 
 	  /* We essentially report accumulated reports every
-	     ``global_report_interval'' seconds (2h by default) */
+	     ``global_report_interval'' seconds (2 minutes by default) */
 
 	  if (vp->nextrprttime <= now)
 	    doreport = 1;

@@ -143,6 +143,7 @@ extern void  web_detangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));
 extern int   thread_reschedule __((struct thread *, time_t, int index));
 extern int   thread_expire2 __((struct thread *thr, time_t timelimit, int killall, const char *msgstr));
+extern int   thread_count_files __((void));
 
 /* transport.c */
 extern struct procinfo *cpids;

@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2002
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2003
  *
  *
  *	These "threads" are for book-keeping of information
@@ -1716,6 +1716,7 @@ void thread_report(fp,mqmode)
 	}
 
 	if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ | MQ2MODE_SNMP)) {
+	  long files;
 	  *timebuf = 0;
 	  saytime((long)(now - sched_starttime), timebuf, 1);
 	  sfprintf(fp,"Kids: %d  Idle: %2d  Msgs: %3d  Thrds: %3d  Rcpnts: %4d  Uptime: ",
@@ -1729,6 +1730,10 @@ void thread_report(fp,mqmode)
 		   (u_long)MIBMtaEntry->mtaReceivedMessagesSc,
 		   (u_long)MIBMtaEntry->mtaTransmittedMessagesSc,
 		   (long)MIBMtaEntry->mtaStoredMessages);
+
+	  files = thread_count_files();
+	  if ((long)MIBMtaEntry->mtaStoredMessages != files)
+	    sfprintf(fp, "(%ld) ", files);
 
 	  sfprintf(fp, "Rcpnts in %lu out %lu stored %ld",
 		   (u_long)MIBMtaEntry->mtaReceivedRecipientsSc,
@@ -1861,4 +1866,23 @@ int thread_count_recipients()
 	    jobtotal += jobsum;
 	  }
 	return jobtotal;
+}
+
+
+static int thread_files_count;
+
+static int spl_thread_cnt_files __((struct spblk *spl));
+static int spl_thread_cnt_files(spl)
+struct spblk *spl;
+{
+	++thread_files_count;
+	return 0;
+}
+
+
+int thread_count_files __((void))
+{
+	thread_files_count = 0;
+	sp_scan(spl_thread_cnt_files, NULL, spt_mesh[L_CTLFILE]);
+	return  thread_files_count;
 }

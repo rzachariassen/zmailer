@@ -50,8 +50,6 @@ doagenda()
 	  queryipccheck(); /* updates the 'now' variable too... */
 	}
 
-	mytime(&now);
-
 	/* if (verbose)
 	   printf("alarmed %d\n", now);  */
 
@@ -93,8 +91,6 @@ doexpiry2()
 
 	  if (now > timelimit) break;
 	}
-
-	mytime(&now);
 
 	/* if (verbose)
 	   printf("alarmed %d\n", now);  */
