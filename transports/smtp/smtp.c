@@ -1089,7 +1089,7 @@ deliver(SS, dp, startrp, endrp)
 
 	/* MAIL FROM:<...> -- pipelineable.. */
 	r = smtpwrite(SS, 1, SMTPbuf, pipelining, NULL);
-	if (sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
+	if (!SS->smtpfp || sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
 	if (r != EX_OK) {
 	  /* If we err here, we propably are in SYNC mode... */
 	  /* Uh ??  Many new sendmail's have a pathological error mode:
@@ -1166,7 +1166,7 @@ deliver(SS, dp, startrp, endrp)
 	  /* RCPT TO:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
-	    if (sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
+	    if (!SS->smtpfp || sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
 	    if (!pipelining) {
 	      if (r == EX_TEMPFAIL)
 		SS->rcptstates |= RCPTSTATE_400;
