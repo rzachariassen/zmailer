@@ -287,10 +287,13 @@ ip-reversed.host.name
 .domain.suffix
 \medskip\hrule\end{alltt}\medskip
 
-Server sets its internal ``always\_accept'' flag at the source IP test
+Server sets its internal ``always\_accept'' flag at the source IP tests
 before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
 
+Usage of domain names here is discouraged as there is no way to tell
+that domain ``foo.bar'' here has different meaning than same domain
+elsewere -- at ``{\tt smtp-policy.mx}'', for example.
 
 \item[\tt smtp-policy.mx] \mbox{}
 
