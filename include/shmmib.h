@@ -10,54 +10,55 @@
  */
 
 
+
 struct MIB_MtaEntry {
-  uint32	mtaReceivedMessages;		/* counter */
-  uint32	mtaStoredMessages;		/* gauge   */
-  uint32	mtaTransmittedMessages;		/* counter */
-  uint32	mtaReceivedVolume;		/* counter */
-  uint32	mtaStoredVolume;		/* gauge   */
-  uint32	mtaTransmittedVolume;		/* counter */
-  uint32	mtaReceivedRecipients;		/* counter */
-  uint32	mtaStoredRecipients;		/* gauge   */
-  uint32	mtaTransmittedRecipients;	/* counter */
-  uint32	mtaSuccessfulConvertedMessages;	/* counter */
-  uint32	mtaFailedConvertedMessages;	/* counter */
-  uint32	mtaLoopsDetected;		/* counter */
+  uint		mtaReceivedMessages;		/* counter */
+  uint		mtaStoredMessages;		/* gauge   */
+  uint		mtaTransmittedMessages;		/* counter */
+  uint		mtaReceivedVolume;		/* counter */
+  uint		mtaStoredVolume;		/* gauge   */
+  uint		mtaTransmittedVolume;		/* counter */
+  uint		mtaReceivedRecipients;		/* counter */
+  uint		mtaStoredRecipients;		/* gauge   */
+  uint		mtaTransmittedRecipients;	/* counter */
+  uint		mtaSuccessfulConvertedMessages;	/* counter */
+  uint		mtaFailedConvertedMessages;	/* counter */
+  uint		mtaLoopsDetected;		/* counter */
 };
 
 struct MIB_mtaGroupEntry {
-  uint32	mtaGroupIndex;			/* int */
-  uint32	mtaGroupReceivedMessages;	/* counter */
-  uint32	mtaGroupRejectedMessages;	/* counter */
-  uint32	mtaGroupStoredMessages;		/* gauge   */
-  uint32	mtaGroupTransmittedMessages;	/* counter */
-  uint32	mtaGroupReceivedVolume;		/* counter */
-  uint32	mtaGroupStoredVolume;		/* gauge   */
-  uint32	mtaGroupTransmittedVolume;	/* counter */
-  uint32	mtaGroupReceivedRecipients;	/* counter */
-  uint32	mtaGroupStoredRecipients;	/* gauge   */
-  uint32	mtaGroupTransmittedReceipients; /* counter */
-  uint32	mtaGroupOldestMessageStored;	/* time_t */
-  uint32	mtaGroupInboundAssociations;	/* gauge   */
-  uint32	mtaGroupOutboundAssociations;	/* gauge   */
-  uint32	mtaGroupAccumulatedInboundAssociations;  /* counter */
-  uint32	mtaGroupAccumulatedOutboundAssociations; /* counter */
-  uint32	mtaGroupLastInboundActivity;	/* time_t */
-  uint32	mtaGroupLastOutboundActivity;	/* time_t */
-  uint32	mtaGroupLastOutboundAssociationAttempt; /* time_t */
-  uint32	mtaGroupRejectedInboundAssociations; /* counter */
-  uint32	mtaGroupFailedOutboundAssociations;  /* counter */
+  uint		mtaGroupIndex;			/* int */
+  uint		mtaGroupReceivedMessages;	/* counter */
+  uint		mtaGroupRejectedMessages;	/* counter */
+  uint		mtaGroupStoredMessages;		/* gauge   */
+  uint		mtaGroupTransmittedMessages;	/* counter */
+  uint		mtaGroupReceivedVolume;		/* counter */
+  uint		mtaGroupStoredVolume;		/* gauge   */
+  uint		mtaGroupTransmittedVolume;	/* counter */
+  uint		mtaGroupReceivedRecipients;	/* counter */
+  uint		mtaGroupStoredRecipients;	/* gauge   */
+  uint		mtaGroupTransmittedReceipients; /* counter */
+  uint		mtaGroupOldestMessageStored;	/* time_t */
+  uint		mtaGroupInboundAssociations;	/* gauge   */
+  uint		mtaGroupOutboundAssociations;	/* gauge   */
+  uint		mtaGroupAccumulatedInboundAssociations;  /* counter */
+  uint		mtaGroupAccumulatedOutboundAssociations; /* counter */
+  uint		mtaGroupLastInboundActivity;	/* time_t */
+  uint		mtaGroupLastOutboundActivity;	/* time_t */
+  uint		mtaGroupLastOutboundAssociationAttempt; /* time_t */
+  uint		mtaGroupRejectedInboundAssociations; /* counter */
+  uint		mtaGroupFailedOutboundAssociations;  /* counter */
   char		mtaGroupInboundRejectionReason[80]; /* display-string ?? */
   char		mtaGroupOutboundConnectFailureReason[80];
-  uint32	mtaGroupScheduledRetry;		/* time_t */
-  uint32	mtaGroupMailProtocol;		/* ??? */
+  uint		mtaGroupScheduledRetry;		/* time_t */
+  uint		mtaGroupMailProtocol;		/* ??? */
   char		mtaGroupName[80];		/* display-string ? */
-  uint32	mtaGroupSuccessfulConvertedMessages; /* counter */
-  uint32	mtaGroupFailedConvertedMessages; /* counter */
+  uint		mtaGroupSuccessfulConvertedMessages; /* counter */
+  uint		mtaGroupFailedConvertedMessages; /* counter */
   char		mtaGroupDescription[80];	/* ??? */
   char		mtaGroupURL[80];		/* ??? */
-  uint32	mtaGroupCreationTime;		/* time_t */
-  uint32	mtaGroupHierarchy;		/* int */
+  uint		mtaGroupCreationTime;		/* time_t */
+  uint		mtaGroupHierarchy;		/* int */
   char		mtaGroupOldestMessageId[80];
-  uint32	mtaGroupLoopsDetected;		/* counter */
+  uint		mtaGroupLoopsDetected;		/* counter */
 };
