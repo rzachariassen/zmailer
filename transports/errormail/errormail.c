@@ -269,7 +269,7 @@ process(dp)
 	  struct stat stbuf;
 
 	  fstat(fileno(mfp),&stbuf);
-	  sprintf(fname,"%d",stbuf.st_ino);
+	  sprintf(fname,"%ld",(long)stbuf.st_ino);
 	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
 	  strcat(boundarystr, "=_/errmail/");
 	  strcat(boundarystr, dom);
