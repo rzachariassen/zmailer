@@ -1,5 +1,10 @@
 2004-09-03  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c:
+	    Make the SMTP speaker loop to obey SIGTERM, and to
+	    drop everything it was doing... (gracefull death of
+	    server instance.)
+
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpchild.c:
 	    Do classfull connection accounting statistics.

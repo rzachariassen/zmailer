@@ -1498,7 +1498,8 @@ int main(argc, argv, envp)
 		    exit(1);
 		  }
 #endif
-		  SIGNAL_HANDLE(SIGTERM, SIG_IGN);
+		  /* SIGNAL_HANDLE(SIGTERM, SIG_IGN); */
+		  SIGNAL_HANDLE(SIGTERM, sigterminator);
 		    
 #if defined(AF_INET6) && defined(INET6)
 		  if (SS.raddr.v6.sin6_family == AF_INET6)
@@ -2052,6 +2053,8 @@ int s_getc(SS, timeout_is_fatal)
 
     redo:
 
+	if (mustexit) return EOF;
+
         /* We are about to read... */
 
 	if (rc < 0 && SS->inputfd >= 0) {
@@ -2522,6 +2525,9 @@ int insecure;
 	  typeflush(SS);
 
 	i = s_gets(SS, buf, sizeof(buf), &rc, &co, &c );
+
+	if (mustexit)
+	  break;
 
 	if (i <= 0)	/* EOF ??? */
 	  break;
