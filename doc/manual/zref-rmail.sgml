@@ -33,18 +33,18 @@ the appropriate envelope information.
 <PARA>
 The expected input format looks like:
 <SCREEN>
-From address3  date3 remote from host3
-&gt;From address2  date2 remote from host2
-&gt;From address1  date1 remote from host1
+  From address3  date3 remote from host3
+  &gt;From address2  date2 remote from host2
+  &gt;From address1  date1 remote from host1
 </SCREEN>
 followed by the rest of the message.
 This is considered equivalent to the following
 (as it might appear in a mailbox):
 <SCREEN>
-From host3!host2!host1!address1 date
-Received: by host3 ... ; date3
-Received: by host2 ... ; date2
-Received: by host1 ... ; date1
+  From host3!host2!host1!address1 date
+  Received: by host3 ... ; date3
+  Received: by host2 ... ; date2
+  Received: by host1 ... ; date1
 </SCREEN>
 </PARA>
 
