@@ -105,10 +105,17 @@ void smtp_auth(SS,buf,cp)
       return;
     }
 
+#ifdef HAVE_OPENSSL
     if (!auth_login_without_tls && !SS->sslmode) {
       type(SS, 503, m571, "Plaintext password authentication must be run under SSL/TLS");
       return;
     }
+#else
+    if (!auth_login_without_tls) {
+      type(SS, 503, m571, "Plaintext password authentication is not enabled in this system");
+      return;
+    }
+#endif
 
     cp += 5;
     if (*cp == ' ') ++cp;
