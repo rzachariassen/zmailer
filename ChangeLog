@@ -1,7 +1,13 @@
 2003-04-28  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c, transports/libta/diagnostic.c:
+	    Allow multiple calls to  diagnostic()  function,
+	    and make sure that only first of them does actual
+	    DIAGNOSTIC reporting, all the rest do just logging to
+	    given FILE*.
+
 	* transports/smtp/smtp.c:
-	    More code re-arrangements
+	    More code re-arrangements regarding connection retries.
 
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    A bit experimental re-arrangements of EZMLM related
