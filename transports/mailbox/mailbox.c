@@ -3434,6 +3434,12 @@ return_receipt (dp, retrecptaddr, uidstr)
 	int uid;
 	struct stat stb;
 	const char *username = "unknown";
+	char *retaddr = strsave(retrecptaddr);
+	char *s;
+
+	while ((s = strchr(retaddr, '\n'))) *s = ' ';
+	while ((s = strchr(retaddr, '\r'))) *s = ' ';
+	while ((s = strchr(retaddr, '\t'))) *s = ' ';
 
 	uid = atoi(uidstr);
 	pw = getpwuid(uid);
@@ -3453,12 +3459,14 @@ return_receipt (dp, retrecptaddr, uidstr)
 
 	/* copy To: from return-receipt address */
 	sfprintf(mfp, "todsn NOTIFY=NEVER ORCPT=rfc822;");
-	encodeXtext(mfp, retrecptaddr);
-	sfprintf(mfp, "\nto %s\n",retrecptaddr);
+	encodeXtext(mfp, retaddr);
+	sfprintf(mfp, "\nto %s\n",retaddr);
 	sfprintf(mfp, "env-end\n");
-	sfprintf(mfp, "To: %s\n", retrecptaddr);
+	sfprintf(mfp, "To: %s\n", retaddr);
 	sfprintf(mfp, "From: Automatically on behalf of the user <%s>\n",
 		 username);
+
+	free(retaddr);
 
 	/* copy error message file itself */
 	mailshare = getzenv("MAILSHARE");

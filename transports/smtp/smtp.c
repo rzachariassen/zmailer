@@ -826,8 +826,10 @@ main(argc, argv)
 
 	if (SS.verboselog != NULL)
 	  fclose(SS.verboselog);
+	SS.verboselog = NULL;
 	if (logfp)
 	  fclose(logfp);
+	logfp = NULL;
 
 	return 0;
 }
@@ -1725,7 +1727,8 @@ deliver(SS, dp, startrp, endrp)
 	  SS->rcptstates = 0;
 	  smtpwrite(SS, 0, "QUIT", -1, NULL);
 	  smtpclose(SS,1);
-	  fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	  if (logfp)
+	    fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
 	  if (SS->rcptstates & RCPTSTATE_OK)
 	    retryat_time = 0;
 	  close_after_data = 1;
@@ -1734,7 +1737,8 @@ deliver(SS, dp, startrp, endrp)
 	  SS->rcptstates = 0;
 	  smtpwrite(SS, 0, "QUIT", -1, NULL);
 	  smtpclose(SS,1);
-	  fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode.", logtag());
+	  if (logfp)
+	    fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode.", logtag());
 	  retryat_time = 0;
 	}
 
@@ -3609,7 +3613,7 @@ smtp_sync(SS, r, nonblocking)
 	  if (!SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
 	    esmtp_banner_check(SS, s+4);
 
-	  if (logfp != NULL)
+	  if (logfp)
 	    fprintf(logfp, "%sr\t%s\n", logtag(), s);
 
 	  if (SS->verboselog)
@@ -3804,7 +3808,8 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	    if (SS->pipecmds[idx] != NULL)
 	      free(SS->pipecmds[idx]);
 	    else
-	      if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
+	      if (logfp && idx > 0)
+		fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
 	    SS->pipecmds[idx] = NULL;
 	  }
 

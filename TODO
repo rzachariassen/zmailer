@@ -78,6 +78,11 @@ router:
 	The BIND subset might not handle the 'bigmx.zmailer.org'
 	correctly -- or at all..
 
+transports/mailbox:
+
+   BUG:
+	Return-Receipt-To: needs proper return address picking from
+	the possibly folded header.
 
 transports/smtp:
 

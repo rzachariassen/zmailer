@@ -1,6 +1,17 @@
 2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:
+	    A bit more of care on referencing 'logfile' variable.
+	    Not using uninitialized one.
+
+	* transports/mailbox/mailbox.c:
+	    A trivialish  return-receipt-to  processing fixup at
+	    the mailbox so that the user-supplied string is unfolded
+	    into single line with spaces in places of folds (newlines).
+	    (Proper fix is FULL RFC 822 scanner to pick the recipient
+	     address, but perhaps not...)
+
+	* transports/smtp/smtp.c:
 	    Blocking read waiting was done with busy-loop, and
 	    if the connection *stays* in ESTABLISHED state, but
 	    never timeouts --> busy spin goes on, and on...
