@@ -4580,7 +4580,7 @@ rightmx(spec_host, addr_host, cbparam)
 	  return 0;
 	}
 	for (i = 0; SS->mxh[i].host != NULL; ++i) {
-	  if (cistrcmp(SS->mxh[i].host, SS->remotehost) == 0) {
+	  if (cistrcmp((const void*)SS->mxh[i].host, SS->remotehost) == 0) {
 	    while (SS->mxh[i].host != NULL) {
 	      freeaddrinfo(SS->mxh[i].ai);
 	      free(SS->mxh[i++].host);
