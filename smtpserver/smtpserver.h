@@ -692,6 +692,7 @@ struct peerdata {
 	int  outlen, outptr;
 	int  inpspace;
 	int  outspace;
+	int  in_job;		/* A job ready to send to server.. */
 	char *inpbuf;		/* Grown to fit in an input line..
 				   The input protocol shall be SINGLE
 				   text line with '\n' at the end! */

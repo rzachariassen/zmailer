@@ -240,6 +240,7 @@ subdaemon_kill_peer(peer)
 {
 	close(peer->fd);
 	peer->fd = -1;
+	peer->in_job = 0;
 }
 
 
@@ -250,7 +251,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	int n, rc;
 	struct peerdata *peers, *peer;
 	void *statep = NULL;
-	int ppid;
+	/* int ppid; */
 	int top_peer = 0, top_peer2, topfd, newfd;
 	int last_peer_index = 0;
 
@@ -299,7 +300,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	for (;;) {
 
-	  ppid = getppid();
+	  /* ppid = getppid(); -- not used anymore */
+
 	  if ( (rendezvous_socket < 0) &&
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
 					  -> kill self! */
@@ -391,12 +393,12 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    peer->outspace = so;
 
 		    if (!peer->inpbuf) {
-		      peer->inpspace = 64;
-		      peer->inpbuf = calloc(1, peer->inpspace);
+		      peer->inpspace = 250;
+		      peer->inpbuf = calloc(1, peer->inpspace+1);
 		    }
 		    if (!peer->outbuf) {
-		      peer->outspace = 250;
-		      peer->outbuf = calloc(1, 251); /* FIXME: MAGIC! */
+		      peer->outspace = 250;  /* FIXME: MAGIC! - big enough ? */
+		      peer->outbuf = calloc(1, peer->outspace+1);
 		    }
 
 		    peer->fd = newfd;
@@ -471,16 +473,18 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  for (;;) {
 		    if ((peer->inpspace - peer->inlen) < 32) {
 		      /* Enlarge the buffer! */
-		      peer->inpspace += 64;
-		      peer->inpbuf = realloc(peer->inpbuf,
-					     peer->inpspace);
+		      peer->inpspace *= 2; /* Double the size */
+		      peer->inpbuf = realloc( peer->inpbuf,
+					      peer->inpspace+1 );
 		    }
 		    rc = read( peer->fd, peer->inpbuf + peer->inlen,
 			       peer->inpspace - peer->inlen );
 		    if (rc > 0) {
 		      peer->inlen += rc;
-		      if (peer->inpbuf[ peer->inlen -1 ] == '\n')
+		      if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
+			peer->in_job = 1;
 			break; /* Stop here! */
+		      }
 		      continue; /* read more, if there is.. */
 		    }
 		    if ((rc < 0) && (errno == EINTR))
@@ -510,7 +514,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    if (last_peer_index >= top_peer)
 	      last_peer_index = 0;             /* Wrap around */
 
-#if 1
+#if 0
 	    peer = & peers[ last_peer_index ]; /* Round-robin;
 						  in abominal overload
 						  this means that nobody
@@ -528,7 +532,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 #endif
 	    if (peer->fd >= 0 && peer->inlen > 0) {
 
-	      if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
+	      if (peer->in_job) {
 		rc = (subdaemon_handler->input)( statep, peer );
 #ifdef DEBUG_WITH_UNLINK
 		{
@@ -542,6 +546,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  break;
 		} else if (rc == 0) {
 		  /* XON .. give me more jobs */
+		  peer->in_job = 0; /* Done that one.. */
 		  /* ++last_peer_index; */
 #if 1
 		  continue; /* go and pick next task talker, if any */

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Sep-21"
+.TH SMTPSERVER 8zm "2004-Sep-27"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -1338,6 +1338,7 @@ trustrecipient +
 maxinsize 30000000
 filtering +/-
 ratelimitmsgs 300
+ratelimitmsgs 300,6000
 .fi
 .RE
 .PP
@@ -1369,6 +1370,17 @@ If the numeric parameter value is NEGATIVE,
 then the rejection is instant and permanent
 with "550" code.
 It might make sense to place this 5th pair
+into boilerplate "_full_rights" definition.
+.PP
+The 6th pair with comma-separated integer parameter
+sets limit on how many messages, and how many recipients
+in total are accepted in an 1.0-1.15 hour period.
+Excess messages, or recipients, are treated with
+a cold shoulder ("450" code).
+If the numeric parameter value is NEGATIVE,
+then the rejection is instant and permanent
+with "550" code.
+It might make sense to place this 6th pair
 into boilerplate "_full_rights" definition.
 .PP
 You may also enter domains which are looked

@@ -258,6 +258,9 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  if (RTR->replypeer)
 	    continue; /* Busy talking with somebody.. */
 
+	  /* If we have an empty slot,
+	     start a subserver process! */
+
 	  if (RTR->routerpid <= 1) {
 	    rc = subdaemon_callr(RTR);
 	    if (rc < 2) {
@@ -276,6 +279,8 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  if (!RTR->sawhungry) /* Not yet ready for use */
 	    continue;
 
+	  /* We have a router sub-process ready for action! */
+
 	  RTR->replypeer = peerdata;
 
 	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, RTR->tofp);
@@ -283,7 +288,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 
 	  RTR->bufsize    = 0;
 	  RTR->sawhungry  = 0;
-	  peerdata->inlen      = 0;
+	  peerdata->inlen = 0;
 
 	  return 0; /* I _MAY_ be able to take more work! */
 	}
