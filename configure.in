@@ -1116,6 +1116,11 @@ CPPFLAGS="$t_oldCpp"
 LIBS="$t_oldLibs"
 
 
+AC_SUBST(PRIVATEMBOX)
+PRIVATEMBOX=""
+AC_ARG_WITH(privatembox,   [  --with-privatembox       Use 'private/' in a part of mailbox compilations],
+	PRIVATEMBOX="private/")
+
 AC_SUBST(LIBWHOSON)
 AC_SUBST(INCLWHOSON)
 use_whoson=0

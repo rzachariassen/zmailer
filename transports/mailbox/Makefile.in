@@ -19,7 +19,7 @@ MAILBOX_INCL=	@GENINCL@
 MAILBOX_LIB=	@LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ @GETPWLIB@ 
 
 # Compile & install time: 'make privatembox="private/"'
-privatembox=
+privatembox=	@PRIVATEMBOX@
 
 #
 SOURCE=		mailbox.c
