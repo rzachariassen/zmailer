@@ -1178,6 +1178,8 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	  novp  = ovp->next[L_CTLFILE];
 	  nnvp  = nvp->next[L_CTLFILE];
 
+if (novp == (void*)0x55555555L) abort();
+
 	  /* Does this exist also on NVP chain ? */
 
 #define VTXMATCH(ovp,nvp) (((ovp)->orig[L_CHANNEL] == (nvp)->orig[L_CHANNEL]) && ((ovp)->orig[L_HOST] == (nvp)->orig[L_HOST]))
