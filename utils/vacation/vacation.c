@@ -339,38 +339,42 @@ main(argc, argv)
 	  if (!cur) {
 	    ret = EX_TEMPFAIL;
 	  } else {
+	    const char *myname = pw->pw_name;
+
 	    cur->name = pw->pw_name;
 	    cur->next = names;
 	    names = cur;
 
-	    {
-	      const char *myname = pw->pw_name;
-	      if (orcpt) {
-		const char *s = strchr(orcpt, ';');
-		if (s)
-		  myname = s+1;
-		else
-		  myname = orcpt;
-	      }
-	      if (inrcpt) {
-		const char *s = strchr(inrcpt, ';');
-		if (s)
-		  myname = s+1;
-		else
-		  myname = inrcpt;
-	      }
+	    if (orcpt) {
+	      const char *s = strchr(orcpt, ';');
+	      if (s)
+		myname = s+1;
+	      else
+		myname = orcpt;
+	    }
+	    if (inrcpt) {
+	      const char *s = strchr(inrcpt, ';');
+	      if (s)
+		myname = s+1;
+	      else
+		myname = inrcpt;
+	    }
 
-	      /* read message from standard input (just from line) */
-	      readheaders(myname);
-	      purge_input(myname);
+	    /* read message from standard input (just from line) */
+	    readheaders(myname);
+	    purge_input(myname);
 
-	      if (!recent()) {
-		setreply();
-		sendmessage(msgfile,myname);
-	      } else {
-		zsyslog((LOG_NOTICE, "%s: vacation: from '%s' to '%s' is too recent.",
-			 msgspoolid, from, myname));
-	      }
+	    if (!recent()) {
+	      setreply();
+	      sendmessage(msgfile,myname);
+
+zsyslog((LOG_NOTICE, "%s: vacation: sent message from '%s' to '%s'",
+	 msgspoolid, myname, from));
+	    } else {
+
+zsyslog((LOG_NOTICE, "%s: vacation: from '%s' to '%s' is too recent.",
+	 msgspoolid, from, myname));
+ 
 	    }
 	  }
 	}
@@ -440,9 +444,6 @@ sendmessage(msgf, myname)
 
 	fclose(f);
 	mail_close(mf);
-
-	zsyslog((LOG_NOTICE, "%s: vacation: sent message from '%s' to '%s'",
-		 msgspoolid, myname, from));
 }
 /*
 **  USRERR -- print user error
@@ -511,7 +512,7 @@ newstr(s)
 	if (p == NULL)
 	{
 		syserr("newstr: cannot alloc memory");
-		exit(EX_OSERR);
+		exit(EX_TEMPFAIL);
 	}
 	strcpy(p, s);
 	return p;
@@ -546,7 +547,7 @@ readheaders(myname)
 		has_from = 1;
 		if (junkmail()) {
 			purge_input(myname);
-zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK", msgspoolid, myname));
+zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
 
 			exit(EX_OK);
 		}
@@ -567,7 +568,7 @@ zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK"
 					*p = '\0';
 				if (junkmail()) {
 					purge_input(myname);
-zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK", msgspoolid, myname));
+zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
 					exit(EX_OK);
 				}
 			}
@@ -585,6 +586,7 @@ zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK"
 			if (!strncasecmp(p, "junk", 4) ||
 			    !strncasecmp(p, "bulk", 4)) {
 				purge_input(myname);
+zsyslog((LOG_NOTICE, "%s: vacation: this message to '%s' has Precedence: '%s'", msgspoolid, myname, p));
 				exit(EX_OK);
 			}
 			break;
@@ -616,10 +618,11 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
 		} /* switch() */
 	if (!tome) {
 		purge_input(myname);
+		zsyslog((LOG_NOTICE, "%s: vacation: not found to be for me (%s)", msgspoolid, myname));
 		exit(EX_OK);
 	}
 	if (!*from) {
-	  zsyslog((LOG_NOTICE, "%s: vacation: no initial \"From\" line.\n", msgspoolid));
+	  zsyslog((LOG_NOTICE, "%s: vacation: no initial \"From\" line.", msgspoolid));
 	  exit(EX_USAGE+105);
 	}
 }
