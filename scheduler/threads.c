@@ -275,8 +275,6 @@ struct config_entry *cep;
 }
 
 
-int pick_next_thread __((struct procinfo *));
-
 /*
  * Pick next thread from the group which this process serves.
  * 
@@ -287,16 +285,16 @@ int pick_next_thread __((struct procinfo *));
  */
 
 int
-pick_next_thread(proc)
+pick_next_thread(proc, thr0)
      struct procinfo *proc;
+     struct thread *thr0;
 {
 	struct thread	    *thr;
-	struct thread       *thr0 = proc->pthread;
 	struct threadgroup  *thg  = proc->thg;
 	int once = 1;
 
-	if (thr0 && (thr0->proc == proc))
-	  thr0->proc = NULL; /* Remove ourselves */
+	if (thr0 && thr0->proc)
+	  thr0->proc = NULL; /* Remove it */
 
 	proc->pthread = NULL;
 	proc->pvertex = NULL;
@@ -634,7 +632,7 @@ web_detangle(vp, ok)
 	struct thread *thr = vp->thread;
 
 	if (vp->proc)
-	  pick_next_vertex(vp->proc);
+	  pick_next_vertex(vp->proc, vp);
 	vp->proc = NULL;
 
 	if (thr)
@@ -917,8 +915,9 @@ struct thread *thr;
 /* Return 0 for errors, 1 for success; result is at  proc->pvertex */
 
 int
-pick_next_vertex(proc)
+pick_next_vertex(proc, vtx)
      struct procinfo *proc;
+     struct vertex *vtx;
 {
 	struct thread * thr = proc->pthread;
 
@@ -1066,7 +1065,7 @@ time_t retrytime;
 	    wakeup = vtx->wakeup;
 
 	  /* Mark it busy... */
-	  vtx->proc = thr->proc;
+	  /* vtx->proc = thr->proc; */
 
 	  vtx = vtx->nextitem;
 	}

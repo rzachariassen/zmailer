@@ -122,8 +122,8 @@ extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr));
 extern int   idle_cleanup __((void));
-extern int   pick_next_thread __((struct procinfo *proc));
-extern int   pick_next_vertex __((struct procinfo *proc));
+extern int   pick_next_thread __((struct procinfo *proc, struct thread *));
+extern int   pick_next_vertex __((struct procinfo *proc, struct vertex *));
 #ifdef _SFIO_H
 extern void  thread_report __((Sfio_t *, int));
 #endif

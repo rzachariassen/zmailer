@@ -270,17 +270,20 @@ void unvertex(vp, justfree, ok)
 
 	if (vp->proc) {
 	  /* Somebody here, move it elsewere! */
-	  pick_next_vertex(vp->proc);
+	  pick_next_vertex(vp->proc, vp);
 	  vp->proc = NULL;
 	}
 
 	for (i = 0; i < SIZE_L; ++i) {
-	  if (vp->next[i] != NULL)
+
+	  if (vp->next[i])
 	    vp->next[i]->prev[i] = vp->prev[i];
-	  if (vp->prev[i] != NULL)
+	  if (vp->prev[i])
 	    vp->prev[i]->next[i] = vp->next[i];
+
 	  if (i == L_CTLFILE)
 	    continue;
+
 	  removeme = 0;
 	  if (vp->orig[i]->link == vp)
 	    if ((vp->orig[i]->link = vp->next[i]) == NULL)
@@ -912,7 +915,7 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	/* ``vp'' might become expired by  thread_reschedule() .. */
 	if (vp->proc) {
 	  /* Pick next, but don't feed it (yet)! */
-	  pick_next_vertex(vp->proc);
+	  pick_next_vertex(vp->proc, vp);
 	  vp->proc = NULL;
 	}
 #endif
