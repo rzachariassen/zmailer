@@ -7848,7 +7848,7 @@ rm -f conftest$ac_exeext conftest.$ac_ext
         else
           if test "$ac_cv_lib_c_db_create"   != yes -a \
                   "$ac_cv_lib_db_db_create"  != yes -a \
-                  "$ac_cv_lib_db3_db_create" != yes -a  ; then
+                  "$ac_cv_lib_db3_db_create" != yes       ; then
             echo "$as_me:7852: result: Has <db.h> or <db3/db.h>, but db_create() is not at libc, nor at -ldb or -ldb3" >&5
 echo "${ECHO_T}Has <db.h> or <db3/db.h>, but db_create() is not at libc, nor at -ldb or -ldb3" >&6
           fi

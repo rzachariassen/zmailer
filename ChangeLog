@@ -1,5 +1,8 @@
 2001-10-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* configure.in:
+	    SH-script bug in SleepyCat DB 3.x tests.
+
 	* proto/newdbprocessor.in, proto/cf/UTAI.cf, proto/cf/UTGPU.cf,
 	  proto/cf/aliases-new.cf, proto/cf/aliases.cf, proto/cf/canon.cf,
 	  proto/cf/crossbar.cf, proto/cf/fqdnalias.cf, proto/cf/p-routes.cf,

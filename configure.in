@@ -1076,7 +1076,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db3_db_h" = yes ; then
         else
           if test "$ac_cv_lib_c_db_create"   != yes -a \
                   "$ac_cv_lib_db_db_create"  != yes -a \
-                  "$ac_cv_lib_db3_db_create" != yes -a  ; then
+                  "$ac_cv_lib_db3_db_create" != yes       ; then
             AC_MSG_RESULT([Has <db.h> or <db3/db.h>, but db_create() is not at libc, nor at -ldb or -ldb3])
           fi
         fi
