@@ -1,3 +1,8 @@
+2003-11-18  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in:
+	    Mark the version as  2.99.56  (finally!)
+
 2003-11-16  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf:
