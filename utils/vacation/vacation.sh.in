@@ -1,4 +1,7 @@
 #! /bin/sh
+
+umask 022
+
 realprog=@MAILBIN@/vacation.exe
 case "$HOME" in
 '')	echo "$0: HOME environment variable not set. Something is wrong." >&2
