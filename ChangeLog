@@ -1,3 +1,8 @@
+1999-05-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpauth.c:
+	    Don't log incoming BASE64-encoded passwords.
+
 1999-05-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpdata.c:
