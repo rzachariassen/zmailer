@@ -29,7 +29,7 @@ you didn't get a copy, you may request one from <license@inner.net>.
 
 */
 
-char *gai_strerror(errnum)
+const char *gai_strerror(errnum)
 int errnum;
 {
   static char buffer[24];

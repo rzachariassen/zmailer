@@ -97,7 +97,7 @@ extern       int   getnameinfo __((const struct sockaddr *, socklen_t, char *, s
 extern       void  freeaddrinfo __((struct addrinfo *));
 #endif
 #ifndef HAVE_GAI_STRERROR
-extern       char *gai_strerror __((int));
+extern       const char *gai_strerror __((int));
 #endif
 #endif /* ifdef AI_PASSIVE */
 

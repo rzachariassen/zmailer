@@ -741,7 +741,7 @@ SslWalker(inputname, tfp, eotp)
 	register int	i, bufferIndex;
 	TableOperation	opcode;	/* the current operation */
 	int		branchOriginTop, branchOrigin[127];
-	char		*cp, *herebuf, *buffer;
+	unsigned char		*cp, *herebuf, *buffer;
 	int		bufferSize;
 
 	/*
