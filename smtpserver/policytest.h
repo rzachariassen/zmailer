@@ -14,6 +14,7 @@ struct policystate {		/* Part of SmtpState structure */
     int always_freeze;
     int always_accept;
     int full_trust;
+    int trust_recipients;
     int sender_reject;
     int sender_freeze;
     int relaycustnet;

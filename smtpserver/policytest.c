@@ -127,6 +127,7 @@ const struct policystate *state;
 	printf("always_freeze=%d\n",state->always_freeze);
 	printf("always_accept=%d\n",state->always_accept);
 	printf("full_trust=%d\n",   state->full_trust);
+	printf("trust_recipients=%d\n",state->trust_recipients);
 	printf("sender_reject=%d\n",state->sender_reject);
 	printf("sender_freeze=%d\n",state->sender_freeze);
 	printf("sender_norelay=%d\n",state->sender_norelay);
@@ -641,7 +642,8 @@ const char *pbuf;
 		       1 << P_A_TestDnsRBL        |
 		       1 << P_A_InboundSizeLimit  |
 		       1 << P_A_OutboundSizeLimit |
-		       1 << P_A_FullTrustNet	    );
+		       1 << P_A_FullTrustNet	  |
+		       1 << P_A_TrustRecipients     );
 
     state->maxinsize  = -1;
     state->maxoutsize = -1;
@@ -692,18 +694,24 @@ const char *pbuf;
       state->always_freeze = 1;
       return  1;
     }
+    if (state->values[P_A_TrustRecipients] == '+') {
+      if (debug)
+	printf("policytestaddr: 'trustrecipients +' found\n");
+      state->trust_recipients = 1;
+    }
     if (state->values[P_A_FullTrustNet] == '+') {
       if (debug)
 	printf("policytestaddr: 'fulltrustnet +' found\n");
       state->full_trust = 1;
-      return  0;
     }
     if (state->values[P_A_RELAYCUSTNET] == '+') {
       if (debug)
 	printf("policytestaddr: 'relaycustnet +' found\n");
       state->always_accept = 1;
-      return  0;
     }
+    if (state->trust_recipients || state->full_trust || state->always_accept)
+      return 0;
+
     if (state->values[P_A_TestDnsRBL] == '+' &&
 	pbuf[1] == P_K_IPv4) {
       int rc;
@@ -1175,6 +1183,7 @@ const int len;
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
     if (state->full_trust)    return  0;
+    if (state->trust_recipients) return 0;
 
     /* rcptfreeze even for 'rcpt-nocheck' ? */
 

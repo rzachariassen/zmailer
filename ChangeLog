@@ -1,5 +1,13 @@
 1998-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/policy.c, smtpserver/readpolicy.c,
+	  smtpserver/policytest.c, smtpserver/policytest.h:
+	    Added 'trustrecipients' attribute.
+
+	* smtpserver/rfc821scn.c:
+	    Additional texts to match several error cases that I keep
+	    seeing around at SONERA's systems..
+
 	* doc/guides/smtp-policy:
 	    Updated the contents to match system a bit more
 

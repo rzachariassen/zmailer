@@ -723,11 +723,18 @@ int strict;
 	    return p;
 	rfc821_error_ptr = s;
 	rfc821_error = "RFC821 Domain \"#numbers\" has inadequate count of numbers";
-	return s;		/* Failure, don't advance */
+	return s;	/* Failure, don't advance */
     }
-    allnum = 1;			/* Collect info about all fields being numeric..
-				   To accept  "1302.watstar.waterloo.edu" et.al.
-				   but not something which looks like all numbers.. */
+    allnum = 1;		/* Collect info about all fields being numeric..
+			   To accept  "1302.watstar.waterloo.edu" et.al.
+			   but not something which looks like all numbers.. */
+
+    if (*p == '.') {
+      rfc821_error = "A domain-name does not start with a dot (.)";
+      rfc821_error_ptr = p;
+      return s;
+    }
+
     q = rfc821_name(p, strict, &allnum);
 
     while (p && q > p && *q == '.') {
@@ -772,6 +779,11 @@ int strict;
 	if (*p == 0 || *p == '>')	/* If it terminates here, it is
 					   only the <local-part> */
 	    return p;
+    }
+    if (*p == ':') {
+	rfc821_error_ptr = p;
+	rfc821_error = "Perhaps this should have been a dot (.) instead of colon (:) ?";
+	return s;
     }
     if (*p != '@') {
 	rfc821_error_ptr = p;
@@ -822,7 +834,7 @@ int strict;
     }
     if (q == s) {
 	rfc821_error_ptr = s;
-	rfc821_error = "Expected an rfc821_string";
+	rfc821_error = "Had characters unsuitable for an rfc821-string";
     }
     return q;			/* Advanced or not.. */
 }
@@ -989,6 +1001,11 @@ int strict;
     }
     if (*p == '@' && (q = rfc821_adl(p, strict)) && (q > p)) {
 	p = q;
+	if (*p == '>' || *p == ' ') {
+	    rfc821_error_ptr = p;
+	    rfc821_error = "No local part before leading @-character ?";
+	    return s;
+	}
 	if (*p != ':') {
 	    rfc821_error_ptr = p;
 	    rfc821_error = "Missing colon (:) from <@xxx:yyy@zzz>";
