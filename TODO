@@ -53,18 +53,6 @@ Wanted done for 3.0:
 
 
 
-sfio:
-	Switch to SFio2002 ?  (or 2003...)
-	(Except it is full of thread cruft..)
-
-	feature-config to use simpler (s)ed facilities than GNU-stuff.
-
-	Implement stream-specific storage of 'errno' value yielded
-	last time around there was some error which was not handled
-	internally ??  That way picking up a simulated error, like
-	when socket write-out fails with a select() timeout, we would
-	get ETIMEOUT error out nicely...
-
 check: Is router/db.c::db() now consistent at  argv1  construction ??
 
 check: scheduler.conf: command=  $channel  expansion ??
@@ -93,13 +81,6 @@ proto/newdbprocessor.in:
     when source file is newer, than destination...
   - Don't overwrite produced .zmsh files in "zmailer newdb", when result
     has not changed at all..
-
-FEATURE:
-  router+scheduler+TA status (SNMP) MIB areas in an SHM segment
-  (Solaris et.al. which don't allow ARGV overwrite..
-   DNS lookups, connecting, protocol exchanges, ...)
-  + tool(s) to read that segment
-	-- Counter stuff exists on  2003-May-26
 
 INSTALL:
 	Needs further updates (2003-May)
@@ -244,33 +225,11 @@ transports/smtp:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
 	a diagnostic message telling of this situation!
 
-    BUG? (2001/6/30)
-	An error message produced by  "errormail"  channel appears to
-	become lost sometimes ?  Error on error on error ?
-	(2003/4/14: a NOTIFY=NEVER type error message will never
-	            get any responses, but will be SYSLOGGED)
-
-
-    BUG? (2000/3/29)
-	Scheduler running with  "maxthr>1"  seem to loose sync about
-	tasks already fed to the processing.
-
-    BUG?
-	How does arrival of a new job into active thread work in case
-	the current activity has already reached the end of the thread ?
-	When will the new job be fed to the transport agent ?
-		(solved?)
-
     BUG?
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
 	is unable to start the real processor.
 		(quite old entry -- 1997-1998 ?)
-
-    BUG?
-	When there are NO reports to be given out, produce no report
-	message either -- we do seem still do it :-/    (20000313)
-		Fixed ? (20000314)
 
     FEATURE:
 	Tool/mechanism for requeueing a message from the transport
@@ -354,7 +313,8 @@ WIirGqB0000w    503 5.5.2 Waiting for RCPT command
 
     FEATURE:
 	accept email to postmaster(s), never mind what else policy testers
-	have determined...
+	have determined...  ( ==> must always accept MAIL FROM, no matter
+	what;  ==> MAIL FROM rejects to be given on RCPT TOs...)
 
     BUG:
 	"-s" option processing is entirely wrong...
@@ -443,10 +403,6 @@ WIirGqB0000w    503 5.5.2 Waiting for RCPT command
 	- Retain (in some TA-header object) the original "MAIL FROM:<..>"
 	  address, and be able to store it into the MAILBOX channel.
 	  (That is, don't let the routing process to alter this!)
-
-- transports/mailbox/mailbox.c:
-	- At the router:run_rfc822(): if the message has these headers,
-	  purge them away.
 
 - transports/mailbox/mailbox.c:
 	- When doing delivery into a pipe, give  MAIL  variable to
