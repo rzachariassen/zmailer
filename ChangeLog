@@ -1,11 +1,12 @@
 1999-07-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, contrib/whoson-1.08.tgz:
-	     Arkadiusz Mi?kiewicz <misiek@misiek.eu.org>:
-	     - update to newer whoson package
-	     - adding option "-w" to smtpserver to actually
-	       do the query of Whoson in case the code is
-	       compiled in but no servers are really available..
+	    Arkadiusz Mi?kiewicz <misiek@misiek.eu.org>:
+	    - update to newer whoson package
+	    - adding option "-w" to smtpserver to actually
+	      do the query of Whoson.  Allows code being
+	      compiled in without it being used...
+
 
 	* proto/cf/canon.cf, lib/rfc822scan.c:
 	    Turns out the best way to fix the 'foo\!faa!fii'
