@@ -6,6 +6,7 @@
 #include "hostenv.h"
 #include "mailer.h"
 #include <ctype.h>
+#include "libz.h"
 
 extern int optind;
 extern char *optarg;
@@ -17,7 +18,7 @@ extern token822 *readlines();
 extern time_t time();
 extern int fprintToken();
 
-
+int
 main(argc, argv)
 	int argc;
 	char *argv[];
@@ -25,7 +26,7 @@ main(argc, argv)
 	register token822 *t;
 	u_long	len;
 	time_t now;
-	u_char	*cp, *ocp;
+	const u_char	*cp, *ocp;
 	int c;
 	HeaderSemantics entry_pt;
 	token822 *tlist, **prev_tp, *scan_t, *nt;
@@ -69,11 +70,11 @@ again:
 				scan_t = scan822(&cp, len, '-', '/', 0, &nt);
 			else
 				scan_t = scan822(&cp, len, '!', '%', 0, &nt);
-			if (nt != t) {		/* compound token across line */
+			if (nt != t) {	   /* compound token across line */
 				while (t != nt)
 					t = t->t_next;
 				/* len should be 0 */
-				len = t->t_pname + TOKENLEN(t) - cp;
+				len = t->t_pname - cp + TOKENLEN(t);
 			} else
 				len -= cp - ocp;
 			/* Append the scanner tokens to the list of tokens */

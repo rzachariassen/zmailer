@@ -447,3 +447,89 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 	if (c2 != '\0') rfc_ctype[c2 & 0xFF] = sc2;
 	return tp;
 }
+
+/*
+ * The UTEXT Scanner.
+ *
+ * cpp		- pointer to pointer to string.
+ * n		- number of characters left in string.
+ *
+ * The scanner will return a token list corresponding to the n next characters
+ * in the string. Originally only a single token was returned per call, but
+ * for efficiency this was changed to avoid function call overhead. The tokens
+ * returned are classified by type (TokenType enum class).
+ */
+token822 * scan822utext(cpp, nn, tlistp)
+	const char **cpp;		/* pointer to pointer to text */
+	size_t	nn;			/* number of characters to scan */
+	token822 **tlistp;		/* continuation line tokens if any */
+{
+	register const char *cp;
+	static token822  t;
+	token822	*tlist, *tp, *tn, *ot;
+	char	msgbuf[50];
+	short	ct;
+	int n = (int) nn;
+
+	if (n == 0)
+		return NULL;
+
+	tlist = NULL;
+	do {
+		cp = *cpp;
+		ct = rfc_ctype[(*cp) & 0xFF];
+		t.t_len = n;
+		t.t_pname = cp;
+		if (ct & _w) {		/* LWSP without the CR LF part */
+			while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _w))
+			  continue;
+			t.t_type = Space;
+		} else if (ct & _r) {	/* >= 1 CR followed by LFs is a fold */
+			while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _r))
+			  continue;
+			if (n == 0 || !(rfc_ctype[(*cp) & 0xFF] & _l)) {
+			  strcpy(msgbuf, "CR without LF (newline)");
+			  MKERROR(msgbuf, &tlist);
+			} else if (n > 1 && (rfc_ctype[(*cp) & 0xFF] & _l)) {
+			  while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _l))
+			    continue;
+			  strcpy(msgbuf,"too many newlines (LFs) in field[1]");
+			  MKERROR(msgbuf, &tlist);
+			}
+			t.t_type = Fold;
+		} else if (ct & _l) {	/* >= 1 LFs without CR is a fold too */
+			while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _l))
+			  continue;
+			strcpy(msgbuf,"too many newlines (LFs) in field[2]");
+			MKERROR(msgbuf, &tlist);
+			t.t_type = Fold;
+		} else {
+			/* Anything else is unstructured foldable Atom */
+			while (--n > 0 &&
+			       !(rfc_ctype[(*++cp) & 0xFF]&(_w|_l|_r)))
+				continue;
+			t.t_type = Atom;
+		}
+		t.t_len -= n;
+		/* return two values */
+		*cpp += t.t_len;
+
+		t.t_next = tlist;
+		if (t.t_len > 0)
+			tlist = copyToken(&t);
+		else {
+			t.t_pname = "";
+			t.t_len   = 0;
+			tlist = copyToken(&t);
+		}
+	} while (n > 0);
+
+	/* Reverse the token822 chain */
+	tp = tn = NULL;
+	for (tp = NULL; tlist != NULL; tlist = tn) {
+		tn = tlist->t_next;
+		tlist->t_next = tp;
+		tp = tlist;
+	}
+	return tp;
+}

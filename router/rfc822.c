@@ -439,6 +439,8 @@ dumpHeader(h)
 	case nilHeaderSemantics:
 		for (t = h->h_lines; t != NULL; t = t->t_next)
 			printf("\t%s\n", formatToken(t));
+		for (t = h->h_contents.t; t != NULL; t = t->t_next)
+			printf("\t%s\n", formatToken(t));
 		break;
 	case Received:
 		if (h->h_contents.r == NULL)

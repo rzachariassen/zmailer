@@ -1,3 +1,16 @@
+2000-03-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/daemonsub.c, router/conf.c:
+	    Spotted self-healing misbehaviour in the child process feeder,
+	    which skipped messages from queue quite *often*.  Cured that
+	    by waiting in proper place for successfull delivery.
+	    Also changed some default values for "stability" processing.
+
+	* router/rfc822hdrs.c, router/rfc822.c, lib/token.c:
+	    Aborted (and deactivated) foldable tokens processing on headers
+	    we don't know about right now.  Perhaps need to have some other
+	    approach on the problem...
+
 2000-03-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtprouter.c:

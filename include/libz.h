@@ -122,6 +122,8 @@ extern int  hdr_status __((const char *cp, const char *lbuf, int n, int octo));
 #ifdef Z_TOKEN_H
 extern token822 * scan822 __((const char **cpp, size_t n, int c1, int c2,
 				  int allowcomments, token822 **tlistp));
+extern token822 * scan822utext __((const char **cpp, size_t n,
+				   token822 **tlistp));
 #endif
 
 /* selfaddrs.c */

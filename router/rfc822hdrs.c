@@ -46,13 +46,52 @@ hdr_scanparse(e, h, commentflag, no_line_crossing)
 	const char	*cp, *ocp;
 	char		 c1, c2;
 	union misc	 retval;
-	token822	*tlist, **prev_tp, *scan_t, *nt;
+	token822	*tlist, **prev_tp, *scan_t, *nt, tt;
 	struct headerinfo *hd;
 
-	/* If we don't recognize the header, we can't parse it */
+	/* If we don't recognize the header, we can't parse it
+	   properly, but we can always do unstructured tokenization */
 	if ((hd = h->h_descriptor) == NULL || hd->hdr_name == NULL
 	    || hd->semantics == nilHeaderSemantics) {
+#if 1
+		tlist = NULL;
+		prev_tp = &tlist;
+		for (t = h->h_lines; t != NULL; t = t->t_next) {
+			if (t->t_type != Line)	/* sanity check */
+				continue;
+			cp = t->t_pname;
+			len = TOKENLEN(t);
+			while (len > 0) {
+			  ocp = cp;
+			  nt = t;
+			  scan_t = scan822utext(&cp, len, &nt);
+			  len -= cp - ocp;
+
+			  /* Append the scanner tokens to the list of tokens */
+
+			  *prev_tp = scan_t;
+			  while (scan_t != NULL) {
+				/*
+				 * Doing it in a loop allows the scanner to
+				 * return a token list instead of one token.
+				 */
+			    prev_tp = &(scan_t->t_next);
+			    scan_t = scan_t->t_next;
+			  }
+			}
+			tt.t_len = 1;
+			tt.t_pname = "\n";
+			tt.t_type = Space;
+			tt.t_next = NULL;
+			*prev_tp = copyToken(&tt);
+			prev_tp = &((*prev_tp)->t_next);
+		}
+		*prev_tp = NULL;
+
+		retval.t = tlist;
+#else
 		retval.t = h->h_lines;
+#endif
 		return retval;
 	}
 	/*
@@ -596,6 +635,7 @@ hdr_print(h, fp)
 		    fprintf(fp, " %s\n", cp);
 		}
 		break;
+
 	case Address:
 	case Addresses:
 	case AddressList:
@@ -608,7 +648,9 @@ hdr_print(h, fp)
 	case RouteAddressInAngles:
 	case RouteAddress:
 	case UserAtDomain:
+
 		newline = 1;
+
 		for (ap = h->h_contents.a; ap != NULL; ap = ap->a_next) {
 
 		  addrlen = printAddress(NULL, ap->a_tokens, col);
@@ -672,9 +714,63 @@ hdr_print(h, fp)
 			break;
 		} /* else we have the original line ... */
 		/* Fall thru ... */
+
 	case nilHeaderSemantics:
 	default:
 		/* Write out the original lines, if possible */
+#if 0
+
+	  /* Damn...  This doesn't work all the time.. */
+
+		if (h->h_contents.t != NULL && sem == nilHeaderSemantics) {
+		  int first = 1;
+		  int newcol;
+		  for (t = h->h_contents.t; t; t = t->t_next) {
+
+		    const char *p = t->t_pname;
+
+		    if (t->t_type == Line) {
+		      int len = (int)(TOKENLEN(t));
+		      if (first) {
+			while ((len > 0) &&
+			       (*p == ' '||*p == '\t'||*p == '\n'||*p == '\r'))
+			  ++p, --len;
+			if (!len) continue;
+			first = 0;
+		      }
+		      fwrite(p, sizeof (char), len, fp);
+		      putc('\n', fp);
+		      continue;
+		    }
+
+		    if (first) {
+		      if (t->t_type == Space && *p != '\n')
+			continue;
+		      first = 0;
+		    }
+		    newcol = fprintToken(NULL, t, 0);
+		    if ((t->t_type == Space && *p == '\n' && t->t_next) ||
+			((newcol + col > hdr_width) &&
+			 (newcol + foldcol <= hdr_width))) {
+		      putc('\n', fp);
+		      for (col = 0; col+8 <= foldcol; col += 8)
+			putc('\t', fp);
+		      for (;col < foldcol; ++col)
+			putc(' ', fp);
+		      if (col < 1)
+			putc(' ', fp), ++col;
+		      first = 1;
+		      if (t->t_type == Space)
+			continue;
+		    }
+		    first = 0;
+		    col = fprintToken(fp, t, col);
+		  }
+		  if (first) /* totally empty header! */
+		    putc('\n', fp);
+		}
+		else
+#endif
 		{
 		  int first = 1;
 		  for (t = h->h_lines; t != NULL; t = t->t_next) {
@@ -693,7 +789,9 @@ hdr_print(h, fp)
 		  if (first) /* totally empty header! */
 		    putc('\n', fp);
 		}
+
 		break;
+
 	}
 }
 

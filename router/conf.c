@@ -38,7 +38,7 @@ u_int	sweepintvl = 15;
 int	stability = 1;
 
 /* ongoing stability of router directory scan (boolean) */
-int	real_stability = 0;
+int	real_stability = 1;
 
 /* maximum number of Received headers, for primitive loop detection */
 int	maxReceived = 50;

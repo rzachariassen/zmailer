@@ -1,12 +1,12 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-1998 Matti Aarnio.
+ *	Some functions Copyright 1991-2000 Matti Aarnio.
  */
 
 /*
- * The routines in this file implement various C-coded functions that
- * are callable from the configuration file.
+ *  This file contains "daemon" command callable from configuration
+ *  script, along with its support facilities.
  */
 
 #include "mailer.h"
@@ -620,46 +620,59 @@ static int parent_feed_child(fname,dir)
   int i;
   char *s;
 
-  s = strchr(fname,'-');
-  if (s && isdigit(*fname)) {
-    long thatpid = atoi(s+1);
-    if (thatpid > 1 &&
-	kill(thatpid,0)==0) {
-      /* Process of that PID does exist, and possibly even something
-	 we can kick.. (we should be *root* here anyway!) */
-      for (i = 0; i < nrouters; ++i) {
-	/* Is it one of ours children ?? */
-	if (routerchilds[i].childpid == thatpid)
-	  return 0; /* Yes! No refeed! */
+  do {
+
+    /* Loop until can feed, our caller shall not need to
+       refeed message again! */
+    /* FIXME: Real proper way is needed, messages to be queued to sets
+       of server processes...  Compare with Scheduler's channels. */
+
+    s = strchr(fname,'-');
+    if (s && isdigit(*fname)) {
+      long thatpid = atoi(s+1);
+      if (thatpid > 1 &&
+	  kill(thatpid,0)==0) {
+	/* Process of that PID does exist, and possibly even something
+	   we can kick.. (we should be *root* here anyway!) */
+	for (i = 0; i < nrouters; ++i) {
+	  /* Is it one of ours children ?? */
+	  if (routerchilds[i].childpid == thatpid)
+	    return 0; /* Yes! No refeed! */
+	}
       }
-    }
-    /* Hmm..  perhaps it is safe to feed to a subprocess */
-  }
-
-  parent_reader();
-
-  ++rridx; if (rridx >= nrouters) rridx = 0;
-  for (i = 0; i < nrouters; ++i) {
-    rc = &routerchilds[rridx];
-
-    /* If no child at this slot, start one!
-       (whatever has been the reason for its death..) */
-    if (rc->childpid == 0) {
-      start_child(rridx);
-      sleep(2); /* Allow a moment for child startup */
-      parent_reader();
+      /* Hmm..  perhaps it is safe to feed to a subprocess */
     }
 
-    /* If we have a hungry child with all faculties intact.. */
-    if (rc->tochild >= 0 && rc->fromchild >= 0 && rc->hungry)
-      break;
+    parent_reader();
 
-    /* Next index.. */
-    ++rridx; if (rridx >= nrouters) rridx = 0;
-  }
-  if (!rc || !rc->hungry || rc->tochild < 0 || rc->fromchild < 0)
-    return 0; /* Failed to find a hungry child!?
-		  We should not have been called in the first place..  */
+    rridx = 0;
+    rc    = NULL;
+
+    if (rridx >= nrouters) rridx = 0;
+
+    for (i = 0; i < nrouters; ++i) {
+      rc = &routerchilds[rridx];
+
+      /* If no child at this slot, start one!
+	 (whatever has been the reason for its death..) */
+      if (rc->childpid == 0) {
+	start_child(rridx);
+	sleep(2); /* Allow a moment for child startup */
+	parent_reader();
+      }
+
+      /* If we have a hungry child with all faculties intact.. */
+      if (rc->tochild >= 0 && rc->fromchild >= 0 && rc->hungry)
+	break;
+
+      /* Next index.. */
+      ++rridx; if (rridx >= nrouters) rridx = 0;
+    }
+    /* Failed to find a hungry child!?
+       We should not have been called in the first place..  */
+
+  } while (!rc || !rc->hungry || rc->tochild < 0 || rc->fromchild < 0);
+
 
   /* Ok, we are feeding him.. */
   rc->hungry = 0;

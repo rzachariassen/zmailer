@@ -66,7 +66,7 @@ formatToken(t)
 {
 	const char *name;
 	int len;
-	static char buf[256];
+	static char buf[2560];
 
 	switch (t->t_type) {
 	case String:	name = "string"; break;
@@ -75,6 +75,7 @@ formatToken(t)
 	case DomainLiteral:	name = "domainLiteral"; break;
 	case Line:	name = "line"; break;
 	case Space:	name = "space"; break;
+	case Fold:	name = "fold"; break;
 	case Word:	name = "word"; break;
 	case Comment:	name = "comment"; break;
 	case Empty:	name = "empty"; break;
@@ -86,7 +87,7 @@ formatToken(t)
 	if ((len + 4 + strlen(name)) >= sizeof(buf))
 	  len = sizeof(buf) - strlen(name) - 4;
 	memcpy(buf+1, (char *)(t->t_pname), len);
-	sprintf(buf + len + 1, "'(%s)", name);
+	sprintf(buf + len + 1, "' (%s)", name);
 	return buf;
 }
 
