@@ -1,7 +1,7 @@
 /*
  *	MIME-part-2 header 8-bit coding to MIME-coded-tokens
  *
- *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996, 2000
+ *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996, 2000, 2002
  *	(and   Markku T Jarvinen <mta@sci.fi>)
  */
 
@@ -252,7 +252,7 @@ if (vlog) fprintf(vlog,"8-bit header: '%s'\n",hdr);
 
 	      for ( ; *s && (*s != ' ' && *s != '\t' && *s != ')' && *s != '\n'); ++s) {
 		c = (*s) & 0xFF;
-		if (c < ' '  || c > 126  ||
+		if (c < ' '  || c > 126  || c == '"' ||
 		    c == '=' || c == '?' || c == '_') {
 		  sprintf(q, "=%02X", c);
 		  q += 3;
