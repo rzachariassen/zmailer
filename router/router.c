@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1995
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
  */
 
 
@@ -50,6 +50,11 @@ time_t	now;
 
 extern memtypes stickymem;
 extern conscell *s_value;
+
+#include "shmmib.h"
+
+struct MIB_MtaEntry MIBMtaEntryLcl;
+struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLcl;
 
 int	mustexit = 0;
 int	canexit = 0;

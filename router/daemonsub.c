@@ -22,6 +22,10 @@
 #include <grp.h>			/* for run_grpmems() */
 #include <errno.h>
 
+#include "shmmib.h"
+
+extern struct MIB_MtaEntry *MIBMtaEntry;
+
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
 #else /* not HAVE_DIRENT_H */
@@ -130,9 +134,14 @@ int sig;
 		eval(traps[SIGHUP], "trap", NULL, NULL);
 }
 
+
 /*
  * Run the Router in Daemon mode.
  */
+
+/* DIRQUEUE structure forward definition */
+
+struct dirqueue;
 
 /*
  * We run in multiple processes mode; much of the same how scheduler
@@ -141,7 +150,7 @@ int sig;
  * Minimum number of child processes started is 1.
  */
 
-#define MAXROUTERCHILDS 20
+#define MAXROUTERCHILDS 40
 struct router_child {
   int   tochild;
   int   fromchild;
@@ -162,6 +171,8 @@ struct router_child {
 #if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
   struct rusage r;
 #endif
+
+  struct dirqueue  *dq;
 };
 
 struct router_child routerchilds[MAXROUTERCHILDS];
@@ -188,11 +199,11 @@ extern int  resources_query_pipesize __((int fildes));
 
 static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));
-static void parent_reader __((void));
+static int  parent_reader __((void));
 
 
 static int  start_child   __((int idx));
-static int  start_child(i)
+static int  start_child (i)
      const int i;
 {
   int pid;
@@ -210,7 +221,9 @@ static int  start_child(i)
     for (idx = resources_query_nofiles(); idx >= 3; --idx)
 	close(idx);
 
+#if 0
     resources_maximize_nofiles();
+#endif
 
     zcloselog();
     /* Each (sub-)process does openlog() all by themselves */
@@ -272,7 +285,7 @@ int signum;
 #endif
 	  if (pid <= 0) break;
 
-	  for (i = 0; i < nrouters; ++i)
+	  for (i = 0; i < MAXROUTERCHILDS; ++i)
 	    if (pid == routerchilds[i].childpid) {
 	      routerchilds[i].childpid = -pid;
 	      routerchilds[i].statloc = statloc;
@@ -288,37 +301,6 @@ int signum;
 #else
 	SIGNAL_HANDLE(SIGCHLD, sig_chld);
 #endif
-}
-
-
-static void start_childs  __((void));
-static void start_childs()
-{
-  int i;
-
-  memset(routerchilds, 0, sizeof(routerchilds));
-
-  for (i = 0; i < nrouters; ++i)
-    routerchilds[i].fromchild = -1;
-
-  /* instantiate the signal handler.. */
-#ifdef SIGCLD
-  SIGNAL_HANDLE(SIGCLD,  sig_chld);
-#else
-  SIGNAL_HANDLE(SIGCHLD, sig_chld);
-#endif
-
-  for (i = 0; i < nrouters; ++i) {
-    if (start_child(i))
-      break; /* fork failed.. */
-  }
-
-  sleep(5); /* Wait a bit before continuting so that
-	       child processes have change to boot */
-
-  /* Collect start reports (initial "#hungry\n" lines) */
-  parent_reader();
-
 }
 
 /*
@@ -534,7 +516,9 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
 #endif
 
-static void parent_reader()
+/* Return info re has some waiting been done */
+
+static int parent_reader()
 {
   fd_set rdset, wrset;
   int i, highfd, fd, rc;
@@ -546,7 +530,7 @@ static void parent_reader()
   _Z_FD_ZERO(wrset);
   highfd = -1;
 
-  for (i = 0; i < nrouters; ++i) {
+  for (i = 0; i < MAXROUTERCHILDS; ++i) {
     /* Places to read from ?? */
     fd = routerchilds[i].fromchild;
     if (fd >= 0) {
@@ -563,27 +547,28 @@ static void parent_reader()
 	highfd = fd;
     }
   }
-  if (highfd < 0) return; /* Nothing to do! */
+  if (highfd < 0) return 0; /* Nothing to do! */
 
   tv.tv_sec = tv.tv_usec = 1;
   rc = select(highfd+1, &rdset, &wrset, NULL, &tv);
 
-  if (rc == 0) return; /* Nothing to do, leave.. */
+  if (rc == 0) return 1; /* Nothing to do, leave..
+			    Did sleep for a second! */
 
   if (rc < 0) {
     /* Drat, some error.. */
     if (errno == EINTR)
       goto redo_again;
     /* Hmm.. Do it just blindly (will handle error situations) */
-    for (i = 0; i < nrouters; ++i) {
+    for (i = 0; i < MAXROUTERCHILDS; ++i) {
       _parent_writer(i);
       _parent_reader(i);
     }
-    return;
+    return 0;  /* Urgh, an error.. */
   }
 
   /* Ok, select gave indication of *something* being ready for read */
-  for (i = 0; i < nrouters; ++i) {
+  for (i = 0; i < MAXROUTERCHILDS; ++i) {
     fd = routerchilds[i].tochild;
     if (fd >= 0 && _Z_FD_ISSET(fd, wrset))
       _parent_writer(i);
@@ -591,26 +576,68 @@ static void parent_reader()
     if (fd >= 0 && _Z_FD_ISSET(fd, rdset))
       _parent_reader(i);
   }
+  return 1; /* Did some productive job, don't sleep at the caller.. */
 }
 
 #else /* NO HAVE_SELECT */
-static void parent_reader()
+static int parent_reader()
 {
   int i;
   /* No select, but can do non-blocking -- we hope.. */
-  for (i = 0; i < nrouters; ++i)
+  for (i = 0; i < MAXROUTERCHILDS; ++i)
     _parent_reader(i);
+  return 0;
 }
 #endif
 
 
+
 /*
+ * Actual child-process job feeder.  This just puts the thing
+ * into the buffer, and writes (if it can)..
+ *
+ * Requires:  childsize == 0 (buffer is free),
+ *            tochild >= 0 (socket exists (and is ready to receive))
+ */
+
+static int _parent_feed_child __(( struct router_child *rc,
+				   const char *fname, const char *dir ));
+static int _parent_feed_child(rc, fname, dir)
+     struct router_child *rc;
+     const char *fname, *dir;
+{
+  int i;
+
+  /* Ok, we are feeding him.. */
+  rc->hungry = 0;
+
+  /* What shall we feed ?? */
+  if (!dir || *dir == 0)
+    sprintf(rc->childline, "%s\n", fname);
+  else
+    sprintf(rc->childline, "%s/%s\n", dir, fname);
+  rc->childsize = strlen(rc->childline);
+  rc->childout  = 0;
+
+  /* Lets try to write it in one go.. */
+  i = write(rc->tochild, rc->childline, rc->childsize);
+  if (i > 0)
+    rc->childout = i;
+  if (rc->childout >= rc->childsize)
+    rc->childout = rc->childsize = 0;
+
+  return 0;
+}
+
+/* -----------------------------------------------------------------
+ *
  * Child-process job feeder - distributes jobs in even round-robin
  * manner to all children.  Might some day do resource control a'la
  * "Priority: xyz" -> process subset 2,3,4
- */
+ *
+ * This looks for free child, and waits for successfull write.
+ * ----------------------------------------------------------------- */
 
-/* "rd_doit()" at the feeding parent server */
 static int parent_feed_child __((const char *fname, const char *dir));
 static int parent_feed_child(fname,dir)
      const char *fname, *dir;
@@ -634,7 +661,7 @@ static int parent_feed_child(fname,dir)
 	  kill(thatpid,0)==0) {
 	/* Process of that PID does exist, and possibly even something
 	   we can kick.. (we should be *root* here anyway!) */
-	for (i = 0; i < nrouters; ++i) {
+	for (i = 0; i < MAXROUTERCHILDS; ++i) {
 	  /* Is it one of ours children ?? */
 	  if (routerchilds[i].childpid == thatpid)
 	    return 0; /* Yes! No refeed! */
@@ -648,9 +675,9 @@ static int parent_feed_child(fname,dir)
     rridx = 0;
     rc    = NULL;
 
-    if (rridx >= nrouters) rridx = 0;
+    if (rridx >= MAXROUTERCHILDS) rridx = 0;
 
-    for (i = 0; i < nrouters; ++i) {
+    for (i = 0; i < MAXROUTERCHILDS; ++i) {
       rc = &routerchilds[rridx];
 
       /* If no child at this slot, start one!
@@ -666,7 +693,7 @@ static int parent_feed_child(fname,dir)
 	break;
 
       /* Next index.. */
-      ++rridx; if (rridx >= nrouters) rridx = 0;
+      ++rridx; if (rridx >= MAXROUTERCHILDS) rridx = 0;
     }
     /* Failed to find a hungry child!?
        We should not have been called in the first place..  */
@@ -674,27 +701,13 @@ static int parent_feed_child(fname,dir)
   } while (!rc || !rc->hungry || rc->tochild < 0 || rc->fromchild < 0);
 
 
-  /* Ok, we are feeding him.. */
-  rc->hungry = 0;
+  _parent_feed_child(rc, fname, dir);
 
-  /* What shall we feed ?? */
-  if (!dir || *dir == 0)
-    sprintf(rc->childline, "%s\n", fname);
-  else
-    sprintf(rc->childline, "%s/%s\n", dir, fname);
-  rc->childsize = strlen(rc->childline);
-  rc->childout  = 0;
-
-  /* Lets try to write it in one go.. */
-  i = write(rc->tochild, rc->childline, rc->childsize);
-  if (i > 0)
-    rc->childout = i;
-  if (rc->childout >= rc->childsize)
-    rc->childout = rc->childsize = 0;
-
+#if 0 /* NO sync waiting here! */
   /* .. or if not, we wait here until it has been fed.. */
   while (rc->childout < rc->childsize)
     parent_reader();
+#endif
 
   return 1; /* Did feed successfully ?? */
 }
@@ -724,6 +737,9 @@ static void child_server(tofd,frmfd)
   while (!feof(fromfp) && !ferror(fromfp)) {
     fprintf(tofp, "\n#hungry\n");
     fflush(tofp);
+
+    dohup(SIGHUP);
+
     if (fgets(linebuf, sizeof(linebuf)-1, fromfp) == NULL)
       break; /* EOF ?? */
 
@@ -752,6 +768,286 @@ static void child_server(tofd,frmfd)
 }
 
 
+/* -----------------------------------------------------------------
+ *         Directory Input Queue subsystem
+ *
+ *         Copied from the Scheduler
+ *
+ * ----------------------------------------------------------------- */
+
+
+struct dirstatname {
+	struct stat st;
+	long ino;
+	char *dir; /* Points to stable strings.. */
+	char name[1]; /* Allocate enough size */
+};
+struct dirqueue {
+	int	wrksum;
+	int	sorted;
+	int	wrkcount;
+	int	wrkspace;
+	struct sptree *mesh;
+	struct dirstatname **stats;
+};
+
+static int dirqueuescan __((const char *dir,struct dirqueue *dq, int subdirs));
+
+#define ROUTERDIR_CNT 30
+
+struct dirqueue dirqb[ROUTERDIR_CNT];
+struct dirqueue *dirq[ROUTERDIR_CNT];
+
+/*
+ * Absorb any new files that showed up in our directory.
+ */
+
+int
+dq_insert(DQ, ino, file, dir)
+	void *DQ;
+	long ino;
+	const char *file, *dir;
+{
+	struct stat stbuf;
+	struct dirstatname *dsn;
+	struct dirqueue *dq = DQ;
+
+	if (!ino) return 1; /* Well, actually it isn't, but we "makebelieve" */
+
+	time(&now);
+
+	if (dq == NULL)
+	  dq = dirq[0];
+
+	if (lstat(file,&stbuf) != 0 ||
+	    !S_ISREG(stbuf.st_mode)) {
+	  /* Not a regular file.. Let it be there for the manager
+	     to wonder.. */
+	  return -1;
+	}
+
+	/* Is it already in the database ? */
+	if (sp_lookup((u_long)ino,dq->mesh) != NULL) {
+#if 0
+	  sfprintf(sfstderr,"scheduler: tried to dq_insert(ino=%ld, file='%s') already in queue\n",ino, file);
+#endif
+	  return 1; /* It is! */
+	}
+
+	/* Now store the entry */
+	dsn = (struct dirstatname*)emalloc(sizeof(*dsn)+strlen(file)+1);
+	memcpy(&(dsn->st),&stbuf,sizeof(stbuf));
+	dsn->ino = ino;
+	dsn->dir = strdup(dir);
+	strcpy(dsn->name,file);
+
+	sp_install(ino, (void *)dsn, 0, dq->mesh);
+
+	/* Into the normal queue */
+	if (dq->wrkspace <= dq->wrkcount) {
+	  /* Increase the space */
+	  dq->wrkspace = dq->wrkspace ? dq->wrkspace << 1 : 8;
+	  if (dq->stats == NULL)
+	    dq->stats = (struct dirstatname **)emalloc(sizeof(void*) *
+						       dq->wrkspace);
+	  else
+	    dq->stats = (struct dirstatname**)erealloc(dq->stats,
+						       sizeof(void*) *
+						       dq->wrkspace);
+	}
+
+	dq->stats[dq->wrkcount] = dsn;
+	dq->wrkcount += 1;
+	dq->wrksum   += 1;
+	dq->sorted    = 0;
+
+	++MIBMtaEntry->mtaReceivedMessagesRt;
+
+	return 0;
+}
+
+int in_dirscanqueue(DQ,ino)
+	void *DQ;
+	long ino;
+{
+	struct dirqueue *dq = DQ;
+
+	if (dq == NULL)
+	  dq = dirq[0];
+
+	/* Return 1, if can find the "ino" in the queue */
+
+	if (dq->wrksum == 0 || dq->mesh == NULL) return 0;
+	if (sp_lookup((u_long)ino, dq->mesh) != NULL) return 1;
+	return 0;
+}
+
+static int dq_ctimecompare __((const void *, const void *));
+static int dq_ctimecompare(b,a) /* we want oldest entry LAST */
+const void *a; const void *b;
+{
+	const struct dirstatname **A = (const struct dirstatname **)a;
+	const struct dirstatname **B = (const struct dirstatname **)b;
+	int rc;
+
+	rc = ((*B)->st.st_mtime - (*A)->st.st_mtime);
+	return rc;
+}
+
+
+static int dirqueuescan(dir, dq, subdirs)
+	const char *dir;
+	struct dirqueue *dq;
+	int subdirs;
+{
+	DIR *dirp;
+	struct dirent *dp;
+	struct stat stbuf;
+	char file[MAXNAMLEN+1];
+	int newents = 0;
+
+#if 0
+	static time_t modtime = 0;
+
+	/* Any changes lately ? */
+	if (estat(dir, &stbuf) < 0)
+	  return -1;	/* Could not stat.. */
+	if (stbuf.st_mtime == modtime)
+	  return 0;	/* any changes lately ? */
+	modtime = stbuf.st_mtime;
+#endif
+
+	/* Some changes lately, open the dir and read it */
+
+	dirp = opendir(dir);
+	if (!dirp) return 0;
+
+	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
+	  /* Scan filenames into memory */
+
+	  if (subdirs &&
+	      dp->d_name[0] >= 'A' &&
+	      dp->d_name[0] <= 'Z' &&
+	      dp->d_name[1] ==  0 ) {
+	    /* We do this recursively.. */
+	    if (dir[0] == '.' && dir[1] == 0)
+	      strcpy(file, dp->d_name);
+	    else
+	      sprintf(file, "%s/%s", dir, dp->d_name);
+
+	    if (lstat(file,&stbuf) != 0 ||
+		!S_ISDIR(stbuf.st_mode)) {
+	      /* Not a directory.. Let it be there for the manager
+		 to wonder.. */
+	      continue;
+	    }
+	    /* Recurse into levels below.. */
+	    newents += dirqueuescan(file, dq, subdirs);
+	    continue;
+	  } /* End of directories of names "A" .. "Z" */
+
+	  if (dp->d_name[0] >= '0' &&
+	      dp->d_name[0] <= '9') {
+	    /* A file whose name STARTS with a number (digit) */
+
+	    long ino = atol(dp->d_name);
+	    if (in_dirscanqueue(dq,ino))
+	      /* Already in pre-schedule-queue */
+	      continue;
+
+	    if (dir[0] == '.' && dir[1] == 0)
+	      strcpy(file, dp->d_name);
+	    else
+	      sprintf(file, "%s/%s", dir, dp->d_name);
+
+	    if (dq_insert(dq, ino, file, dir))
+	      continue;
+
+	    ++newents;
+	    dq->sorted = 0;
+	  } /* ... end of "filename starts with a [0-9]" */
+	}
+
+#ifdef	BUGGY_CLOSEDIR
+	/*
+	 * Major serious bug time here;  some closedir()'s
+	 * free dirp before referring to dirp->dd_fd. GRRR.
+	 * XX: remove this when bug is eradicated from System V's.
+	 */
+	close(dirp->dd_fd);
+#endif
+	closedir(dirp);
+
+	return newents;
+}
+
+
+int syncweb(rc)
+	struct router_child *rc;
+{
+	struct stat *stbuf;
+	char *file, *ddir;
+	struct dirstatname *dqstats;
+	struct spblk *spl;
+	int wrkcnt = 0;
+	long ino;
+	struct dirqueue *dq = rc->dq;
+	int wrkidx = dq->wrkcount -1;
+
+	/* Any work to do ? */
+	if (dq->wrksum == 0) return 0;
+
+	time(&now);
+
+	if (stability && !dq->sorted && dq->wrkcount > 1) {
+
+	  /* Sort the dq->stats[] per file ctime -- LATEST on slot 0.
+	     (we drain this queue from the END) */
+
+	  qsort( (void*)dq->stats,
+		 dq->wrkcount,
+		 sizeof(void*),
+		 dq_ctimecompare );
+
+	  dq->sorted = 1;
+
+	}
+
+	/* Ok some, decrement the count to change it to index */
+
+	dqstats = dq->stats[wrkidx];
+	file  =   dqstats->name;
+	ddir  =   dqstats->dir;
+	stbuf = &(dqstats->st);
+	ino   =   dqstats->ino;
+
+	_parent_feed_child(rc, file, ddir);
+
+	dq->wrkcount -= 1;
+	dq->wrksum   -= 1;
+
+	if (dq->wrkcount > wrkidx) {
+	  /* Skipped some ! Compact the array ! */
+	  memcpy( &dq->stats[wrkidx], &dq->stats[wrkidx+1],
+		  sizeof(dq->stats[0]) * (dq->wrkcount - wrkidx));
+	}
+	dq->stats[dq->wrkcount] = NULL;
+
+	/* Now we have pointers */
+
+	/* Deletion from the  dq->mesh  should ALWAYS succeed.. */
+	spl = sp_lookup((u_long)ino, dq->mesh);
+	if (spl != NULL)
+	  sp_delete(spl, dq->mesh);
+
+	/* Free the pre-schedule queue entry */
+	free(dqstats);
+	free(ddir);
+
+	return wrkcnt;
+}
+
+/* "rd_doit()" at the feeding parent server */
 
 
 /*
@@ -770,46 +1066,6 @@ static void child_server(tofd,frmfd)
  * This can be avoided partially by sticky-bitting the router directory,
  * and entirely by NOT saving the stat information we get here.
  */
-
-struct de {
-	int		f_name;
-	time_t		mtime;
-};
-
-static int decmp __((const void *, const void *));
-static int
-decmp(a, b)
-     const void *a, *b;
-{
-	register const struct de *aa = (const struct de *)a;
-	register const struct de *bb = (const struct de *)b;
-
-	return bb->mtime - aa->mtime;
-}
-
-static int desize, nbsize;
-static struct de *dearray = NULL;
-static char *nbarray = NULL;
-
-static void rd_initstability __((void));
-static void
-rd_initstability()
-{
-	desize = 1;	/* max. number of directory entries */
-	nbsize = 1;
-	dearray = (struct de *)emalloc(desize * sizeof (struct de));
-	nbarray = (char *)emalloc(nbsize * sizeof (char));
-}
-
-static void rd_endstability __((void));
-static void
-rd_endstability()
-{
-	if (dearray != NULL)
-		free((char *)dearray);
-	if (nbarray != NULL)
-		free((char *)nbarray);
-}
 
 int
 run_doit(argc, argv)
@@ -960,135 +1216,6 @@ rd_doit(filename, dirs)
 	return 1;
 }
 
-static int rd_stability __((DIR *dirp, const char *dirs));
-static int
-rd_stability(dirp,dirs)
-	DIR *dirp;
-	const char *dirs;
-{
-	int deindex, nbindex, did_cnt;
-	int namelen;
-	struct dirent *dp;
-	struct stat statbuf;
-	char pathbuf[512]; /* Enough ? */
-
-	deindex = 0;
-	nbindex = 0;
-	/* collect the file names */
-	while ((dp = readdir(dirp)) != NULL) {
-		if (mustexit)
-			break;
-		if (dp->d_name[0] == '.')
-			continue;
-		/* Handle only files beginning with number -- plus "core"-
-		   files.. */
-		if (!(dp->d_name[0] >= '0' && dp->d_name[0] <= '9') &&
-		    strncmp(dp->d_name,"core",4) != 0)
-			continue;
-
-		/* See that the file is a regular file! */
-		sprintf(pathbuf,"%s%s%s", dirs, *dirs?"/":"", dp->d_name);
-		if (lstat(pathbuf,&statbuf) != 0) continue; /* ??? */
-		if (!S_ISREG(statbuf.st_mode)) continue; /* Hmm..  */
-
-		if (deindex >= desize) {
-			desize *= 2;
-			dearray =
-			  (struct de *)realloc((char *)dearray,
-					       desize * sizeof (struct de));
-		}
-
-		namelen = strlen(dp->d_name); /* Not everybody has d_namlen.. */
-
-		while (nbindex + namelen + 1 >= nbsize) {
-			nbsize *= 2;
-			nbarray =
-			  (char *)realloc(nbarray,
-					  nbsize * sizeof (char));
-		}
-
-		/*
-		 * The explicit alloc is done because alloc/dealloc
-		 * of such small chunks should not affect fragmentation
-		 * too much, and allocating large chunks would require
-		 * management code and might still do bad things with
-		 * the malloc algorithm.
-		 */
-		dearray[deindex].mtime = statbuf.st_mtime;
-		dearray[deindex].f_name = nbindex;
-		memcpy(nbarray + nbindex, dp->d_name, namelen+1);
-		nbindex += namelen + 1;
-
-		++deindex;
-	}
-	if (mustexit) {
-		return deindex;
-	}
-
-	qsort((void *)dearray, deindex, sizeof dearray[0], decmp);
-
-	did_cnt = 0;
-	while (deindex-- > 0) {
-		if (mustexit)
-			break;
-		if (gothup) 
-			dohup(0);
-		if (nbarray[dearray[deindex].f_name])
-		  did_cnt += parent_feed_child(nbarray + dearray[deindex].f_name, dirs);
-		nbarray[dearray[deindex].f_name] = 0;
-
-		/* Maybe only process few files out of the low-priority
-		   subdirs, so we can go back and see if any higher-priority
-		   jobs have been created */
-		if ((*dirs) &&
-		    ((routerdirloops) && (routerdirloops == did_cnt)))
-		  break;
-
-	}
-	return did_cnt;
-}
-
-
-static int rd_instability __((DIR *dirp, char *dirs));
-static int
-rd_instability(dirp, dirs)
-	DIR *dirp;
-	char *dirs;
-{
-	struct dirent *dp;
-	int did_cnt = 0;
-	struct stat statbuf;
-	char pathbuf[512];
-
-	while ((dp = readdir(dirp)) != NULL) {
-		if (mustexit)
-			break;
-		if (gothup)
-			dohup(0);
-
-		/* Handle only files beginning with number -- plus "core"-
-		   files.. */
-		if (!(dp->d_name[0] >= '0' && dp->d_name[0] <= '9') &&
-		    strncmp(dp->d_name,"core",4) != 0)
-			continue;
-
-		/* See that the file is a regular file! */
-		sprintf(pathbuf,"%s%s%s", dirs, *dirs?"/":"", dp->d_name);
-		if (lstat(pathbuf,&statbuf) != 0) continue; /* ??? */
-		if (!S_ISREG(statbuf.st_mode)) continue; /* Hmm..  */
-
-		did_cnt += parent_feed_child(dp->d_name, dirs);
-
-		/* Only process one file out of the low-priority subdirs,
-		   so we can go back and see if any higher-priority
-		   jobs have been created */
-		if (*dirs)
-			break;
-
-	}
-	return did_cnt;
-}
-
 
 int
 run_stability(argc, argv)
@@ -1119,153 +1246,137 @@ run_daemon(argc, argv)
 	int argc;
 	const char *argv[];
 {
-#define ROUTERDIR_CNT 30
 	DIR *dirp[ROUTERDIR_CNT];  /* Lets say we have max 30 router dirs.. */
 	char *dirs[ROUTERDIR_CNT];
-	int did_cnt, i;
+	int i, ii;
 	char *s, *rd, *routerdirs = getzenv("ROUTERDIRS");
 	char pathbuf[256];
 	memtypes oval = stickymem;
 
+	time_t nextdirscan = 0;
+
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;
 
-	start_childs();
+
+	memset(routerchilds, 0, sizeof(routerchilds));
+
+	for (i = 0; i < MAXROUTERCHILDS; ++i)
+	  routerchilds[i].fromchild = -1;
+
+	/* instantiate the signal handler.. */
+#ifdef SIGCLD
+	SIGNAL_HANDLE(SIGCLD,  sig_chld);
+#else
+	SIGNAL_HANDLE(SIGCHLD, sig_chld);
+#endif
 
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
+
+	memset(&dirqb, 0, sizeof(dirqb));
 	for (i=0; i<ROUTERDIR_CNT; ++i) {
-		dirp[i] = NULL; dirs[i] = NULL;
+	  dirq[i] = &dirqb[i];
+	  dirqb[i].mesh = sp_init();
+	  dirp[i] = NULL;
+	  dirs[i] = NULL;
 	}
 	/* dirp[0] = opendir("."); */	/* assert dirp != NULL ... */
+
 #if 0
 #ifdef BSD
 	dirp[0]->dd_size = 0;	/* stupid Berkeley bug workaround */
 #endif
 #endif
+
+	for (ii = 0; ii < nrouters; ++ii)
+	  routerchilds[ii].dq = dirq[0];
+
+	ii = MAXROUTERCHILDS;
+
 	stickymem = MEM_MALLOC;
-	dirs[0] = strnsave("",1);
+	dirs[0] = strnsave(".",2);
 	if (routerdirs) {
-		/* Store up secondary router dirs! */
-		rd = routerdirs;
-		for (i = 1; i < ROUTERDIR_CNT && *rd; ) {
-			s = strchr(rd,':');
-			if (s)  *s = 0;
-			sprintf(pathbuf,"../%s",rd);
-			/* strcat(pathbuf,"/"); */
+	  /* Store up secondary router dirs! */
+	  rd = routerdirs;
+	  for (i = 1; i < ROUTERDIR_CNT && *rd; ) {
 
-			dirs[i] = strdup(pathbuf);
-			++i;
+	    s = strchr(rd,':');
+	    if (s)  *s = 0;
+	    sprintf(pathbuf,"../%s",rd);
+	    /* strcat(pathbuf,"/"); */
 
-			if (s)
-			  *s = ':';
-			if (s)
-			  rd = s+1;
-			else
-			  break;
-		}
-	}
-	setfreefd();
-	if (stability)
-		rd_initstability();
-	stickymem = oval;
-	did_cnt = 0;
-	i = -1;
-	for (; !mustexit ;) {
-		++i;	/* Increment it */
-		/* The last of the alternate dirs ?  Reset.. */
-		if (i >= ROUTERDIR_CNT || dirs[i] == NULL) {
-			i = 0;
+	    dirs[i] = strdup(pathbuf);
 
-			canexit = 1;
-		/*
-		 * If a shell signal interrupts us here, there is
-		 * potential for problems knowing which file descriptors
-		 * are free.  One could add a setfreefd() to the trap
-		 * routine, in that case.
-		 */
-			sleep(sweepintvl);
-			canexit = 0;
-		}
+	    if (ii > 2)
+	      routerchilds[ --ii ].dq = dirq[i];
 
-		/*
-		 * We would like to do a seekdir()/rewinddir()
-		 * instead of opendir()/closedir()  inside this
-		 * loop to avoid allocating and freeing a chunk
-		 * of memory all the time.  This can lead to
-		 * memory fragmentation and thus growing VM.
-		 *
-		 * However several systems do NOT guarantee that
-		 * rewinddir() will find any new data from the
-		 * system...
-		 */
-		/* rewinddir(dirp[i]); */	/* some system w/o this ? */
+	    ++i;
 
-#if 0
-#ifdef	BUGGY_CLOSEDIR
-		/*
-		 * Major serious bug time here;  some closedir()'s
-		 * free dirp before referring to dirp->dd_fd. GRRR.
-		 * XX: remove this when bug is eradicated from System V's.
-		 */
-		close(dirp[i]->dd_fd);
-#endif
-		closedir(dirp[i]);
-#endif
-		dirp[i] = opendir(dirs[i][0] == 0 ? "." : dirs[i]);
-
-		did_cnt = 0;
-		if (dirp[i] != NULL) {
-		  if (stability)
-		    did_cnt = rd_stability(dirp[i],dirs[i]);
-		  else
-		    did_cnt = rd_instability(dirp[i],dirs[i]);
-
-		  if (stability != real_stability) {
-		    stability = real_stability;
-		    if (stability == 0)
-		      rd_endstability();
-		    else
-		      rd_initstability();
-		  }
-#if 1
-#ifdef	BUGGY_CLOSEDIR
-		  /*
-		   * Major serious bug time here;  some closedir()'s
-		   * free dirp before referring to dirp->dd_fd. GRRR.
-		   * XX: remove this when bug is eradicated from System V's.
-		   */
-		  close(dirp[i]->dd_fd);
-#endif
-		  closedir(dirp[i]);
-		  dirp[i] = NULL;
-#endif
-		}
-
-		if (mustexit)
-			break;
-
-		/* Alter router directory.  If processed directory
-		   had any job, reset the  index  to the begin.   */
-		if (did_cnt > 0)
-			i = -1;
-	}
-	for (i=0; i < ROUTERDIR_CNT; ++i)
-	  if (dirs[i]) {
-	    if (dirp[i]) {
-#if 0
-#ifdef	BUGGY_CLOSEDIR
-	      /*
-	       * Major serious bug time here;  some closedir()'s
-	       * free dirp before referring to dirp->dd_fd. GRRR.
-	       * XX: remove this when bug is eradicated from System V's.
-	       */
-	      close(dirp[i]->dd_fd);
-#endif
-	      closedir(dirp[i]);
-#endif
-	    }
-	    free(dirs[i]);
+	    if (s)
+	      *s = ':';
+	    if (s)
+	      rd = s+1;
+	    else
+	      break;
 	  }
+	}
+
+
+	setfreefd();
+	stickymem = oval;
+
+	/* Do initial synchronous queue scan now */
+
+	for (i = 0; i < ROUTERDIR_CNT; ++i) {
+	  if (dirs[i])
+	    dirqueuescan(dirs[i], dirq[i], 1);
+	}
+
+	for (i = 0; i < MAXROUTERCHILDS; ++i) {
+	  if ( routerchilds[i].dq &&
+	       routerchilds[i].dq->wrkcount )
+	    if (start_child(i))
+	      break; /* fork failed.. */
+	}
+
+	sleep(5); /* Wait a bit before continuting so that
+		     child processes have change to boot */
+
+	/* Collect start reports (initial "#hungry\n" lines) */
+	parent_reader();
+
+	for (; !mustexit ;) {
+
+	    time(&now);
+	    if (now > nextdirscan) {
+	      nextdirscan = now + 10;
+
+	      for (i = 0; i < ROUTERDIR_CNT; ++i) {
+		if (dirs[i])
+		  dirqueuescan(dirs[i], dirq[i], 1);
+	      }
+
+	    }
+
+	    for (i = 0; i < MAXROUTERCHILDS; ++i) {
+	      if ( routerchilds[i].tochild >= 0 &&
+		   routerchilds[i].childsize == 0 &&
+		   routerchilds[i].hungry &&
+		   routerchilds[i].dq &&
+		   routerchilds[i].dq->wrkcount > 0 ) {
+		/* Feed this ! */
+		syncweb(&routerchilds[i]);
+	      }
+	    }
+
+	    if (! parent_reader())
+	      sleep(1);
+	}
+
+	for (i=0; i < ROUTERDIR_CNT; ++i)
+	  if (dirs[i])
+	    free(dirs[i]);
+
 	return 0;
 }
 

@@ -70,6 +70,7 @@ router:
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
 	to react mistakenly with 'Illegal-Object:'.
 
+router:
 	Works now as a work-gang under leadership of one process
         whose task is to scan the directories for work..
 	It is still not quite as flexible as one might want, but
@@ -89,6 +90,9 @@ router:
 		-> 2.99.52 has queueing / log collecting process
 		   (all that for easy log rotation), but priorization
 		   is not there yet
+
+	-> 10-May-2000: things have been turned upside down in manner
+	   of the scheduler's queue paradigm.
 
 
 transports/smtp:

@@ -1,5 +1,23 @@
 2000-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822.c:
+	    Existence of ZENV variable ``SCHEDULERDIRHASH'' drives
+	    movement of files from router to the scheduler to go
+	    straight to hashed subdirs at the scheduler.
+
+	* router/daemonsub.c:
+	    A lot more work at the daemon subsystem.
+	    Now it runs a dedicated set of router processes for
+	    the primary router directory, plus one for each of
+	    ``ROUTERDIRS'' variable defined auxiliary directories.
+
+	* libc/mail.c, router/daemonsub.c, man/router.8,
+	  SiteConfig.in:
+	    If ZENV variable ``ROUTERDIRHASH'' exists, and has value
+	    ``1'', all message submissions will be using direct moving
+	    nto ``A'' thru ``Z'' hash-subdirectories -- if they don't
+	    exist, things FAIL!
+
 	* scheduler/mq2auth.c, scheduler/transport.c:
 	    Mailq-V2 IP-ACL system works!
 

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "29 Aug 1997"
+.TH ROUTER 8 "9 May 2000"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
@@ -862,7 +862,16 @@ queueing priority mechanism is desired to be used.
 .br
 Example:
 .B ROUTERDIRS=router1:router2:router3:router4
-.IP 
+.IP SCHEDULERDIRHASH
+Carries a numeric value of ``1'' or ``2'' (if defined at all),
+which will then override possible ``-H'' option at the
+.IR scheduler .
+Existence of this ZENV-variable tells the
+.I router
+to send messages directly to the scheduler's hash subdirectories,
+thus eliminating a few directory operations which the scheduler would
+otherwise do, and at the same time limiting the size of the directory
+files.
 .SH FILES
 .I /etc/zmailer.conf
 .br
@@ -880,4 +889,4 @@ Rayan Zachariassen <rayan@cs.toronto.edu>
 .br
 A plenty of changes and further developement by:
 .br
-Matti Aarnio <mea@utu.fi>
+Matti Aarnio <mea@nic.funet.fi>

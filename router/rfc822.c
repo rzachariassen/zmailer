@@ -217,8 +217,13 @@ run_rfc822(argc, argv)
 
 	if (D_final > 0)
 		dumpInfo(e);
+
+	/* This will always make some noise in successfull case,
+	   except that it is SILENT code... */
+
 	if (status != PERR_CTRLFILE && status != PERR_DEFERRED && !savefile)
 		(void) zunlink(file); /* SILENT! */
+
 	if (e->e_fp != NULL)
 		fclose(e->e_fp);
 	tfree(MEM_TEMP);
@@ -820,7 +825,9 @@ defer(e, why)
 	s = path;
 	while ((s = strchr(s, ' '))) /* remap blanks to '-':es.. */
 	  *s = '-';
+#ifndef HAVE_RENAME
 	zunlink(path);
+#endif
 
 	/* try renameing every few seconds for a minute */
 	for (i = 0; erename(e->e_file, path) < 0 && i < 10 && errno != ENOENT;++i)
@@ -1179,6 +1186,7 @@ conscell *rwmappend(rwmroot,info,errtop)
  */
 
 int ReceivedCount = 0;
+static int schedulersubdirhash = -1;
 
 int
 sequencer(e, file)
@@ -1205,7 +1213,29 @@ sequencer(e, file)
 	const char     *fromaddr = "?from?";
 	const char     *msgidstr = "?msgid?";
 	const char     *smtprelay = NULL;
+	char subdirhash[8];
 	GCVARS5;
+
+	if (schedulersubdirhash < 0) {
+	  char *s = getzenv("SCHEDULERDIRHASH");
+	  if (s && ((s[0] == '1' || s[0] == '2') && s[1] == 0))
+	    schedulersubdirhash = s[0] - '0';
+	  else
+	    schedulersubdirhash = 0;
+	}
+
+	if (schedulersubdirhash) {
+	  long ino = e->e_statbuf.st_ino;
+	  if (schedulersubdirhash > 1) {
+	    int h1 = (ino / 26) % 26;
+	    int h2 = ino % 26;
+	    sprintf(subdirhash, "%c/%c/", h1 + 'A', h2 + 'A');
+	  } else {
+	    int h2 = ino % 26;
+	    sprintf(subdirhash, "%c/", h2 + 'A');
+	  }
+	} else
+	  *subdirhash = 0;
 
 	deferuid = 0;
 
@@ -2339,11 +2369,11 @@ sequencer(e, file)
 	}
 	/* all is nirvana -- link the input file to somewhere safe */
 #ifdef	USE_ALLOCA
-	qpath = (char*)alloca(5+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)alloca(12+strlen(QUEUEDIR)+strlen(file));
 #else
-	qpath = (char*)emalloc(5+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)emalloc(12+strlen(QUEUEDIR)+strlen(file));
 #endif
-	sprintf(qpath, "../%s/%s", QUEUEDIR, file);
+	sprintf(qpath, "../%s/%s%s", QUEUEDIR, subdirhash, file);
 	fflush(ofp);
 #ifdef HAVE_FSYNC
 	fsync(FILENO(ofp));
@@ -2361,14 +2391,16 @@ sequencer(e, file)
 	}
 
 #ifndef USE_ALLOCA
-	path = (char*)emalloc(5+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)emalloc(12+strlen(TRANSPORTDIR)+strlen(file));
 #else
 	/* This actually reallocs more space from stack, but then it
 	   is just stack space and will disappear.. */
-	path = (char*)alloca(5+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)alloca(12+strlen(TRANSPORTDIR)+strlen(file));
 #endif
-	sprintf(path, "../%s/%s", TRANSPORTDIR, file);
+	sprintf(path, "../%s/%s%s", TRANSPORTDIR, subdirhash, file);
+#ifndef HAVE_RENAME
 	zunlink(path);	/* Should actually always fail.. */
+#endif
 	if (erename(ofpname, path) < 0) {
 	  zunlink(qpath);
 	  zunlink(path);

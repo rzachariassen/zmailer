@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "3 Mar 2000"
+.TH SCHEDULER 8 "9 May 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -903,6 +903,35 @@ contain following kind of entries:
 .P
 .I (Do note that smtpserver(8) has also tcp-wrapper support, which becomes
 .I active simultaneously with scheduler's tcp-wrapper code!)
+.SH Z-ENVIRONMENT VARIABLES
+.IP LOGDIR
+defines location of log files. Example:
+.B LOGDIR=/var/log/mail
+.IP MAILBIN
+Defines where executable transport-agent binaries exist under
+$\fBMAILBIN\fR/ta/ directory.
+.IP MAILSHARE
+Location of scheduler configuration files
+.IP PATH
+What PATH environment variable to give to transport-agent subprograms.
+.IP POSTOFFICE
+defines directory where all POSTOFFICE functions are under.
+.br
+Example:
+.B POSTOFFICE=/var/spool/postoffice
+.IP SCHEDULERDIRHASH
+Carries a numeric value of ``1'' or ``2'' (if defined at all),
+which will then override possible ``-H'' option.
+.IP SYSLOGFLG
+Existence of ``c'' or ``C'' character in value string enables
+syslogging of some events as seen by the scheduler.
+.IP ZCONFIG
+Gives location of
+.I zmailer.conf
+ file (and filename).
+Actually this one variable does
+.B not
+override compiled-in location of this configuration file.
 .SH SIGNALS
 .IP \fBSIGHUP\fR:
 close and reopen the stdout/stderr log file.

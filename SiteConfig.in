@@ -48,6 +48,12 @@ POSTOFFICE=	@POSTOFFICE@
 # These can be only under the $POSTOFFICE.
 ROUTERDIRS=router1:router2:router3:router4
 
+# When defined, ROUTERDIRHASH submits messages immediately into the
+# 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
+# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+# (The value must be "1" for this to take effect!)
+#ROUTERDIRHASH=1
+
 # LOGDIR is the directory where log files will appear.  Usually /usr/spool/log
 # or /var/log.
 LOGDIR=		@LOGDIR@
@@ -88,6 +94,14 @@ SMTPOPTIONS=	@SMTPOPTIONS@
 #
 #SCHEDULEROPTIONS=	"-l ${LOGDIR}/scheduler.perflog -S -H"
 SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
+
+# The SCHEDULERDIRHASH is magic thing to tell to the router that it
+# should move resulting files directly into hash subdir(s) of the
+# scheduler subsystem, and not only to the main-level.
+# Existence of this vairable also overrides -H option(s) to
+# the scheduler.  Value is the number of -H options.
+# If these hash subdirectories don't exist, system failure happens!
+#SCHEDULERDIRHASH=1
 
 # ROUTEROPTIONS are command line options given to the router when started
 # from the zmailer shell script. The default values are "-dkn 4"

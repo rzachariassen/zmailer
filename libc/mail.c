@@ -2,6 +2,10 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  */
+/*
+ *	Some modifications  by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ */
 
 /*LINTLIBRARY*/
 
@@ -421,6 +425,8 @@ int mail_close(fp)
 }
 
 
+static int routersubdirhash = -1;
+
 int
 _mail_close_(fp,inop, mtimep)
 	FILE *fp;
@@ -433,6 +439,15 @@ _mail_close_(fp,inop, mtimep)
 	struct stat stb;
 	int fn;
 	long ino;
+	char subdirhash[6];
+
+	if (routersubdirhash < 0) {
+	  char *ss = getzenv("ROUTERDIRHASH");
+	  if (ss && *ss == '1')
+	    routersubdirhash = 1;
+	  else
+	    routersubdirhash = 0;
+	}
 
 	if (postoffice == NULL) {
 		fprintf(stderr, "mail_close: called out of order!\n");
@@ -459,10 +474,15 @@ _mail_close_(fp,inop, mtimep)
 	mail_type[fn] = NULL;
 	mail_file[fn] = NULL;
 
-	if (lstat(message,&stb)) {
+	if (fstat(fn, &stb)) {
 	  /* XXX: error processing */
 	}
 	ino = stb.st_ino;
+
+	if (routersubdirhash > 0) {
+	  sprintf(subdirhash, "%c/", 'A' + (ino % 26));
+	} else
+	  *subdirhash = 0;
 
 	/*
 	 * *** NFS users beware ***
@@ -495,10 +515,10 @@ _mail_close_(fp,inop, mtimep)
 	    const char *ord = routerdir;
 #ifdef HAVE_ALLOCA
 	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+3+
-			      9+strlen(type));
+			      9+4+strlen(type));
 #else
 	    nmessage = mail_alloc(strlen(postoffice)+strlen(routerdirs)+3+
-				  9+strlen(type));
+				  9+4+strlen(type));
 #endif
 	    /* There are some defined!   A ":" separated list of strings */
 
@@ -533,16 +553,18 @@ _mail_close_(fp,inop, mtimep)
 	if (nmessage == NULL) {
 #ifdef HAVE_ALLOCA
 	  nmessage = alloca(strlen(postoffice)+strlen(routerdir)+
-			    9+2+1+strlen(type));
+			    9+4+2+1+strlen(type));
 #else
 	  nmessage = mail_alloc(strlen(postoffice)+strlen(routerdir)+
-				9+2+1+strlen(type));
+				9+4+2+1+strlen(type));
 #endif
-	  sprintf(nmessage, "%s/%s/%ld%s", postoffice, routerdir, ino ,type);
+	  sprintf(nmessage, "%s/%s/%s%ld%s", postoffice, routerdir,
+		  subdirhash, ino ,type);
 	} else {
 	  s = strchr(routerdir,':');
 	  if (s) *s = 0;
-	  sprintf(nmessage, "%s/%s/%ld%s", postoffice, routerdir, ino, type);
+	  sprintf(nmessage, "%s/%s/%s%ld%s", postoffice, routerdir,
+		  subdirhash, ino, type);
 	  if (s) *s = ':';
 	}
 

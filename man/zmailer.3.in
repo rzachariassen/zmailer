@@ -182,6 +182,10 @@ queueing priority mechanism is desired to be used.
 .br
 Example:
 .B ROUTERDIRS=router1:router2:router3:router4
+.IP ROUTERDIRHASH
+Value ``1'' at this variable means that all router directories
+.B must
+have subdirectories with names ``A'' thru ``Z'', alike 
 .SH FILES
 .I /var/spool/postoffice/public (POSTOFFICE/public)
 .br
