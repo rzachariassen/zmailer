@@ -232,7 +232,7 @@ static int count_ipv4( state, ipv4addr, lastlimit,
 	}
 	if (!reg) return 0;    /*  alloc failed!  */
 
-	reg->mails += incr;
+	/* reg->mails += incr; -- this is independent of slotcounts! */
 
 	if (lastlimit > 0)
 	  reg->lastlimit = lastlimit;
@@ -362,6 +362,8 @@ static int count_daborts_ipv4( state, ipv4addr, incr )
 
 	reg->aborts += 1;
 	reg->recipients += incr;
+	if (incr > 0)
+	  ++ reg->mails;
 
 	return reg->aborts;
 }
@@ -378,6 +380,8 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	}
 	if (!reg) return 0;    /*  alloc failed!  */
 
+	if (incr > 0)
+	  ++ reg->mails;
 	reg->recipients += incr;
 	reg->last_recipients = now;
 
@@ -793,8 +797,6 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    if (i > auth_failrate) i = -999;
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -8) {
-	    if (countval > 0)
-	      count_ipv4( state, ipv4addr, lastlimitval, 1 );
 	    i = count_daborts_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
