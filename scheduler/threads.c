@@ -1443,8 +1443,7 @@ idle_cleanup()
 	      if (!p) /* No process */
 		continue;
 	      if ((p->cmdlen == 0) && (p->overfed == 0) &&
-		  ((p->hungertime == 0) ||
-		   (p->hungertime + MAX_HUNGER_AGE > now))) {
+		  (p->hungertime + MAX_HUNGER_AGE > now)) {
 
 		/* Close the command channel, let it die itself.
 		   Rest of the cleanup happens via mux() service. */
