@@ -549,7 +549,7 @@ main(argc, argv)
 	ArgvSave   = (char *) argv[0];
 	EOArgvSave = argv[argc-1] + strlen(argv[argc-1]) + 1;
 
-	mytime(&sched_starttime);
+	time(&sched_starttime);
 
 	memset(&dirqb,0,sizeof(dirqb));
 	dirscan_mesh = sp_init();
@@ -777,16 +777,6 @@ main(argc, argv)
 	}
 
 
-	if (logfn != NULL) {
-	  /* loginit is a signal handler, so can't pass log */
-	  if (loginitsched(SIGHUP) < 0) /* do setlinebuf() there */
-	    die(1, "log initialization failure");
-	  /* close and reopen log files */
-	  SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
-	} else {
-	  SIGNAL_IGNORE(SIGHUP); /* no surprises please */
-	  sfset(sfstdout, SF_LINE, 1);
-	}
 #ifdef USE_SIGREAPER
 # ifdef SIGCLD
 	SIGNAL_HANDLE(SIGCLD,  sig_chld);
@@ -826,14 +816,25 @@ main(argc, argv)
 	  /* NOTREACHED */
 	}
 
-
-
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
 
 	if (chdir(postoffice) < 0 || chdir(TRANSPORTDIR) < 0)
 	  sfprintf(sfstderr, "%s: cannot chdir to %s/%s.\n",
 		   progname, postoffice, TRANSPORTDIR);
+
+
+	if (logfn != NULL) {
+	  /* loginit is a signal handler, so can't pass log */
+	  if (loginitsched(SIGHUP) < 0) /* do setlinebuf() there */
+	    die(1, "log initialization failure");
+	  /* close and reopen log files */
+	  SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
+	} else {
+	  SIGNAL_IGNORE(SIGHUP); /* no surprises please */
+	  sfset(sfstdout, SF_LINE, 1);
+	}
+
 
 	if (rendezvous == NULL && (rendezvous = getzenv("RENDEZVOUS")) == NULL)
 	  rendezvous = qoutputfile;
@@ -848,28 +849,18 @@ main(argc, argv)
 	    /* NOTREACHED */
 	  }
 	  detach();		/* leave worldy matters behind */
-	  mytime(&now);
+
+	  close(0);
+	  open("/dev/null",O_RDONLY,0); /* This is good for fd0 reading.. */
+
+	  time(&now);
 	  sfprintf(sfstdout, "%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
 		   progname, Version, (int)getpid(), (char *)rfc822date(&now));
 	}
 
-	{
-	  /* Create file handles (and temp files) for studying
-	     file system (free) space state. */
 
-	  char *p = malloc(strlen(TRANSPORTDIR)+50);
-	  if (p) {
-	    sprintf(p, "../%s/..%d", QUEUEDIR, getpid());
-	    QSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
-	    unlink(p);unlink(p);
-
-	    sprintf(p, "../%s/..%d", TRANSPORTDIR, getpid());
-	    TSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
-	    unlink(p);unlink(p);
-
-	    free(p);
-	  }
-	}
+	/* call this to create the timeserver -- if possible */
+	init_timeserver(); /* Will take around 3-4 secs.. */
 
 
 	/* Now we are either interactive, or daemon, lets attach monitoring
@@ -920,10 +911,6 @@ main(argc, argv)
 
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* split */
 	SIGNAL_HANDLE(SIGQUIT, sig_quit);	/* Slow shutdown */
-
-	/* call it to create the timeserver -- if possible */
-	init_timeserver(); /* Will take around 3-4 secs.. */
-
 
 	if (optind < argc) {
 	  /* process the specified control files only */
@@ -3117,7 +3104,7 @@ static void init_timeserver()
 	  timeserver_segment->pid = ppid;
 
 	  time(&now);
-	  sleep(3);
+	  sleep(2);
 
 #ifdef HAVE_SELECT
 	  now2 = timeserver_segment->tv.tv_sec;
@@ -3125,7 +3112,7 @@ static void init_timeserver()
 	  now2 = timeserver_segment->time_sec;
 #endif
 	  if (now2 == 0 || now2 == now) {
-	    /* HUH ?! No incrementation in 3 seconds ?? */
+	    /* HUH ?! No incrementation in 2 seconds ?? */
 	    /* Start ticking in alarm() mode! */
 	    kill (ppid, SIGTERM);
 	    timeserver_pid = 0;
@@ -3145,9 +3132,30 @@ static void init_timeserver()
 	{
 
 	  int space_check_count = 0;
+	  char *p;
 
 	  MIBMtaEntry->sc.schedulerTimeserverStartTime = time(NULL);
 	  MIBMtaEntry->sc.schedulerTimeserverStarts ++;
+
+
+	  close(0); close(1); close(2);
+	  if (statuslog) sfclose(statuslog);
+
+	  /* Create file handles (and temp files) for studying
+	     file system (free) space state. */
+
+	  p = malloc(strlen(TRANSPORTDIR)+50);
+	  if (p) {
+	    sprintf(p, "../%s/.%d.spacetest", QUEUEDIR, getpid());
+	    QSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
+	    unlink(p);unlink(p);
+	    
+	    sprintf(p, "../%s/.%d.spacetest", TRANSPORTDIR, getpid());
+	    TSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
+	    unlink(p);unlink(p);
+
+	    free(p);
+	  }
 
 
 #ifdef HAVE_SETPROCTITLE
