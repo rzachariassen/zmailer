@@ -131,8 +131,8 @@ MD5_CTX *context;                                        /* context */
  */
 void MD5Update (context, input, inputLen)
 MD5_CTX *context;                                        /* context */
-unsigned char *input;                                /* input block */
-unsigned long inputLen;                    /* length of input block */
+const unsigned char *input;                          /* input block */
+const unsigned int inputLen;               /* length of input block */
 {
   unsigned long i, index, partLen;
 
@@ -141,31 +141,31 @@ unsigned long inputLen;                    /* length of input block */
 
   /* Update number of bits */
   if (TO32(context->count[0] += (inputLen << 3))
-   < TO32(inputLen << 3))
- context->count[1]++;
+      < TO32(inputLen << 3))
+    context->count[1]++;
   context->count[1] += (inputLen >> 29);
 
   partLen = 64 - index;
 
-  /* Transform as many times as possible.
-*/
+  /* Transform as many times as possible. */
+
   if (inputLen >= partLen) {
- MD5_memcpy
-   ((POINTER)&context->buffer[index], (POINTER)input, partLen);
- MD5Transform (context->state, context->buffer);
+    MD5_memcpy
+      ((POINTER)&context->buffer[index], (POINTER)input, partLen);
+    MD5Transform (context->state, context->buffer);
 
- for (i = partLen; i + 63 < inputLen; i += 64)
-   MD5Transform (context->state, &input[i]);
+    for (i = partLen; i + 63 < inputLen; i += 64)
+      MD5Transform (context->state, &input[i]);
 
- index = 0;
+    index = 0;
   }
   else
- i = 0;
+    i = 0;
 
   /* Buffer remaining input */
-  MD5_memcpy
- ((POINTER)&context->buffer[index], (POINTER)&input[i],
-  inputLen-i);
+  MD5_memcpy((POINTER)&context->buffer[index],
+	     (POINTER)&input[i],
+	     inputLen-i);
 }
 
 /* MD5 finalization. Ends an MD5 message-digest operation, writing the
@@ -181,8 +181,8 @@ MD5_CTX *context;                                       /* context */
   /* Save number of bits */
   Encode (bits, context->count, 8);
 
-  /* Pad out to 56 mod 64.
-*/
+  /* Pad out to 56 mod 64. */
+
   index = (unsigned long)((context->count[0] >> 3) & 0x3f);
   padLen = (index < 56) ? (56 - index) : (120 - index);
   MD5Update (context, PADDING, padLen);
@@ -193,8 +193,7 @@ MD5_CTX *context;                                       /* context */
   /* Store state in digest */
   Encode (digest, context->state, 16);
 
-  /* Zeroize sensitive information.
-*/
+  /* Zeroize sensitive information. */
   MD5_memset ((POINTER)context, 0, sizeof (*context));
 }
 
