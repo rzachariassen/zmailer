@@ -1250,9 +1250,9 @@ static int call_rate_counter(state, incr, what, countp)
      int incr, *countp;
      PolicyTest what;
 {
-    int rc;
+    int rc, rc2;
     char pbuf[2000]; /* Not THAT much space needed.. */
-    char wbuf[20];
+    char wbuf[20], *p;
     const char *cmd = "zz";
     const char *whatp = "CONNECT";
     int count = 0;
@@ -1314,24 +1314,29 @@ static int call_rate_counter(state, incr, what, countp)
       type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
 
     rc = call_subdaemon_trk(&state->rate_state, pbuf, pbuf, sizeof(pbuf));
+    p = strchr(pbuf, '\n');
+    if (p) *p = 0;
+
+    if (rc >= 0)
+      rc2 = sscanf(pbuf, "%*s %d", &count);
+    else
+      rc2 = -3;
 
     if (debug)
-      type(NULL,0,NULL,"call_rate_counter: got rc=%d, buf='%s'",rc, pbuf);
+      type(NULL,0,NULL,"call_rate_counter: got rc=%d rc2=%d, buf='%s'",rc, rc2, pbuf);
 
     if (rc < 0) return rc; 
-
 
     /* RATE all MAIL FROM lines, apply limits
      * INCR all accepted DATA/BDATs.
      */
 
-    if (sscanf(pbuf, "%*s %d", &count) == 1)
-	return 0;
+    if (rc2 != 1) return -1;
 
     if (!countp) return 0; /* Don't actually care! */
     *countp = count;
 
-    return -1;
+    return 0;
 }
 
 
