@@ -388,7 +388,7 @@ pick_next_thread(proc)
 }
 
 
-void
+int
 delete_thread(thr)
      struct thread *thr;
 {
@@ -397,7 +397,7 @@ delete_thread(thr)
 
 	struct threadgroup *thg = thr->thgrp;
 
-	if (thr->thrkids || thr->jobs) return;
+	if (thr->thrkids || thr->jobs) return 0;
 
 	if (verbose)
 	  sfprintf(sfstderr,"delete_thread(%p:%s/%s) (thg=%p) jobs=%d\n",
@@ -413,6 +413,7 @@ delete_thread(thr)
 memset(thr, 0x55, sizeof(*thr));
 
 	free(thr);
+	return 1;
 }
 
 #if 0 /* Dead code.. */
@@ -1089,6 +1090,11 @@ time_t retrytime;
 
 	/* If there are multiple kids working still, DON'T reschedule! */
 	if (thr->thrkids > 0 || !vtx) return 1;
+
+	if (!thr->thrkids && !thr->jobs) {
+	  delete_thread(thr);
+	  return 0;
+	}
 
 	/* find out when to retry */
 	mytime(&now);

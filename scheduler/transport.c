@@ -351,6 +351,10 @@ ta_hungry(proc)
 	    if (! thread_reschedule(proc->pthread,0,-1))
 	      proc->pthread = NULL;
 
+	  if (proc->pthread)
+	    if (delete_thread(proc->pthread))
+	      proc->pthread = NULL;
+
 	  return;
 	}
 
@@ -454,6 +458,9 @@ ta_hungry(proc)
 	       and if it got destroyed (by expiry) loose it... */
 	    if (thr0 && !thread_reschedule(thr0, 0, -1))
 	      thr0 = NULL;
+	    if (thr0) delete_thread(thr0); /* possibly kill it if no more
+					      things in it active! */
+	    /* thr0 = NULL; -- this is dead variable.. */
 
 	    if (verbose)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
@@ -524,6 +531,7 @@ ta_hungry(proc)
 	      thr0->proc = proc->pnext;
 
 	    thr0->thrkids -= 1;
+
 	  }
 
 	  proc->pnext = proc->thg->idleproc;
@@ -534,7 +542,8 @@ ta_hungry(proc)
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
 	  
-	  /* Failed to pick anything, reschedule the old thread. */
+	  /* Failed to pick anything, reschedule the old thread.
+	     Possibly killed the thread.. */
 	  if (thr0) thread_reschedule(thr0, 0, -1);
 	  return;
 
