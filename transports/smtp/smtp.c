@@ -1621,6 +1621,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    }
 	  }
 	  
+	  MIBMtaEntry->tas.OutgoingSmtpRCPT ++;
+
 	  /* RCPT To:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
@@ -1765,6 +1767,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  /* In PIPELINING mode ...... send "DATA" and SYNC ! */
 	  /* In non-pipelining mode .. send "DATA" and SYNC ! */
+
+	  MIBMtaEntry->tas.OutgoingSmtpDATA ++;
 
 	  timeout = timeout_data;
 	  r = smtpwrite(SS, 1, "DATA", 0 /* SYNC! */, NULL);
@@ -3696,6 +3700,9 @@ int bdat_flush(SS, lastflg)
 	char lbuf[80];
 
 	if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
+
+
+	MIBMtaEntry->tas.OutgoingSmtpBDAT ++;
 
 	if (lastflg)
 	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
