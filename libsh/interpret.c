@@ -98,6 +98,7 @@ freeio(fioop, mark)
 	}
 }
 
+/* #define DEQUOTE_STICKY */
 
 STATIC char *dequote __((const char *str, int len));
 STATIC char *
@@ -108,6 +109,7 @@ dequote (str, len)
 	const char *sp, *ep;
 	char *s, *s0;
 
+#ifdef DEQUOTE_STICKY
 	memtypes stickytmp = stickymem;
 	stickymem = MEM_SHCMD;
 
@@ -115,6 +117,10 @@ dequote (str, len)
 
 	s0 = tmalloc(len+1); /* All subsequent runs will be smaller,
 				AND they fit running in-place! */
+#else
+	s0 = emalloc(len+1); /* All subsequent runs will be smaller,
+				AND they fit running in-place! */
+#endif
 
 	do {
 
@@ -153,7 +159,9 @@ dequote (str, len)
 
 /* fprintf(stderr,"\"%s\"\n",s0); */
 
+#ifdef DEQUOTE_STICKY
 	stickymem = stickytmp;
+#endif
 
 	return (s0);
 }
@@ -2296,8 +2304,10 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			v_accessed = NULL;
 			break;
 		case sSiftBody:
+#ifndef DEQUOTE_STICKY
 			if (sift[nsift].str)
 			       free((void*)sift[nsift].str);
+#endif
 			sift[nsift].str = NULL;
 			if (command->buffer != NULL) {
 				if (cdr(command->buffer))
@@ -2370,8 +2380,10 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 				pc = sift[nsift].label - 1 + code;
 			break;
 		case sSiftPop:
+#ifndef DEQUOTE_STICKY
 			if (sift[nsift].str)
 			       free((void*)sift[nsift].str);
+#endif
 			for (v_accessed = sift[nsift].accessed;
 			     v_accessed != NULL;
 			     v_accessed = sift[nsift].accessed) {
@@ -2427,11 +2439,19 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			}
 			break;
 		case sJumpIfRegmatch:
+#ifndef DEQUOTE_STICKY
 			stickytmp = stickymem;
 			stickymem = MEM_PERM;
 			if (sift[nsift].str == NULL)
 				sift[nsift].str = strsave("");
 			stickymem = stickytmp;
+#else
+			stickytmp = stickymem;
+			stickymem = MEM_SHCMD;
+			if (sift[nsift].str == NULL)
+				sift[nsift].str = strsave("");
+			stickymem = stickytmp;
+#endif
 			setsubexps(&sift[nsift].subexps, re);
 			if ((sift[nsift].count >= 0) &&
 			    !reg_exec(re, sift[nsift].str))
@@ -2611,6 +2631,8 @@ getout:
 		--variableIndex;
 	}
 	while (nsift >= 0) {
+		if (sift[nsift].str)
+		  free((void*)sift[nsift].str);
 		for (v_accessed = sift[nsift].accessed;
 		     v_accessed != NULL;
 		     v_accessed = sift[nsift].accessed) {
