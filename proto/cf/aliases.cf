@@ -213,6 +213,7 @@ routeuser (quad, plustail, domain) {
 	local chan user host lcuser mxh al a l
 	local key attr pobox nattr homedir sender
 	local plustail2 forward priv hashomedir type
+	local sysuser
 
 	plustail2=""
 
@@ -220,7 +221,13 @@ routeuser (quad, plustail, domain) {
 	chan=$(channel $quad)
 	host=$(host $quad)
 	user=$(user $quad)
-	
+
+	if [ "$DOMAIN_AWARE_GETPWNAM" = "1" ] ; then
+		sysuser="$host"		# for local chan this is user@domain
+	else
+		sysuser="$user"
+	fi
+
 	# For the expansions control tag we can use only
 	# the 'channel',  and the 'username' strings, we CAN'T
 	# use 'attributes' element, because .forward recursion
@@ -626,7 +633,7 @@ fi
 #	only allow .forward file reading if privs allow it
 
 	hashomedir=
-	if homedir="$(homedirectory "$user")" ; then
+	if homedir="$(homedirectory "$sysuser")" ; then
 		hashomedir=1
 	else
 	    [ -n "$defer" ] &&

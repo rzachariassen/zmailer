@@ -17,7 +17,10 @@ quadprint (quad) {
 		.*
 			ssift "$user" in
 			(.*)@([^@]+)	# FQDN format address ?
-				user="\1" ;;
+				if [ "$DOMAIN_AWARE_GETPWNAM" != "1" ] ; then
+					user="\1"
+				fi
+				;;
 			.*	;;
 			tfiss
 

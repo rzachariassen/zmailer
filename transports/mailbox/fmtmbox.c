@@ -135,7 +135,7 @@ int fmtmbox (buf, size, format, address, pwd)
 			}
 			break;
 		case 'u':
-			overflow |= put_s(&q,ebuf,pwd->pw_name);
+			overflow |= put_s(&q,ebuf,address); /* dom cut off */
 			break;
 		case 'U':
 			overflow |= put_s(&q,ebuf,pwd->pw_gecos);
@@ -149,12 +149,12 @@ int fmtmbox (buf, size, format, address, pwd)
 			overflow |= put_s(&q,ebuf,dom);
 			break;
 		case 'x':
-			if (!phash) phash=pjwhash32(pwd->pw_name);
+			if (!phash) phash=pjwhash32(address);
 			overflow |= put_c(&q, ebuf, 'A' + (phash % 26));
 			phash /= 26;
 			break;
 		case 'X':
-			if (!chash) chash=crc32(pwd->pw_name);
+			if (!chash) chash=crc32(address);
 			overflow |= put_c(&q, ebuf, 'A' + (chash % 26));
 			chash /= 26;
 			break;

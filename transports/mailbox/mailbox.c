@@ -373,6 +373,8 @@ struct conshell *envarlist = NULL;
 #endif
 int	D_alloc = 0;
 
+static int domain_aware_getpwnam;
+
 static int zsfsetfd(fp, fd)
      Sfio_t *fp;
      int fd;
@@ -638,6 +640,15 @@ main(argc, argv)
 	if (!defcharset)
 	  defcharset = DefCharset;
 
+	if (domain_aware_getpwnam == 0) {
+	  const char *s = getzenv("DOMAIN_AWARE_GETPWNAM");
+	  if (s && (*s == '1')) {
+	    domain_aware_getpwnam=1;
+	  } else {
+	    domain_aware_getpwnam=-1;
+	  }
+	}
+
 	while (!getout) {
 
 	  /* Input:
@@ -766,6 +777,30 @@ rfc822localize(user)
 	/* Now the '*user' points to a NIL, or '@' */
 }
 
+static void rfc822dequote __((char *));
+static void
+rfc822dequote(user)
+	char *user;
+{
+	char *s = user;
+	int escaped=0;
+
+	for ( ; *user; ++user) {
+	  if (escaped) {
+	    *s++=*user;
+	    escaped=0;
+	  } else {
+	    if (*user == '"') continue;
+	    if (*user == '\\') {
+	      escaped=1;
+	      continue;
+	    }
+	    *s++=*user;
+	  }
+	}
+	*s='\0';
+}
+
 void
 process(dp)
 	struct ctldesc *dp;
@@ -830,7 +865,10 @@ process(dp)
 	  while (*user == TO_USER)
 	    ++user;
 
-	  rfc822localize(user);
+	  if (domain_aware_getpwnam == 1)
+	    rfc822dequote(user);
+	  else
+	    rfc822localize(user);
 
 	  time(&curtime);
 	  ts = ctime(&curtime);
@@ -3127,7 +3165,10 @@ appendlet(dp, rp, WS, file, ismime)
 	  /* We really can't use the 'let_buffer' cache here */
 	  readalready = 0;
 	  i = 0;
-	  while ((i = csfgets(dp->let_buffer, dp->let_buffer_size, mfp)) != EOF) {
+	  for (;;) {
+	    i = csfgets((void*)dp->let_buffer, dp->let_buffer_size, mfp);
+	    if (i == EOF)  break;
+
 	    /* It MAY be malformed -- if it has a BUFSIZ length
 	       line in it, IT CAN'T BE MIME  :-/		*/
 	    if (i == dp->let_buffer_size &&
@@ -3171,7 +3212,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	  bufferfull = 0;
 	  while (1) {
-	    i = read(mfd, dp->let_buffer, dp->let_buffer_size);
+	    i = read(mfd, (void*)dp->let_buffer, dp->let_buffer_size);
 	    if (i == 0)
 	      break;
 	    if (i < 0) {
@@ -3199,7 +3240,7 @@ appendlet(dp, rp, WS, file, ismime)
       } else {
 	/* HAVE_MMAP  --  get the input from  mmap():ed memory area.. */
 
-	char *s;
+	const char *s;
 
 	s = dp->let_buffer + dp->msgbodyoffset;
 	if (ismime) {

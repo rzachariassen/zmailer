@@ -1,3 +1,30 @@
+2003-11-07  Eugene Crosser  <crosser@rol.ru>
+             
+	* proto/cf/aliases.cf:
+	     Define "sysuser" variable that is either "user" or
+	     "user@domain". Use this as argument to 'homedirectory' and
+	     'login2uid' functions that ultimately call getpwnam()
+
+	* proto/cf/server.cf:
+	    Strip off domain part of "user" variable only if getpwnam()
+	    is not domain-aware.  As far as I can tell, this variable  
+	    is unly used in 'login2uid' and 'fullname' functions.
+
+	* transports/mailbox/fmtmbox.c:
+	    If getpwnam() is domain-aware, pwd->pw_name may contain
+	    username@domain; but we need to compute hash of local part
+	    only, because otherwise hash("user@mydomain.com") and
+	    hash("user") would differ, and "defaultdomain" feature would
+	    break.  "address" is always the local part (domain has been 
+	    cut off before).
+
+	* transports/mailbox/mailbox.c:
+	    If DOMAIN_AWARE_GETPWNAM=1, do not rfc822localize() the user,
+	    just strip off quotes in case they are present (no syntax    
+	    check here, just delete any double quote that is not backslash-
+	    escaped).  Thus further zgetpwnam() will be called on user     
+	    with domain.
+
 2003-11-06  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c, smtpserver/policytest.c:
