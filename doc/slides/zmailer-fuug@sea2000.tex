@@ -4,7 +4,7 @@
 %     FUUG = Finnish Unix User Group
 %     SEA  = The baltic sea; cruising from Helsinki to Stockholm, and back
 %
-%  Matti Aarnio, 12-Sep-2000
+%  Matti Aarnio, 15-Sep-2000
 %
 
 \documentclass[a4paper,landscape]{slides}
@@ -12,6 +12,8 @@
 \setlength{\topmargin}{-40pt}
 \setlength{\headsep}{2EM}
 \setlength{\footskip}{3\footskip}
+
+\usepackage{helvet}
 
 \usepackage[dvips]{color}
 \usepackage[dvips]{epsfig}
@@ -21,12 +23,13 @@
 
 \setlength{\wrapoverhang}{0.3in}
 
-\newcommand{\SLIDEFOOT}{\centerline{\rm Matti Aarnio $<matti.aarnio@sonera.fi>$}}
+\newcommand{\SLIDEFOOT}{\centerline{\rm Matti Aarnio \it $<$matti.aarnio@sonera.fi$>$}}
 \newcommand{\SLIDEHEAD}{\centerline{\tiny\rm FUUG @ SEA-2000:   ZMailer}}
 
 \newcommand{\ZM}{ZMailer}
 
 \begin{document}
+
 \pagestyle{plain}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,10 +66,17 @@
 
      SEA  = The baltic sea; cruising from Helsinki to Stockholm, and back
 
- Matti Aarnio, 12-Sep-2000
+ Matti Aarnio, 15-Sep-2000
 
 The overlays and notes are supplementaty material, which supports
 the mainline slides.
+(Page numbers at low right corner have a hyphen in them.)
+
+\small
+Note: When viewing this with XPDF (0.90 or 0.91), few \TeX\ fonts will
+be invisible.  Adobe AcroReader 4.0 is able to show those fonts.
+(Mainly these are less-than and greater-than glyphs around email
+ addresses in baseline text.)
 
 \end{overlay}
 
@@ -76,15 +86,65 @@ the mainline slides.
 \begin{slide}
 \centerline{\large A bit of History}
 
-\vfill
-\ZM{} was created at {\it University of Toronto} around 1986 by
-Mr. {\it Rayan Zachariassen} (hence the ``Z'' in the name.)
+$\ZM$ was created at {\em University of Toronto} around 1986 by
+Mr. {\em Rayan Zachariassen} (hence the ``Z'' in the name.)
 
-Rayan went to private sector around 1992, and $ZMailer$ development
+Back then the king of the hillock was (and still is) {\em sendmail(8)},
+but it was troubled with lots and lots of security problems.
+
+The {\em sendmail(8)} is also a resource consumption pig -- having same
+process do message collection, and its final delivery may make sense
+in low-load environments, but with high volumes use of queues is a must.
+
+\vfill
+
+\end{slide}
+
+\begin{slide}
+\centerline{\large A bit more of History}
+
+
+Rayan went to private sector around 1992, and \ZM{} development
 was essentially abandoned by him.
 
 Since then, yours truly has been hacking at it developing all kinds
 of extensions for modern Internet email.
+
+\vfill
+
+\end{slide}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{slide}
+
+\centerline{\large Introduction to the Terminology}
+\small
+
+In the 1970'es the {\em Institute for Federal Information Processing}
+defined terminology for then a new thing: email.
+The terminology was made more popular by X.400 standard from 1984.
+
+{\bf MTA:}
+Mail Transfer Agent -- program to move mail from one system to other.
+
+{\bf MDA/LDA:}
+A latter addition; Message/Local Delivery Agent -- program (subsystem)
+doing delivery to local message store/driving program agents/whatnot.
+
+{\bf MS:}
+Message Store -- Standard UNIX mailbox, or something way more complicated
+like a database.
+
+{\bf MUA:}
+Mail User Agent -- program which user uses to pick their email from
+the MS, read them, compose email, and submit to the care of the MTA.
+
+{\bf UA:} A generic X.400 term for the User Agent -- basically
+software entity acting on message content, usually driven directly
+by the MTA without the message ever going via MS.
+(E.g. quite unlike MTA, compare with {\em vacation(1)})
 
 \vfill
 
@@ -110,7 +170,7 @@ the filesystem -- {``\it spool''}.
 Performance of this filesystem is usually the ultimate system thoughput limit.
 
 \vfill
-\centerline{\it There are no suid-anything programs in this system!}
+\centerline{\em There are no suid-anything programs in this system!}
 
 \vfill
 
@@ -127,16 +187,17 @@ Performance of this filesystem is usually the ultimate system thoughput limit.
  \epsfig{file=zmprocs.ps,width=2.7in}
 \end{wrapfigure}
 
-Input subsystems: {\it sendmail, smtpserver, rmail, mail(3)} library
+Input subsystems: {\em sendmail, smtpserver, rmail, mail(3)} library
 
-Routing subsystem: {\it router}
+Routing subsystem: {\em router}
 
-Delivery subsystem: {\it scheduler,} and {\it transport agents}
+Delivery subsystem: {\em scheduler,} and {\em transport agents}
 
 Plus a set of administrative tools.
 
 The goal has been that each subsystem uses minimal possible amount of
-resources, and privileges to achieve its task.
+resources ({\small memory, CPU, syscalls}), and privileges
+to achieve its task.
 
 There are also resource usage limitation
 features built in.
@@ -149,19 +210,19 @@ features built in.
 
 \begin{slide}
 
-\centerline{\large \ZM{} subsystems: {\it ``POSTOFFICE/''}}
+\centerline{\large \ZM{} subsystems: ``{\tt \$POSTOFFICE/}''}
 
 The \verb!$POSTOFFICE/! is \ZM{}'s way of referring to filesystem
 where a few basic things are guaranteed to happen:
 \begin{enumerate}
-\item moving files around with {\it rename(2)} and/or {\it link(2),} and
-      {\it unlink(2)} works just fine in between different directories
-\item i-node numbers are preserved over {\it rename(2)}, and {\it link(2)}
+\item moving files around with {\em rename(2)} and/or {\em link(2),} and
+      {\em unlink(2)} works just fine in between different directories
+\item i-node numbers are preserved over {\em rename(2)}, and {\em link(2)}
 	system calls
 \end{enumerate}
 
 There are filesystems where these two things don't happen, e.g. possibly
-{\it link(2)} can't be done in between directories.  Such ones are not
+{\em link(2)} can't be done in between directories.  Such ones are not
 suitable for \ZM's \verb!$POSTOFFICE/! partition use.
 
 \end{slide}
@@ -171,22 +232,22 @@ suitable for \ZM's \verb!$POSTOFFICE/! partition use.
 
 \begin{slide}
 
-\centerline{\large \ZM{} subsystems: {\it ``sendmail''}}
+\centerline{\large \ZM{} subsystems: {\em ``sendmail''}}
 
 For normal local system use there needs to be a well-known
-submission interface for email.  A de-facto one is {\it sendmail.}
+submission interface for email.  The de-facto one is {\em sendmail.}
 
-\ZM's {\it sendmail} implements most of message submission options
-of the real {\it sendmail(8).}
+\ZM's {\em sendmail} implements most of message submission options
+of the real {\em sendmail(8).}
 
-Many of {\it sendmail(8)} options are meaningless in \ZM{}, and thus
+Many of {\em sendmail(8)} options are meaningless in \ZM{}, and thus
 they are ignored, or in case of several administrative functions,
 start subsystems in interactive test mode and/or just plain complain
 loudly.
 
-For message submission, \ZM's {\it sendmail} is extremely
-{\it lightweight} one.  Just writing the message envelope and
-message to the file, and moving it to {\it router} subsystem's care.
+For message submission, \ZM's {\em sendmail} is extremely
+{\em lightweight} one.  Just writing the message envelope and
+message to the file, and moving it to {\em router} subsystem's care.
 
 
 \vfill
@@ -195,24 +256,24 @@ message to the file, and moving it to {\it router} subsystem's care.
 
 \begin{slide}
 
-\centerline{\large \ZM{} subsystems: {\it ``sendmail''}}
+\centerline{\large \ZM{} subsystems: {\em ``sendmail''}}
 
-In normal message submission the {\it sendmail} will just spool
+In normal message submission the {\em sendmail} will just spool
 the message into \verb!$POSTOFFICE/router/!, however if option
-{\it ``-v''} is used, process is left behind to poll a message
+{\em ``-v''} is used, process is left behind to poll a message
 specific ``verbose trace'' log file, and its content is copied
 to STDERR of the process.
 
-The verbose trace copy process ends when the {\it scheduler}
+The verbose trace copy process ends when the {\em scheduler}
 process writes a line:
 \begin{verbatim}
   scheduler done ....
 \end{verbatim}
 to the log file.
 
-\ZM's {\it sendmail} is just message submission interface, like
-also the {\it smtpserver}, and  {\it libzmailer.a}  contained
-{\it mail(3).}
+\ZM's {\em sendmail} is just message submission interface, like
+also the {\em smtpserver}, and  {\em libzmailer.a}  contained
+{\em mail(3).}
 
 \vfill
 
@@ -220,10 +281,23 @@ also the {\it smtpserver}, and  {\it libzmailer.a}  contained
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''}}
+
+- about features
+
+- about hooks to external subsystems
+
+- about protocol quirks
+
+\vfill
+\end{slide}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \begin{slide}
-
-\centerline{\large \ZM{} subsystems: {\it ``smtpserver''}}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (2)}
 
 \begin{wrapfigure}[12]{l}{5.15in}
 \tiny
@@ -235,15 +309,17 @@ ESMTP RFC's \\
 1427/1653/1870 & SIZE \\
 1830 & CHUNKING \\
 1854/2197 & PIPELINING \\
-1891 & DSN \\
+1891 & Delivery Status Notification \\
 1985 & ETRN \\
 2034 & ENHANCEDSTATUSCODES \\
+2476 & Message Submission Agent \\
 2487 & STARTTLS \\
 2554+MS & AUTH LOGIN \\
-2554+Netscape & AUTH=LOGIN
+2554+Netscape & AUTH=LOGIN \\
+2852 & DELIVERBY \\
 \end{tabular}
 \end{wrapfigure}
-\ZM's {\it smtpserver} subsystem implements a rich set of enhanced SMTP
+\ZM's {\em smtpserver} subsystem implements a rich set of enhanced SMTP
 features defined over the last 10 or so years.
 
 At the same time it aims to be lightweight, fast protocol receiver with
@@ -251,15 +327,13 @@ ability to quickly verify incoming protocol stream syntax conformance,
 but it can also be configured to behave sloppily in this regard.
 
 \vfill
-
 \end{slide}
 
 \begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (3)}
 
-\centerline{\large \ZM{} subsystems: {\it ``smtpserver''}}
-
-The {\it smtpserver} can do interactive routing analysis of
-{\it MAIL FROM:} and {\it RCPT TO:} phase envelope addresses
+The {\em smtpserver} can do interactive routing analysis of
+{\em MAIL FROM:} and {\em RCPT TO:} phase envelope addresses
 by running a router process synchronously underneath itself,
 however that is seriously heavy-weight thing, and really taxes
 system performance for no practically usefull thing.
@@ -270,9 +344,113 @@ some control rules from a few local database files giving the
 system an idea of which domains are local, and which are rules
 for finding which domains are our customers.
 
-There are also some experimental hooks to run external message
-content analysis 
+\vfill
+\end{slide}
 
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (4)}
+
+There are also some experimental hooks to run external message
+content analysis program for each received message synchronous
+for the message reception.
+
+A non-experimental thing is STARTTLS encrypted application mode
+implemented with OpenSSL library.  \ZM{} has been used as one of
+comparison benchmarks for {\em sendmail(8)}'s new STARTTLS
+functionality.
+
+Session encryption was mainly implemented for giving
+some peace of mind when using plaintext password authentication
+for email sending.
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (5)}
+
+As much as I would like to run things with strict protocol adherence
+also at message reception, the world seems to be full of crappy systems
+whose coders have done several basic mistakes:
+\begin{itemize}
+\small
+\item
+SMTP protocol replies can be multiline all the time (RFC 821 Annex E),
+many softwares groak when receiving such replies.
+\item
+ SMTP protocol replies can arrive in multiple TCP segments (some MS
+platform software does not do proper line segment collection into lines,
+and instead expects the receive return entire line(s) at one go.)
+\end{itemize}
+\ZM's smtpserver defaults to one-line replies sent out in one block.
+(Except with PIPELINING optimization.)
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (6)}
+\begin{itemize}
+\item
+``{\em The theory of SMTP reply codes}'' (RFC 821 Annex E) tells
+that if exact code is not known (e.g. new non-821-listed ones are invented),
+the first digit should guide its interpretation.
+Many systems barf completely when they encounter unexpected reply code.
+
+\ZM{}'s smtpserver tries to use only ``{\em valid at the place}''
+reply codes.
+\end{itemize}
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (7)}
+\begin{itemize}
+\item
+ RFC 821 has quite clear BNF production rules for the protocol syntax,
+ and still lots of clients are sending
+``{\small MAIL FROM: user@domain}''
+ without the mandatory $<$ and $>$ angle brackets.
+
+\ZM's smtpserver {\bf can} be configured to accept such {\bf Sloppy}
+input protocol. (The {\em sendmail(8)} is the archetype of ``sloppy by
+default'' SMTP receive protocol implementation, and also the reason
+for these utterly sloppy client implementations.)
+\end{itemize}
+
+\vfill
+\end{slide}
+
+\begin{slide}
+
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (8)}
+\begin{itemize}
+\item
+Many SMTP client systems can't report accurately what protocol
+command they sent out when reporting to user an error they encountered
+while talking to the server.
+
+\ZM's smtpserver attempts to copy the MAIL FROM/RCPT TO address
+in the diagnostic report.
+
+\end{itemize}
+\vfill
+
+\end{slide}
+
+\begin{slide}
+
+\centerline{\large \ZM{} subsystems: {\em ``smtpserver''} (9)}
+\begin{itemize}
+\item
+Many SMTP client systems give up the entire message when in a multi-recipient
+mail even one of the RCPT TO addresses is yielding 400 or 500 series reply.
+
+\ZM{} does not yet have a solution for this kind of SMTP client stupidity.
+Many, if not all, user agents have this problem, as seem to have ``MTA''
+class things like ``ccMail''.
+
+\end{itemize}
 \vfill
 
 \end{slide}
@@ -282,7 +460,7 @@ content analysis
 
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 
 \begin{verbatim}
@@ -304,14 +482,12 @@ content analysis
 #
 #PARAM RcptLimitCount          10000    # Max number of recipients for one
 #                                       # MAIL FROM session. Minimum: 100
-#
-#PARAM use-tcp-wrapper                  # Use tcp-wrapper in addition to
-#                                       # actual input policy controls.
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 #PARAM BindPort                   25    # Binding port
@@ -330,10 +506,11 @@ PARAM   enable-router   # This is a security decission for you.
 #                       # pervert input, if quotation rules are broken in
 #                       # the scripts.
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 PARAM   smtp-auth       # enable if you want to allow SMTP to autenticate
@@ -355,10 +532,11 @@ PARAM  AUTH-LOGIN-also-without-TLS
 PARAM   deliverby 60
 #                       # RFC 2852 defined deliverby machinery.
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 #PARAM  SMTP-auth-pipe /path/to/program
@@ -376,10 +554,11 @@ PARAM   NoCHUNKING
 #PARAM  NoETRN
 PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 # HDR220 metatags:
@@ -398,10 +577,11 @@ PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
 # "EHLO is to be done blindly, server responses are not to be studied for
 #  any possible 'ESMTP' keyword!"
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 PARAM help -------------------------------------------------------------
@@ -425,10 +605,11 @@ PARAM help -------------------------------------------------------------
 #
 PARAM  policydb   btree  /opt/mail/db/smtp-policy
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 #PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
@@ -454,10 +635,11 @@ PARAM   tls-scache-timeout 3600 # (cache timeout in seconds)
 ##PARAM tls-CApath ... (somewhen: ways to verify client's certificates)
 ##PARAM tls-enforce-tls 1
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -472,10 +654,11 @@ PARAM rcvd-tls-ccert    # Client Certificate reference
 PARAM etrn-cluster  localhost        etrn zzETRNzz
 PARAM etrn-cluster  ipv6-localhost   etrn zzETRNzz
 \end{verbatim}
+\vfill
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``smtpserver.conf''}}
+\centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -495,8 +678,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 *                   999 veR
 
 \end{verbatim}
-%\vfill
-
+\vfill
 \end{overlay}
 
 \begin{overlay}
@@ -517,11 +699,13 @@ things before policy filter is ready for use:
     DB/smtp-policy.spam.manual ('= _bulk_mail')
 \end{verbatim}
 
-{\it If you want, you can modify your boiler plate as well as your
+{\em If you want, you can modify your boiler plate as well as your
 installed policy-builder.sh script.}  (Doing 'make install' will
 overwrite policy-builder.sh, but not  smtp-policy.src)
 
-%\vfill
+See file ``doc/guides/smtp-policy'' for more info.
+
+\vfill
 
 \end{overlay}
 
@@ -530,7 +714,7 @@ overwrite policy-builder.sh, but not  smtp-policy.src)
 
 \begin{slide}
 
-\centerline{\large \ZM{} subsystems: {\it ``router''}}
+\centerline{\large \ZM{} subsystems: {\em ``router''}}
 
 - about the router program tasks
 
@@ -542,15 +726,141 @@ overwrite policy-builder.sh, but not  smtp-policy.src)
 
 
 \vfill
-
 \end{slide}
+
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (2)}
+
+Tasks of the {\em router} subsystem are:
+\begin{itemize}
+\item
+Picking tasks for processing from multiple input queues.
+
+\item
+Producing analysis on what to do with given input addresses
+(i.e. ``routing'').
+
+\item
+Producing {\em scheduler + transport agent} control information
+regarding the message
+\end{itemize}
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (3)}
+
+Resource spenditure is limited at the router by having
+long-living processes handling lots and lots of email
+over long periods of time.
+
+The {\em router} processes are running as one taskmaster
+(``scheduler''), and a farm of workers.   The main input queue
+area can get more than one processing process, others get
+only one.
+
+Each process aims to have as small memory footprint as possible,
+which is achieved with LISP-like memory management strategies
+inside the {\em router.}
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (4)}
+
+The {\em router} is configured with a script language which
+greatly resembles that of the \verb!/bin/sh! a.k.a. The Shell.
+
+The {\em router} picks file ``router.cf''  from a well-known
+location, and continues then picking more configuration scripts
+in given order.  Once all are loaded, the task sequencer starts
+to call ``process'' entrypoint with taskfile name as a parameter.
+
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (5)}
+
+The {\em router} script language looks very much like the \verb!/bin/sh!
+script language added with a few odd quirks that mainly are due to having
+a desire to run everything within one single process -- apparent pipes
+are run stage at the time storing the intermediate results into memory
+resident buffers.
+
+System has a number of builtin functions including various database
+access mechanisms.
+
+The system has two extensions to \verb!/bin/sh!: ``ssift'' and ``tshift'',
+which are like ``case'', but matched labels are regular expressions.
+The meaning of dot (.) in ``ssift'' is just any single character,
+while at ``tshift'' it is RFC-822 token.
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (6)}
+
+As the {\em router} scripts are quite complicated, average user
+will not like to poke things inside them.
+
+\ZM{} has two (third on TODO list) configuration entries for facility
+selections, plus a set of files for local system identity setup.
+
+File ``\verb!$MAILSHARE/!router.cf'' points by default to file
+``\verb!/etc/mail.conf!'' from which the local system identity
+should be found -- if it does not exist, default values are
+attempted to be supplied.
+
+Same file contains also a list of transport protocols for external
+routing, and on TODO list there is similar variable for internal
+address analysis functions, that is, various ``aliases''.
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``router''} (7)}
+
+For making usage of various mapping databases somewhat simpler,
+a new facility exists.  It is called ``dbases.conf'', and is
+located into ``\verb!$MAILVAR/db/!'' directory.
+\ZM{} management command ``zmailer newdb'' uses it to (re)generate
+the databases.
+\tiny
+\begin{verbatim}
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv_yield_varname
+#|                  newdb_compile_options (-a for aliases!)
+#|                   dbfile (or "-")
+#|                         dbflags (or "-") ...
+#|
+
+aliases         $DBTYPE priv -la $MAILVAR/db/aliases            -lm
+#aliases        $DBTYPE priv -la $MAILVAR/db/aliases-2          -lm
+fqdnaliases     $DBTYPE priv -la $MAILVAR/db/fqdnaliases        -lm
+routesdb        $DBTYPE -    -l  $MAILVAR/db/routes             -lm
+thishost        $DBTYPE -    -   $MAILVAR/db/localnames         -lm
+#thishost       bind,mxlocal - - -                      -l -s 200 -e 2000
+userdb          $DBTYPE -    -la $MAILVAR/db/userdb             -lm
+\end{verbatim}
+
+\vfill
+\end{slide}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \begin{slide}
-
-\centerline{\large \ZM{} subsystems: {\it ``scheduler''}}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler''}}
 
 - about scheduler role
 
@@ -563,14 +873,72 @@ overwrite policy-builder.sh, but not  smtp-policy.src)
 - about ``mailq'' communication channel
 
 \vfill
-
 \end{slide}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler''} (2)}
+
+\small
+The role of the {\em scheduler} in \ZM{} is to be seriously parallellizing
+taskmaster to make sure all recipients are getting evenhanded handling,
+while still making sure that nobody gets to be a resource hog.
+
+The {\em scheduler} reads all message processing task descriptors
+from their spoolfiles, and places them into appropriate slots in
+the workprofile datastructures.
+
+Depending on the situation the {\em scheduler} will likely immediately
+upon new recipient destination reception to try to start delivery into there.
+Various resource usage limitation controls may postpone such activities,
+though. (More of that latter.)
+
+The {\em scheduler} also collects diagnostics issued by the actual
+message delivery subprograms -- the {\em Transport Agents} -- and
+issues delivery report messages per RFC 1891-1984 specifications.
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler''} (3)}
+
+The {\em scheduler} communicates with the {\em transport agents}
+via bi-directional channel, which towards the TAs sends commands
+regarding which taskfile to pick, and what addresses to process.
+
+From the TAs to the {\em scheduler} there come status diagnostics.
+Usually {\em permanent} kind of diagnostics are stored into the
+transport-agent taskfile, and the {\em scheduler} is merely informed
+of what has been done.
+
+For temporary/transient kind of diagnostics, the entire diagnostic
+is sent from the TA to the {\em scheduler}, and stored into the
+{\em scheduler} memory ({\bf not} into the taskfile!).
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler''} (4+)}
+
+{\Huge ??????????}
+
+- about scheduler configuration
+
+- about resource controls
+
+\vfill
+\end{slide}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{overlay}
 
-\centerline{\large \ZM{} subsystems: {\it ``scheduler.conf''}}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler.conf''}}
 
 \tiny
 \begin{verbatim}
@@ -598,7 +966,7 @@ overwrite policy-builder.sh, but not  smtp-policy.src)
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -627,7 +995,7 @@ overwrite policy-builder.sh, but not  smtp-policy.src)
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -656,7 +1024,7 @@ PARAMauthfile = "/opt/mail/scheduler.auth"
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -686,7 +1054,7 @@ PARAMauthfile = "/opt/mail/scheduler.auth"
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # ``*/*'' continues
@@ -709,7 +1077,7 @@ PARAMauthfile = "/opt/mail/scheduler.auth"
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # ``*/*'' continues
@@ -734,7 +1102,7 @@ PARAMauthfile = "/opt/mail/scheduler.auth"
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # Deferred delivery is handled by this transport agent.  Deferrals are low
@@ -750,7 +1118,7 @@ hold/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -779,7 +1147,7 @@ local/pipe*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -807,7 +1175,7 @@ local/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # ``local/*'' continues
@@ -825,7 +1193,7 @@ local/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # smtpx is a channel where the delivery is done without checking at MXes;
@@ -848,7 +1216,7 @@ smtpx/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # This is a FAST EXPIRY test case.. Will always cause bounce, btw.
@@ -875,7 +1243,7 @@ smtp/*.edu
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 smtp/*.com
@@ -903,7 +1271,7 @@ smtp/*.de
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 smtp/*.gov
@@ -927,7 +1295,7 @@ smtp/*.org
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # Within FUNET we have a bit longer expiry..
@@ -956,7 +1324,7 @@ smtp/*.fi
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 #
@@ -983,7 +1351,7 @@ smtp/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # Error messages.  Delivery can be retried at leisure.
@@ -1012,7 +1380,7 @@ ean/*           maxchannel=1
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # BitBucket channel
@@ -1029,7 +1397,7 @@ smtpgw-*/*
 \end{overlay}
 \begin{overlay}
 \small
-\centerline{{\it ``scheduler.conf''}}
+\centerline{{\em ``scheduler.conf''}}
 \tiny
 \begin{verbatim}
 # BITNET delivery methods
@@ -1058,9 +1426,85 @@ bsmtp3ndrfc/*
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler/mailq''}}
+
+The {\em scheduler} has so called ``mailq'' service port listening
+for administrative interface connections.
+
+Earlier days it was just listing several in-core tables whoever wanted
+to know.
+
+These days the ``mailq-v2'' is fully capable to execute various
+administrative functions, least of which are ``mailq'' queue displays.
+
+Due to the inherent security problems in this kind of interfaces,
+an APOP-like user authentication has been added to the protocol,
+and each contacting address can be matched against IP-address/mask
+address mask (IPv4 and IPv6).
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``mailq -Q''}}
+
+The {\em mailq} is \ZM's tool for asking {\em scheduler's} queue status.
+
+Asking queue overview:
+
+{\tiny
+\begin{verbatim}
+nic-2.03# mailq -Q
+smtp/*.com/0
+    smtp/golferslist.com/0      R=1   A=64 QA=1d20h
+    smtp/thegamblingreport.com/0 R=1   A=65 QA=1d20h
+        Threads: 2 Msgs: 2 Procs: 0 Idle: 0 Plim: 19 Flim: 15 Tlim: 1
+smtp/*funet.fi/0
+    smtp/videolab-e.funet.fi/0  R=1   A=57 W=10909s QA=2d21m34s
+        Threads: 1 Msgs: 1 Procs: 0 Idle: 0 Plim:  9 Flim: 15 Tlim: 3
+Kids: 1  Idle:  1 Msgs:  6  Thrds: 4  Rcpnts:  6  Uptime: 14d10m8s
+Msgs in 15063 out 15057 stored 6 Rcpnts in 29139 out 29133 stored 6
+\end{verbatim}
+}
+
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} subsystems: {\em ``mailq (no -Q)''}}
+
+The {\em mailq} is \ZM's tool for asking {\em scheduler's} queue status.
+
+Asking the individual messages:
+
+{\tiny
+\begin{verbatim}
+nic-2.03# mailq
+smtp/golferslist.com:
+    Q/28694-17127: (64 tries, expires in 1d3h) \
+         smtp; 500 (connect to spammit.com [24.28.100.125|25|193.166.0.145|63811]: \
+                    Connection timed out)
+smtp/thegamblingreport.com:
+    K/12438-17128: (65 tries, expires in 1d3h) \
+        smtp; 500 (connect to futuresite.register.com [209.67.50.203|25|193.166.0.145|45834]: \
+                    Connection timed out)
+smtp/videolab-e.funet.fi:
+    K/28714-17127: (19 tries, expires in 23h28m21s) \
+          smtp; 500 (connect to videolab-e.funet.fi [193.166.0.50|25|193.166.0.145|63802]: \
+                     Connection refused)
+\end{verbatim}
+}
+
+\vfill
+\end{slide}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{overlay}
 
-\centerline{\large \ZM{} subsystems: {\it ``scheduler.auth''}}
+\centerline{\large \ZM{} subsystems: {\em ``scheduler.auth''}}
 \tiny
 \begin{verbatim}
 #
@@ -1090,7 +1534,7 @@ bsmtp3ndrfc/*
 \vfill
 \end{overlay}
 \begin{overlay}
-\centerline{{\it ``scheduler.auth}}
+\centerline{{\em ``scheduler.auth}}
 \tiny
 \begin{verbatim}
 nobody:nobody:SNMP QQ TT ETRN:[ipv6:::1]/128,[127.0.0.1]/32,[194.252.70.162]/32
@@ -1103,97 +1547,37 @@ etrn:zzETRNzz:ETRN:[0.0.0.0]/0,[ipv6:0::0]/0
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{slide}
-
-\centerline{\large \ZM{} subsystems: {\it ``mailq -Q''}}
-
-The {\it mailq} is \ZM's tool for asking {\it scheduler's} queue status.
-
-Asking queue overview:
-
-{\tiny
-\begin{verbatim}
-nic-2.03# mailq -Q
-smtp/*.com/0
-    smtp/golferslist.com/0      R=1   A=64 QA=1d20h
-    smtp/thegamblingreport.com/0 R=1   A=65 QA=1d20h
-        Threads: 2 Msgs: 2 Procs: 0 Idle: 0 Plim: 19 Flim: 15 Tlim: 1
-smtp/*funet.fi/0
-    smtp/videolab-e.funet.fi/0  R=1   A=57 W=10909s QA=2d21m34s
-        Threads: 1 Msgs: 1 Procs: 0 Idle: 0 Plim:  9 Flim: 15 Tlim: 3
-Kids: 1  Idle:  1 Msgs:  6  Thrds: 4  Rcpnts:  6  Uptime: 14d10m8s
-Msgs in 15063 out 15057 stored 6 Rcpnts in 29139 out 29133 stored 6
-\end{verbatim}
-}
-\vfill
-\end{slide}
-\begin{slide}
-
-\centerline{\large \ZM{} subsystems: {\it ``mailq (no -Q)''}}
-
-The {\it mailq} is \ZM's tool for asking {\it scheduler's} queue status.
-
-Asking the individual messages:
-
-{\tiny
-\begin{verbatim}
-nic-2.03# mailq
-smtp/golferslist.com:
-    Q/28694-17127: (64 tries, expires in 1d3h) \
-         smtp; 500 (connect to spammit.com [24.28.100.125|25|193.166.0.145|63811]: \
-                    Connection timed out)
-smtp/thegamblingreport.com:
-    K/12438-17128: (65 tries, expires in 1d3h) \
-        smtp; 500 (connect to futuresite.register.com [209.67.50.203|25|193.166.0.145|45834]: \
-                    Connection timed out)
-smtp/videolab-e.funet.fi:
-    K/28714-17127: (19 tries, expires in 23h28m21s) \
-          smtp; 500 (connect to videolab-e.funet.fi [193.166.0.50|25|193.166.0.145|63802]: \
-                     Connection refused)
-\end{verbatim}
-}
-\vfill
-
-\end{slide}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 \begin{slide}
-
 \centerline{\large \ZM{} subsystems: Transport Agents}
 
-The {\it Transport Agents} are a collection of programs intended
-to be driven by the {\it scheduler} to perform processing for
+The {\em Transport Agents} are a collection of programs intended
+to be driven by the {\em scheduler} to perform processing for
 the routed result addresses.
 
 These programs will produce diagnostice according to system internal
 protocols for each processed recipient address.
 
 \vfill
-
 \end{slide}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 \begin{slide}
+\centerline{\large \ZM{} TA subsystems: {\em ``mailbox''}}
 
-\centerline{\large \ZM{} TA subsystems: {\it ``mailbox''}}
-
-The {\it mailbox} is \ZM's local delivery subsystem used in
+The {\em mailbox} is \ZM's local delivery subsystem used in
 normal cases for driving deliveries to pipes and files (like
 to normal UNIX mailbox).
 
 Under some circumstances delivery to user's mailbox can be
 done via different system-wide setup, like via ``procmail'', or ``cyrus''.
 See ``local/*'' clause at the ``scheduler.conf'' file for examples,
-and below for {\it sm} program.
+and below for {\em sm} program.
 
 This program has no configuration file for itself.
 
 \vfill
-
 \end{slide}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1201,11 +1585,11 @@ This program has no configuration file for itself.
 
 \begin{slide}
 
-\centerline{\large \ZM{} TA subsystems: {\it ``sm''}}
+\centerline{\large \ZM{} TA subsystems: {\em ``sm''}}
 
-The {\it sm} program is transport agent for driving various
+The {\em sm} program is transport agent for driving various
 programs which are assuming that they are driven under the
-{\it sendmail(8)'s} ``\verb!M!'' (mailer) specifications.
+{\em sendmail(8)'s} ``\verb!M!'' (mailer) specifications.
 
 In the default ``scheduler.conf'' file there are several
 examples of such usages.
@@ -1213,7 +1597,6 @@ examples of such usages.
 This program has its own configuration file: ``sm.conf''.
 
 \vfill
-
 \end{slide}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1221,12 +1604,12 @@ This program has its own configuration file: ``sm.conf''.
 
 \begin{slide}
 
-\centerline{\large \ZM{} TA subsystems: {\it ``smtp''}}
+\centerline{\large \ZM{} TA subsystems: {\em ``smtp''}}
 
-The {\it smtp} program is transport agent for moving the email
+The {\em smtp} program is transport agent for moving the email
 out of the system via the SMTP protocol.
 
-All features which are supported at the {\it smtpserver} are
+All features which are supported at the {\em smtpserver} are
 also supported here for outbound email.
 
 This program can also use SSL/TLS protocol to communicate with
@@ -1237,7 +1620,6 @@ telling parameters for the used crypto subsystem.
 (Mainly info about the keys, and certificates.)
 
 \vfill
-
 \end{slide}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1245,22 +1627,32 @@ telling parameters for the used crypto subsystem.
 
 \begin{slide}
 
-\centerline{\large \ZM{} TA subsystems: {\it ``error, hold''}}
+\centerline{\large \ZM{} TA subsystems: {\em ``error, hold''}}
 
-The {\it error} transport agent constructs error messages from
+The {\em error} transport agent constructs error messages from
 canned data material --- to be used in unusual cases needing
 canned error reports.
 
-The {\it hold} transport agent will recycle the message back to
-the {\it router} after condition likely causing the problem
-during messages previous round via {\it router} has become solved.
+The {\em hold} transport agent will recycle the message back to
+the {\em router} after condition likely causing the problem
+during messages previous round via {\em router} has become solved.
 
-\ZM{} used to do a lot of e.g. DNS lookups at the {\it router} before,
-and {\it hold} was the way to handle timeouts in the lookups.
+\ZM{} used to do a lot of e.g. DNS lookups at the {\em router} before,
+and {\em hold} was the way to handle timeouts in the lookups.
 Nowadays it is needed very rarely.
 
 \vfill
+\end{slide}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{slide}
+\centerline{\large \ZM{} Administrative tools}
+
+{\Huge ??????????}
+
+\vfill
 \end{slide}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

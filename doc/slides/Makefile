@@ -1,5 +1,5 @@
 
-all:	zmailer-fuug@sea2000.ps
+all:	zmailer-fuug@sea2000.ps zmailer-fuug@sea2000.pdf
 
 zmailer-fuug@sea2000.ps:  zmailer-fuug@sea2000.dvi
 	dvips -t a4 -t landscape zmailer-fuug@sea2000
@@ -9,6 +9,9 @@ zmailer-fuug@sea2000.ps:  zmailer-fuug@sea2000.dvi
 
 zmailer-fuug@sea2000.dvi: zmailer-fuug@sea2000.tex
 	latex zmailer-fuug@sea2000.tex
+
+zmailer-fuug@sea2000.pdf: zmailer-fuug@sea2000.ps
+	ps2pdf zmailer-fuug@sea2000.ps
 
 clean:
 	rm -f *~ *.aux *.dvi *.log
