@@ -1256,7 +1256,7 @@ int syncweb(dq)
 
 	  /* Process only one -- from the tail -- but leave
 	     'not_before' things behind... */
-	  if (dq->stats[wrkcnt]->not_before > now)
+	  if (dq->stats[wrkidx]->not_before > now)
 	    continue; /* WAIT! */
 
 	  break;
