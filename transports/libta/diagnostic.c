@@ -111,18 +111,30 @@ int xdly;
 }
 
 static char *A1 = NULL, *A2 = NULL, *A3 = NULL, *A4 = NULL;
+static const char *notaryfmt = "%s\001%s\001%s\001%s\001%s";
 
 void
 notaryreport(arg1,arg2,arg3,arg4)
      const char *arg1, *arg2, *arg3, *arg4;
 {
-	const char *fmt = "%s\001%s\001%s\001%s\001%s";
 	int len;
 
-	if (arg1) { if (A1) free(A1); A1 = strdup(arg1); }
-	if (arg2) { if (A2) free(A2); A2 = strdup(arg2); }
-	if (arg3) { if (A3) free(A3); A3 = strdup(arg3); }
-	if (arg4) { if (A4) free(A4); A4 = strdup(arg4); }
+	if (arg1) {
+	  if (A1) free(A1);
+	  A1 = strdup(arg1);
+	}
+	if (arg2) {
+	  if (A2) free(A2);
+	  A2 = strdup(arg2);
+	}
+	if (arg3) {
+	  if (A3) free(A3);
+	  A3 = strdup(arg3);
+	}
+	if (arg4) {
+	  if (A4) free(A4);
+	  A4 = strdup(arg4);
+	}
 
 	len = 5; /* "\001\001\001\001" */
 	if (A1) len += strlen(A1);
@@ -136,8 +148,8 @@ notaryreport(arg1,arg2,arg3,arg4)
 	  notarybuf = (char*) emalloc(len);
 	else
 	  notarybuf = (char*) erealloc(notarybuf,len);
-	sprintf(notarybuf,fmt,
-		A1?A1:"",A2?A2:"",A3?A3:"",A4?A4:"",
+	sprintf(notarybuf, notaryfmt,
+		A1?A1:"", A2?A2:"", A3?A3:"", A4?A4:"",
 		wtthost?wtthost:"");
 	if (wttip) {
 	  sprintf(notarybuf + strlen(notarybuf), " (%s)", wttip);
