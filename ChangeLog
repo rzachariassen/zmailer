@@ -1,3 +1,14 @@
+2001-06-03  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/mailq.c:
+	    Oops time; closing FILE * object twice is BAD THING to do
+	    in some cases.  Must not do so.  Early closing of the
+	    underlying read socket is ok.
+
+	* proto/smtpserver.conf.in:
+	    In  smtp-auth  related PARAMs, do emphasise their security
+	    implications!
+
 2001-05-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/scheduler.c, scheduler/msgerror.c, scheduler/qprint.c,

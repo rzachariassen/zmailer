@@ -168,6 +168,7 @@ main(argc, argv)
 	    break;
 	  case 'h':
 	    host_opt = optarg;
+	    if (!channel_opt) channel_opt = "smtp";
 	    break;
 	  case 'i':
 	    user = getuid();
@@ -1409,8 +1410,8 @@ void query2(fpi, fpo)
 
 	  }
 
-	  fclose(fpi);
-	  fclose(fpo);
+	  close(FILENO(fpi));
+
 	} else {
 
 	  /* Non -Q* -mode processing */
@@ -1534,7 +1535,7 @@ void query2(fpi, fpo)
 	  threads[threadcnt].host    = NULL;
 	  threads[threadcnt].line    = NULL;
 
-	  fclose(fpi); fclose(fpo);
+	  close(FILENO(fpi));
 
 	  for (i = 0; threads[i].line != NULL; ++i) {
 	    static const char *channel = NULL;

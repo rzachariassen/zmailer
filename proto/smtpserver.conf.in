@@ -37,9 +37,11 @@
 #                       # pervert input, if quotation rules are broken in
 #                       # the scripts.
 #
-#PARAM  smtp-auth       # enable if you want to allow SMTP to autenticate
+#PARAM  smtp-auth       # Enable, if you want to allow SMTP to autenticate
 #                       # with the default code against system  /etc/passwd
 #                       # (or whatever source  getpwnam() uses for it..)
+#                       # This is intended to be used WITH the TLS network
+#                       # encryption!
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #                       # External authentication program. The
@@ -48,9 +50,9 @@
 #                       # Exit status 0 means successful authentication.
 #
 #PARAM  AUTH-LOGIN-also-without-TLS
-#                       # Enable, if the "AUTH LOGIN" is to be allowed to
-#                       # be used without running under SSL/TLS security
-#                       # envelope.
+#                       # Enable, if the "AUTH LOGIN" must be allowed to
+#                       # be used without running under SSL/TLS encryption
+#                       # envelope.  ENABLING THIS IS A SECURITY THREAT!
 #
 #PARAM  MSA-mode        # Message Submission Agent mode. Require
 #                       # successful user authentication during SMTP
