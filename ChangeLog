@@ -1,3 +1,12 @@
+2000-11-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c:
+	    Some oddball moments don't fail properly after response
+	    timeout during certain critical periods -- mainly of DATA/RSET.
+	    Doing   smtpclose()  where we used to RSET  right after
+	    DATA has been sent, and response to it has been waited
+	    for way too long..
+
 2000-11-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:

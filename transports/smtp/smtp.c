@@ -1402,11 +1402,8 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp) {
-	      SS->rcptstates = 0;
-	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_TEMPFAIL;
-	    }
+	    smtpclose(SS, 1);
+	    r = EX_TEMPFAIL;
 	    return r;
 	  }
 	  time(&endtime);
@@ -1474,11 +1471,8 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp) {
-	      SS->rcptstates = 0;
-	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_TEMPFAIL;
-	    }
+	    smtpclose(SS, 1);
+	    r = EX_TEMPFAIL;
 	    return r;
 	  }
 	  timeout = timeout_dot;
@@ -3484,6 +3478,7 @@ smtp_sync(SS, r, nonblocking)
 	      if (err < 0) {
 		if (logfp)
 		  fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
+		if (SS->smtpfp) 
 		if (SS->verboselog)
 		  fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
 		break;
