@@ -1,5 +1,10 @@
 2003-04-14  Matti Aarnio  <mea@zmailer.org>
 
+	* libc/myhostname.c:
+	    From  Eugene Crosser:  find out my local
+	    hostname only once (e.g. scheduler et.al.
+	    long-running processes.)
+
 	* transports/errormail/errormail.c:
 	    - If the source address is 'channel error', send
 	      the message back to domainless "postmaster" in
