@@ -436,10 +436,12 @@ docat(file, fd)
 	  fpi = fdopen(fd, "r");
 	  fpo = fdopen(fd, "w");
 	}
+#if 0
 	if (debug && fpi)
 	  while ((n = fread(buf, sizeof buf[0], sizeof buf, fpi)) > 0)
 	    fwrite(buf, sizeof buf[0], n, stdout);
 	else
+#endif
 	  if (fpi && fpo)
 	    report(fpi, fpo);
 	if (fpi) fclose(fpi);
