@@ -440,10 +440,13 @@ struct sockaddr ***sockaddrp;
 	      sap[++sapcount] = (union sockaddr_uni *)si6;
 	    }
 	  }
+
+done_this_ipv6:
+
+	  if (s >= 0) close(s);
+	  free(interfacebuf);
+
 	}
- done_this_ipv6:
-	if (s >= 0) close(s);
-	free(interfacebuf);
 #endif
 #endif /* not HAVE_GETIFADDRS */
 

@@ -168,7 +168,7 @@ zgetifaddress(af, ifname, sap)
 
 	  memset(&lifr, 0, sizeof(lifr));
 	  strncpy(lifr.lifr_name, ifname, sizeof(lifr.lifr_name));
-	  lifr.lifr_addr.sa_family = af;
+	  lifr.lifr_addr.ss_family = af;
 	  i = -1;
 	  if (ioctl(sk2, SIOCGLIFADDR, &lifr) == 0) {
 	    /* Got the IP address of the interface */

@@ -1,3 +1,8 @@
+2000-07-14  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* lib/selfaddrs.c, lib/zgetifaddress.c:
+	    Solaris 8 test derived fixes.
+
 2000-07-12  John D Groenveld <jdg117@elvis.arl.psu.edu>
 
 	* man/Makefile.in:
