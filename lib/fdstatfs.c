@@ -105,10 +105,10 @@ int fd;
 
     if (bsize < 1024) {
       if (!bsize) bsize = 1024; /* Just code safety... */
-      bavail *= (1024 / bsize);
+      bavail /= (1024 / bsize);
     }
     if (bsize > 1024) {
-      bavail /= (bsize / 1024);
+      bavail *= (bsize / 1024);
     }
 
     return bavail;
