@@ -3558,6 +3558,9 @@ smtp_sync(SS, r, nonblocking)
 		if (SS->smtpfp) 
 		  if (SS->verboselog)
 		    fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
+		rmsgappend(SS, 1, "\rTimeout of %d sec while waiting responses from remote", timeout);
+
+		smtpclose(SS, 1);
 		break;
 	      }
 

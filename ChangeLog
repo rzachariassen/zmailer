@@ -1,3 +1,10 @@
+2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c:
+	    When the reply collection goes to timeout ( smtp_sync() ),
+	    CLOSE the smtp-connection.  Also do rmsgappend() a report,
+	    that reply collection went into timeout..
+
 2001-01-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/hold/hold.c:
