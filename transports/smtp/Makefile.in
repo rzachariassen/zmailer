@@ -39,7 +39,7 @@ smtp.3rd: smtp
 	atom -tool 3rd -o smtp.3rd smtp
 
 
-getmxrr-test.o: getmxrr.c smtp.h
+getmxrr-test.o: $(srcdir)/getmxrr.c $(srcdir)/smtp.h
 	$(CC) $(CFLAGS) -DTEST -c -o $@ $(srcdir)/getmxrr.c
 
 getmxrr-test:  getmxrr-test.o
