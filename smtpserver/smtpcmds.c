@@ -900,16 +900,18 @@ const char *buf, *cp;
       }
     }
 
-    if (SS->postmasteronly ||
-	SS->policyresult < 0) {
+    if (SS->postmasteronly || SS->policyresult < 0) {
       if (CISTREQN(cp, "postmaster", 10)) {
 	/* Rejected, but it seems to be a postmaster ??? */
 	if (addrlen == 10)
 	  SS->policyresult = 0; /* Plain <postmaster> */
 	else
-	  if (policydb != NULL) {
-	    SS->policyresult = policytest(policydb, &SS->policystate,
-					  POLICY_RCPTPOSTMASTER, cp, addrlen);
+	  if (policydb != NULL && SS->policyresult > -100) {
+	    int rc = policytest(policydb, &SS->policystate,
+				POLICY_RCPTPOSTMASTER, cp, addrlen);
+	    if (rc == 0)
+	      SS->policyresult = 0;
+
 	    if (logfp) {
 	      char *s = policymsg(policydb, &SS->policystate);
 	      if (SS->policyresult != 0 || s != NULL) {
