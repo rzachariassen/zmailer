@@ -481,11 +481,11 @@ verify_callback(ok, ctx)
 
 /* taken from OpenSSL apps/s_cb.c */
 
-static void apps_ssl_info_callback __((SSL * s, int where, int ret));
+static void apps_ssl_info_callback __((const SSL * s, int where, int ret));
 
 static void
 apps_ssl_info_callback(s, where, ret)
-     SSL * s;
+     const SSL * s;
      int where, ret;
 {
     char   *str;

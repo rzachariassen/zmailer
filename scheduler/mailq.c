@@ -446,7 +446,7 @@ main(argc, argv)
 	    if (rc < 0) {
 	      eval = errno;
 	      close(fd);
-	      fprintf(stderr, "%s: connect failed to %s",
+	      fprintf(stderr, "%s: connect failed to %s\n",
 		      progname, ai->ai_canonname ? ai->ai_canonname : host);
 	      fd = -1;
 	      continue;
@@ -455,7 +455,7 @@ main(argc, argv)
 	  if (fd >= 0)
 	    docat((char *)NULL, fd);
 	  else {
-	    fprintf(stderr, "%s: connect failed to %s",
+	    fprintf(stderr, "%s: connect failed to %s\n",
 		    progname, host);
 	  }
 	}

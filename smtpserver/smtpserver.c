@@ -776,25 +776,16 @@ char **argv;
 		" [port %d]", SS.rport);
 
 	if (smtp_syslog && ident_flag) {
-#ifdef HAVE_WHOSON_H
-	    zsyslog((LOG_INFO, "connection from %s@%s (whoson: $s)\n",
-		     SS.ident_username, SS.rhostname, SS.whoson_data));
-#else
 	    zsyslog((LOG_INFO, "connection from %s@%s\n",
 		     SS.ident_username, SS.rhostname));
-#endif
 	}
 
 	pid = getpid();
 	settrusteduser();	/* dig out the trusted user ID */
 	openlogfp(&SS, daemon_flg);
-#ifdef HAVE_WHOSON_H
-	type(NULL,0,NULL,"connection from %s:%d ident: %s whoson: %s",
-	     SS.rhostname, SS.rport, SS.ident_username, SS.whoson_data);
-#else
+
 	type(NULL,0,NULL,"connection from %s:%d ident: %s",
 	     SS.rhostname, SS.rport, SS.ident_username);
-#endif
 
 #if 0
 	SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
@@ -1943,9 +1934,11 @@ int insecure;
 	X_settrrc = settrtab_byname(lang);
     }
     if (!(*lang) || (X_settrrc < 0)) {
+#if 0 /* The SS state isn't fully initialized now, can't use type() yet!  Eugene Crosser <crosser@rol.ru>  Eh, really ? [mea] */
 	/* we don't know our codetable, hush client away */
 	type(SS, 451, NULL, "Server could not setup translation.", NULL);
 	typeflush(SS);
+#endif
 	sleep(2);
 	exit(0);
 #endif				/* USE_TRANSLATION */

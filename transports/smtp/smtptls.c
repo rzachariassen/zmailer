@@ -509,7 +509,7 @@ static int verify_callback(int ok, X509_STORE_CTX * ctx)
 
 /* taken from OpenSSL apps/s_cb.c */
 
-static void apps_ssl_info_callback(SSL * s, int where, int ret)
+static void apps_ssl_info_callback(const SSL * s, int where, int ret)
 {
     char   *str;
     int     w;
