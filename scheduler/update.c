@@ -950,12 +950,12 @@ static int u_retryat(vp, index, inum, offset, notary, message)
 	 * the heuristic in reschedule() to ignore the request if
 	 * the time is already in the future should help out.
 	 */
-
+#if 0
 	/* ``vp'' might become expired by  thread_reschedule() .. */
 	if (vp->proc && vp->proc->vertex == vp)
 	  /* Pick next, but don't feed it (yet)! */
 	  pick_next_vertex(vp->proc, 0, 0);
-
+#endif
 	thread_reschedule(vp->thread, retrytime, index);
 
 	return 1;

@@ -684,16 +684,13 @@ struct thread *thr;
 	   sort them by spool-file CTIME, if the thread has
 	   AGEORDER -flag set. */
 
-	/* 1) count the number of elts -- changed so it will be done
-	      while creating the storage array.. */
-
-	/* 2) Create storage array for the vertex re-arrange */
+	/* 1) Create storage array for the vertex re-arrange */
 	if (ur_size == 0) {
 	  ur_size = 100;
 	  ur_arr = (struct vertex **)
 	    emalloc(ur_size * sizeof (struct vertex *));
 	}
-	/* 3) Store the vertices into a re-arrange array (and count) */
+	/* 2) Store the vertices into a re-arrange array (and count) */
 	for (n = 0, vp = thr->vertices; vp != NULL; vp = vp->nextitem) {
 	  if (n >= ur_size) {
 	    ur_size *= 2;
@@ -704,7 +701,7 @@ struct thread *thr;
 	  ur_arr[n++] = vp;
 	}
 
-	/* 4) re-arrange pointers */
+	/* 3) re-arrange pointers */
 	if (thr->thgrp->ce.flags & CFG_AGEORDER) {
 	  /* ctime order */
 	  if (n > 1)
@@ -717,18 +714,23 @@ struct thread *thr;
 	    ur_arr[i] = ur_arr[ni];
 	    ur_arr[ni] = vp;
 	  }
-	/* 5) Relink previtem/nextitem pointers */
+	/* 4) Relink previtem/nextitem pointers */
 	for (i = 0; i < n; ++i) {
 	  if (i > 0)
 	    ur_arr[i]->previtem = ur_arr[i-1];
 	  if (i < (n-1))
 	    ur_arr[i]->nextitem = ur_arr[i+1];
-	  /* 5b) Clear vertex proc pointer */
-	  ur_arr[i]->proc = NULL;
+	  /* 4b) Clear vertex proc pointer */
+	  ur_arr[i]->proc   = NULL;
+#if 1
+	  /* 4c) Clear wakeup timer; the feed_child() will refuse
+	     to feed us, if this one is not cleared.. */
+	  ur_arr[i]->wakeup = 0;
+#endif
 	}
 	ur_arr[  0]->previtem = NULL;
 	ur_arr[n-1]->nextitem = NULL;
-	/* 6) Finish the re-arrangement by saving the head,
+	/* 5) Finish the re-arrangement by saving the head,
 	      and tail pointers */
 	thr->vertices   = ur_arr[  0];
 	thr->lastvertex = ur_arr[n-1];
@@ -843,8 +845,15 @@ struct thread *thr;
 
 	  thr->attempts += 1;
 
-	  proc->fed = 0;
 	  /* Its idle process, feed it! */
+
+	  proc->hungry = 1;	/* Simulate hunger.. */
+	  pick_next_vertex(proc, 1, 0);
+	  if (proc->fed != 0) {
+	    /* Duh! Nothing to feed! */
+	    reschedule(vp, 0, -1);
+	    return 0;
+	  }
 	  feed_child(proc);
 	  if (proc->fed)
 	    proc->overfed += 1;
@@ -856,8 +865,6 @@ struct thread *thr;
 	     feeds... */
 
 #else
-	  proc->hungry = 1;	/* Simulate hunger.. */
-	  pick_next_vertex(proc, 1, 0);
 	  /* While we have a thread, and things to feed.. */
 	  while (!proc->fed && proc->thread) {
 	    if (proc->hungry)
@@ -1128,14 +1135,14 @@ time_t retrytime;
 	  thr->wakeup = vtx->wakeup;
 	  if (verbose)
 	    printf("...prescheduled\n");
-	  return;
+	  goto timechain_handling;
 	} else if (vtx->wakeup < now-7200 /* more than 2h in history .. */ )
 	  vtx->wakeup = now;
 
 	if (vtx->thgrp->ce.nretries <= 0) {
 	  if (verbose)
 	    printf("...ce->retries = %d\n", vtx->thgrp->ce.nretries);
-	  return;
+	  goto timechain_handling;
 	}
 
 	if (thr->retryindex >= vtx->thgrp->ce.nretries)
@@ -1217,6 +1224,7 @@ time_t retrytime;
 	if (thr != NULL)
 	  thr->wakeup = wakeup;
 
+ timechain_handling:
 	/* In every case the rescheduling means we move this thread
 	   to the end of the thread_head chain.. */
 
