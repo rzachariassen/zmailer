@@ -376,7 +376,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 		s = ",";
 	      }
 	      if (actionset[ACTSET_EXPANDED]) {
-		sfprintf(errfp,"%EXPANDED-OK(%d)",s,
+		sfprintf(errfp,"%sEXPANDED-OK(%d)",s,
 			 actionset[ACTSET_EXPANDED]);
 		s = ",";
 	      }
@@ -491,7 +491,9 @@ reporterrs(cfpi, delayreports)
 	wroteheader = 0;
 	lastoffset = cfp->offset[cfp->nlines-1];
 	format = 0L;
-	actionsets[0] = actionsets[1] = actionsets[2] = actionsets[3] = 0;
+	actionsets[0] = actionsets[1] = actionsets[2] = 0;
+	actionsets[3] = actionsets[4] = 0;
+
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp;
 
@@ -566,7 +568,7 @@ reporterrs(cfpi, delayreports)
 	      ++action;
 	      cp2 = strchr(action,'\001');
 
-	      if (memcmp       (action,"delayed",  7)==0) {
+	      if        (memcmp(action,"delayed",  7)==0) {
 		thisaction = ACTSET_DELAYED;
 	      } else if (memcmp(action,"delivered",9)==0) {
 		thisaction = ACTSET_DELIVERED;

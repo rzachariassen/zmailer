@@ -1,5 +1,8 @@
 2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* scheduler/msgerror.c:
+	    Missed variable inits, and malformed format statement.
+
 	* transports/smtp/getmxrr.c:
 	    dnscache by djb produces replies which don't have NS or AD
 	    sections, and when scanning replies, we had one-off comparison
