@@ -1,11 +1,9 @@
-%% \subsection{Delivery agnets}
-
+%% \subsection{Delivery agents}
 
 The delivery agent programs normally form the final stage of message delivery.
 
 These programs vary in function and facilities based on what they are
 doing to the messages, and what kind of channels they handle.
-
 
 \subsubsection{mailbox}
 
@@ -606,9 +604,7 @@ stripping method.
 
 
 
-\subsubsection{{\em sm\/}}
-
-
+\subsubsection{sm}
 
 {\em sm\/} - zmailer Sendmail compatible transport agent
 
@@ -647,15 +643,11 @@ tells that the output is 8-bit clean, and for any
 MIME message with QUOTED-PRINTABLE encoding the
 coding can be decoded.
 
-
-
 \item[{\tt -Q}] \mbox{}
 
 tells that the transport channel will likely treat
 poorly control characters like TAB, and possibly
 SPACE too.. This encodes them all by using QUOTED-PRINTABLE encoding.
-
-
 
 \item[{\tt -f configfile}] \mbox{}
 
@@ -664,21 +656,16 @@ specifications of the various known {\em sendmail\/}
 compatible mailer programs: how to invoke them and
 how to process messages for them. The default is {\tt \$MAILSHARE/sm.cf}.
 
-
-
 \item[{\tt -c channel}] \mbox{}
 
 specifies which channel name should be keyed on.
-There is no default. If this option is not specified, the {\tt -h} option must be.
-
-
+There is no default. If this option is not specified,
+the {\tt -h} option must be.
 
 \item[{\tt -h host}] \mbox{}
 
 specifies which host name should be keyed on.
 There is no default. If this option is not specified, the {\tt -c} option must be.
-
-
 
 \item[{\tt v-V}] \mbox{}
 
@@ -687,9 +674,8 @@ prints a version message and exits.
 \end{description}
 
 
-
-
-{\bf Configuration}
+\paragraph{configuration of \tt sm}
+\label{smconfig}
 
 The configuration file associates the mailer keyword from
 the command line with a specification of a delivery program. 
@@ -705,7 +691,6 @@ mailer flags program argument list
 \end{verbatim}
 
 For example:
-
 \begin{verbatim}
 local mS sm/localm localm -r $g $u
 prog - /bin/sh sh -c $u
@@ -749,81 +734,51 @@ parameters.
 
 
 \item[E] \mbox{}
-
 will prepend `{\(>\)}' to any message body line starting
 with `From '.
 
-
-
 \item[f] \mbox{}
-
 adds ``{\tt -f sender}'' arguments to the delivery program.
 
-
-
 \item[n] \mbox{}
-
 will not prepend a From-space line (normal mailbox
 separator line) to the message.
 
-
-
 \item[r] \mbox{}
-
 adds ``{\tt -r sender}'' arguments to the delivery program.
 
-
-
 \item[S] \mbox{}
-
 will run the delivery program with the same real
 and effective uid as the {\em sm\/} process. If this flag
 is not set, the delivery program will be run with
 the real uid of the {\em sm\/} process. This may be useful
 if {\em sm\/} is setuid.
 
-
-
 \item[m] \mbox{}
-
 informs {\em sm\/} that each instance of the delivery program 
 can deliver to many destinations. This
 affects {\bf {\tt \$u}} expansion in the argument list, see
 below.
 
-
-
 \item[P] \mbox{}
-
 prepends a {\tt Return-Path:} header to the message.
 
-
-
 \item[U] \mbox{}
-
 will prepend a From-space line, with a ``remote from
 myuucpname'' at the end, to the message. This is
 what is expected by remote rmail(1) programs for
 incoming UUCP mail.
 
-
-
 \item[R] \mbox{}
-
 use CRLF sequence as end-of-line sequence. Without it, will use 
 LF-only end-of-line sequence.
 
-
-
 \item[X] \mbox{}
-
 does SMTP-like `hidden-dot' algorithm of doubling all dots that are 
 at the start of the line.
 
 
-
 \item[7] \mbox{}
-
 will strip (set to 0) the 8th bit of every character in the message.
 
 \end{description}
@@ -870,18 +825,11 @@ log.
 The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
 
 
-
-
-
-
 \subsubsection{libta - Transport Agent Support Library}
-
 
 
 This is the library that all transport agents use, and several of its
 functions are intended to aid message processing.
-
-
 
 
 \paragraph{Function groupings}
@@ -894,13 +842,13 @@ Transport agent support library function groups are:
 \end{itemize}
 
 
-
-
-
 \paragraph{Function listings }
 
+Text to be inserted here.
 
 \paragraph{Function usage examples}
+
+Text to be inserted here.
 
 
 \subsubsection{Security Issues}

@@ -371,13 +371,13 @@ forms files with your previous setup.
 
 Pay particular attention to the following items:
 \begin{description}
-\item[{\tt \$MAILBIN/zmailer} script] \mbox{} \\
+\item[{\tt \$MAILBIN/zmailer} script] \mbox{}
 
 You may want to add a symbolic link from some directory in your path
 to {\tt \$MAILBIN/zmailer}, if you don't already have this.  I put this link
 in {\tt /usr/local/sbin}.
 
-\item[{\tt \$MAILVAR/db/aliases} file] \mbox{} \\
+\item[{\tt \$MAILVAR/db/aliases} file] \mbox{}
 
 The provided skeleton aliases file on purpose contains syntax errors,
 so you are reminded to change the contents.
@@ -406,7 +406,7 @@ See also IETF's RFC 2142: ``Mailbox Names for Common Services, Roles and
 Functions'' (file {\tt rfc2142.txt} in the {\tt doc/rfc} directory) 
 for other suggestable aliases you may need. 
                                                                
-\item[{\tt \$MAILVAR/db/localnames} file] \mbox{} \\
+\item[{\tt \$MAILVAR/db/localnames} file] \mbox{}
 
 Add the hostnames you want ZMailer to do local delivery for, to the
 {\tt \$MAILVAR/db/localnames} file.  Due to my own belief in Murphy,
@@ -443,7 +443,7 @@ Compile this into runtime binary database with command:
 \end{verbatim}
 (fall-back method is sequential rescan of the text file)
 
-\item[{\tt \$MAILVAR/db/routes} file] \mbox{} \\
+\item[{\tt \$MAILVAR/db/routes} file] \mbox{}
 
 Add any UUCP neighbours or other special cases to this file.  For
 example (remember to keep the entries sorted):
@@ -456,7 +456,7 @@ example (remember to keep the entries sorted):
   icnucevm.bitnet smtp!icnucevm.cnuce.cnr.it
 \end{verbatim}
 
-\item[{\tt \$MAILVAR/db/fqdnaliases} file] \mbox{} \\
+\item[{\tt \$MAILVAR/db/fqdnaliases} file] \mbox{}
 
 The {\tt fqdnaliases} database is for mapping fully-qualified user
 addresses to others --- for example you machine has a set of
@@ -545,7 +545,80 @@ host-specific services:
     mailq        174/tcp      # Mailer transport queue
 \end{verbatim}
 
-\subsection{Scheding the Scheduler}
+\subsubsection{Checking the Scheduler}
+
+The location of the {\tt scheduler.conf} on running system is
+{\tt \$MAILSHARE/scheduler.conf}
+
+For normal operations the current sample {\tt scheduler.conf}%
+\index{\tt scheduler.conf} file is quite sufficient, but in case
+you want to do something unusual, like using {\tt procmail} for
+local delivery.
+
+Following is extract from the sample  {\tt scheduler.conf}-file:
+\begin{verbatim}
+local/*
+    interval=5m
+    idlemax=9m
+    expiry=3d
+    # want 20 channel slots, but only one HOST
+    maxchannel=15
+    maxring=5
+    # Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+    # conversion on flight!
+    command="mailbox -8"
+    # Or with PROCMAIL as the local delivery agent:
+    #command="sm -8c $channel procm"
+    # Or with CYRUS server the following might do:
+    #command="sm -8c $channel cyrus"
+\end{verbatim}
+
+There are three variants of the {\tt command=} entry:
+\begin{description}
+\item[{\tt command="mailbox -8"}] \mbox{}
+
+The normal {\em ZMailer} {\tt mailbox}(8) channel program.
+
+\item[{\tt command="sm -8c \$channel procm"}] \mbox{}
+
+Variant for running {\tt procmail}.
+
+\item[{\tt command="sm -8c \$channel cyrus"}] \mbox{}
+
+Variant for using {\em CMU Cyrus} message store server.
+\end{description}
+
+
+For more information, see chapter
+\ref{schedulerconfig}
+%begin{latexonly}
+(page \pageref{schedulerconfig})
+%end{latexonly}
+.
+
+\subsubsection{Checking {\tt sm.conf} file}%
+\index{{\tt sm.conf}-file}
+
+For some uses the scheduler runs {\tt sm}(8) program -- called
+``sendmail-like mailer''.
+
+This supports {\em most} of {\em sendmail}'s {\tt M}-entry flags,
+at least flags with versions previous to 8.x
+
+The {\em ZMailer} {\tt sm}(8) channel program is used to create support
+for things like:
+\begin{itemize}
+\item {\em uucp} transmits
+\item {\em procmail} as local delivery agent
+\item supporting {\em CMU Cyrus message store} as local delivery agent
+\end{itemize}
+
+For more information, see chapter
+\ref{smconfig}
+%begin{latexonly}
+(page \pageref{smconfig})
+%end{latexonly}
+.
 
 
 \subsubsection{Bootup Scripts}
@@ -752,18 +825,22 @@ The  configure  script has three kinds of parameters for it:
 \paragraph{Used environment variables}
 
 \begin{description}
-\item[\tt ZCONFIG="/file/path"] \mbox{} \\
+\item[\tt ZCONFIG="/file/path"] \mbox{}
+
 Using this is alternate for using "\verb/--with-zconfig=../" option.
 Not needed if the default of {\tt /etc/zmailer.conf} is used.
 
 \item[\tt CC="command"]
-\item[\tt CFLAGS="options"] \mbox{} \\
+\item[\tt CFLAGS="options"] \mbox{}
+
 Obvious ones, compiler, and possible "-g -O" flags...
 
-\item[\tt CPPDEP="command"] \mbox{} \\
+\item[\tt CPPDEP="command"] \mbox{}
+
 Not normally needed --- builds dependencies
 
-\item[\tt INEWSBIN=/file/path] \mbox{} \\
+\item[\tt INEWSBIN=/file/path] \mbox{}
+
 If you want to pre-define where your `inews' program
 is --- for possible use of `usenet' channel.
 \end{description}
@@ -792,14 +869,17 @@ Recycled ZENV variables (from {\tt \$ZCONFIG} file):
 \paragraph{Options for various facilities}
 
 \begin{description}
-\item[\tt ---prefix=/DIR/PATH] \mbox{} \\
+\item[\tt ---prefix=/DIR/PATH] \mbox{}
+
 The only really mandatory option, gives actually
 defaults for \verb:MAILSHARE/MAILVAR/MAILBIN:.
 
-\item[\tt ---with-gcc] \mbox{} \\
+\item[\tt ---with-gcc] \mbox{}
+
 Compile with GCC even when you have "cc" around.
 
-\item[\tt ---with-zconfig=/FILE/PATH] \mbox{} \\
+\item[\tt ---with-zconfig=/FILE/PATH] \mbox{}
+
 Where the runtime   {\tt zmailer.conf}   file is located
 at (and with what name).  This is {\bf the only} hard-coded
 info within libraries and thus programs using them.
@@ -808,7 +888,8 @@ Everything else is runtime relocatable by means of using
 
 Default: {\tt /etc/zmailer.conf}
 
-\item[\tt ---with-mailbox=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-mailbox=/DIR/PATH] \mbox{}
+
 Overrides system-dependent location of the user mail-boxes.
 Defaults are looked up thru list of directories:
 \begin{verbatim}
@@ -817,7 +898,8 @@ Defaults are looked up thru list of directories:
 First found directory will be the default --- or then
 system yields  {\tt /usr/spool/mail}
 
-\item[\tt ---with-postoffice=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-postoffice=/DIR/PATH] \mbox{}
+
 Overrides system-dependent location of the "{\tt \$POSTOFFICE}"
 directory under which system stores queued email.
 Will try directories \verb:/{usr,var}/spool/postoffice/: to
@@ -825,73 +907,90 @@ see, if previously installed directory tree exists.
 Default will be  \verb:/var/spool/postoffice/:
 in case there is no previously created postoffice directory.
 
-\item[\tt ---with-mailshare=/DIR/PATH] \mbox{} \\
-\item[\tt ---with-mailvar=/DIR/PATH] \mbox{} \\
-\item[\tt ---with-mailbin=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-mailshare=/DIR/PATH] \mbox{}
+\item[\tt ---with-mailvar=/DIR/PATH] \mbox{}
+\item[\tt ---with-mailbin=/DIR/PATH] \mbox{}
+
 These are overrides for values derived from  \verb:--prefix=/DIR:
 option.  {\tt MAILSHARE = "\$PREFIX"}, {\tt MAILVAR = "\$PREFIX"},
 but the last is {\tt MAILBIN = "\$PREFIX/bin"}
 
-\item[\tt ---with-logdir=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-logdir=/DIR/PATH] \mbox{}
+
 Explicite value to replace {\tt \$LOGDIR} ZENV value and/or to
 override default value of:  {\tt /var/log/mail}
 
-\item[\tt ---with-nntpserver=HOST] \mbox{} \\
+\item[\tt ---with-nntpserver=HOST] \mbox{}
+
 If you want to use `{tt usenet}' channel, you need to name
 NNTP server into which you feed news with NNTP.
 
-\item[\tt ---with-sendmailpath=/FILE/PATH] \mbox{} \\
+\item[\tt ---with-sendmailpath=/FILE/PATH] \mbox{}
+
 Overrider for default location(s) of sendmail program.
 ZENV variable \verb:$SENDMAILPATH: can be overridden with this.
 
-\item[\tt ---with-rmailpath=/FILE/PATH] \mbox{} \\
+\item[\tt ---with-rmailpath=/FILE/PATH] \mbox{}
+
 Overrider for default location(s) of rmail program.
 ZENV variable \verb:$RMAILPATH: can be overridden with this.
 
-\item[\tt ---with-selfaddresses="NAME,NAME"] \mbox{} \\
+\item[\tt ---with-selfaddresses="NAME,NAME"] \mbox{}
+
 Obsolete option regarding providing into in ZENV variable
 to yield system internal names automagically for the SMTP
 transport channel uses, and also for the router to see,
 if destination IP address is local at the system.
 
-\item[\tt ---with-system-malloc] \mbox{} \\
+\item[\tt ---with-system-malloc] \mbox{}
+
 Use system malloc() library, don't compile own:
 Alternate for using: \verb:--with-libmalloc=system:
 This is default.
 
-\item[\tt ---with-libmalloc=LIBNAME] \mbox{} \\
+\item[\tt ---with-libmalloc=LIBNAME] \mbox{}
+
 Where "{\tt LIBNAME}" is one of:
 \begin{description}
-\item[\tt system] \mbox{} \\
+\item[\tt system] \mbox{} 
+
 System malloc() as is.
 
-\item[\tt malloc] \mbox{} \\
+\item[\tt malloc] \mbox{}
+
 Bundled "libmalloc" without debugging things.
 
-\item[\tt malloc\_d] \mbox{} \\
+\item[\tt malloc\_d] \mbox{}
+
 Bundled "libmalloc" {\bf with} debugging things.
 \end{description}
 
-\item[\tt ---with-yp] \mbox{} \\
+\item[\tt ---with-yp] \mbox{}
+
 Want to use YP, and has it at default locations
 
-\item[\tt ---with-yp-lib='-L... -lyp'] \mbox{} \\
+\item[\tt ---with-yp-lib='-L... -lyp'] \mbox{}
+
 If needed to define linking-time options to find the YP-library.
 
-\item[\tt ---with-ldap-prefix=DIRPREFIX] \mbox{} \\
+\item[\tt ---with-ldap-prefix=DIRPREFIX] \mbox{}
+
 If UMich/NetScape {\em LDAP} are available thru {\tt DIRPREFIX/include/}
 and {\tt DIRPREFIX/lib/} locations, this is a short-hand to find
 the interface --- with files in the system primary include
 and lib locations,  "{\tt /usr}" is a special value which will be
 ignored.  No default value for {\tt DIRPREFIX}.
 
-\item[\tt ---with-ldap-include-dir=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-ldap-include-dir=/DIR/PATH] \mbox{}
+
 Special overrider for compilation include directory of LDAP
 
-\item[\tt ---with-ldap-library-dir=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-ldap-library-dir=/DIR/PATH] \mbox{}
+
 Special overrider for linkage library directory of LDAP
 
-\item[\tt ---without-fsync] \mbox{} \\
+\item[\tt ---without-fsync] \mbox{}
+
 At systems where the local filesystem is log-based/journaling,
 doing   fsync()  is wastefull.  This disables fsync() in
 cases where it is not needed.    (In others it may boost
@@ -901,23 +1000,27 @@ hang mailer at spool directory access did cause severe
 damage all over, and propably use of this option would
 not have made any difference..  fsck was mighty unhappy..)
 
-\item[\tt ---with-bundled-libresolv] \mbox{} \\
+\item[\tt ---with-bundled-libresolv] \mbox{}
+
 If your system is not very modern, you may consider using
 this option to compile in a resolver from bind-4.9.4-REL.
 On the other hand, if your system is modern, it may have
 even newer resolver in it.  At such time, don't use this!
 
-\item[\tt ---with-ipv6] \mbox{} \\
+\item[\tt ---with-ipv6] \mbox{}
+
 Use IPv6 at things where it is supported.  This is often
 highly experimental, although many subsystems in ZMailer
 are built with   getnameinfo()  et.al. interfaces, which
 works both on IPv4 and IPv6.
 
-\item[\tt ---with-ipv6-replacement-libc] \mbox{} \\
+\item[\tt ---with-ipv6-replacement-libc] \mbox{}
+
 If the system needs more support for user-space IPv6
 things, this generates those.
 
-\item[\tt ---without-rfc822-tabs] \mbox{} \\
+\item[\tt ---without-rfc822-tabs] \mbox{}
+
 Some systems dislike getting RFC-822 headers with form of:
 \begin{verbatim}
    "Headername: <TAB> value"
@@ -925,27 +1028,30 @@ Some systems dislike getting RFC-822 headers with form of:
 With this option, no TABs are used and instead "ordinary"
 space character is used.
 
-\item[\tt ---with-tcp-wrappers] \mbox{} \\
-\item[\tt ---with-tcp-wrappers=/DIR/PATH] \mbox{} \\
+\item[\tt ---with-tcp-wrappers] \mbox{}
+\item[\tt ---with-tcp-wrappers=/DIR/PATH] \mbox{}
+
 Optional  {\tt =/DIR/PATH}  value gives directory where there are
 {\tt <tcpd.h>}  and  {\tt libwrap.a}  files.
 Without value this option looks for several common locations
 for those files, and if finds them, yields compile and linking
 hooks,
 
-\item[\tt ---with-ta-mmap] \mbox{} \\
+\item[\tt ---with-ta-mmap] \mbox{}
+
 Some systems with good {\tt mmap()} with MAP\_FILE|MAP\_SHARED,
 and well behaving  {\tt munmap()}  it does make sense to replace
 read()/write() thru a file-descriptor to the file with
 mmap() --- however that requires munmap() {\bf not to} scrub
-away in-mapped any more actively, than the buffer-cache
+away in-mapped blocks any more actively, than the buffer-cache
 works at read()/write() blocks.
 
 This was default for a while, however most systems don't
 have really well-behaved munmap()s :-/
 (Perhaps IBM AIX is the only exception ?)
 
-\item[\tt ---with-getpwnam-library="-L... -l..."] \mbox{} \\
+\item[\tt ---with-getpwnam-library="-L... -l..."] \mbox{}
+
 Certain sites have expressed wishes to use their own libraries
 to replace the standard {\tt getpwnam()} (and possibly {\tt getpwuid()}
 routines.
@@ -956,13 +1062,13 @@ These programs use {\tt getpwnam()} libary call to look up
 various customer usernames to whatever the system needs them
 for.
 
-For {\em system} needs the library must support userids:
-\begin{description}
-\item[\tt root] \mbox{} \\
-\item[\tt daemon{\rm , or} daemons] \mbox{} \\
-the usual
-\end{description}
-and whatever others your local magic system needs.
+For {\em ZMailer} needs the library must support userids:
+\begin{itemize}
+\item {\tt root}
+\item {\tt daemon}, or {\tt daemons}
+\item {\tt nobody}
+\end{itemize}
+and whatever others your local system magic needs.
 \end{description}
 
 \subsection{Verifying the System}
