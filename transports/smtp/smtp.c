@@ -1116,7 +1116,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    first_uid = daemon_uid;
 	  
 	  openstatus = smtpopen(SS, host, noMX);
-	  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
+	  if (openstatus != EX_OK) {
 	    for ( rp = startrp; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
@@ -3094,6 +3094,11 @@ makeconn(SS, hostname, ai, ismx)
 	      /* Wait for the initial "220-" greeting */
 	      SS->rcptstates = 0;
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
+
+	      if (logfp)
+		fprintf(logfp,"%s#\t('220' expectance did yield %d )\n",
+			logtag(), retval);
+
 	      if (retval != EX_OK)
 		/*
 		 * If you want to continue with the next host,
@@ -3104,6 +3109,8 @@ makeconn(SS, hostname, ai, ismx)
 		fprintf(SS->verboselog,"Connection attempt did yield code %d / %s\n", retval, sysexitstr(retval));
 	      return EX_OK;
 	  default:
+	      if (logfp)
+		fprintf(logfp,"%s#\t(vcsetup() did yield %d )\n",logtag(), i);
 	      break;
 	  }
 	} /* end of for-loop */
