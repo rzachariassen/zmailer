@@ -3039,13 +3039,13 @@ makeconn(SS, hostname, ai, ismx)
 	int retval;
 	int mfd;
 	int isreconnect = (ai == &SS->ai);
+	char	hostbuf[MAXHOSTNAMELEN+1];
 
 	MIBMtaEntry->tasmtp.SmtpStarts += 1;
 
 #ifdef	BIND
 #ifdef	RFC974
 	{
-	  char	hostbuf[MAXHOSTNAMELEN+1];
 	  int	ttl;
 	
 	  if (ai->ai_canonname)
