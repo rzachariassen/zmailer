@@ -100,11 +100,11 @@ static
 /*  30: `^^'   */ CHR_ENT(0, 0, 1, 0, 0, 1, 1, 0, 0, 0),
 /*  31: `^_'   */ CHR_ENT(0, 0, 1, 0, 0, 1, 1, 0, 0, 0),
 /*  32: ` '    */ CHR_ENT(0, 0, 0, 0, 0, 1, 1, 0, 0, 0),
-/*  33: `!'    */ CHR_ENT(0, 0, 0, 0, 0, 1, 1, 0, 1, 1),
+/*  33: `!'    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
 /*  34: `"'    */ CHR_ENT(0, 0, 1, 0, 0, 1, 0, 0, 1, 1),
 /*  35: `#'    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
 /*  36: `$'    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
-/*  37: `%'    */ CHR_ENT(0, 0, 0, 0, 0, 1, 1, 0, 1, 1),
+/*  37: `%'    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
 /*  38: `&'    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
 /*  39: `''    */ CHR_ENT(0, 0, 0, 0, 1, 1, 1, 0, 1, 1),
 /*  40: `('    */ CHR_ENT(0, 0, 1, 0, 0, 1, 1, 0, 0, 1),
@@ -956,6 +956,8 @@ int strict;
 	    q = rfc821_quoted_string(p, strict);
 	    if (q == p)
 		return s;	/* Uh... */
+#if 0 /* RFC 2821 -- local part internal hack-syntax interpretation
+	 shall not be done, unless domain is known to be local */
 	    if (*q == '%' || *q == '!') {
 		p = q + 1;
 		_ok = (*q == '!' && *p == '_');
@@ -970,11 +972,14 @@ int strict;
 		}
 		continue;
 	    }
+#endif
 	    return q;
 	}
 	q = rfc821_dot_string(p, strict);
 	if (q == p)
 	    return s;		/* Uh... */
+#if 0 /* RFC 2821 -- local part internal hack-syntax interpretation
+	 shall not be done, unless domain is known to be local */
 	if (*q == '%' || *q == '!') {
 	    p = q + 1;
 	    _ok = (*q == '!' && *p == '_');
@@ -989,6 +994,7 @@ int strict;
 	    }
 	    continue;
 	}
+#endif
 	return q;
     }
     return p;			/* Run to end of string.. */

@@ -6,7 +6,7 @@
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
 .IP \fBsmtpserver\fR 11em
-[\fB\-46aBigntVvw\fR]
+[\fB\-46aBhigntVvw\fR]
 [\fB\-p\fR\ \fIport\fR]
 [\fB\-l\fR\ \fISYSLOG\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
@@ -62,6 +62,11 @@ actual code is not available.
 .IP \-g
 the gullible option will make the program believe any information it is
 told (such as origin of a connection) without checking.
+
+.IP \-h
+check helo-parameter,  per default that is
+.B not
+checked in any way, with this option, syntax check is done on it.
 
 .IP \-i
 runs the server interactively, which makes it usable for processing
@@ -342,13 +347,15 @@ outside of the trusted networks or the networks with relaying enabled
 file).
 
 .IP PARAM\ SMTP\-auth\-pipe\ /path/to/program
-This is a path to the external authentication program. The authenticator
-should read a username from command line and a password from standard
-input. Exit status 0 means successful authentication.
 
-.B "It is relatively easy to make a mistake in external authentication"
-.B "program that follows the specification. Use this option only if"
-.B "you know exactly what you do! BE CAREFULL!"
+This is a path to the external authentication program.
+The authenticator should read a username from command line,
+and a password from standard input.
+Exit status 0 means successful authentication.
+
+\fBIt is relatively easy to make a mistake in external authentication
+\fBprogram that follows the specification. Use this option only if
+\fByou know exactly what you do! BE CAREFULL!\fR
 
 .IP PARAM\ use\-tcp\-wrapper
 If TCP-WRAPPER is configured in, uncommenting this
@@ -361,7 +368,7 @@ will activate its use to look service name:  smtp-receiver
 .IP PARAM\ NoENCHANCEDSTATUS(CODES)
 .IP PARAM\ NoETRN
 .IP PARAM\ NoPIPELINING
-This set are
+This set contains
 .B disablers
 of like named Extended SMTP EHLO responses, plus EHLO verb itself,
 e.g. using these will turn off given (for example ``PIPELINING'')
@@ -425,12 +432,22 @@ multiplier for formula:
 .IP "PARAM tls\-CAfile $MAILVAR/db/smtpserver\-CAcert.pem"
 .IP "PARAM tls\-cert\-file  $MAILVAR/db/smtpserver\-cert.pem"
 .IP "PARAM tls\-key\-file   $MAILVAR/db/smtpserver\-key.pem"
+.RS
 These are TLSv1 parameters, and all parts of this parameter cluster
 must be set for the facility to work!
-
+.PP
 See   doc/guides/openssl,  or:
 http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 (until something ZMailer specific gets written...)
+.PP
+Also see below section
+.BR "OPENSSL RELATED PARAMETERS" .
+.RE
+.IP "PARAM tls\-dh512  $MAILVAR/db/smtpserver\-cert\-dh512.pem"
+.IP "PARAM tls\-dh1024 $MAILVAR/db/smtpserver\-cert\-dh1024.pem"
+Optional file to supply auxiliary DH parameters for the key exchange,
+in case the certificate is so old, that it does not contain them.
+The system has built-in default values for these.
 
 .IP "PARAM listen\-ssmtp"
 Listen on port TCP/465, which is deprecated SSL/SMTP listener port.
@@ -609,6 +626,8 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
 #PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
 #PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem
+#PARAM  tls-dh512       $MAILVAR/db/smtpserver-dh512.pem
+#PARAM  tls-dh1024      $MAILVAR/db/smtpserver-dh1024.pem
 #  # Then some futher thoughs that may materialize some time..
 #PARAM tls-loglevel     0
 #PARAM tls-ccert-vd     0
@@ -1069,6 +1088,85 @@ file:
 .fi
 .PP
 
+.SH OPENSSL RELATED PARAMETERS
+Because the TLS related code is fairly straight copy from
+.I Postfix
+specific one, the document is fairly direct copy, too..
+.PP
+.I "To use TLS we do need a certificate and a private key."
+.I "Both must be in \"pem\" format, the private key must not"
+.I  "be encrypted, that does mean: it must be accessable"
+.I  "without password."
+.I "Both parts (certificate and private key) may be in the same file."
+.PP
+.RS 2em
+.nf
+PARAM tls-cert-file  /etc/postfix/server.pem
+PARAM tls-key-file   /etc/postfix/server.pem
+.fi
+.RE
+.PP
+.I "The certificate was issued by a certification authority (CA),"
+.I "of which the CA-cert must be available."
+.I "This file may also contain the the CA certificates of other trusted CAs."
+.I "You must use this file for the list of trusted CAs if you want to use"
+.I "chroot-mode."
+.PP
+.RS 2em
+.nf
+PARAM tls-CAfile /etc/postfix/CAcert.pem
+.fi
+.RE
+.PP
+.I "To verify the peer certificate, we need to know the certificates of"
+.I "certification authorities."
+.I "These certificates in \"pem\" format are collected in a directory."
+.I "The same CAs are offered to clients for client verification."
+.I "Don't forget to create the necessary \"hash\" links with"
+.I "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs."
+.I "A typical place for the CA-certs may also be $OPENSSL_HOME/certs,"
+.I "so there is no default and you explicitly have to set the value here!"
+.PP
+.RS 2em
+.nf
+PARAM tls-CApath /etc/postfix/certs
+.fi
+.RE
+.PP
+.I "To get additional information during the TLS setup and negotiations"
+.I "you can increase the loglevel from 0..4:"
+.RS 4em
+.IP 0: 4em
+No output about the TLS subsystem
+.IP 1: 4em
+Printout startup and certificate information
+.IP 2: 4em
+1 + Printout of levels during negotiation
+.IP  3: 4em
+2 + Hex and ASCII dump of negotiation process
+.IP  4: 4em
+3 + Hex and ASCII dump of complete transmission after STARTTLS
+.RE
+.PP
+.I "Use loglevel 3 only in case of problems."
+.I "Use of loglevel 4 is strongly discouraged."
+.PP
+.RS 2em
+.nf
+PARAM tls-loglevel 0
+.fi
+.RE
+.PP
+.I "By default TLS is disabled, so no difference to plain ZMailer is visible."
+.I "Explicitely switch it on here:"
+.PP
+.RS 2em
+.nf
+PARAM use-tls
+.fi
+.RE
+.PP
+
 .SH FILES
 .IP \fI/etc/zmailer.conf\fR
 system global parameters
@@ -1108,6 +1206,7 @@ RFC 1893/3463	 Enhanced Mail System Status Codes
 RFC 1985	 ESMTP ETRN
 RFC 2033	 LMTP server mode (for testing)
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
+.\" RFC 2476	 SUBMIT protocol (port 587)
 RFC 2487/3207	 ESMTP STARTTLS
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
 RFC 2554+NetScape	 ESMTP AUTH=LOGIN

@@ -1,7 +1,9 @@
 /*
  *	MIME-part-2 header 8-bit coding to MIME-coded-tokens
  *
- *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996, 2000, 2002
+ *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996, 2000,
+ *      2002-2003
+ *
  *	(and   Markku T Jarvinen <mta@sci.fi>)
  */
 
@@ -218,14 +220,21 @@ headers_to_mime2(rp,defcharset,vlog)
 
 	while (inhdr && *inhdr) {
 	  char *hdr = *inhdr;
-	  char *s, *p, *q;
-	  int len;
+	  char *s, *p, *q, s0;
+	  int len = 0;
 	  char *newbuf = NULL;
+	  int toklen;
+	  int column;
 
       qphdr_restart:
 
+	  column = 0;
+
 	  for (s = (char*)hdr; *s; ++s) {
 	    int c = (*s) & 0xFF;
+	    ++column;
+	    if (c == '\n') column = 0;
+
 	    if (c != '\n' && c != '\t' && (c < ' ' || c > 126)) {
 
 	      /* Bad stuff, can't exist in the headers! */
@@ -235,30 +244,72 @@ if (vlog) fprintf(vlog,"8-bit header: '%s'\n",hdr);
 		 separators are: '\n', ' ','\t','(' */
 	      while (s > (char*)hdr && *s != ' ' && *s != '\n' &&
 		     *s != '\t' && *s != '(' && *s != ')')
-		--s;
-	      if (*s == ' ' || *s == '\t' || *s == ')' || *s == '\n') ++s;
+		--s, --column;
+	      if (column < 1) column = 1; /* just for safety.. */
+
+	      s0 = *s;
+
+	      if (s > (char*)hdr) ++s;
+
+
 	      /* Now the 's' points at the begin of the token */
 	      p = (char*)hdr;
 	      if (!newbuf) {
 		len = strlen(s)*3; /* If it ALL turns into QP */
-		len += (s - hdr) + 30; /* Slag at the length */
+		len += ((s - hdr)
+			+ 20 + strlen(defcharset)); /* Slag at the length */
 		newbuf = (char*)emalloc(len);
 	      }
 	      /* Copy the head */
 	      q = newbuf;
 	      while (p < s) *q++ = *p++;
-	      sprintf(q,"=?%s?Q?", defcharset);
+	      sprintf(q," =?%s?Q?", defcharset);
+	      toklen = 0;
 	      q += strlen(q);
 
-	      for ( ; *s && (*s != ' ' && *s != '\t' && *s != ')' && *s != '\n'); ++s) {
+	      if (s0 == ' '|| s0 == '\t' || s0 == '\n') {
+		strcpy(q, "=20");
+		q += 3;
+	      }
+
+#define TOKENCUTEXPR(c) (c != ' ' && c != '\t' && c != ')' && c != '\n')
+	      for ( ; *s && TOKENCUTEXPR(*s); ++s, ++toklen) {
+		if (toklen > 15 || (column > 76 && toklen > 0)) {
+		  /* Arbitrary maximum token length, 
+		     possibly too long header, wanting to
+		     wrap... */
+		  toklen = q - newbuf;
+		  len += 15+strlen(defcharset);
+		  newbuf = realloc(newbuf, len);
+		  q = newbuf + toklen;
+		  strcpy(q,"?="); q += 2;
+		  column += 2;
+		  if (column+strlen(defcharset) > 76-8) {
+		    strcpy(q, "\n\t"); q += 2;
+		    column = 1;
+		  } else {
+		    strcpy(q, " "); q += 1;
+		    ++column;
+		  }
+		  sprintf(q,"=?%s?Q?", defcharset);
+		  column += strlen(q);
+		  q      += strlen(q);
+		  toklen = 0;
+		}
+
 		c = (*s) & 0xFF;
 		if (c < ' '  || c > 126  || c == '"' ||
 		    c == '=' || c == '?' || c == '_') {
 		  sprintf(q, "=%02X", c);
 		  q += 3;
-		} else
+		  column += 3;
+		} else {
 		  *q++ = c;
+		  ++column;
+		}
 	      }
+	      /* now we ignore column, as we restart the processor
+		 after copying the old tail into place. */
 	      strcpy(q,"?="); q += 2;
 	      strcpy(q,(void*)s);
 if(vlog)fprintf(vlog,"After processing: '%s'\n",newbuf);

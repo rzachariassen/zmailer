@@ -227,6 +227,7 @@ int etrn_ok = 1;
 int starttls_ok = 0;
 int ssmtp_listen = 0;	   /* Listen on port TCP/465; deprecated SMTP in TLS */
 int ssmtp_connected = 0;
+int submit_connected = 0;
 int msa_mode = 0;
 int deliverby_ok = -1;		/* FIXME: RFC 2852 */
 etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
@@ -374,7 +375,7 @@ int main(argc, argv)
 int argc;
 char **argv;
 {
-    int inetd, errflg, raddrlen, s25, ssmtp, msgfd, version, i;
+    int inetd, errflg, raddrlen, s25, ssmtp, submitfd, msgfd, version, i;
     const char *mailshare;
     char path[1024];
     int force_ipv4 = 0;
@@ -815,6 +816,7 @@ char **argv;
 	}
 
 	ssmtp = -1;
+	submitfd = -1;
 #if defined(AF_INET6) && defined(INET6)
 
 	/* Perhaps the system can grok the IPv6 - at least the headers
@@ -1076,8 +1078,11 @@ char **argv;
 	  _Z_FD_SET(s25, rdset);
 	  if (ssmtp >= 0)
 	    _Z_FD_SET(ssmtp, rdset);
+	  if (submitfd >= 0)
+	    _Z_FD_SET(submitfd, rdset);
 	  n = s25;
-	  if (n < ssmtp) n = ssmtp;
+	  if (n < ssmtp)    n = ssmtp;
+	  if (n < submitfd) n = submitfd;
 	  ++n;
 	  n = select(n, &rdset, NULL, NULL, NULL);
 
@@ -1095,8 +1100,9 @@ char **argv;
 	     We are simple, and try them in order.. */
 
 	  n = -1;
-	  if (s25   >= 0 && _Z_FD_ISSET(s25,   rdset)) n = s25;
-	  if (ssmtp >= 0 && _Z_FD_ISSET(ssmtp, rdset)) n = ssmtp;
+	  if (s25      >= 0 && _Z_FD_ISSET(s25,      rdset)) n = s25;
+	  if (ssmtp    >= 0 && _Z_FD_ISSET(ssmtp,    rdset)) n = ssmtp;
+	  if (submitfd >= 0 && _Z_FD_ISSET(submitfd, rdset)) n = submitfd;
 
 
 	  raddrlen = sizeof(SS.raddr);
@@ -1177,11 +1183,12 @@ char **argv;
 
 	    netconnected_flg = 1;
 
-	    if (n == ssmtp) ssmtp_connected = 1;
+	    if (n == ssmtp)    ssmtp_connected = 1;
+	    if (n == submitfd) submit_connected = 1;
 
 	    close(s25);	/* Listening socket.. */
-	    if (ssmtp >= 0)
-	      close(ssmtp); /* another of them */
+	    if (ssmtp >= 0)    close(ssmtp);    /* another of them */
+	    if (submitfd >= 0) close(submitfd); /* another of them */
 
 	    pid = getpid();
 
