@@ -363,6 +363,8 @@
 	  M.tasmtp.EHLOcapability8BITMIME);
   sfprintf(fp,"TA-SMTP.capaAUTH                %10u\n",
 	  M.tasmtp.EHLOcapabilityAUTH);
+  sfprintf(fp,"TA-SMTP.capaDSN                 %10u\n",
+	  M.tasmtp.EHLOcapabilityDSN);
   sfprintf(fp,"TA-SMTP.capaCHUNKING            %10u\n",
 	  M.tasmtp.EHLOcapabilityCHUNKING);
   sfprintf(fp,"TA-SMTP.capaDELIVERBY           %10u\n",
