@@ -1,0 +1,130 @@
+
+			ETRN CLUSTER
+
+Intro:
+
+	There exist environments, where single machines are not
+	desirable for some services.   Usually in such setups
+	there are some sort of backup/fail-over clusters.
+	Sometimes these are load-balance clusters.
+
+	Original goal of SMTPSERVER's ETRN-CLUSTER support was
+	geared towards load-balance, however it gives (for free)
+	also automatic cluster-wide fail-over.
+
+	A method to do it:
+
+			|
+			| The Internet
+			|
+			| Addr[0]
+		+------------------+
+		| FO/LB switch (*) |
+		+------------------+
+			|
+		  ===============
+		   |           |
+		   | Addr[1]   | Addr[2]
+		+-------+  +-------+
+		| node1 |  | node2 |
+		+-------+  +-------+
+
+	There:
+		Addr[0]	== smtp.isp.net
+		Addr[1]	== smtp-out-1.isp.net
+		Addr[2]	== smtp-out-2.isp.net
+	Customer MX information is supposed to be referring only
+	to  ``smtp.isp.net''  server, *never* at real servers!
+
+	The Fail-Over/Load-Balance switch is transparent TCP level
+	gadget, which picks by some rule the next server for which
+	a connection to  Addr[0]:portXX gets directed to -- usually
+	in form of rewriting destination IP address of each stream
+	datagram packet!  Also, reply packets coming from servers
+	for given streams get their source IP address rewritten into
+	Addr[0] for the contactee to have successfull TCP connection.
+
+
+	Those devices won't, of course, rewrite Addr[1] nor Addr[2]
+	to Addr[0] when the connection is not a translated one.
+	Thus, connections formed by server nodes towards the outside
+	world will show out server node addresses at the (default-)
+	(or destination-) route interface.
+
+	That is, incoming SMTP can get into any node by means of
+	being sent to the magic multiplexer address, but outgoing
+	SMTP will be coming from different address(es).
+
+
+	The FO/LB switch might have some ACL mechanisms which can
+	be used to forbid direct external SMTP connection to the
+	node SMTP ports.  (To enforce a rule that no customer shall
+	use those real servers for the service!)
+
+	There might even be some fancy footwork at the nodes so that
+	the input service address in between the switch, and the
+	nodes is a private internet address on an IP-alias interface,
+	and the smtpserver uses binding to the address of said interface,
+	however that might not be quite as easy as desired, as at
+	clusters the configuration should be as *identical* as possible
+	at all nodes.   Outbound address (the one using the default route)
+	should be publically routed, of course.
+
+Things that do work:
+
+	- SSL/TLS encryption on inbound SMTP
+	- Inbound SMTP thru  Addr[0]  which gets given to any of the
+	  real nodes for processing
+
+
+Things that  don't/might not  work:
+
+	- Ident lookup won't work
+	- IPsec won't work
+	- Too tight firewalls at systems/sites who are our cluster's
+	  MX customers -- make sure *all* nodes can make SMTP connection
+	  to the customer's system.
+	- At client a too tight server SSL/TLS certificate analysis;
+	  real node *is* different from what the contacting system
+	  may expect..  (Of course all peers may have same *input*
+	  certificate, which is issued for  Addr[0])
+
+Configuring:
+
+	$MAILSHARE/smtpserver.conf:
+		PARAM etrn-cluster  node-1-name-or-address
+		PARAM etrn-cluster  node-2-name-or-address
+		PARAM etrn-cluster  node-3-name-or-address
+		...
+
+	    These list server nodes, each PARAM entry giving one
+	    of the nodes.  Up to 40 nodes are supported.
+
+
+	/etc/zmailer.conf (or where-ever that file is):
+		SELFADDRESSES=[1.1.1.1],[2.2.2.2],[3.3.3.3]
+
+	    As outbound SMTP delivery does analysis of destination
+	    domain MX data by checking that address of MX server is
+	    not any of our local interface ones, a *cluster* needs
+	    some additional method to list all addresses present in
+	    the cluster - ESPECIALLY THE PUBLIC INPUT ONES!.
+	    The method is listing the addresses at the zmailer.conf
+	    file at its  SELFADDRESSES=  entry.
+
+	    If these cluster-local addresses are not listed for all
+	    nodes, *and* the dataset isn't *same* at all nodes, it
+	    is possible that email starts hopping in between nodes.
+
+
+	$MAILSHARE/scheduler.conf:
+		-> scheduler.auth
+
+	$MAILSHARE/scheduler.auth:
+		-> ETRN for user XXX -- MAILQv2 mode required
+
+Notes:
+
+	- Commercially available application level fail-over/load-balance
+	  switches exist quite many in 1999/2000; makers include, but are
+	  not limited to:  Alteon, Cisco
