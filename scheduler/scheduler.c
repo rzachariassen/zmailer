@@ -1160,11 +1160,11 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	if (verbose) {
 	  sfprintf(sfstdout,"sync_cfps() OLDVTXES =");
 	  for (ovp = oldcfp->head; ovp; ovp = ovp->next[L_CTLFILE])
-	    sfprintf(sfstdout," %p", ovp);
+	    sfprintf(sfstdout," %p{%p %p}", ovp, ovp->orig[L_CHANNEL], ovp->orig[L_HOST]);
 	  sfprintf(sfstdout,"\n");
 	  sfprintf(sfstdout,"sync_cfps() NEWVTXES =");
 	  for (nvp = newcfp->head; nvp; nvp = nvp->next[L_CTLFILE])
-	    sfprintf(sfstdout," %p", nvp);
+	    sfprintf(sfstdout," %p{%p %p}", nvp, nvp->orig[L_CHANNEL], nvp->orig[L_HOST]);
 	  sfprintf(sfstdout,"\n");
 	}
 
