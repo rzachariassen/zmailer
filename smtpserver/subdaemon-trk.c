@@ -359,7 +359,7 @@ subdaemon_handler_trk_input (statep, peerdata)
      struct peerdata *peerdata;
 {
 	struct trk_state *state = statep;
-	char actionlabel[8], iplabel[20], typelabel[10], *s1, *s2, *s3;
+	char actionlabel[8], iplabel[40], typelabel[10], *s1, *s2, *s3;
 	int i, incr;
 	long ipv4addr;
 
@@ -423,7 +423,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	if (0) {
 	bad_input:
-	  sprintf(peerdata->outbuf,"500 bad input\n");
+	  sprintf(peerdata->outbuf,"500 bad input; unsupported mode\n");
 	  peerdata->outlen = strlen(peerdata->outbuf);
 	}
 

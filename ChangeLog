@@ -1,5 +1,9 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.h, smtpserver/subdaemon-trk.c:
+	    Oops..  Reserved too small buffer for IPv6 address
+	    hex storage. (Used in rate-tracking.)
+
 	* include/libz.h:
 	    Publish prototypes for crc32*() functions.
 
