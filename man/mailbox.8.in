@@ -73,13 +73,11 @@ can find the about-to-be delivered message even if the current contents of
 the mailbox is corrupt.
 .PP
 When delivering to a process (by starting a Bourne shell to execute
-a specified command line), the environment is set up to contain \fBPATH\fR,
-\fBSHELL\fR, \fBHOME\fR, \fBUSER\fR, \fBSENDER\fR, and \fBUID\fR environment
-variables.  The \fBHOME\fR and \fBUSER\fR values are the recipient user's
-home directory and login id respectively.  The \fBSENDER\fR value is the
-sender address for the message (as it would appear in a From_ line), and
-the \fBUID\fR value is the owner id of the process.  The \fBSIGINT\fR and
-\fBSIGHUP\fR signals are ignored, but \fBSIGTERM\fR is treated normally.
+a specified command line), the environment is set up to contain several
+variables which are listed below at the ``Subprogram Environment Variables''
+section.
+The \fBSIGINT\fR and \fBSIGHUP\fR signals are ignored, but \fBSIGTERM\fR
+is treated normally.
 If the process dumps core, it will be retried later.
 Sub-process exit codes are interpreted according to <sysexits.h> codes,
 and of those EX_NOPERM, EX_UNAVAILABLE, EX_NOHOST, EX_NOUSER, and
@@ -297,7 +295,7 @@ file descriptors STDIN, STDOUT, and STDERR.
 Programs are refused from running, if address analysis has found
 suspicuous data; external messages can't directly run programs,
 nor those addresses that have had a security breach detected during
-.IR .forward -
+.IR .forward -,
 or other aliasing analysis.
 (Same applies also with writing into explicitly named files.)
 .PP
@@ -306,6 +304,18 @@ privilege analysis during message routing, and it gets the
 group-id thru lookup of:  getpwuid(uid).
 That is, if you have multiple usernames with same uid, there
 are no guarantees as to which of them is used for the gid entry.
+.PP
+The pipe subprogram is started
+.B without
+use of
+.I /bin/sh
+command line interpreter (i.e. "system()" call), when the command
+line begins with slash, and does not contain characters: `$' and '>'.
+If any of those rules is not fulfilled, the subprogram is started
+with ``/bin/sh -c "$cmdlinestr"'' call.   This allows running pipes
+with carefully formed parameters, when the
+.I mailbox
+program is running inside shell-less chroot environment.
 .SH SUBPROGRAM ENVIRONMENT VARIABLES
 The
 .I mailbox
@@ -334,6 +344,20 @@ is the location of the ZMailer ZENV file.
 is the value from ZENV.
 .IP MAILSHARE
 is the value from ZENV.
+.IP PATH
+is the value from ZENV, or "/usr/bin:/bin:/usr/ucb" in case
+no ZENV value is available.
+.IP SHELL
+is constant value: "/bin/sh".
+.IP IFS
+is constant value: "\ \\t\\n".
+.IP TZ
+is value from scheduler's environment variables via normal
+environment inheritance rules.  Supposedly that of
+.I systemwide
+time-zone setting.  Available to subprogram only if set when the
+.I mailbox
+was started.
 .SH FILES
 .I /etc/zmailer.conf
 .br
