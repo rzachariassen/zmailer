@@ -1835,7 +1835,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	fstat(fdmail, &st);
 
-	fp = sfnew(NULL, NULL, 0, fdmail, SF_WRITE|SF_APPEND);
+	fp = sfnew(NULL, NULL, 16*1024, fdmail, SF_WRITE|SF_APPEND);
 	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
