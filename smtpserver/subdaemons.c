@@ -31,7 +31,7 @@ int  contentfilter_server_pid = 0;
 
 
 static int subdaemon_loop __((int, struct subdaemon_handler *));
-static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, struct subdaemon_handler *subdaemon_handler, void *statep));
+/* static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, struct subdaemon_handler *subdaemon_handler, void *statep)); */
 
 
 
@@ -333,7 +333,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
 	    if (rc > 0) {
 	      /* The subprocess became HUNGRY! */
-	      subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep );
+	      goto talk_with_subprocesses;
 	    }
 	    continue;
 	  }
@@ -341,11 +341,12 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  if (rc > 0) { /* Things have been read or written.. */
 
 	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+#if 0 /* No need to do anything more in here.. */
 	    if (rc > 0) {
 	      /* The subprocess became HUNGRY! */
 	      subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep );
 	    }
-
+#endif
 
 	    /* The rendezvous socket ?? */
 
@@ -478,6 +479,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  /* Now I/O of all peers with subdaemon
 	     Track the point where subprocess said: XOF! */
 
+	talk_with_subprocesses:;
+
 	  if (last_peer_index >= top_peer)
 	    last_peer_index = top_peer -1;
 
@@ -489,6 +492,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
 	      rc = (subdaemon_handler->input)( statep, peer );
+	      {
+		char pp[50];
+		sprintf(pp,"/tmp/-input-from-peer-%d-%d",peer->fd,i);
+		unlink(pp);
+	      }
 	      if (rc > 0) {
 		/* XOFF .. busy right now, come back again.. */
 		last_peer_index = i;
@@ -548,6 +556,13 @@ subdaemon_send_to_peer(peer, buf, len)
 		  peer->fd, peer->outlen, peer->outptr, len);
 	}
 #endif
+
+	{
+	  char pp[50];
+	  sprintf(pp,"/tmp/-send-to-peer-%d",peer->fd);
+	  unlink(pp);
+	}
+
 
 	/* If 'peer' is NULL, crash here, and study the core file
 	   to determine the bug.. */
@@ -651,6 +666,7 @@ subdaemon_send_to_peer(peer, buf, len)
 
 /* ------------------------------------------------------------------ */
 
+#if 0
 void subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep )
      struct peerdata *peers;
      int top_peer;
@@ -671,7 +687,7 @@ void subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep )
 	  }
 	}
 }
-
+#endif
 
 /* ------------------------------------------------------------------ */
 
