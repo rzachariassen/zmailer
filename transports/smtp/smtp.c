@@ -85,6 +85,37 @@ extern time_t retryat_time;	/* diagnostic() thing */
 
 time_t starttime, endtime;
 
+
+const char *
+sysexitstr(r)
+     int r;
+{
+  static char buf[20];
+  switch (r) {
+  case EX_OK:		return "OK";
+  case EX_USAGE:	return "USAGE";
+  case EX_DATAERR:	return "DATAERR";
+  case EX_NOINPUT:	return "NOINPUT";
+  case EX_NOUSER:	return "NOUSER";
+  case EX_NOHOST:	return "NOHOST";
+  case EX_UNAVAILABLE:	return "UNAVAILABLE";
+  case EX_SOFTWARE:	return "SOFTWARE";
+  case EX_OSERR:	return "OSERR";
+  case EX_OSFILE:	return "OSFILE";
+  case EX_CANTCREAT:	return "CANTCREAT";
+  case EX_IOERR:	return "IOERR";
+  case EX_TEMPFAIL:	return "TEMPFAIL";
+  case EX_PROTOCOL:	return "PROTOCOL";
+  case EX_NOPERM:	return "NOPERM";
+#ifdef EX_CONFIG /* Not everywhere! */
+  case EX_CONFIG:	return "CONFIG";
+#endif
+  default:
+    sprintf(buf,"SYSEXIT%d",r);
+    return buf;
+  }
+}
+
 char *logtag()
 {
 	static char buf[30];
@@ -3959,9 +3990,9 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	}
 
 	if (rc != EX_OK && logfp)
-	    fprintf(logfp,"%s#\t smtp_sync() did yield code %d\n", logtag(), rc);
+	    fprintf(logfp,"%s#\t smtp_sync() did yield code %d/%s\n", logtag(), rc, sysexitstr(rc));
 	if (SS->verboselog)
-	  fprintf(SS->verboselog," smtp_sync() did yield code %d (rcptstates = 0x%x)\n", rc, SS->rcptstates);
+	  fprintf(SS->verboselog," smtp_sync() did yield code %d/%s (rcptstates = 0x%x)\n", rc, sysexitstr(rc), SS->rcptstates);
 
 	return rc;
 }
