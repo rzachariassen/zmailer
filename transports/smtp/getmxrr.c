@@ -815,9 +815,10 @@ rmsgappend(va_alist)
 {
 	va_list ap;
 	char *args;
-	int   argi;
+	long  argi;
 	char *cp, *cpend;
 	char ibuf[15];
+	int  long_flg = 0;
 #ifdef HAVE_STDARG_H
 	va_start(ap,fmt);
 #else
@@ -847,14 +848,24 @@ rmsgappend(va_alist)
 	for (; *fmt != 0; ++fmt) {
 	  if (*fmt == '%') {
 	    int c = *++fmt;
+	    long_flg = 0;
+	    if (c == 'l') {
+	      long_flg = 1;
+	      c = *++fmt;
+	    }
 	    switch (c) {
 	    case 's':
 	      args = va_arg(ap, char *);
 	      while (*args && cp < cpend) *cp++ = *args ++;
 	      break;
 	    case 'd':
-	      argi = va_arg(ap, int);
-	      sprintf(ibuf, "%d", argi);
+	      if (long_flg) {
+		argi = va_arg(ap, long);
+		sprintf(ibuf, "%ld", argi);
+	      } else {
+		argi = va_arg(ap, int);
+		sprintf(ibuf, "%d", (int)argi);
+	      }
 	      args = ibuf;
 	      while (*args && cp < cpend) *cp++ = *args ++;
 	      break;
