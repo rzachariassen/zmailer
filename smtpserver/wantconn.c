@@ -35,6 +35,7 @@
  */
 
 #include "hostenv.h"
+#ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 
 #include <syslog.h>
@@ -77,4 +78,5 @@ char *progname;
     return (hosts_access(&request));
 }
 
-#endif
+#endif /* HAVE_TCPD_H */
+#endif /* USE_TCPWRAPPER */

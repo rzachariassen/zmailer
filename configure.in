@@ -285,6 +285,29 @@ else
 fi
 AC_MSG_RESULT([Using ZMailer LOGDIR directory path: $LOGDIR])
 
+AC_SUBST(ROUTEUSER_IN_ABNORMAL_UNIX)
+use_routeuser=0
+AC_ARG_WITH(routeuser-is-abnormal,    [  --with-routeuser-is-abnormal={yes,no} define if your system doesn't get
+                          homedirs for users from getpwnam() call in router.
+                          Giving here 'no' will produce errors at routing for
+                          nonexistent users, not waiting until doing delivery
+                          attempt at mailbox.],
+	use_routeuser=1)
+if test "$use_routeuser" = 0; then
+    # When not defined, ASSUME ABNORMAL UNIX, unless  ZCONFIG file
+    # was read in, and it had some value for this..
+    ROUTEUSER_IN_ABNORMAL="${ROUTEUSER_IN_ABNORMAL-abnormal}"
+elif test "$withval" = no; then
+    # "no" given, it is NORMAL UNIX, and the router shall produce
+    # error messages!
+    ROUTEUSER_IN_ABNORMAL_UNIX=
+else
+    ROUTEUSER_IN_ABNORMAL_UNIX=abnormal
+fi
+AC_MSG_RESULT([Using ZMailer ROUTEUSER_IN_ABNORMAL_UNIX value: '$ROUTEUSER_IN_ABNORMAL_UNIX'])
+
+
+
 AC_SUBST(NNTPSERVER)
 use_nntpserver=0
 AC_ARG_WITH(nntpserver,   [  --with-nntpserver=HOST  define the domain name of the nntp server],
@@ -1405,6 +1428,8 @@ AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 
 AC_SUBST(LIBWRAP)
 AC_SUBST(INCLWRAP)
+LIBWRAP=""
+INCLWRAP=""
 use_tcpwrappers=0
 AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers[=DIRPATH] Where the TCP-WRAPPERS can be found],
 	[if test "$withval" = yes; then
@@ -1417,26 +1442,7 @@ t_oldLibs="$LIBS"
 t_oldCpp="$CPPFLAGS"
 
 if test "$use_tcpwrappers" != 0 ; then
-  if test "$use_tcpwrappers" = 2 ; then
-
-#    if test "$ac_cv_lib_tcpwrap" = yes; then
-#	LIBWRAP="-lwrap"
-#	INCLWRAP=""
-#	AC_MSG_RESULT([Tcp-wrapper available at system default: -lwrap !]);
-#    else
-#-------------
-#	AC_TRY_LINK([#include <tcpd.h>
-#		     int deny_severity, allow_severity;],[hosts_access();],
-#			 ac_cv_lib_tcpwrap=yes,ac_cv_lib_tcpwrap=no)
-#	LIBWRAP=""
-#	INCLWRAP=""
-#	if test "$ac_cv_lib_tcpwrap" = yes; then
-#	    AC_MSG_RESULT([Tcp-wrapper available at $wraploc: -lwrap !]);
-#	else
-#	    AC_MSG_RESULT([No tcp-wrapper available system at default location ?])
-#	fi
-#	: # "nop"	
-#-------------
+    if test "$use_tcpwrappers" = 2 ; then
 
 	AC_CHECK_HEADERS(tcpd.h)
 	if test "$ac_cv_header_tcpd_h" = yes; then
@@ -1444,21 +1450,19 @@ if test "$use_tcpwrappers" != 0 ; then
 	    INCLWRAP=""
 	    wraploc="sysdefault"
 	else
-	    AC_CHECK_HEADERS(/local/include/tcpd.h /usr/local/include/tcpd.h \
-			     /opt/include/tcpd.h /opt/local/include/tcpd.h)
-	    if test -n "$ac_cv_header__local_include_tcpd_h"; then
+	    if test -f "/local/include/tcpd.h"; then
 		LIBWRAP="-L/local/lib -lwrap"
 		INCLWRAP="-I/local/include"
 		wraploc="-L/local/lib -I/local/include"
-	    elif test -n "$ac_cv_header__usr_local_include_tcpd_h"; then
+	    elif test -f "/usr/local/include/tcpd.h"; then
 		LIBWRAP="-L/usr/local/lib -lwrap"
 		INCLWRAP="-I/usr/local/include"
 		wraploc="-L/usr/local/lib -I/usr/local/include"
-	    elif test -n "$ac_cv_header__opt_include_tcpd_h"; then
+	    elif test -f "/opt/include/tcpd.h"; then
 		LIBWRAP="-L/opt/lib -lwrap"
 		INCLWRAP="-I/opt/include"
 		wraploc="-L/opt/lib -I/opt/include"
-	    elif test -n "$ac_cv_header__opt_local_include_tcpd_h"; then
+	    elif test -f "/opt/local/include/tcpd.h"; then
 		LIBWRAP="-L/opt/local/lib -lwrap"
 		INCLWRAP="-I/opt/local/include"
 		wraploc="-L/opt/local/lib -I/opt/local/include"
@@ -1471,7 +1475,7 @@ if test "$use_tcpwrappers" != 0 ; then
 	LIBS="$LIBS $LIBSOCKET $LIBWRAP"
 	CPPFLAGS="$CPPFLAGS $INCLWRAP"
 	AC_CACHE_VAL(ac_cv_lib_tcpwrap,
-	  [AC_TRY_LINK([#include <stdio.h>
+		     [AC_TRY_LINK([#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -1479,24 +1483,45 @@ if test "$use_tcpwrappers" != 0 ; then
 struct request_info request;
 int deny_severity, allow_severity;],[hosts_access(&request);],
 			ac_cv_lib_tcpwrap=yes,ac_cv_lib_tcpwrap=no)
-	  ])
+	])
 	if test "$ac_cv_lib_tcpwrap" = yes; then
 	    AC_MSG_RESULT([Tcp-wrapper available at $wraploc: -lwrap !]);
 	else
-	    AC_MSG_RESULT([No tcp-wrapper available at system default locations ?])
-	    LIBWRAP=""
-	    INCLWRAP=""
+	    LIBS="$t_oldLibs $LIBSOCKET -lnsl $LIBWRAP"
+	    CPPFLAGS="$CPPFLAGS $INCLWRAP"
+	    AC_CACHE_VAL(ac_cv_lib_tcpwrap_nsl,
+			 [AC_TRY_LINK([#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <tcpd.h>
+struct request_info request;
+int deny_severity, allow_severity;],[hosts_access(&request);],
+			ac_cv_lib_tcpwrap_nsl=yes,ac_cv_lib_tcpwrap_nsl=no)
+	    ])
+
+	    if test "$ac_cv_lib_tcpwrap_nsl" = yes; then
+		AC_MSG_RESULT([Tcp-wrapper available at $wraploc: -lwrap !]);
+		AC_MSG_RESULT([  NEEDED TO ADD  -lnsl  TO THE LIBSOCKET!]);
+		LIBSOCKET="$LIBSOCKET -lnsl"		
+	    else
+		AC_MSG_RESULT([No tcp-wrapper available at system default locations ?])
+		LIBWRAP=""
+		INCLWRAP=""
+	    fi
 	fi
-  #    fi
-  else
-    LIBWRAP="-L$withval -lwrap"
-    INCLWRAP="-I$withval"
-    unset ac_cv_lib_tcpwrap
-    AC_DEFINE(HAVE_TCPD_H)
-    AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
-  fi
+    else
+      LIBWRAP="-L$withval -lwrap"
+      INCLWRAP="-I$withval"
+      unset ac_cv_lib_tcpwrap
+      AC_DEFINE(HAVE_TCPD_H)
+      AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
+    fi
 fi
 
+if test -n "$LIBWRAP"; then
+  AC_DEFINE(USE_TCPWRAPPER)
+fi
 
 CPPFLAGS="$t_oldCpp"
 LIBS="$t_oldLibs"

@@ -275,6 +275,9 @@ transports/smtp:
 	Control somehow if lack of configuration and/or PolicyDB is
 	a system security offence, or not..
 
+    BUG?:
+        Timeout control on network socket writes ???
+
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and

@@ -160,6 +160,8 @@ const char *buf, *cp;
     *msg = 0;
     filsiz = mvdata(SS, msg);
     alarm(0);			/* cancel the alarm() */
+    SS->read_alarm_ival = 0;
+
     tell = ftell(SS->mfp);
 
     report(SS, "Got '.'; tell=%ld", tell);
@@ -369,6 +371,8 @@ const char *buf, *cp;
     *msg = 0;
     filsiz = mvbdata(SS, msg, bdata_chunksize);
     alarm(0);			/* cancel the alarm() */
+    SS->read_alarm_ival = 0;
+
     if (SS->mfp)
 	tell = ftell(SS->mfp);
     else
@@ -777,7 +781,6 @@ char *msg;
 {
     register int c, state, *sts, endstate, cnt;
     register char *idxnum;
-    int timercnt = 0;
 
 #ifdef NO_INCOMING_HEADER_PROCESSING
     idxnum = indexnum + 1;
@@ -787,7 +790,8 @@ char *msg;
     sts = states;
     cnt = 0;
 
-    alarm(SMTP_DATA_TIME_PER_LINE);
+    SS->read_alarm_ival = SMTP_DATA_TIME_PER_LINE;
+    alarm(SS->read_alarm_ival);
 #else
     char linebuf[4000], *s, *eol;
     int col;
@@ -821,18 +825,13 @@ char *msg;
     cnt = 0;
     col = 0;
 
-    alarm(SMTP_DATA_TIME_PER_LINE);
+    SS->read_alarm_ival = SMTP_DATA_TIME_PER_LINE;
 
     /* ================ Input the email headers ================ */
     /*           and analyze them a bit (Precedence:)            */
     /*        ... that only "Subject:" has 8-bit chars ...       */
     mail_priority = _MAILPRIO_NORMAL;
     for (;;) {
-	if (--timercnt <= 0) {
-	    /* Re-arm for every kilobyte */
-	    alarm(SMTP_DATA_TIME_PER_LINE);
-	    timercnt = 1024;
-	}
 	c = s_getc(SS);
 	/* An EOF in here is an error! */
 #if EOF != -1
@@ -1200,12 +1199,6 @@ char *msg;
 	    break;
 #endif
 
-	--timercnt;
-	if (timercnt <= 0) {
-	    /* Re-arm for every kilobyte */
-	    alarm(SMTP_DATA_TIME_PER_LINE);
-	    timercnt = 1024;
-	}
 	++cnt;
 	state = sts[state + idxnum[c]];
 	if (state & ~0xff) {
@@ -1298,7 +1291,6 @@ char *msg;
 register long incount;
 {
     register int c, cnt;
-    int timercnt = 0;
 
     cnt = 0;
 
@@ -1306,11 +1298,6 @@ register long incount;
 
     /* ================ Normal email BODY input.. ================ */
     for (; incount > 0; --incount) {
-	if (--timercnt <= 0) {
-	    /* Re-arm for every kilobyte */
-	    alarm(SMTP_DATA_TIME_PER_LINE);
-	    timercnt = 1024;
-	}
 	c = s_getc(SS);
 	if (c == EOF)
 	    break;

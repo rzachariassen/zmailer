@@ -261,6 +261,7 @@
 
 /* */
 #undef HAVE_TCPD_H
+#undef USE_TCPWRAPPER
 
 /* */
 #undef HAVE_SOCKET
@@ -541,26 +542,14 @@
 /* Define if you have the waitpid function.  */
 #undef HAVE_WAITPID
 
-/* Define if you have the </local/include/tcpd.h> header file.  */
-#undef HAVE__LOCAL_INCLUDE_TCPD_H
-
 /* Define if you have the </local/include/whoson.h> header file.  */
 #undef HAVE__LOCAL_INCLUDE_WHOSON_H
-
-/* Define if you have the </opt/include/tcpd.h> header file.  */
-#undef HAVE__OPT_INCLUDE_TCPD_H
 
 /* Define if you have the </opt/include/whoson.h> header file.  */
 #undef HAVE__OPT_INCLUDE_WHOSON_H
 
-/* Define if you have the </opt/local/include/tcpd.h> header file.  */
-#undef HAVE__OPT_LOCAL_INCLUDE_TCPD_H
-
 /* Define if you have the </opt/local/include/whoson.h> header file.  */
 #undef HAVE__OPT_LOCAL_INCLUDE_WHOSON_H
-
-/* Define if you have the </usr/local/include/tcpd.h> header file.  */
-#undef HAVE__USR_LOCAL_INCLUDE_TCPD_H
 
 /* Define if you have the </usr/local/include/whoson.h> header file.  */
 #undef HAVE__USR_LOCAL_INCLUDE_WHOSON_H

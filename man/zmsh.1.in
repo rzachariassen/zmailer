@@ -1,5 +1,6 @@
 .\" $Header$
-.ds ]W ZMailer 2.99
+.nr X
+.ds ]W "ZMailer 2.99"
 .TH ZMSH 1 "24 Dec 1994"
 .SH NAME
 zmsh \- zmailer shell

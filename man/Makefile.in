@@ -99,7 +99,7 @@ hold.8.ps: $(srcdir)/hold.8
 router.8.ps: $(srcdir)/router.8
 	groff -man $< > $@
 scheduler.8.ps: $(srcdir)/scheduler.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 sendmail.8.ps: $(srcdir)/sendmail.8
 	groff -man $< > $@
 sm.8.ps: $(srcdir)/sm.8
@@ -107,7 +107,7 @@ sm.8.ps: $(srcdir)/sm.8
 smtp.8.ps: $(srcdir)/smtp.8
 	groff -man $< > $@
 smtpserver.8.ps: $(srcdir)/smtpserver.8
-	groff -man $< > $@
+	gtbl $< | groff -man > $@
 manual-expirer.8.ps: $(srcdir)/manual-expirer.8
 	groff -man $< > $@
 expirer.8.ps: $(srcdir)/expirer.8
@@ -150,7 +150,7 @@ hold.8.html: $(srcdir)/hold.8
 router.8.html: $(srcdir)/router.8
 	groff -man -Thtml $< > $@
 scheduler.8.html: $(srcdir)/scheduler.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 sendmail.8.html: $(srcdir)/sendmail.8
 	groff -man -Thtml $< > $@
 sm.8.html: $(srcdir)/sm.8
@@ -158,7 +158,7 @@ sm.8.html: $(srcdir)/sm.8
 smtp.8.html: $(srcdir)/smtp.8
 	groff -man -Thtml $< > $@
 smtpserver.8.html: $(srcdir)/smtpserver.8
-	groff -man -Thtml $< > $@
+	gtbl $< | groff -man -Thtml > $@
 manual-expirer.8.html: $(srcdir)/manual-expirer.8
 	groff -man -Thtml $< > $@
 expirer.8.html: $(srcdir)/expirer.8

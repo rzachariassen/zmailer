@@ -135,7 +135,7 @@
 #undef HAVE_SYS_SIGLIST
 
 /* */
-#undef HAVE_TCPD_H
+#undef USE_TCPWRAPPER
 
 /* */
 #undef HAVE_SOCKET

@@ -1,3 +1,25 @@
+2001-01-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in, acconfig.h:
+	    - --with-routeruser-is-abnormal  option
+	    - detect possible pre-existing ROUTERUSER_IN_ABNORMAL_UNIX
+	      value in zmailer.conf file
+	    - in case of wanting to use tcp-wrappers, do analyze if it
+	      needs adding -lnsl library in addition to -lwrap -- some
+	      unfortunate systems (RedHat 6.2-7.0) compile the bloody
+	      wrapper library with one NIS call, and the ZMailer does not
+	      use NIS libraries for anything (except if router wants..)
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpdata.c:
+	     Arm the alarm(2) just before call to read(), and re-arm
+	     it right after return from it.  This *may* cut down the
+	     number of alarm(2) calls a bit.
+	
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/wantconn.c, scheduler/transport.c, scheduler/wantconn.c:
+	    #ifdef  USE_TCPWRAPPER   in addition to  #ifdef HAVE_TCPD_H
+
 2001-01-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* libresolv/gethnamaddr.c:
@@ -6753,7 +6775,7 @@ Sat Mar 15 02:54:06 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
 	* config.h.in, configure.in:
 	    HAVE_SA_LEN -- BSD 4.4 sockaddr sa_len -field
 
-	* configure.in:x
+	* configure.in:
 	    - Some rearrangements to try to autodetect  tcpwrapper
 	      library in the system
 	    - Detect (and possibly provide replacements) of IPv6

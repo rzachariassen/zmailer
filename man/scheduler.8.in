@@ -1,3 +1,4 @@
+'\" t TBL macroes present!
 .\" $Header$
 .ds ]W ZMailer 2.99
 .TH SCHEDULER 8 "17 Nov 2000"
@@ -44,66 +45,56 @@ scheduler \- zmailer transport queue scheduler daemon
 .I rendezvous
 ]
 .SH DESCRIPTION
-The
-.I scheduler
-daemon manages the delivery processing of messages in ZMailer.
+The \fIscheduler\fR daemon manages the delivery processing of messages
+in the ZMailer.
 .PP
-The
-.IR router (8)
-creates message control files in the
-\fIPOSTOFFICE\fB/transport\fR directory.
-These refer to the original message files in the
-\fIPOSTOFFICE\fB/queue\fR directory.
+The \fIrouter\fR(8) creates message control files in
+the \fIPOSTOFFICE\fB/transport\fR directory.
+These refer to the original message files in
+the \fIPOSTOFFICE\fB/queue\fR directory.
 .PP
-The
-.I scheduler
-reads each message control file from \fIPOSTOFFICE\fB/transport\fR,
-translates the
-contained message and destination information into internal data structures,
-and unlinks the message control file.
+The \fIscheduler\fR reads each message control file
+from \fIPOSTOFFICE\fB/transport/\fR, translates the contained message
+and destination information into internal data structures, and unlinks
+the message control file.
 .PP
 Based on scheduling, priority, and execution information read from a
-configuration file, the
-.I scheduler
-arranges to execute Transport Agents relevant to the queued messages.
+configuration file, the\ \fIscheduler\fR arranges to execute
+\fITransport Agents\fR relevant to the queued messages.
 .PP
 At the time scheduled for a particular transport
-agent invocation, the
-.I scheduler
+agent invocation, the \fIscheduler\fR
 will start a transport agent (or use one from idle-pool), and tell
 it one by one which message control files to process.
-When all the destination addresses in a message have been processed, the
-.I scheduler
-performs error reporting tasks if any, and then deletes the message
-control file in \fIPOSTOFFICE\fB/transport\fR and the original message
-file in \fIPOSTOFFICE\fB/queue\fR.
+When all the destination addresses in a message have been processed,
+the \fIscheduler\fR performs error reporting tasks if any, and then
+deletes the message control file in \fIPOSTOFFICE\fB/transport\fR and
+the original message file in \fIPOSTOFFICE\fB/queue\fR.
 .PP
 All message delivery is actually performed by Transport Agents, which
-are declared in a configuration file for the
-.IR scheduler .
+are declared in a configuration file for the \fIscheduler\fR.
 Each transport agent is executed with the same current directory as
-the
-.IR scheduler .
-.IR scheduler \- transporter
-interaction protocol is described latter in this man-page.
+the \fIscheduler\fR.
+The \fIscheduler\-transporter\fR interaction protocol is described latter
+in this man-page.
 .PP
 The standard output of each transport agent are destination address
 delivery reports; either successful delivery, unsuccessful delivery, or
 deferral of the address.  Each report uses byte offsets in the message
 control file to refer to the address.  Reports may also
-include a comment line which will be displayed in the
-.IR scheduler 's
+include a comment line which will be displayed in the \fIscheduler\fR's
 own reports.
 .PP
 Two types of reports are produced:
-.IP 1.
+.RS
+.IP "1." 1i
 Error messages caused by unsuccessful delivery of a message
 are appended to its message control file.  Occasionally,
 for example, when all addresses have been processed, the
 .I scheduler
 generates an error message to the error return address of the message
 (usually the original sender).  
-.IP 2.
+.IP "2." 1i
 The
 .I scheduler
 binds itself to a well-known TCP/IP port (\fBMAILQ\fR, TCP port 174)
@@ -117,22 +108,24 @@ sufficiently to give a user a good idea of what the scheduler thinks the
 world looks like.  The
 .IR mailq (1)
 program serves this purpose.
+.RE
+.PP
 .SH OPTIONS
 Invoking
 .I scheduler
 without any argument will start it as a daemon.
-.IP \-d
+.IP \-d 1i
 run as a daemon, usually used after \-v to log daemon activity in great
 detail.
-.IP \-E\ \fInewentsmax\fR
+.IP "\-E \fInewentsmax\fR"
 when globbing new tasks from the directory, pick only first ``newentsmax''
 of them, and leave rest for a new scan run.
-.IP \-f\ \fIconfigfile\fR
+.IP "\-f \fIconfigfile\fR"
 overrides the default configuration file \fIMAILSHARE\fB/scheduler.cf\fR.
-.IP \-F
+.IP "\-F"
 Freeze -- don't actually run anything, just do queue scanning.
 (For debug purposes..)
-.IP \-H\ \-HH
+.IP "\-H \-HH"
 Use multi-level hashing at the spool directories.
 This will efficiently reduce the lengths of the scans at the directories
 to find some arbitary file in them.
@@ -142,14 +135,14 @@ One `H' means "single level hashing", two `HH's mean "dual level hashing".
 When existing, ZENV variable
 .I SCHEDULERDIRHASH
 overrides the `H' option.
-.IP \-i
+.IP "\-i"
 run interactively, i.e., not as a daemon.
-.IP \-L\ \fIlogfile\fR
+.IP "\-L \fIlogfile\fR"
 overrides the default log file location \fILOGDIR\fB/scheduler\fR.
-.IP \-l\ \fIstatisticslog\fR
+.IP "\-l \fIstatisticslog\fR"
 starts the appending of delivery statistics information (ASCII form)
 into given file.  No default value.
-.IP \-M\ [1|2]
+.IP "\-M [1|2]"
 Version of the
 .I mailq
 protocol this server runs; essentially a test option, as
@@ -158,10 +151,10 @@ existence of
 assignment at the
 .I scheduler.conf
 file turns the protocol into version 2.
-.IP \-N\ \fItransmaxfno\fR
+.IP "\-N \fItransmaxfno\fR"
 sets how many filehandles are allocated for the scheduler's started
 children (if the system has adjustable resources.)
-.IP \-n
+.IP "\-n"
 Toggles configuration flag `default_full_content', which defines what
 will be DSN RET parameter assumed value in case the originator didn't
 supply that parameter.
@@ -169,15 +162,15 @@ supply that parameter.
 Default behaviour is similar to RET=FULL, while usage of this option
 is equivalent of RET=HDRS.  This option does not override originator
 supplied DSN RET parameter value.
-.IP \-p\ \fIchannel/host\fR
+.IP "\-p \fIchannel/host\fR"
 A debug-type option for running selectively some thread under a single
 instance of the
 .IR scheduler .
 
 Use this with options: \-v
-.IP \-P\ \fIpostoffice\fR
+.IP "\-P \fIpostoffice\fR"
 specifies an alternate \fIPOSTOFFICE\fR directory.
-.IP \-q\ \fIrendezvous\fR
+.IP "\-q \fIrendezvous\fR"
 on machines without TCP/IP networking, the rendezvous between
 .I scheduler
 and
@@ -185,19 +178,19 @@ and
 is done using a well-known named pipe.  This option overrides the default
 location for this special file, either \fIRENDEZVOUS\fR or
 \fB/usr/tmp/.mailq.text\fR.
-.IP \-Q
+.IP "\-Q"
 The ``Q''-mode, don't output the old style data into the queue querier,
 only the new-style one.
-.IP \-S
+.IP "\-S"
 Synchronous startup mode, scans all jobs at the directory before starting
 even the first transporter.
-.IP \-v
+.IP "\-v"
 be verbose about activity, and do not detach as a daemon.
-.IP \-W
+.IP "\-W"
 be used in conjunction with \-v to delay verbose logging
 start until after all the files have been parsed in, and
 it is a time for doing scheduling.
-.IP \-V
+.IP "\-V"
 print version message and run interactively.
 .SH CONFIGURATION FILE
 The
@@ -463,9 +456,9 @@ It is possible to place environment-string setting statements into
 the beginning of the line:
 
 .nf
-\fC
   command="MALLOC_DEBUG_=1 OTHER=var  cmdname cmdparams"
 .fi
+.sp
 
 .IP queueonly
 a clause with
@@ -572,9 +565,8 @@ has more than once recipient.
 
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery
-programs like
-.I scheduler
-and the transport agents.  It is a terse presentation of the
+programs like \fIscheduler\fR and the transport agents.
+It is a terse presentation of the
 .IR router 's
 decisions, along with some useful reference information.
 
@@ -605,7 +597,7 @@ slowly running transporter.
 .PP
 The following fields are mandatory:
 
-.IP @\ 0xHHHHHH
+.IP "@ 0xHHHHHH"
 Carries hex-encoded bitflags of what kind of format this dataset really is in.
 
 This is to ensure that ``featurefullness'' relation of:
@@ -614,7 +606,7 @@ the spool meet this criteria too.
 
 Rolling binaries back too far might break things.
 
-.IP i\ 123456\-789
+.IP "i 123456\-789"
 the name of the message file in the
 .I POSTOFFICE\fB/queue
 directory and of the message control file in the
@@ -623,29 +615,29 @@ directory.
 'i' is a mnemonic for 'inode' since message file names must be unique on
 the system and therefore are named by their inode number.
 
-.IP o\ NNNNNNN
+.IP "o NNNNNNN"
 the byte offset of the message body in the original message.
 
 .PP
 The following fields will frequently exist:
 
-.IP e\ user@some.domain
+.IP "e user@some.domain"
 is the return address for error messages, in a form that can be put in
 a To: header line.
 
-.IP l\ <mumble@jumble>
+.IP "l <mumble@jumble>"
 is a string identifying this message in log entries.  Typically the message
 id of the message would be used.
 
 .PP
 The following fields will occasionally appear:
 
-.IP x\ <jumble@mumble>
+.IP "x <jumble@mumble>"
 is the log identification string (usually a message id) of an obsoleted
 message.  The scheduler will purge any such identified message after
 running sanity checks.
 
-.IP v\ ../public/v_filename
+.IP "v ../public/v_filename"
 is the name of a file that the delivery system can appended log information
 to.  This would appear as the result of running
 .B sendmail -v
@@ -666,50 +658,50 @@ address fields, and a message header that goes along with these.
 An address field is a string containing a space-separated 4-tuple (quad)
 as follows:
 
-.IP channel
+.IP "channel"
 is the name of the delivery channel for this address.  This must be
 a contiguous word.
 
-.IP host
+.IP "host"
 is the name of the next destination host for this address.  This too
 must be a contiguous word.
 
-.IP user
+.IP "user"
 is the address to be handed to the destination host for further delivery.
 This string may contain space.  It is distinguishable because the last
 component cannot contain spaces.
 
-.IP privilege
+.IP "privilege"
 is the numeric uid representing the privileges associated with this address.
 
 .PP
 The address group components are:
 
-.IP s\ <address\ quad>
+.IP "s <address quad>"
 carries a sender address field in address-quad form.
 
-.IP r\ PPPPPPDDDD<address\ quad>
+.IP "r PPPPPPDDDD<address quad>"
 is a recipient address field in address quad form, but also
 contains fields for transprort agent pid number (PPPPPP), and
 a four character space for delay reporting by the scheduler (DDDD).
 
-.IP N\ string
+.IP "N string"
 are the delivery-status-notification parameters for the previous recipient.
 
-.IP n\ string
+.IP "n string"
 is the delivery-status-notification environment id data for the previous
 recipient.
 
-.IP R\ string
+.IP "R string"
 The DSN RET-mode setting (HDRS/FULL) for the previous recipient.
 
-.IP X\ nnnnnn
+.IP "X nnnnnn"
 is an XOR recipient address field.  The first element is a tag (a class number)
 to identify collections of recipient addresses which are equivalent
 (and therefore mutually exclusive).  This is followed by an address field
 as described above.
 
-.IP m
+.IP "m"
 carries the message header for this address group.
 
 .PP
@@ -718,12 +710,12 @@ are appended to the message control file.  This is done by the
 .I scheduler
 as it receives error reports from transport agents.
 
-.IP d\ <diag-string>
+.IP "d <diag-string>"
 Is storage format for diagnostics for recipient addresses.
 
 Structure of the diagnostic string is:
 .nf
-  d \fIid\fR:\fIheaderoffset\fR:\fIdrptoffset\fR::\fIdiagtime\fR\\t\fInotarydata\fR\\t\fImessage\fR
+  d \fIid\fR:\fIheaderoffset\fR:\fIdrptoffset\fR::\fIdiagtime\fR \\t \fInotarydata\fR \\t \fImessage\fR
   d 172:347:226::964917927 ...
 .fi
 
@@ -745,27 +737,24 @@ protocol objects of the same name.
 For example, this is a typical message control file (it is a snapshot taken
 while a transport agent was running):
 .PP
-.RS
-.ta 0.8i
 .nf
-i 15582
-o 60
-l <90Jun3.165355edt.15582@neat.cs.toronto.edu>
-e Rayan Zachariassen <rayan>
-s local - rayan 7
-r~\ 23456   local - rayan 7
-m
-Received: by neat.cs.toronto.edu id <15582>; Sun, 3 Jun 1990 16:53:55 -0400
-From:	Rayan Zachariassen <rayan>
-To:	rayan
-Subject: a typical message control file
-Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>
-Date:   Sun, 3 Jun 1990 16:53:54 -0400
-
+\fC    i 15582
+    o 60
+    l <90Jun3.165355edt.15582@neat.cs.toronto.edu>
+    e Rayan Zachariassen <rayan>
+    s local - rayan 7
+    r~23456   local - rayan 7
+    m
+    Received: by neat.cs.toronto.edu id <15582>;
+              Sun, 3 Jun 1990 16:53:55 -0400
+    From:   Rayan Zachariassen <rayan>
+    To:     rayan
+    Subject: a typical message control file
+    Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>
+    Date:   Sun, 3 Jun 1990 16:53:54 -0400
 .fi
-.RE
+\fR
 .PP
-
 .SH TRANSPORT AGENT INTERFACE
 The transport agent interface follows master-slave -model, where the TA
 informs the
@@ -782,7 +771,7 @@ A short sample session looks like this:
 .nf
 S: \fI(start the transport agent)\fR
 T: \fB#hungry\fR
-S: \fIspoolid\\\fBt\fIhostspec\fR
+S: \fIspoolid \fB\\t \fIhostspec\fR
 T: \fBdiagnostics\fR
 T: \fB#hungry\fR
 (etc. active work)
@@ -790,8 +779,8 @@ T: \fB#hungry\fR
 S: \fI#idle\fR
 T: \fB#hungry\fR
 (the scheduler moved the TA into IDLE pool)
-S: \fIspoolid\\\fBt\fIhostspec\fR
-(the TA was reactivated from the IDLE pool)
+S: \fIspoolid \fB\\t \fIhostspec\fR
+(the TA was reactivated from the IDLE pool, doing work)
 T: \fB#hungry\fR
 S: \fBEOF\fR
 (the scheduler determined that the TA should be killed)
@@ -805,7 +794,7 @@ T: \fI(exits)\fR
 Normal diagnostic output is of the form:
 .PP
 .RS
-\fIid\fR/\fIoffset\fR\\t\fInotarydata\fR\\t\fIstatus\fR \fImessage\fR
+\fIid\fR / \fIoffset\fR \\t \fInotarydata\fR \\t \fIstatus\fR SPC \fImessage\fR
 .RE
 .PP
 where:
@@ -877,21 +866,24 @@ of the transport agent producing this report.  Helps to hunt for the
 syslogged data relating to this diagnostics instance.
 .PP
 
-.SH STATISTICS LOG FORMAT
+.SH "STATISTICS LOG FORMAT"
 The statistics log reports condenced performance oriented information
 in following format:
-.sp
-.ta 0.5i 1.5i 2.3i 2.8i 3.2i
-.nf
-	timestamp	fileid	dt1	dt2	state	 $channel/$host
-	812876190	90401-2	  0	  5	   ok	 usenet/\-
-	812876228	90401-1	  0	  7	   ok	 usenet/\-
-	812876244	90401-1	  0	  1	   ok	 local/gopher\-admin
-	812876244	90401-1	  0	  5	   ok	 smtp/funet.fi
-	812876559	90401-1	  0	 21	   ok	 smtp/utu.fi
-.fi
-.sp
+.PP
+
+.TS
+l c c c c l.
+timestamp	fileid	dt1	dt2	state	$channel/$host
+\fC812876190	90401-2	 0	5	ok	usenet/\-\fR
+\fC812876228	90401-1	 0	7	ok	usenet/\-\fR
+\fC812876244	90401-1	 0	1	ok	local/gopher\-admin\fR
+\fC812876244	90401-1	 0	5	ok	smtp/funet.fi\fR
+\fC812876559	90401-1	 0	21	ok	smtp/utu.fi\fR
+.TE
+.PP
+
 where the fields are:
+.PP
 
 .IP timestamp
 The original spoolfile ctime (creation time) stamp in decimal.
@@ -920,14 +912,15 @@ dumps data to the TCP stream in the following format
 and immediately closes the connection:
 .LP
 The TCP stream syntax is:
-.sp
-.ta 0.5i 1.0i
+.LP
+.RS
 .nf
-	\fBversion\fR \fIid\fR\fB\\n\fR
-	\fIdata in id-dependent format\fR<\fIclose\fR>
+    \fBversion\fR \fIid\fR\fB\\n\fR
+    \fIdata in id-dependent format\fR<\fIclose\fR>
 .fi
-.sp
+.RE
 .PP
+
 The first line (all bytes up to an ASCII LF character, octal 12) is used
 to identify the syntax of all bytes following the line terminator \fBLF\fR.
 The first 8 characters of the first line are "\fBversion \fR" as a check that
@@ -935,56 +928,59 @@ this is indeed a \fBMAILQ\fR port server that has been reached, the remaining
 bytes are the real data format identification.  The data is interpreted
 according to that format until the terminating connection close.
 .PP
-Format identifiers should be registered with the author.  The only one currently
-defined is "\fBzmailer 1.0\fR".  For that data format, the syntax of the data
-following the first \fBLF\fR is:
-.sp
-.nf
-	\fBVertices:\fR\fB\\n\fR
-	(<\fIkey\fR>\fB:\fR\fB\\t\fR><\fImsg-file\fR>\fB\\t\fR><\fIn-addrs\fR>\fB;\fR <\fIoff1\fR>(\fB,\fR<\fIoffN\fR>)*\fB\\t\fR>[\fB#\fR<\fItext\fR>]\fB\\n\fR)*
-	(\fBChannels:\fR\fB\\n\fR
-	(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+
-	\fBHosts:\fR\fB\\n\fR
-	(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+)?
-	\fBEnd:\fR\fB\\n\fR
-	<mailq -Q thread and status report>
-.ta 0.7i 2.0i
-
-Where:	\fB\\n\fR	is an ASCII linefeed
-	\fB\\t\fR	is an ASCII tab
-	\fIkey\fR	is an unsigned decimal number
-	\fImsg-file\fR	is a contiguous string (it is the message
-		file name relative to a known directory)
-	\fIn-addrs\fR	is an unsigned decimal number (number of
-		addresses)
-	\fIoff1\fR...\fIoffN\fR	are unsigned decimal numbers
-		(address byte offsets)
-	\fItext\fR	is a string not containing an ASCII linefeed
-		(status message)
-	\fIword\fR	is a contiguous string
-
-	a "contiguous string" is a sequence of printable
-	non-space characters
-.fi
-.sp
+Format identifiers should be registered with the author.
+The only one currently defined is "\fBzmailer 1.0\fR".
+For that data format, the syntax of the data following the first \fBLF\fR is:
 .PP
-For example, here is sample output from connecting to the \fBMAILQ\fR port:
-.sp
-.ta 0.5i
+
+.RS
 .nf
-	version zmailer 1.0
-	Vertices:
-	311424:	3714	1; 116
-	311680:	6472	2; 151,331	#128.100.8.4: Null read! (will retry)
-	312192:	6347	1; 152	#128.89.0.93: connect: Connection timed out (will retry)
-	Channels:
-	smtp:	>311424>311680>312192
-	Hosts:
-	scg.toronto.edu:	>311424
-	mv04.ecf.toronto.edu:	>311680
-	relay1.cs.net:	>312192
+\fBVertices:\fR\fB\\n\fR
+(<\fIkey\fR>\fB:\fR\fB\\t\fR><\fImsg-file\fR>\fB\\t\fR><\fIn-addrs\fR>\fB;\fR <\fIoff1\fR>(\fB,\fR<\fIoffN\fR>)*\fB\\t\fR>[\fB#\fR<\fItext\fR>]\fB\\n\fR)*
+(\fBChannels:\fR\fB\\n\fR
+(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+
+\fBHosts:\fR\fB\\n\fR
+(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+)?
+\fBEnd:\fR\fB\\n\fR
+ <mailq -Q thread and status report>
 .fi
-.sp
+.RE
+.PP
+
+Where:
+.TS
+l l.
+\fB\\n\fR	is an ASCII linefeed
+\fB\\t\fR	is an ASCII tab
+\fIkey\fR	is an unsigned decimal number
+\fImsg-file\fR	is a contiguous string (it is the message file name relative to a known directory)
+\fIn-addrs\fR	is an unsigned decimal number (number of addresses)
+\fIoff1\fR...\fIoffN\fR	are unsigned decimal numbers (address byte offsets)
+\fItext\fR	is a string not containing an ASCII linefeed (status message)
+\fIword\fR	is a contiguous non-space string
+.TE
+
+.PP
+
+For example, here is sample output from connecting to the \fBMAILQ\fR port:
+.PP
+.RS
+.nf
+.ps 8
+\fCversion zmailer 1.0
+Vertices:
+311424:  3714  1; 116
+311680:  6472  2; 151,331    #128.100.8.4: Null read! (will retry)
+312192:  6347  1; 152        #128.89.0.93: connect: Connection timed out (will retry)
+Channels:
+smtp:    >311424>311680>312192
+Hosts:
+scg.toronto.edu:       >311424
+mv04.ecf.toronto.edu:  >311680
+relay1.cs.net:         >312192
+.ps
+.fi
+.RE
 .PP
 This is sufficient information to be able to reconstruct the transport queues
 as seen by the scheduler process, and to find more information than what is
@@ -996,65 +992,72 @@ its predecessor (v1).  The system begins with a greeting telling
 version, and then giving one line of challenge to be used in subsequent
 autentication command:
 .sp
-.ta 0.5i
+.RS
 .nf
-	version zmailer 2.0\\n
-	MAILQ-V2-CHALLENGE: 942665308.906504.3\\n
+\fCversion zmailer 2.0\\n
+MAILQ-V2-CHALLENGE: 942665308.906504.3\\n
 .fi
+.RE
 .sp
 .PP
 Protocol commands are:
-.IP AUTH\ username\ hexauthenticator
+.IP "AUTH username hexauthenticator"
 The "login" of the mailq session.  The hexauthenticator is
 lowercase hexadecimal character printout of MD5 checksum ran
 over the catenate of the challenge string (without its ending
 newline character), and the user's password.
 This algorithm is essentially the same what APOP scheme uses.
-.IP SHOW\ SNMP
-Implements 'mailq -QQQ'.
-.IP SHOW\ QUEUE\ SHORT
-Implements 'mailq -QQ'.
-.IP SHOW\ QUEUE\ THREADS
-Implements 'mailq -Q'.
-.IP SHOW\ THREAD\ channel\ host
+
+PERLish example with above challenge:
+.nf
+  \fC$authen = MD5hex("MAILQ-V2-CHALLENGE: 942665308.906504.3"."my-passwd")
+.fi
+.IP "SHOW SNMP"
+Implements `mailq \-QQQ'.
+.IP "SHOW QUEUE SHORT"
+Implements `mailq \-QQ'.
+.IP "SHOW QUEUE THREADS"
+Implements `mailq \-Q'.
+.IP "SHOW THREAD channel host"
 Reports details usable to implement mailq-v1 like interface.
 The details are TAB separated fields in a line until an LF.
 Fields are:
-.sp
-.ta 0.5i
+.PP
+.RS
 .nf
-	1) filepath under $POSTOFFICE/transport/
-	2) line number within a group, 0 starts a group
-	3) error address in brackets
-	4) recipient line offset within the control file
-	5) message expiry time (time_t)
-	6) next wakeup time (time_t)
-	7) last feed time (time_t)
-	8) count of attempts at the delivery
-	9) "retry in NNN" or a pending on "channel"/"thread"
-	10) possible diagnostic message from previous delivery attempt
+1) filepath under $POSTOFFICE/transport/
+2) line number within a group, 0 starts a group
+3) error address in brackets
+4) recipient line offset within the control file
+5) message expiry time (time_t)
+6) next wakeup time (time_t)
+7) last feed time (time_t)
+8) count of attempts at the delivery
+9) "retry in NNN" or a pending on "channel"/"thread"
+10) possible diagnostic message from previous delivery attempt
 .fi
+.RE
 .sp
-.IP ETRN\ etrn\_string
+.IP "ETRN etrn_string"
 Supports ETRN-cluster subsystem at smtpserver.
-.IP KILL\ MSG\ spoolid
+.IP "KILL MSG spoolid"
 Unimplemented.
-.IP KILL\ THREAD\ channel\ host
+.IP "KILL THREAD channel host"
 Unimplemented.
 .PP
 Responses are written out to same socket in POP-like manner:
 .sp
-.ta 0.5i
+.RS
 .nf
-	AUTH .... \\n
-	+OK  or  -LOGIN FAILED \\n
-
-	SHOW SNMP\\n
-	+OK until LF.LF\\n
-	text\\n
-	text\\n
-	.\\n
+\fCAUTH .... \\n
++OK  or  -LOGIN FAILED \\n
+SHOW SNMP\\n
++OK until LF.LF\\n
+text\\n
+text\\n
+\.\\n
 .fi
+.RE
 .sp
 .PP
 If the output text contains a dot at the beginning of the line,
@@ -1072,36 +1075,36 @@ with the file to authenticate and parametrize what user can do
 thru the MAILQv2 port.
 .PP
 .sp
-.ta 0.5i 1.0i
 .nf
+\fC
 #
 # APOP-like authentication control file for the ZMailer scheduler.
 #
 # Fields are double-colon (':') separated, and are:
-#   - Username
-#   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
-#   - Enabled attributes (tokens, space separated)
-#   - IP ACLs
+#   \- Username
+#   \- PLAINTEXT PASSWORD (which must not have double-colon in it!)
+#   \- Enabled attributes (tokens, space separated)
+#   \- IP ACLs
 #
 # Same userid CAN appear multiple times, parsing will pick the first
 # instance of it which has matching IP address set
 #
-# The default-account for 'mailq' is 'nobody' with password 'nobody'.
+# The default\-account for 'mailq' is 'nobody' with password 'nobody'.
 # Third field is at the moment a WORK IN PROGRESS!
 #
 # SECURITY NOTE:
-#   OWNER:	root
+#   OWNER:      root
 #   PROTECTION: 0600
 #
 # Attribute tokens:
-#	ALL	well, a wild-card enabling everything
-#	SNMP	"SHOW SNMP"
-#	QQ	"SHOW QUEUE SHORT"
-#	TT	"SHOW QUEUE THREADS", "SHOW THREAD channel host"
-#	ETRN	"ETRN etrn_string"
-#	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
+#       ALL     well, a wild\-card enabling everything
+#       SNMP    "SHOW SNMP"
+#       QQ      "SHOW QUEUE SHORT"
+#       TT      "SHOW QUEUE THREADS", "SHOW THREAD channel host"
+#       ETRN    "ETRN etrn_string"
+#       KILL    "KILL THREAD channel host", "KILL MSG spoolid"
 #
-# -- "nobody" via loopback gets different treatment from
+# \-\- "nobody" via loopback gets different treatment from
 #    "nobody" from anywhere else.
 #
 nobody:nobody:SNMP QQ TT ETRN:  [127.0.0.0]/8 [ipv6.0::1]/128
@@ -1111,7 +1114,7 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 .fi
 .sp
 .PP
-.SH Z-ENVIRONMENT VARIABLES
+.SH Z\-ENVIRONMENT VARIABLES
 .IP LOGDIR
 defines location of log files. Example:
 .B LOGDIR=/var/log/mail
@@ -1140,6 +1143,32 @@ Gives location of
 Actually this one variable does
 .B not
 override compiled-in location of this configuration file.
+.SH TCP\-WRAPPER AND MAILQ
+.B "Do note that this applies only when the mailq is using old"
+.B "version 1 mode!"
+.P
+If the ZMailer system is configured with \fItcp\-wrapper\fR code,
+then service-id "\fCmailq\fR" is looked for all those addresses that are
+allowed to do queries.
+.P
+Usually files
+.IR hosts.allow ,
+and
+.I hosts.deny
+contain following kind of entries:
+.P
+.nf
+\fC
+   /\fRETC\fC/\fIhosts.allow\fC
+   mailq : ALL@1.2.3.0
+   smtp\-receive: ALL@ALL
+
+   /\fRETC\fC/\fIhosts.deny\fC
+   ALL : ALL@ALL\fR
+.fi
+.P
+.I "(Do note that smtpserver(8) has also tcp\-wrapper support, which becomes"
+.I "active simultaneously with scheduler's tcp\-wrapper code!)"
 .SH SIGNALS
 .IP \fBSIGHUP\fR:
 close and reopen the stdout/stderr log file.

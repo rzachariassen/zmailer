@@ -1268,6 +1268,7 @@ queryipccheck()
 #if defined(F_SETFD)
 		  fcntl(n, F_SETFD, 1); /* close-on-exec */
 #endif
+#ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
 		  if (wantconn(n, "mailq") == 0) {
 		    char *msg = "refusing 'mailq' query from your whereabouts\r\n";
@@ -1275,6 +1276,7 @@ queryipccheck()
 		    write(n,msg,len);
 		    _exit(0);
 		  }
+#endif
 #endif
 		  qprint(n);
 		  /* Silence memory debuggers about this child's

@@ -1,5 +1,6 @@
 .\" $Header$
-.ds ]W ZMailer 2.99
+.ds ]W "ZMailer 2.99"
+.nr X
 .TH MAILQ 1 "13 Jun 2000"
 .SH NAME
 mailq \- zmailer mail queue printer

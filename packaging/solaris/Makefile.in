@@ -6,7 +6,7 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
 
-VERSION = ZMailer-2.99.50-solaris
+VERSION = ZMailer-2.99.55-solaris
 
 TOPDIR  =  ../..
 ZCONFIG = @ZMAILERCFGFILE@

@@ -1,5 +1,6 @@
+'\" t
 .\" $Header$
-.ds ]W ZMailer 2.99
+.ds ]W "ZMailer 2.99"
 .TH SMTPSERVER 8 "13 Oct 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
@@ -70,25 +71,32 @@ checking is done by executing the
 .IR router (8)
 program in interactive mode, and executing a well-known shell function with
 well-known parameters for each request.
+
 .SH OPTIONS
+
 .IP \-4
 Explicitely to use IPv4 type of socket even on machines that is capable to
 do IPv6 type of sockets.
+
 .IP \-6
 Explicitely to (try to) use IPv6 type of socket even if the machine does
 not support it.
 For a default the server will try to use IPv6, if it has been compiled on
 an environment where it is present, but will do a fallback to IPv4 in case
 the runtime system does not have IPv6.
+
 .IP \-a
 turn on RFC931/RFC1413 indentification protocol, and log the information
 acquired with it to the submitted file.
+
 .IP \-w
 turn on usage of "whoson" protocol.  This option is available even if
 actual code is not available.
+
 .IP \-g
 the gullible option will make the program believe any information it is
 told (such as origin of a connection) without checking.
+
 .IP \-i
 runs the server interactively, which makes it usable for processing
 a batched SMTP stream (BSMTP) on stdin.
@@ -96,7 +104,8 @@ With
 .I \-v
 option this echoes incoming BSMTP to create more accurate faximille
 of BITNET BSMTP mailers.
-.IP \-l\ \fISYSLOG\fR
+
+.IP "\-l \fISYSLOG\fR"
 A magic value of "SYSLOG" for the
 .I logfile
 is interpreted by directing all session log stuff thru syslogd;
@@ -105,60 +114,71 @@ something which
 require better syslogd, than your system
 has by default; see ``syslog-ng'' at a well indexed free software
 sites.
-.IP \-l\ \fIlogfile\fR
+
+.IP "\-l \fIlogfile\fR"
 specifies a logfile and enables recording of incoming SMTP conversations.
 If you want both file based session log, and syslog() based, issue this
 option after ``\-l\ SYSLOG'' one.
-.IP \-n
+
+.IP "\-n "
 indicates the program is being run from
 .IR inetd (8).
-.IP \-p
+
+.IP "\-p "
 specifies the TCP port to listen on instead of the default SMTP port, 25.
-.IP \-B
+
+.IP "\-B "
 flags the email to arrive via BSMTP channel (via BITNET, for example).
-.IP \-I\ \fIpidfile\fR
+
+.IP "\-I \fIpidfile\fR"
 specifies an alternate PID file location.
-.IP \-L\ \fImaxloadaver\fR
+
+.IP "\-L \fImaxloadaver\fR"
 tells the maximum load-average the system is under when we still accept
 email in.
-.IP \-M\ \fISMTPmaxsize\fR
+
+.IP "\-M \fISMTPmaxsize\fR"
 Defines the asolute maximum size we accept from incoming email.
 (Default: infinite) (This is local policy issue.)
-.IP \-P\ \fIpostoffice\fR
+
+.IP "\-P \fIpostoffice\fR"
 specifies an alternate
 .B POSTOFFICE
 directory.
-.IP \-R\ \fIrouter\fR
+
+.IP "\-R \fIrouter\fR"
 specifies an alternate
 .I router (8)
 program to use for address verification.
-.IP \-C\ \fIcfgfile\fR
+
+.IP "\-C \fIcfgfile\fR"
 specifies nonstandard configuration file location; the default is
-.IR $MAILSHARE/smtpserver.conf .
-.IP \-s\ strict
+.IR $MAILSHARE/ smtpserver.conf .
+
+.IP "\-s strict"
 this turns on all kinds of
 .B strict
 smtp protocol adherence checks, which in normal life can be relaxed
 slightly.  Great for compliance testing ;)
-.IP \-s\ [ftveRS]
+
+.IP "\-s [ftveRS]"
 specifies the style of address verification to be performed.  There are
 four independent commands that can invoke some kind of address verification,
-and four independent flags to control whether this should be done.  They are:
-.ta 1i 1.5i
-.sp
-.nf
+and four independent flags to control whether this should be done.
+They are:
+
+.TS
+l l.
 f	check MAIL FROM addresses
 t	check RCPT TO addresses
 v	check VRFY command argument
 e	check EXPN command argument
 R	require addresses to be of syntax:
-		local@remote (strict 821)
-S	allow sloppy input for systems incapable to
-	respect RFC 821 properly; WinCE1.0 (and 2.0)
-	does:
-		"MAIL FROM:user@domain" :-(
-.fi
-.sp
+	local@remote (strict 821)
+S	allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
+	"MAIL FROM:user@domain"
+	:\-(
+.TE
 The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
 .IP \-T\ '[1.2.3.4]'
@@ -167,7 +187,7 @@ Supply (in interactive mode) test address for policy dataset address testing.
 The optionset recommended for that case is:
 
 .nf
-    -i -d 1 -T '[1.2.3.4]'
+    \-i \-d 1 \-T '[1.2.3.4]'
 .fi
 
 A notable detail is that to see what really is going on in the policy analysis,
@@ -180,18 +200,22 @@ in the supplied IP address
 .B must
 be present, otherwise illegal syntax will be reported.
 (Using RFC 821 address literal parser here.)
+
 .IP \-t
 Set when running smtpserver under e.g. inetd, and using service port
 number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
 before ``STARTTLS'' protocol verb.)
+
 .IP \-V
 prints a version message and exits.
+
 .SH CONFIGURATION
 If the
-.IB IMAILSHARE/ Bsmtpserver.conf
+.IB $MAILSHARE/ smtpserver.conf
 exists it is read to configure two kinds of things:
 
-.IP PARAM\ \-entries
+
+.IP "PARAM \-entries"
 allow server start-time parametrization of several things, including:
 .nf
 .I \-\ help-texts
@@ -214,7 +238,7 @@ character in which case the remainder of the line is a failure comment
 message to print at the client.  This configuration capability is intended
 as a way to control misbehaving client software or mailers.
 
-.IP PARAM\ maxsize
+.IP "PARAM maxsize"
 This is synonym to start-time
 .I \-M
 option.
@@ -327,7 +351,7 @@ Enable Message Submission Agent mode, where smtpserver
 successful user authentication during SMTP sessions initiated from
 outside of the trusted networks or the networks with relaying enabled
 (see "fulltrustnet" and "relaycustnet" at the sample
-.I proto/db/smtp-policy.src
+.I proto/db/smtp\-policy.src
 file).
 
 .IP PARAM\ SMTP\-auth\-pipe\ /path/to/program
@@ -367,8 +391,12 @@ from M$ breed) don't do RFC 821 Appendix E properly...
 .IP PARAM\ policydb
 This defines smtp input policy filtering/analysis database location.
 See the comments at the sample
-.I proto/db/smtp-policy.src
+.I proto/db/smtp\-policy.src
 file.
+
+An error here will be reported with obscureish code;
+"1" = "DBTYPE parameter unknown/unsupported",
+"2" = "can't open the database".
 
 
 .IP PARAM\ contentfilter\ $MAILBIN/smtp-contentfilter
@@ -388,15 +416,15 @@ The ``n1'' is used as the initial tarpit delay, and ``n2'' is
 multiplier for formula:
 .I next = prev + (prev * n2)
 
-.IP PARAM\ rcvd\-ident
-.IP PARAM\ rcvd\-whoson
-.IP PARAM\ rcvd\-auth\-user
-.IP PARAM\ rcvd\-tls\-mode
-.IP PARAM\ rcvd\-tls\-peer
+.IP "PARAM rcvd\-ident"
+.IP "PARAM rcvd\-whoson"
+.IP "PARAM rcvd\-auth\-user"
+.IP "PARAM rcvd\-tls\-mode"
+.IP "PARAM rcvd\-tls\-peer"
 This quintet controls what possibly collected data is shown at
 the published ``Received:'' header that this system generates.
 
-.IP PARAM\ etrn\-cluster\ node\-name\-or\-address\ mq2\-username\ mq2\-passwd
+.IP "PARAM etrn\-cluster node\-name\-or\-address mq2\-username mq2\-passwd"
 In load-balance clusters a network level load-balancer may distribute
 the incoming SMTP connections to multiple real machines, and by using
 this parameter (repeatedly) to list those peers, system can relay
@@ -405,7 +433,7 @@ user initiated ETRN requests to all cluster nodes.
 .I This method requires that the scheduler runs its mailq service
 .I in MAILQv2 mode!
 
-.IP PARAM\ lmtp\-mode
+.IP "PARAM lmtp\-mode"
 When desiring to test LMTP (RFC 2033), this parameter can be turned on,
 .I however ZMailer is no real LMTP server, and this feature is
 .I only for debug purposes.
@@ -458,7 +486,7 @@ PARAM  enable-router
 #               # with the default code against system /etc/passwd
 #               # (or whatever source  getpwnam() uses for it..)
 #
-#PARAM  AUTH-LOGIN-also-without-TLS
+#PARAM  AUTH\-LOGIN\-also\-without\-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to
 #               # be used without running under SSL/TLS security
 #               # envelope.
@@ -469,7 +497,7 @@ PARAM  enable-router
 #               # sessions initiated from outside of the trusted
 #               # networks or the networks with relaying enabled
 #               # (see "fulltrustnet" and "relaycustnet" in
-#               # smtp-policy.src file).
+#               # smtp\-policy.src file).
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #               # External authentication program. The
@@ -516,7 +544,7 @@ PARAM help ------------------------------------------------------
 # The policy database:
 # (NOTE: See `makedb' for its default suffixes!)
 #
-PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
+PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
@@ -574,7 +602,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # If the host presents itself as:  HELO [1.2.3.4]  be lenient to
 # it..  The syntax below is due to these patterns being SH-GLOB
 # style patterns where the brackets are special characters.
-\\[*\\]             999 ve
+\\[*\\]               999 ve
 # Per default demant strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
 # on that detail, remove the "R" from "veR" string below:
@@ -625,7 +653,34 @@ are logged, and the communication channel from the smtpserver to the
 contentfilter program is closed.  Interface continues to scan things
 reported by the contentfilter program, and if no properly formatted line
 appears, default is to send the message into the freezer ("-1");
-.SH PAM-SUPPORT FOR SMTP-AUTH
+.SH TCP\-WRAPPER AND SMTPSERVER
+If the ZMailer system is configured with \fItcp-wrapper\fR code,
+then service-id "\fCsmtp-receive\fR" is looked for all those addresses
+that are allowed to feed SMTP email in.
+.P
+Usually this mode of operation is not used, and files
+.IR hosts.allow ,
+and
+.I hosts.deny
+contain following kind of entries:
+.P
+.nf
+\fC
+   \fI/ETC/hosts.allow\fC
+   mailq : ALL@1.2.3.0
+   smtp\-receive: ALL@ALL
+
+   \fI/ETC/hosts.deny\fC
+   ALL : ALL@ALL\fR
+.fi
+.P
+Alternatively, all the functions which tcp-wrapper could supply are
+also available thru the policy database machinery.
+.P
+.I "(Do note that scheduler(8) has also tcp\-wrapper support, which becomes"
+.I "active simultaneously with smtpserver's tcp\-wrapper code!)"
+.P
+.SH PAM\-SUPPORT FOR SMTP\-AUTH
 If the system has <security/pam_appl.h> file, following file will also
 be needed for the system:
 .PP
@@ -637,7 +692,7 @@ auth     required  /lib/security/pam_pwdb.so shadow
 auth     required  /lib/security/pam_nologin.so
 account  required  /lib/security/pam_pwdb.so
 .fi
-.SH SMTP-POLICY CONFIGURATION
+.SH SMTP\-POLICY CONFIGURATION
 This subsystem of
 .I smtpserver
 does control acceptability of recipient envelope addresses per several
@@ -651,29 +706,32 @@ Specifically the
 .I $MAILBIN/policy-builder.sh
 script uses following files:
 .PP
-.nf
-  MAILVAR/db/smtp-policy.src            The boilerplate
-  MAILVAR/db/localnames               ('= _local_names')
-  MAILVAR/db/smtp-policy.relay.manual ('= _full_rights')
-  MAILVAR/db/smtp-policy.relay        ('= _full_rights')
-  MAILVAR/db/smtp-policy.mx.manual    ('= _relaytarget')
-  MAILVAR/db/smtp-policy.mx           ('= _relaytarget')
-  MAILVAR/db/smtp-policy.spam.manual  ('= _bulk_mail')
-  MAILVAR/db/smtp-policy.spam         ('= _bulk_mail')
-.fi
+
+.TS
+l l.
+MAILVAR/db/smtp\-policy.src	The boilerplate
+MAILVAR/db/localnames	('= _local_names')
+MAILVAR/db/smtp\-policy.relay.manual	('= _full_rights')
+MAILVAR/db/smtp\-policy.relay	('= _full_rights')
+MAILVAR/db/smtp\-policy.mx.manual	('= _relaytarget')
+MAILVAR/db/smtp\-policy.mx	('= _relaytarget')
+MAILVAR/db/smtp\-policy.spam.manual	('= _bulk_mail')
+MAILVAR/db/smtp\-policy.spam	('= _bulk_mail')
+.TE
 .PP
+
 \fBIf you want, you can modify your boiler plate as well as your
 \fBinstalled \fBpolicy-builder.sh\fB script.\fR
 (Doing 'make install' will overwrite \fIpolicy-builder.sh\fR,
-but not \fIsmtp-policy.src\fR)
+but not \fIsmtp\-policy.src\fR)
 .PP
 Basically these various source files (when existing) are used to
 combine knowledge of valid users around us.  Some datasets have
 .I two
 input source files,
-.I smtp-policy.NN
+.I smtp\-policy.NN
 and
-.IR smtp-policy.NN.manual ,
+.IR smtp\-policy.NN.manual ,
 the ".manual" is intended to be overrider of of possibly autogenerated
 data at the "plain" version of files.
 .PP
@@ -681,8 +739,8 @@ data at the "plain" version of files.
 Who we are -- ok for receiving; does not
 grant outgoing relay capability.
 
-.IP smtp-policy.relay
-.IP smtp-policy.relay.manual
+.IP smtp\-policy.relay
+.IP smtp\-policy.relay.manual
 Who can use us as outbound relay.
 
 Use here
@@ -714,8 +772,8 @@ are the same)..  (Name/keyspace problem)
 We can set the internal "always_accept" flag at
 the source IP test, and never after.
 
-.IP smtp-policy.mx
-.IP smtp-policy.mx.manual
+.IP smtp\-policy.mx
+.IP smtp\-policy.mx.manual
 Who really are our MX clients.
 
 Use this when you really know them, and don't
@@ -739,9 +797,9 @@ you accept email routed to:
 these are magic addresses that email is accepted
 to, even when everything else is blocked.
 
-.IP smtp-policy.spam
-.IP smtp-policy.spam.manual
-Those users & domains that are 	absolutely no-no
+.IP smtp\-policy.spam
+.IP smtp\-policy.spam.manual
+Those users & domains that are absolutely no-no
 for the senders, or the recipients, no matter what
 earlier analysis has shown.
 (Except for those that we absolutely trust..)
@@ -751,17 +809,17 @@ Short usage instructions:
 - Fill in/modify related files
 - execute \fIMAILBIN/policy-builder.sh\fR script
 .fi
-.SH SMTP-POLICY TESTING
+.SH SMTP\-POLICY TESTING
 You can run the smtpserver in a mode where you can
 claim to be from any address in the outside world
 you wish:
 .PP
 .nf
-  $MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'
+  $MAILBIN/smtpserver \-i \-d 1 \-T '[1.2.3.4]'
 .fi
 .PP
-The mode must be interactive (-i), and supplying
-debug mode (-d 1) to it is good help.
+The mode must be interactive (\-i), and supplying
+debug mode (\-d 1) to it is good help.
 .PP
 Actual claimed connection source address is to be
 given inside square brackets as a SMTP IP address
@@ -790,24 +848,24 @@ Depending what kind of address you have supplied
 to the -T parameter, they get either accepted, or
 rejected.
 .PP
-.SH SMTP-POLICY RBL-TYPE BLOCKING LISTS
+.SH SMTP\-POLICY RBL\-TYPE BLOCKING LISTS
 .PP
 Per default the system
 .B does not
 use RBL-type blocking lists.
 There are two ways how to take them into use: 
 .PP
-.IP o
+.IP 1.
  You can start rejecting at the connection setup and then at
 MAIL FROM (and RCPT TO). 
 
 However many (especially M$ environment) SMTP clients won't
 react on that properly, and will just keep repeating the delivery
 attempts. 
-.IP o
+.IP 2.
 You can delay the rejections until RCPT addresses are given. 
 .PP
-.SH SMTP-POLICY; IMMEDIATE REJECTION BY RBL
+.SH SMTP\-POLICY; IMMEDIATE REJECTION BY RBL
 .PP
 Like mentioned above, this method has a problem with many clients
 who don't believe that HELO can give 500-series response. 
@@ -840,7 +898,7 @@ An example for the resulting attribute pair: (RBL+DUL+RSS)
   _rbl1   # Nothing
 .fi
 .PP
-.SH SMTP-POLICY; DELAYED REJECTION BY RBL
+.SH SMTP\-POLICY; DELAYED REJECTION BY RBL
 .PP
 Delay the rejection report to ``\fCRCPT TO\fR'' verbs by using the
 ``Third RBL variant'': 
@@ -855,7 +913,7 @@ Delay the rejection report to ``\fCRCPT TO\fR'' verbs by using the
 The sample boilerplace will use these as defaults unless you choose
 to explicitely have ``\fCtest-rcpt-dns-rbl -\fR'' at some of
 the recipient domains you list at 
-.I smtp-policy.mx
+.I smtp\-policy.mx
 file: 
 .PP
 .nf
@@ -875,8 +933,13 @@ file:
 .SH SEE ALSO
 router(8)
 .PP
-.ta 2.5i
-.nf
+.TS
+l l
+l l
+l s
+l s
+l s
+l l.
 RFC 821	 The basic SMTP specification
 RFC 1123	 Various 821 parameter clarifications
 
@@ -898,7 +961,7 @@ RFC 2487	 ESMTP STARTTLS
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
 RFC 2554+NetScape	 ESMTP AUTH=LOGIN
 RFC 2852	 ESMTP DELIVERBY
-.fi
+.TE
 .SH AUTHOR
 This program authored and copyright by:
 .br

@@ -1471,7 +1471,7 @@ int sig;
 
 void reporterr(SS, tell, msg)
 SmtpState *SS;
-long tell;
+const long tell;
 const char *msg;
 {
     zsyslog((LOG_ERR,
@@ -1536,6 +1536,8 @@ int s_getc(SS)
 
     if (SS->s_readout >= SS->s_bufread) {
     redo:
+        /* We are about to read... */
+	alarm(SS->read_alarm_ival);
 	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
 	  if (errno == EINTR || errno == EAGAIN)
@@ -1549,6 +1551,8 @@ int s_getc(SS)
 	    SS->s_status = EOF;
 	    return EOF;
 	}
+	/* We did read successfully! */
+	alarm(SS->read_alarm_ival);
 	SS->s_bufread = rc;
 	SS->s_readout = 0;
     }
@@ -1591,7 +1595,7 @@ int buflen, *rcp;
 	  typeflush(SS);
 
 	/* Alarm processing on the SMTP protocol channel */
-	alarm(SMTP_COMMAND_ALARM_IVAL);
+	SS->read_alarm_ival = SMTP_COMMAND_ALARM_IVAL;
 
 	/* Our own  fgets() -- gets also NULs, flags illegals.. */
 	--buflen;
@@ -1614,6 +1618,7 @@ int buflen, *rcp;
 	}
 	buf[++i] = '\0';
 	alarm(0);		/* Cancel the alarm */
+	SS->read_alarm_ival = 0;
 
 	if (c == EOF && i == 0) {
 	    /* XX: ???  Uh, Hung up on us ? */
@@ -1706,7 +1711,12 @@ int insecure;
 	    fseek(SS->mfp, 0, SEEK_END);
 	    tell = ftell(SS->mfp);
 	}
-	reporterr(SS, tell, "SMTP protocol timed out");
+	{
+	  char msgbuf[40];
+	  sprintf(msgbuf,"SMTP protocol timed out (%d sec)",
+		  SS->read_alarm_ival);
+	  reporterr(SS, tell, msgbuf);
+	}
 
 	/* If there is something going on, kill the file.. */
 	if (SS->mfp != NULL) {
@@ -1820,7 +1830,7 @@ int insecure;
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-#if 0 /* NO MORE TCP-WRAPPER AT SMTPSERVER -- USE POLICY CODE! */
+#ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
     if (use_tcpwrapper && netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {

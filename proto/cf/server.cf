@@ -10,7 +10,7 @@ quadprint (quad) {
 	user="$(user $quad)"
 	case $(channel $quad) in
 	local)	ssift "$(dequote "$user")" in
-		[|/].*	text="250 local delivery for"
+		[|/].*	text="250 2.1.5 local delivery for"
 			break
 			;;
 		.*
@@ -28,28 +28,28 @@ quadprint (quad) {
 
 			text="$(login2uid "$user")"	# ignore return value
 			if text="$(fullname "$user")"; then
-				text="250 $text"
+				text="250 2.1.5 $text"
 			else
 				if text="$(fullname "$(recase -l "$user")")"; then
-					text="250 $text"
+					text="250 2.1.5 $text"
 				else
-					text="550 no such user:"
+					text="550 5.1.1 no such user:"
 				fi
 			fi
 			;;
 		tfiss
 		;;
-	usenet)	text="250 newsgroup:"
+	usenet)	text="250 2.0.0 newsgroup:"
 		;;
 	error)	case "$(host $quad)" in
-		-|'')	text="550 Error" ;;
-		*)	text="550 Error $(host $quad) for" ;;
+		-|'')	text="550 5.0.0 Error" ;;
+		*)	text="550 5.0.0 Error $(host $quad) for" ;;
 		esac
 		;;
 	*)	text="$(channel $quad) delivery"
 		case "$(host $quad)" in
-		-|'')	text="250 $text for" ;;
-		*)	text="250 $text to $(host $quad) for" ;;
+		-|'')	text="250 2.0.0 $text for" ;;
+		*)	text="250 2.0.0 $text to $(host $quad) for" ;;
 		esac
 		;;
 	esac
@@ -77,7 +77,7 @@ server (key) {
 	case "$key" in
 	from)
 		if [ "$1" = "" ]; then
-			echo "250 Ok (sourcechannel 'error' accepted)"
+			echo "250 2.0.0 Ok (sourcechannel 'error' accepted)"
 			return
 		fi
 		;;
@@ -90,7 +90,7 @@ server (key) {
 		<(.+)>	a="\1"; continue ;;
 		tfiss
 		if rfc822syntax "$a"; then ; else
-			echo "554 illegal address syntax: <$a>"
+			echo "554 5.1.7 illegal address syntax: <$a>"
 			return
 		fi
 		;;
@@ -110,7 +110,7 @@ server (key) {
 			for j in $(elements $i)
 			do
 				case $(channel $j) in
-				error)	echo "554 unresolvable address: <$1>"
+				error)	echo "554 5.0.0 unresolvable address: <$1>"
 					return ;;
 				esac
 
@@ -120,7 +120,7 @@ server (key) {
 
 			done
 		done
-		echo "250 Ok (verified)"
+		echo "250 2.0.0 Ok (verified)"
 		;;
 	verify)
 		a="$(router "$a" $A)"

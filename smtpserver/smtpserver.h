@@ -254,6 +254,7 @@ typedef struct {
     char *tls_peer_issuer;
     char *tls_peer_fingerprint;
 
+    int  read_alarm_ival;
     int  s_bufread;
     int  s_readout;
     int  s_status;
@@ -504,7 +505,7 @@ extern int  Z_pending __(( SmtpState * ));
 extern int  Z_write   __(( SmtpState *, const void *, int ));
 extern int  Z_read    __(( SmtpState *, void *, int ));
 
-#if 0 /* NOT ANYMORE! */
+#ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 extern int wantconn __((int sock, char *prgname));
 #endif
