@@ -1526,21 +1526,16 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 					/* X:shouldn't prevcommand be stacked?*/
 				}
 			}
-			if (command->argv == NULL) {
+
 GCPLABPRINTis(command->gcpro4);
-				command->argv = newcell();
-				command->argv->flags = 0;
-				command->argv->slen = 0; /* not needed */
-				cdr(command->argv) = NULL;
-				car(command->argv) = newcell();
-				car(command->argv)->flags = 0;
-				cdar(command->argv) = NULL;
-				caar(command->argv) = d;
-				cdar(command->argv) = s_last(d);
+			if (command->argv == NULL) {
+				command->argv = ncons(d);
+				command->argv = ncons(command->argv);
 			} else {
 				cddar(command->argv) = d;
-				cdar(command->argv) = s_last(d);
 			}
+			cdar(command->argv) = s_last(d);
+
 			if (command->iocmd == ioPipeLater) {
 				/* we saw an openPipe but it was too early...*/
 				command->iocmd = ioNil;

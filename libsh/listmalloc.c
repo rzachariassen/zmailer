@@ -559,7 +559,7 @@ conscell *ncons(conscell *X)
 {
   conscell *tmp = newcell();
   car(tmp) = X;
-  tmp->flags = 0;
+  tmp->slen = tmp->flags = 0;
   cdr(tmp) = NULL;
   return tmp;
 }

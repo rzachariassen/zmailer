@@ -807,6 +807,8 @@ run_daemon(argc, argv)
 	memtypes oval = stickymem;
 	struct stat stb;
 
+	router_id = getpid();
+
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
 	for (i=0; i<ROUTERDIR_CNT; ++i) {
 		dirp[i] = NULL; dirs[i] = NULL;

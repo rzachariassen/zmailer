@@ -159,7 +159,7 @@ EXTINLINE conscell * ncons(conscell *X)
 {
   conscell *tmp = newcell();
   car(tmp) = X;
-  tmp->flags = 0;
+  tmp->slen = tmp->flags = 0;
   cdr(tmp) = NULL;
   return tmp;
 }
@@ -223,7 +223,7 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 /* ncons(s-expr) -> new (s-expr) */
 #define ncons(X)	\
 	({conscell *_tmp = newcell(); car(_tmp) = (X); \
-	 _tmp->flags = 0; cdr(_tmp) = NULL;  _tmp;})
+	 _tmp->slen = _tmp->flags = 0; cdr(_tmp) = NULL;  _tmp;})
 
 /* cons(s-expr, list) -> new (s-expr ,@list) */
 #define cons(X,Y)	\

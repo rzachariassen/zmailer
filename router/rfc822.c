@@ -56,9 +56,9 @@ static conscell	*find_errto __((conscell *list));
 #define dprintf	if (D_sequencer) printf
 
 #define	QCHANNEL(x)	(x)
-#define	QHOST(x)	(cdr(x))
-#define	QUSER(x)	(cddr(x))
-#define	QATTRIBUTES(x)	(cdr(cddr(x)))
+#define	QHOST(x)	cdr(x)
+#define	QUSER(x)	cddr(x)
+#define	QATTRIBUTES(x)	cdr(cddr(x))
 
 
 conscell *
@@ -1347,6 +1347,10 @@ sequencer(e, file)
 	    && h->h_contents.a->a_pname != NULL) {
 		notaryret = h->h_contents.a->a_pname;
 	}
+
+	rwmchain = l = routed_addresses = sender = to = NULL;
+	GCPRO5(l, routed_addresses, sender, to, rwmchain);
+
 	FindEnvelope(eFrom);
 	if (h == NULL && e->e_trusted) {
 		/* Perhaps  'channel error' ??? */
@@ -1372,8 +1376,10 @@ sequencer(e, file)
 		}
 	}
 
-	if (deferuid)
+	if (deferuid) {
+	  UNGCPRO5;
 	  return PERR_DEFERRED;
+	}
 
 	if (h == NULL) {
 		dprintf("A sender was NOT specified in the envelope\n");
@@ -1575,27 +1581,29 @@ sequencer(e, file)
 	}
 	if (QCHANNEL(e->e_from_trusted)->cstring == NULL) {
 	  l = cdr(QCHANNEL(e->e_from_trusted));
-	  QCHANNEL(e->e_from_trusted) = QCHANNEL(e->e_from_resolved);
+	  QCHANNEL(e->e_from_trusted) = copycell(QCHANNEL(e->e_from_resolved));
 	  cdr(QCHANNEL(e->e_from_trusted)) = l;
 	}
-	if (QHOST(e->e_from_trusted) == NULL) {
+	if (QHOST(e->e_from_trusted)->cstring == NULL) {
 	  l = cdr(QHOST(e->e_from_trusted));
-	  QHOST(e->e_from_trusted) = QHOST(e->e_from_resolved);
+	  QHOST(e->e_from_trusted) = copycell(QHOST(e->e_from_resolved));
 	  cdr(QHOST(e->e_from_trusted)) = l;
 	}
-	if (QUSER(e->e_from_trusted) == NULL) {
-	  /* l = cdr(QUSER(e->e_from_trusted)); */
-	  QUSER(e->e_from_trusted) = QUSER(e->e_from_resolved);
-	  /* cdr(QUSER(e->e_from_trusted)) = l; */
+	if (QUSER(e->e_from_trusted)->cstring == NULL) {
+	  l = cdr(QUSER(e->e_from_trusted));
+	  QUSER(e->e_from_trusted) = copycell(QUSER(e->e_from_resolved));
+	  cdr(QUSER(e->e_from_trusted)) = l;
 	}
-	if (QATTRIBUTES(e->e_from_trusted) == NULL) {
-	  /* l = cdr(QATTRIBUTES(e->e_from_trusted)); */
-	  QATTRIBUTES(e->e_from_trusted) = QATTRIBUTES(e->e_from_resolved);
-	  /* cdr(QATTRIBUTES(e->e_from_trusted)) = l; */
+	if (QATTRIBUTES(e->e_from_trusted)->cstring == NULL) {
+	  l = cdr(QATTRIBUTES(e->e_from_trusted));
+	  QATTRIBUTES(e->e_from_trusted) = copycell(QATTRIBUTES(e->e_from_resolved));
+	  cdr(QATTRIBUTES(e->e_from_trusted)) = l;
 	}
 
-	if (deferuid)
+	if (deferuid) {
+	  UNGCPRO5;
 	  return PERR_DEFERRED;
+	}
 
 	dprintf("Recipient determination\n");
 	FindEnvelope(eTo);
@@ -1603,6 +1611,7 @@ sequencer(e, file)
 		dprintf("No recipient(s) specified in the envelope\n");
 		if (header_error) {
 			dprintf("Due to header error, we ignore message\n");
+			UNGCPRO5;
 			return PERR_HEADER;
 		}
 		ph = e->e_eHeaders;
@@ -1624,8 +1633,10 @@ sequencer(e, file)
 			e->e_eHeaders = nh;
 		}
 		dprintf("Are we supposed to be psychic?\n");
-		if (ph == e->e_eHeaders)
-			return PERR_NORECIPIENTS;
+		if (ph == e->e_eHeaders) {
+		  UNGCPRO5;
+		  return PERR_NORECIPIENTS;
+		}
 	}
 
 	dprintf("Nuke Bcc/Return-Path/X-Orcpt/X-Envid headers, if any\n");
@@ -1772,8 +1783,6 @@ sequencer(e, file)
 	incoming-rewriting rules for the originating channel.
 #endif
 	dprintf("Route recipient addresses\n");
-	rwmchain = l = routed_addresses = sender = to = NULL;
-	GCPRO5(l, routed_addresses, sender, to, rwmchain);
 
 	if (errors_to) free(errors_to);
 	errors_to = NULL;

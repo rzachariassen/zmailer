@@ -28,6 +28,8 @@ struct cmddef commands[] = {
 #include "sh-out.i"
 };
 
+extern int newcell_gc_interval, D_conscell;
+
 int ncommands = sizeof commands / sizeof commands[0];
 
 struct sptree *spt_funclist = NULL;
@@ -171,7 +173,7 @@ zshinit(argc, argv)
 	loadit = errflag = 0;
 	optind = 1;	/* not to be influenced by previous getopt()'s */
 	while (1) {
-		c = getopt(argc, (char**)argv, "CILMOPRSYc:l:isaefhkntuvx");
+		c = getopt(argc, (char**)argv, "CGILMOPRSYc:l:isaefhkntuvx");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -187,6 +189,9 @@ zshinit(argc, argv)
 			} else
 				setopt(c, 1);
 			break;
+		case 'G':	/* conscell GC debugging */
+			newcell_gc_interval = 1;
+			D_conscell = 1;
 		case 'R':	/* runtime I/O */
 		case 'I':	/* interpreter (runtime interpretation) */
 		case 'Y':	/* just open the runiofp stream */
