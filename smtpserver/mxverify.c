@@ -208,8 +208,8 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    /* Mal-formed inputs are possible overflowing the buffer.. */
 	    if (len > (eom - cp))
 	      len = (eom - cp);
-	    if (len > cp + n - 2)
-	      len = cp + n - 2
+	    if (len > n - 2)
+	      len = n - 2;
 
 	    if (txt_buf != NULL)
 	      free(txt_buf);
@@ -773,7 +773,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	      if (*msgp != NULL)
 		free(*msgp);
 	      *msgp = strdup(txt_buf);
-	      s = *msep;
+	      s = *msgp;
 	      if (s) {
 		for ( ;*s; ++s) {
 		  int c = ((*s) & 0xFF);
