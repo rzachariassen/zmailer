@@ -643,10 +643,13 @@ int whosonrc;
 }
 
 
-static int _addrtest_(rel, state, pbuf)
+static int _addrtest_ __((struct policytest *rel, struct policystate *state, const char *pbuf, int sourceaddr));
+
+static int _addrtest_(rel, state, pbuf, sourceaddr)
 struct policytest *rel;
 struct policystate *state;
 const char *pbuf;
+int sourceaddr;
 {
     u_char ipv4addr[4];
 
@@ -671,6 +674,9 @@ const char *pbuf;
 
     if (checkaddr(rel, state, pbuf) != 0)
       return 0; /* Nothing found */
+
+    if (!sourceaddr)
+      goto just_rbl_checks;
 
 #if 0
 /* if (IP address of SMTP client has 'rejectnet +' attribute) then
@@ -741,6 +747,8 @@ const char *pbuf;
     }
     if (state->trust_recipients || state->full_trust || state->always_accept)
       return 0;
+
+    just_rbl_checks:;
 
     if (state->values[P_A_TestDnsRBL] &&
 	!valueeq(state->values[P_A_TestDnsRBL], "-") &&
@@ -826,7 +834,7 @@ Usockaddr *raddr;
       return -2;
     }
 
-    return _addrtest_(rel, state, pbuf);
+    return _addrtest_(rel, state, pbuf, 1);
 }
 
 
@@ -889,7 +897,7 @@ int inlen;
 	pbuf[1] = P_K_IPv4;
 	pbuf[6] = 32;
       }
-      return _addrtest_(rel,state,pbuf);
+      return _addrtest_(rel,state,pbuf, 0);
     }
 
     plen = addr_len;
