@@ -849,23 +849,22 @@ static const char *debugptrs[20];
 	    ct->name     = parval;
 	  } else {
 	    /* Unknown parameter.. */
-	    int unklen = strlen(parval)+5+strlen(paramname);
 	    int unkpos;
 	    char *unk;
-	    if (!ct->unknown) {
-	      ct->unknown = (char**)malloc(sizeof(char*)*2);
-	/* FIXME: malloc problem check ?? */
-	      ct->unknown[1] = NULL;
-	    } else {
-	      ct->unknown = (char**)realloc(ct->unknown,
-					    sizeof(char*)*(unknowncount+2));
-	/* FIXME: malloc problem check ?? */
-	    }
+	    int unklen = strlen(parval)+5+strlen(paramname);
+
+	    ct->unknown = (char**)realloc(ct->unknown,
+					  sizeof(char*)*(unknowncount+2));
+	    /* FIXME: malloc problem check ?? */
+
 	    unk = malloc(unklen);
-	/* FIXME: malloc problem check ?? */
+	    /* FIXME: malloc problem check ?? */
+
 	    sprintf(unk, "%s=", paramname);
 	    unkpos = strlen(unk);
+
 	    strqcpy(&unk, unkpos, &unklen, parval);
+
 	    ct->unknown[unknowncount] = unk;
 	    ct->unknown[unknowncount] = NULL;
 	    ++unknowncount;
@@ -880,13 +879,14 @@ static const char *debugptrs[20];
 void free_content_type(ct)
      struct ct_data *ct;
 {
+	int i;
+
 	if (ct->basetype) free(ct->basetype);
 	if (ct->subtype)  free(ct->subtype);
 	if (ct->charset)  free(ct->charset);
 	if (ct->boundary) free(ct->boundary);
 	if (ct->name)     free(ct->name);
 	if (ct->unknown) {
-	  int i;
 	  for (i = 0; ct->unknown[i]; ++i)
 	    free(ct->unknown[i]);
 	  free(ct->unknown);

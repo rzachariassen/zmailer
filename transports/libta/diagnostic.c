@@ -173,10 +173,7 @@ notaryreport(arg1,arg2,arg3,arg4)
 	if (wttip)   len += strlen(wttip)+5;
 	if (wtttaid) len += strlen(wtttaid)+9;
 
-	if (!notarybuf)
-	  notarybuf = (char*) malloc(len);
-	else
-	  notarybuf = (char*) realloc(notarybuf,len);
+	notarybuf = (char*) realloc(notarybuf,len);
 
 	if (! notarybuf) {
 	  zmalloc_failure = 1;

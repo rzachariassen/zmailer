@@ -4,7 +4,7 @@
  */
 
 /*
- *	Copyright 1994-2001 by Matti Aarnio
+ *	Copyright 1994-2003 by Matti Aarnio
  *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
@@ -55,7 +55,7 @@ extern int errno;
 extern char *strrchr();
 #endif
 
-static struct taddress *ctladdr __((char *cp));
+static struct taddress *ctladdr __((struct ctldesc *d, char *cp));
 
 
 #ifndef	MAXPATHLEN
@@ -130,21 +130,27 @@ ctlclose(dp)
 	  close(dp->ctlfd);
 	if (dp->msgfd >= 0)
 	  close(dp->msgfd);
-	for (ap = dp->senders; ap != NULL; ap = nextap) {
-	  nextap = ap->link;
+
+	for (ap = dp->ta_chain; ap != NULL; ap = nextap) {
+	  nextap = ap->ta_next;
 	  free((char *)ap);
 	}
-	dp->senders = NULL;
-	for (rp = dp->recipients; rp != NULL; rp = nextrp) {
-	  nextrp = rp->next;
-	  ap = rp->addr;
+	dp->ta_chain = dp->senders = NULL;
+
+	for (rp = dp->rp_chain; rp != NULL; rp = nextrp) {
+	  nextrp = rp->rp_next;
 	  if (rp->top_received) free((void*)(rp->top_received));
-	
-	  free((char *)rp);
+	  if (rp->lockoffset) {
+	    fprintf(stdout, "# undiagnosed: %s %d\n", dp->msgfile, rp->id);
+	  }
+
+	  free((void *)rp);
 	}
 	dp->recipients = NULL;
+
 	/* Free ALL dp->msgheader's, if they have been reallocated.
 	   Don't free on individual recipients, only on this global set.. */
+
 	for (msghpp = dp->msgheaders; msghpp &&  *msghpp; ++msghpp) {
 	  char **msghp = *msghpp;
 	  for ( ; msghp && *msghp ; ++msghp )
@@ -153,6 +159,7 @@ ctlclose(dp)
 	}
 	free(dp->msgheaders);
 	dp->msgheaders = NULL;
+
 	for (msghpp = dp->msgheaderscvt; msghpp &&  *msghpp; ++msghpp) {
 	  char **msghp = *msghpp;
 	  for ( ; msghp && *msghp ; ++msghp )
@@ -176,7 +183,8 @@ ctlclose(dp)
 
 
 static struct taddress *
-ctladdr(cp)
+ctladdr(d,cp)
+	struct ctldesc *d; /* Chain in for latter free()ing */
 	char *cp;
 {
 	struct taddress *ap;
@@ -185,6 +193,10 @@ ctladdr(cp)
 	if (ap == NULL)
 		return NULL;
 	ap->link = NULL;
+
+	/* Link in the free-up chain */
+	ap->ta_next = d->ta_chain;
+	d->ta_chain = ap;
 
 	/* While space: */
 	while (*cp == ' ' || *cp == '\t') ++cp;
@@ -363,6 +375,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	  d.ctlid = atol(file);
 	d.senders = NULL;
 	d.recipients = NULL;
+	d.ta_chain   = NULL;
+	d.rp_chain   = NULL;
 	d.rcpnts_total = 0;
 	d.rcpnts_remaining = 0;
 	d.rcpnts_failed = 0;
@@ -392,6 +406,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	    break;
 	  /* Shudder... we trash the memory block here.. */
 	  s = contents + d.offset[i];
+
 	  switch (*s) {
 	  case _CF_FORMAT:
 	    ++s;
@@ -404,8 +419,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      break;
 	    }
 	    break;
+
 	  case _CF_SENDER:
-	    ap = ctladdr(s+2);
+	    ap = ctladdr(&d,s+2);
 	    ap->link  = d.senders;
 	    /* Test if this is "error"-channel..
 	       If it is,  ap->user  points to NUL string. */
@@ -415,6 +431,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	         ap->user = ""; */
 	    d.senders = ap;
 	    break;
+
 	  case _CF_RECIPIENT:
 	    ++s;
 	    /* Calculate statistics .. Scheduler asks for it.. */
@@ -439,7 +456,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      delayslot = s;
 	      s += _CFTAG_RCPTDELAYSIZE;
 	    }
-	    ap = ctladdr(s);
+	    ap = ctladdr(&d,s);
 	    if (ap == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
@@ -467,6 +484,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      break;
 	    }
 	    memset(rp, 0, sizeof(*rp));
+	    rp->rp_next = d.rp_chain;
+	    d.rp_chain = rp;
+
 	    rp->addr = ap;
 	    rp->delayslot = delayslot;
 	    rp->id = d.offset[i];
@@ -486,6 +506,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	    rp->headeroffset = -1;
 	    prevrp = rp;
 	    break;
+
 	  case _CF_RCPTNOTARY:
 	    /*  IETF-NOTARY-DSN  DATA */
 	    ++s;
@@ -590,6 +611,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      prevrp = NULL;
 	    }
 	    break;
+
 	  case _CF_MSGHEADERS:
 	    {
 	      char **msgheader = NULL;

@@ -1,3 +1,10 @@
+2003-06-21  Matti Aarnio  <mea@zmailer.org>
+
+	* include/ta.h, transports/libta/ctlopen.c, transports/libta/diagnostic.c,
+	  transports/libta/mimeheaders.c:
+	    More memory leak tracking related work.  Most fumbling in
+	    the dark, I am afraid..
+
 2003-06-20  Matti Aarnio  <mea@zmailer.org>
 
 	* include/ta.h, transports/libta/ctlopen.c, transports/libta/Makefile.in,

@@ -29,6 +29,7 @@ struct taddress {
 	const char	*host;
 	const char	*user;
 	const char	*misc;		/* expected to be uid privilege */
+	struct taddress *ta_next;	/* global freeup chain */
 };
 
 #define _DSN_NOTIFY_SUCCESS	0x001
@@ -56,7 +57,8 @@ typedef enum {
 } CONVERTMODE;
 
 struct rcpt {
-	struct rcpt	*next;
+	struct rcpt	*next;		/* next rcpt in this group */
+	struct rcpt	*rp_next;	/* ctlclose() link-chain */
 	struct taddress	*addr;		/* addr.link is the sender address */
 	const char	*orcpt;		/*  DSN  ORCPT=  string */
 	const char	*inrcpt;	/* "DSN" INRCPT= string */
@@ -114,7 +116,9 @@ struct ctldesc {
 	long		contentsize;	/* message file size */
 	long		*offset;	/* array of indices into contents */
 	struct taddress	*senders;	/* list of sender addresses */
+	struct taddress *ta_chain;	/* freeup chain for these */
 	struct rcpt	*recipients;	/* list of selected recipients */
+	struct rcpt	*rp_chain;	/* freeup chain for these */
 	int		rcpnts_total;	/* number of recipients, total */
 	int		rcpnts_remaining;/* .. how many yet to deliver */
 	int		rcpnts_failed  ;/* .. how many failed ones */
