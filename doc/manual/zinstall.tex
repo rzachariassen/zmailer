@@ -1,4 +1,6 @@
-%% \section{Build and Install}
+%% \chapter{Build and Install}
+
+\begin{multicols}{2}
 
 This section describes how to build and install ZMailer.
 
@@ -6,6 +8,9 @@ This section describes how to build and install ZMailer.
 It is the place to meet the Gurus, in case you have problems.
 See the {\tt Overview} file in the source distribution for more
 information.
+
+\section{Environment issues}%
+\index{build!environment}
 
 The cornerstone of everything in busy Internet email routing
 is a well-working DNS server, and modern resolver library.
@@ -15,10 +20,16 @@ a bundled resolver from  bind-4.9.4, however it is a bit difficult
 at BSD systems (because those developers use BSD themselves, and
 make an assumption that verybody has their version of things...
 On the other hand, those systems have reasonably modern resolvers,
-so no need to worry about it --- I hope.) 
+so no need to worry about it -- I hope.) 
+
+For performance reasons you should have {\bf local} instance of
+nameserver. {\em Even when you don't have any DNS zone data to
+originate yourself, an instance of nameserver is able to cache
+replies it receives from the network, and thus be able to faster
+yield replies for repeated questions.}
 
 
-\subsection{Autoconfiguration}%
+\section{Autoconfiguration}%
 \index{build!autoconfiguration}%
 \index{autoconfiguration!build}
 
@@ -44,9 +55,9 @@ the {\tt --prefix=}, which can cause surprises if you do
 
 When choosing your prefix, do try to keep is fairly short, as
 there are a few scripts which catenate string-components of:%
-\begin{verbatim}
+\medskip\begin{alltt}
   "#! "+prefix+"/bin/router -f"
-\end{verbatim}%
+\end{alltt}\medskip%
 and usually systems have a limit of 32 characters for that,
 which gives at most 15 characters for your prefix!
 
@@ -54,104 +65,109 @@ Also, if the {\tt /etc/zmailer.conf} file exists, it is read
 to initialize several different environment paths (including
 {\tt \$MAILBIN}, et.al.!)
 
-\begin{verbatim}
-  # ./configure --prefix=/opt/mail                              \
-                --with-postoffice=/var/spool/postoffice         \
-                --with-mailbox=/var/mail                        \
-                --with-logdir=/var/log/mail                     \
-                --with-zmailer-conf=/etc/zmailer.conf
-\end{verbatim}
+\begin{alltt}\small\hrule\medskip
+# ./configure                             \verb/\/
+  --prefix=/opt/mail                      \verb/\/
+  --with-postoffice=/var/spool/postoffice \verb/\/
+  --with-mailbox=/var/mail                \verb/\/
+  --with-logdir=/var/log/mail             \verb/\/
+  --with-zmailer-conf=/etc/zmailer.conf
+\medskip\hrule\end{alltt}
 
-Or an example from my development machine:
-\begin{verbatim}
-  $ ./configure --prefix=/opt/mail
-  creating cache ./config.cache
-  ***
-  *** You can set  ZCONFIG  environment variable to define
-  *** the location of the (default) /etc/zmailer.conf -file
-  *** (You can use also   --with-zconfig=  -parameter)
-  ***
-  *** Consider also setting following parameters:
-  ***   --mandir=DIR     -- for man-pages
-  ***   --libdir=DIR     -- for libzmailer(3)
-  ***   --includedir=DIR -- for libzmailer(3)
-  *** (They can be outside the --prefix=DIR -tree)
-  ***
-  *** You can set CC, and CFLAGS  environment variables to
-  *** choose the C-compiler, and its options, especially at
-  *** systems where there are multiple choices to use...
-  ***
-\end{verbatim}
+Or an example from my development machine:\medskip
+\nopagebreak
+\begin{alltt}\scriptsize\hrule\medskip
+$ ./configure --prefix=/opt/mail
+creating cache ./config.cache
+***
+*** You can set  ZCONFIG  environment variable to define
+*** the location of the (default) /etc/zmailer.conf -file
+*** (You can use also   --with-zconfig=  -parameter)
+***
+*** Consider also setting following parameters:
+***   --mandir=DIR     -- for man-pages
+***   --libdir=DIR     -- for libzmailer(3)
+***   --includedir=DIR -- for libzmailer(3)
+*** (They can be outside the --prefix=DIR -tree)
+***
+*** You can set CC, and CFLAGS  environment variables to
+*** choose the C-compiler, and its options, especially at
+*** systems where there are multiple choices to use...
+***
+\medskip\hrule\end{alltt}\medskip
 
 You can also go into a subdirectory, and configure and
-compile there: (But it may need GNU-make as system `{\tt make}'!)
-\begin{verbatim}
+compile there: (But it may need GNU-make as system ``{\tt make}''!)
+\nopagebreak%
+\begin{alltt}\medskip\hrule\medskip
   mkdir myhost ; cd myhost
   ../configure ...
   make ...
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 
 See if {\tt SiteConfig} makes sense now, if not, you can tune
 most of the values with various {\tt --with-*=} keywords:
-\begin{verbatim}
+\nopagebreak%
+\begin{alltt}\medskip\hrule\medskip
   ./configure --help
-\end{verbatim}
-Explanations about these configuration options are listed below
-at chapter \ref{configure_options_list}%
-%begin{latexonly}%
-, page \pageref{configure_options_list}%
-%end{latexonly}%
-.
+\medskip\hrule\end{alltt}\medskip
+\nopagebreak\par
+Explanations about these configuration options are listed
+at chapter \vref{configure_options_list}.
 
-and those that you can't tune, you can edit at the {\tt SiteConfig.in}
-file.  (Redo the configure with new parameters, if it looks to be
-necessary.)
+Those options that you can't tune, you can edit at
+the ``{\tt SiteConfig.in}'' file.
+(Redo the configure with new parameters, if that looks
+ to be necessary approach.)
 
 Additional examples:
 \begin{itemize}
 \item DEC OSF/1 at nic.funet.fi with DECs best compiler\ldots
 
-\begin{verbatim}
-  CFLAGS="-O -g3 -std1" CC="cc -migrate" ./configure   \
-          --prefix=/l/mail  --with-bundled-libresolv   \
-          --with-system-malloc
-\end{verbatim}
+\begin{alltt}\hrule\medskip
+CFLAGS="-O -g3 -std1"             \verb/\/
+  CC="cc -migrate"  ./configure   \verb/\/
+         --prefix=/l/mail         \verb/\/
+         --with-system-malloc
+\medskip\hrule\medskip\end{alltt}
 
 \item Sun Solaris 2.5  at mailhost.utu.fi, SunSoft CC
 
-\begin{verbatim}
-  CC="cc -O" ./configure --prefix=/opt/mail       \
-                         --with-bundled-libresolv
-\end{verbatim}
+\begin{alltt}\hrule\medskip
+CC="cc -O" ./configure            \verb/\/
+              --prefix=/opt/mail
+\medskip\hrule\end{alltt}
 
 \item Sun Solaris 2.5  at mailhost.utu.fi, gcc-2.7.2
 
-\begin{verbatim}
-  ./configure --prefix=/opt/mail --with-bundled-libresolv  \ 
-              --with-gcc
-\end{verbatim}
+\begin{alltt}\hrule\medskip
+./configure --prefix=/opt/mail    \verb/\/
+       --with-gcc
+\medskip\hrule\end{alltt}
 
 \item Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2
 
-\begin{verbatim}
-  ./configure --prefix=/l/mail
-\end{verbatim}
+\begin{alltt}\hrule\medskip
+./configure --prefix=/l/mail
+\medskip\hrule\end{alltt}
 \end{itemize}
 
 
-\subsection{Compilation}
+\section{Compilation}
 
 At the toplevel, run
-\begin{verbatim}
+\nopagebreak
+\begin{alltt}\medskip\hrule\medskip
   make
-\end{verbatim}
+\medskip\hrule\medskip\end{alltt}
 
 or perhaps:
-\begin{verbatim}
+\nopagebreak
+\begin{alltt}\medskip\hrule\medskip
   make clean all
-\end{verbatim}
+\medskip\hrule\medskip\end{alltt}
 
-which at first cleans everything, and then makes --- great if you
+which at first cleans everything, and then makes -- great if you
 changed some configuration parameters.
 
 This should compile everything, and leave a {\tt zmailer.Config} file in
@@ -163,23 +179,23 @@ affect its own execution environment, it may be that non sh/ksh/zsh
 users detect weird phenomena, and failures. Beware!)
 
 
-\subsection{Installing and Upgrading}
+\section{Installing and Upgrading}
 
 This section describes how to install or upgrade ZMailer.
 
 
-\subsubsection{Install Preparation}%
+\subsection{Install Preparation}%
 \index{build!install/upgrade preparation}%
 \index{installation!prepatations of,}
 
 If you are currently running a zmailer, kill off all mailer processes
 using
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
   zmailer kill
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 
 and save the state of your system.  This includes any active
-contents of the postoffice, as well as database files and
+contents of the {\tt\$POSTOFFICE/}, as well as database files and
 anything else in the installation areas you want to be sure
 to keep.  This is just paranoia, the installation should not
 overwrite precious files, and will save old versions of
@@ -188,9 +204,9 @@ distribution files in ``bak'' subdirectories.
 The interface in between the commonly used sendmail, and ZMailer
 is a ``compability program'', which is to replace the {\tt /usr/lib/sendmail}
 (aka {\tt /usr/sbin/sendmail} on some systems).
-The system attempts to automate the replacement, but it MAY present
-a cry for help, if your system does not have functioning symlinks.
-Also if {\tt test -h \$(SENDMAILPATH)} does fault in mysterious ways,
+The system attempts to automate the replacement, but it {\em may}
+present a cry for help if your system does not have functioning symlinks.
+Also if ``{\tt test -h \$\{SENDMAILPATH\}}'' does fault in mysterious ways,
 the reason may be that your system does not have symlinks.
 
 If you are currently running Sendmail, kill your SMTP server
@@ -210,39 +226,46 @@ use smarthost, which happens to be at the same machine.
 (Or at an adjacent machine if you moved the queue, or ...)
 Anyway the point is to get the sendmail to send its queue
 via SMTP to the ZMailer.
+An equally valid option is to drain the sendmail's queue by running
+sendmail in queue drain mode only, although {\tt /usr/lib/sendmail}
+points to ZMailer's ``sendmail.''
 
 
-\subsubsection{Installation}\index{build!installation}\index{installation!entire ZMailer}
+\subsection{Installation}%
+\index{build!installation}\index{installation!entire ZMailer}
 
 Once you are safe, run either:
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
   # make install
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 
 (this installs all binaries and the default database files, which
 still need editing! See below.)
-or if you just want to have the new BINARIES without touching
+or if you just want to have the new {\bf binaries} without touching
 at your configurations:
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
   # make install-bin
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 
+{\bf\Large ?!}
 All programs are stored into  {\tt \$MAILBIN/}, and {\tt \$MAILBIN/ta/}, and
 possible older binaries are saved into ``bak'' subdirectories.
 This step should be non-destructive (anything replaced will be
-saved in a ``bak'' directory, and for some customizable files, if
-they exist new versions won't replace them).
+saved in a ``bak'' directory, and {\sf for some customizable files, if
+they exist new versions won't replace them}).
 
-If this is not a from-scratch installation, be aware that the
-install procedure will NOT replace some of the files in MAILSHARE
-with the equivalents from the distribution.  Specifically, the
-{\tt \$MAILSHARE/cf/*}, {\tt \$MAILVAR/db/aliases}, {\tt \$MAILVAR/db/routes}, and
-{\tt \$MAILVAR/db/localnames} files are never replaced if they already
-exist.  The {\tt \$MAILSHARE/forms/*} files are always replaced, but the
+{\bf\Large ?!}
+If this is not a from-scratch installation, be aware that the install
+procedure will {\bf not} replace some of the files in {\tt \$MAILSHARE}
+with the equivalents from the distribution.
+Specifically, the {\tt \$MAILSHARE/cf/*}, {\tt \$MAILVAR/db/aliases},
+{\tt \$MAILVAR/db/routes}, and {\tt \$MAILVAR/db/localnames} files are
+never replaced if they already exist.
+The {\tt \$MAILSHARE/forms/*} files are always replaced, but the
 old files will be saved in a ``bak'' directory.
 
 
-\paragraph{The Router Configuration File (\$MAILSHARE/router.cf).}%
+\subsubsection{The Router Configuration File (\$MAILSHARE/router.cf).}%
 \index{build!config!router configuration; {\tt router.cf}}%
 \index{{\tt router.cf}; router configuration!config}
 
@@ -258,21 +281,25 @@ the {\tt cf/SMTP+UUCP.cf} file.
 Some real-life samples of {\tt router.cf} are at the {\tt proto/} directory.
 
 
-\paragraph{Installing the Manual Pages.}%
+\subsubsection{Installing the Manual Pages.}%
 \index{build!man-page install}%
 \index{installation!man-pages}
 
 Go into the {\tt man} directory, and install the manual pages by hand:
-\begin{verbatim}
+\nopagebreak
+\begin{alltt}\medskip\hrule\medskip
   cd man ; make install
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 
 or in case the default guessing didn't get it right:
-\begin{verbatim}
-  cd man ; make install MANDIR=/our/manpages
-\end{verbatim}
+\nopagebreak
+\begin{alltt}\medskip\hrule\medskip
+  cd man ;
+  make install MANDIR=/our/manpages
+\medskip\hrule\end{alltt}\medskip
 
-\subsection{System Configuring}%
+
+\section{System Configuring}%
 \index{build!config}%
 \index{configuration!basic ZMailer installation}%
 
@@ -280,28 +307,31 @@ This section describes the configuration in short. More detailed information
 can be found in section {\em xxxxx....\/}.
 
 
-\subsubsection{/etc/mail.conf}%
+\subsection{/etc/mail.conf}%
 \index{build!config!{\tt /etc/mail.conf}}%
 \index{{\tt /etc/mail.conf}-file}
 
 If you are using the default configuration setup, the {\tt router.cf} file
 expects to find a {\tt /etc/mail.conf} file containing three variable
 definitions:
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
   # Where am I?
   orgdomain=domain
   # Who am I?
   hostname=host.subdomain.$orgdomain
   # Who do I claim to be?
   mydomain=subdomain.$orgdomain
-\end{verbatim}
+\medskip\hrule\medskip
+\end{alltt}
 
 For example:
-\begin{verbatim}
+\nopagebreak
+\begin{alltt}\medskip\hrule\medskip
   orgdomain=toronto.edu
   hostname=relay.cs.$orgdomain
   mydomain=cs.$orgdomain
-\end{verbatim}
+\medskip\hrule\medskip
+\end{alltt}
 
 Create {\tt /etc/mail.conf} with appropriate contents.  If you are a
 multi-host site, determining these things can be automated according
@@ -309,15 +339,15 @@ to your local policies and conventions.  See the files specific to
 the University of Toronto ({\tt UT*.cf}) for examples of this.
 
 Location of this file is written in {\tt \$MAILSHARE/router.cf}.
-By editing that entry you can alter it --- into {\tt \$MAILSHARE/mail.conf},
+By editing that entry you can alter it -- into {\tt \$MAILSHARE/mail.conf},
 for example.
 
-{\em Note that {\tt hostname=} entry above {\bf is not alone sufficient}
+{\em Note that ``{\tt hostname=}'' entry above {\bf is not alone sufficient}
 for getting the system to know all of the domains it should consider
 as local.  See below about {\tt localnames} database.}
 
 
-\subsubsection{/etc/group}%
+\subsection{/etc/group}%
 \index{build!{\tt /etc/group} entries}%
 \index{build!security note: {\tt /etc/group} entries}
 
@@ -337,56 +367,57 @@ arbitary files.)
 
 
 
-
-\subsubsection{Verifying That the Router Starts}%
+\subsection{Verifying That the Router Starts}%
 \index{build!router start verify}%
 \index{installation!router start verify}
 
 At this point, you should be able to start the router process in
 interactive mode.  Run:
-\begin{verbatim}
+\nopagebreak\par
+\vbox{
+\begin{alltt}\medskip\hrule\medskip
   $MAILBIN/router -i
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
 or
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
   /usr/lib/sendmail -bt
-\end{verbatim}
+\medskip\hrule\end{alltt}\medskip
+}%\vbox
 
 You should see something like:
-\begin{verbatim}
-  ZMailer router (2.99.49p5 #4: Wed Jul 23 01:24:37 EET DST 1997)
-  you@hostname:/some/path/to/src/zmailer/router
-  Copyright 1992 Rayan S. Zachariassen
-  Copyright 1992-1997 Matti Aarnio
-  
-  z#    
-\end{verbatim}
+\begin{alltt}\medskip\scriptsize\hrule\medskip
+ZMailer router (2.99.50 #4: Sun May 10 15:24:09 EEST 1998)
+you@hostname:/some/path/to/src/zmailer/router
+Copyright 1992 Rayan S. Zachariassen
+Copyright 1992-1998 Matti Aarnio
+
+z#
+\medskip\hrule\end{alltt}\medskip
 
 If there are errors in the configuration file, you will be told here.
-The `z\#' is the interactive prompt for root. It is unlikely you can do anything useful 
-before setting up the data files, so get out of this by hitting EOF, or type {\tt exit}.
+The ``{\tt z\#}'' is the interactive prompt for root.
+It is unlikely you can do anything useful before setting up the data files,
+so get out of this by hitting EOF, or type {\tt exit}.
 
 
-
-
-\subsubsection{The Database and Forms Files}%
+\subsection{The Database Files}%
 \index{build!config!databases}%
 \index{build!config!forms files}%
 \index{configuration!forms files}%
 \index{configuration!databases}
 
-Now you should merge, replace, or check the default database and
-forms files with your previous setup.
+Now you should merge, replace, and very least check the default database
+and forms files against your previous setup.
 
 Pay particular attention to the following items:
-\begin{description}
-\item[{\tt \$MAILBIN/zmailer} script] \mbox{}
+
+\subsubsection{{\tt \$MAILBIN/zmailer} script}
 
 You may want to add a symbolic link from some directory in your path
 to {\tt \$MAILBIN/zmailer}, if you don't already have this.  I put this link
 in {\tt /usr/local/sbin}.
 
-\item[{\tt \$MAILVAR/db/aliases} file] \mbox{}
+\subsubsection{{\tt \$MAILVAR/db/aliases} file}
 
 The provided skeleton aliases file on purpose contains syntax errors,
 so you are reminded to change the contents.
@@ -404,27 +435,27 @@ This can be invoked in several ways:
 \end{itemize}
 
 Choose one of the following methods to rebuild the database:
-\begin{verbatim}
-  # $MAILBIN/newaliases
-  # $MAILBIN/zmailer newaliases
-  # /usr/lib/sendmail -bi
-  # ln -s /usr/lib/sendmail /usr/bin/newaliases ; \
-      /usr/bin/newaliases
-\end{verbatim}
+\begin{alltt}\medskip\small\hrule\medskip
+# $MAILBIN/newaliases
+# $MAILBIN/zmailer newaliases
+# /usr/lib/sendmail -bi
+# /usr/bin/newaliases
+\medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the {\tt \$MAILVAR/db/aliases} file
 and repeat the command until the alias database has been initialized.
 The final message should look something like:
-\begin{verbatim}
-    319 aliases, longest 209 bytes, 16695 bytes total
-\end{verbatim}
+\begin{alltt}\medskip\scriptsize\hrule\medskip
+ 319 aliases, longest 209 bytes, 16695 bytes total
+\medskip\hrule\end{alltt}\medskip
 
 See also IETF's RFC 2142: ``Mailbox Names for Common Services, Roles and
 Functions'' (file {\tt rfc2142.txt} in the {\tt doc/rfc} directory) 
 for other suggestable aliases you may need. 
 
 
-\item[{\tt \$MAILVAR/db/localnames} file] \mbox{}
+\subsubsection{{\tt \$MAILVAR/db/localnames} file}
+
 \index{build!{\tt \$MAILVAR/db/localnames} file}%
 \label{configure_localnames_file}
 
@@ -433,147 +464,132 @@ Add the hostnames you want ZMailer to do local delivery for, to the
 I usually add partially qualified domain names and nicknames in
 addition to canonicalized names.  If you want to do local delivery
 for mail clients, put their names in here too.  You may use pathalias 
-style .domain names in this file, to indicate everything under some
+style {\tt.domain} names in this file, to indicate everything under some
 subdomain.
 
-With the sample config files for mea's Zmailer-2.98, and latter
+With the sample config files for Zmailer-2.98, and latter,
 this {\tt localnames} is actually a mapping of those various names to
 the desired forms of the canonic name, thus an example:
-\begin{verbatim}
-  astro.utu.fi        astro.utu.fi
-  oj287               astro.utu.fi
-  oj287.astro.utu.fi  oj287.astro.utu.fi
-  oj287.utu.fi        astro.utu.fi
-  sirius              sirius.utu.fi
-  sirius.astro.utu.fi sirius.utu.fi
-  sirius.utu.fi       sirius.utu.fi
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+astro.utu.fi        astro.utu.fi
+oj287               astro.utu.fi
+oj287.astro.utu.fi  oj287.astro.utu.fi
+oj287.utu.fi        astro.utu.fi
+sirius              sirius.utu.fi
+sirius.astro.utu.fi sirius.utu.fi
+sirius.utu.fi       sirius.utu.fi
+\medskip\hrule\medskip\end{alltt}
 
 In certain cases the router is able to deduce some of the names,
 {\em however smtpserver anti-relay policy compiler will not be able
- to do so, and needs this data badly!}
+ to do so, and needs this data!}
 
 Thus: {\bf All names that the host may ever have are best listed in here!}
 It reminds you of them, and makes sure a message destined into the host
 really is accepted.
 
 Compile this into runtime binary database with command:
-\begin{verbatim}
+\begin{alltt}\medskip\hrule\medskip
     zmailer new-localnames
-\end{verbatim}
+\medskip\hrule\medskip\end{alltt}
 (fall-back method is sequential rescan of the text file)
 
-\item[{\tt \$MAILVAR/db/routes} file] \mbox{}
+\subsubsection{{\tt \$MAILVAR/db/routes} file}
 
 Add any UUCP neighbours or other special cases to this file.  For
 example (remember to keep the entries sorted):
-\begin{verbatim}
-  .toronto.ca     error!err.wrongname
-  .toronto.cdn    error!err.wrongname
-  alberta         uucp!alberta
-  atina           smtp![140.191.2.2]
-  calgary         smtp!cs-sun-fsa.cpsc.ucalgary.ca
-  icnucevm.bitnet smtp!icnucevm.cnuce.cnr.it
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+.toronto.ca     error!err.wrongname
+.toronto.cdn    error!err.wrongname
+alberta         uucp!alberta
+atina           smtp![140.191.2.2]
+calgary         smtp!cs-sun-fsa.cpsc.ucalgary.ca
+icnucevm.bitnet smtp!icnucevm.cnuce.cnr.it
+\medskip\hrule\end{alltt}
 
-\item[{\tt \$MAILVAR/db/fqdnaliases} file] \mbox{}
+\subsubsection{{\tt \$MAILVAR/db/fqdnaliases} file}
 
 The {\tt fqdnaliases} database is for mapping fully-qualified user
-addresses to others --- for example you machine has a set of
+addresses to others -- for example you machine has a set of
 domain-names for it to consider local, but you want to have
 separate people to be postmasters for each of them:
-\begin{verbatim}
-  postmaster@domain1: person1
-  postmaster@domain2: person2
-  postmaster@domain3: person3, person4
-\end{verbatim}
-
+\begin{alltt}\medskip\hrule\small\medskip
+postmaster@domain1: person1
+postmaster@domain2: person2
+postmaster@domain3: person3, person4
+\medskip\hrule\medskip\end{alltt}
 
 It is also possible to shunt all recipient addresses for given domain
 to some arbitary addresses:
-\begin{verbatim}
-  @domain4:  person4
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+@domain4:  person4
+\medskip\hrule\medskip\end{alltt}
 
-
-This facility is always in stand-by --- just add the file, and
+This facility is always in stand-by -- just add the file, and
 you have it.
 
-You may even handle just a few users for each of those domains, and
-then have the {\tt routes} entry (see above) to declare something suitable:
-\begin{verbatim}
-  .domain1        error!nosuchuser
-\end{verbatim}
+You may even handle just a few users for each of those domains, and then
+have the ``{\tt routes}'' entry (see above) to declare something suitable:
+\begin{alltt}\medskip\hrule\small\medskip
+.domain1  error!nosuchuser
+\medskip\hrule\medskip\end{alltt}
 
 which combined with the {\tt fqdnalias} method will let
 {\tt postmaster@domain1} to exist, and report error on all others.
 
-The {\tt fqdnaliases} database is rebuilt using
-the {\tt \$MAILBIN/newfqdnaliases} script.
-This can be invoked in several ways: directly as a command
-by executing {\tt \$MAILBIN/newfqdnaliases}, or
-by {\tt zmailer newfqdnaliases}.
-
 Choose one of the following methods to rebuild the database:
-\begin{verbatim}
-    # $MAILBIN/newfqdnaliases
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+# $MAILBIN/newfqdnaliases
+\medskip\hrule\medskip\end{alltt}
 or
-\begin{verbatim}
-    # $MAILBIN/zmailer newfqdnaliases
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+# $MAILBIN/zmailer newfqdnaliases
+\medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the {\tt \$MAILVAR/db/fqdnaliases} file
 and repeat the command until the alias database has been initialized.
 The final message looks similar to that of the ordinary aliases case.
-\end{description}
 
 
-
-\subsubsection{UUCP and BITNET Node Names}
+\subsection{UUCP Node Names}
 
 If your hostname and UUCP node name are not identical, put your
 UUCP node name in the file {\tt /etc/name.uucp} (or {\tt /etc/uucpname}).
 
-If you are on BITNET, put your BITNET node name in {\tt /etc/name.bitnet}
-(or {\tt /usr/lib/urep/BITNETNAME}). (And if you really need BITNET stuff, have a look at:
-{\tt ftp://ftp.funet.fi/pub/unix/networking/bitnet/})
-
-
-
-
-\subsubsection{Checking the Routing}
+\subsection{Checking the Routing}
 
 At this point, you should be able to start the router again in
 interactive mode, and ask it to route addresses.  Try:
-\begin{verbatim}
-    /usr/lib/sendmail -bt
-\end{verbatim}
+\begin{alltt}\medskip\hrule\medskip
+/usr/lib/sendmail -bt
+\medskip\hrule\end{alltt}\medskip
 
 at the prompt:
-\begin{verbatim}
-    z# router you
-\end{verbatim}
+\begin{alltt}\medskip\hrule\medskip
+z# router you
+\medskip\hrule\end{alltt}\medskip
 
 should print out:
-\begin{verbatim}
-    (((local you you default_attributes)))
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+(((local you you default_attributes)))
+\medskip\hrule\end{alltt}\medskip
 
 
 Keep playing around with various addresses until you get a feel for it.
 Modify the configuration file if your setup requires it.
 
+To give more feeling of what goes on during the ``{\em route}''-command,
+you can give command ``{\em rtrace}'' before trying to use ``{\em route}.''
 
-\subsubsection{/etc/services}
+\subsection{/etc/services}
 
 Add the following line to {\tt /etc/services} in the section for
 host-specific services:
-\begin{verbatim}
-    mailq        174/tcp      # Mailer transport queue
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+mailq   174/tcp  # Mailer transport queue
+\medskip\hrule\end{alltt}
 
-\subsubsection{Checking the Scheduler}
+\subsection{Checking the Scheduler}
 
 The location of the {\tt scheduler.conf} on running system is
 {\tt \$MAILSHARE/scheduler.conf}
@@ -583,25 +599,26 @@ For normal operations the current sample {\tt scheduler.conf}%
 you want to do something unusual, like using {\tt procmail} for
 local delivery.
 
-Following is extract from the sample  {\tt scheduler.conf}-file:
-\begin{verbatim}
+Following is extract from the sample  {\tt scheduler.conf}-file,
+here are some salient points:
+\begin{alltt}\medskip\hrule\scriptsize\medskip
 local/*
-    interval=5m
-    idlemax=9m
-    expiry=3d
-    # want 20 channel slots, but only one HOST
-    maxchannel=15
-    maxring=5
-    # Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
-    # conversion on flight!
-    command="mailbox -8"
-    # Or with PROCMAIL as the local delivery agent:
-    #command="sm -8c $channel procm"
-    # Or with CYRUS server the following might do:
-    #command="sm -8c $channel cyrus"
-\end{verbatim}
+ interval=5m
+ idlemax=9m
+ expiry=3d
+ # want 20 channel slots, but only one HOST
+ maxchannel=15
+ maxring=5
+ # Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+ # conversion on flight!
+ command="mailbox -8"
+ # Or with PROCMAIL as the local delivery agent:
+ #command="sm -8c $channel procm"
+ # Or with CYRUS server the following might do:
+ #command="sm -8c $channel cyrus"
+\medskip\hrule\medskip\end{alltt}
 
-There are three variants of the {\tt command=} entry:
+There are three variants of the ``{\tt command=}'' entry:
 \begin{description}
 \item[{\tt command="mailbox -8"}] \mbox{}
 
@@ -609,22 +626,17 @@ The normal {\em ZMailer} {\tt mailbox}(8) channel program.
 
 \item[{\tt command="sm -8c \$channel procm"}] \mbox{}
 
-Variant for running {\tt procmail}.
+Variant for running {\em procmail}.
 
 \item[{\tt command="sm -8c \$channel cyrus"}] \mbox{}
 
 Variant for using {\em CMU Cyrus} message store server.
 \end{description}
 
+For more information regarding {\em scheduler} configuration language,
+see chapter \vref{schedulerconfig}.
 
-For more information, see chapter
-\ref{schedulerconfig}
-%begin{latexonly}
-(page \pageref{schedulerconfig})
-%end{latexonly}
-.
-
-\subsubsection{Checking {\tt sm.conf} file}%
+\subsection{Checking {\tt sm.conf} file}%
 \index{{\tt sm.conf}-file}
 
 For some uses the scheduler runs {\tt sm}(8) program -- called
@@ -641,52 +653,57 @@ for things like:
 \item supporting {\em CMU Cyrus message store} as local delivery agent
 \end{itemize}
 
-For more information, see chapter
-\ref{smconfig}
-%begin{latexonly}
-(page \pageref{smconfig})
-%end{latexonly}
-.
+For more information, see chapter \vref{smconfig}.
 
 
-\subsubsection{Bootup Scripts}
+\subsection{The {\tt smtpserver.conf}, and smtp-policy databases}
+
+{\em\large TO BE WRITTEN}
+
+\subsection{Bootup Scripts}
 
 Add something like the following lines to bootup scripts ({\tt /etc/rc.local}
 or {\tt /etc/rc2.d/S99local} or similar):
-\begin{verbatim}
-    if [ -r /etc/zmailer.conf ]; then
-    (
-        . /etc/zmailer.conf
-        if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
-                $MAILBIN/zmailer bootclean
-                $MAILBIN/zmailer & (echo -n ' zmailer') >/dev/console
-        fi
-    )
-    fi
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+if [ -r /etc/zmailer.conf ]; then
+(
+  . /etc/zmailer.conf
+  if [ ${MAILSERVER-NONE} = NONE -a
+       -x $MAILBIN/zmailer ]; then
+    $MAILBIN/zmailer bootclean
+    $MAILBIN/zmailer & \verb/\/
+      (echo -n ' zmailer') >/dev/console
+  fi
+)
+fi
+\medskip\hrule\end{alltt}\medskip
 
-For SysV-init environments, see {\tt utils/zmailer.init.sh}.
-You may want to comment out startup of the Sendmail daemon, if you have it to begin with.
+
+For SysV-init environments, see source-tree file: {\tt utils/zmailer.init.sh}.
+You may want to comment out startup of the Sendmail daemon,
+if you have it to begin with.
 
 
-\subsubsection{Checking the Log Files}
+\subsection{Checking the Log Files}
 
 Start ZMailer:
-\begin{verbatim}
-    $MAILBIN/zmailer
-\end{verbatim}
+\begin{alltt}\medskip\hrule\medskip
+  $MAILBIN/zmailer
+\medskip\hrule\end{alltt}\medskip
 
-Keep an eye on the log files ({\tt \$LOGDIR/\{router,scheduler\}/}),
+
+Keep an eye on the log files ({\tt \$LOGDIR/router, \$LOGDIR/scheduler}),
 the {\tt \$POSTOFFICE/postman/} directory for malformed message files,
 and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
 
-
-\subsubsection{Crontab}
+\subsection{Crontab}
 
 Add the following entry (or equivalent) to your {\tt crontab}:
-\begin{verbatim}
-    28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+28 0,8,16 * * * . /etc/zmailer.conf ; \verb/\/
+            $MAILBIN/zmailer resubmit
+\medskip\hrule\end{alltt}\medskip
+
 
 This will resubmit messages that have been deferred with no
 useful processing possible at time of deferral.  Adjust the
@@ -694,48 +711,41 @@ resubmission interval to suit your environment.
 
 You may also want to regularly clean out the {\tt \$POSTOFFICE/public}
 and {\tt \$POSTOFFICE/postman} directories:
-\begin{verbatim}
-    7 4 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
-\end{verbatim}
+\begin{alltt}\medskip\hrule\small\medskip
+7 4 * * * . /etc/zmailer.conf ; \verb/\/
+          $MAILBIN/zmailer cleanup
+\medskip\hrule\end{alltt}\medskip
 
 You may want to hardwire the location of the zmailer script.
 
 
-\subsubsection{Customizing ZMailer Messages}
+\subsection{Customizing ZMailer Messages}
 
 Edit several of the canned error messages and programs (scripts)
 to reflect your local configuration: {\tt \$MAILSHARE/forms/} files and
 {\tt \$MAILBIN/ta/usenet} (injected message).
 
+{\large\em XREF to Scheduler}
 
-\subsubsection{Alias expansion}
+\subsection{Alias expansion}
 
 Read the notes on alias expansion in the file {\tt doc/guides/aliases} and
-on mailing list maintenance in \ref{mailing_list_maintenance}, 
-Mailing Lists and \verb!~/.forward!%
-%begin{latexonly}%
-, page \pageref{mailing_list_maintenance}%
-%end{latexonly}%
-.
+on mailing list maintenance in \vref{mailing_list_maintenance}, 
+{\em Mailing Lists and \tt\~/.forward}.
 
 
-\subsubsection{Trimdown of Logging}
+\subsection{Trimdown of Logging}
 
 Once satisfied that things appear to work, you may want to trim down
-logging: there are 4 kinds of logging to deal with:
+logging: there are four kinds of logging to deal with:
 \begin{itemize}
 \item Router logs:
 
 Usually kept in {\tt \$LOGDIR/router}.  This is the stdout
 and stderr output of the router daemon.  If you wish to turn it off,
-invoke router with a {\tt -L/dev/null} option, i.e. change the zmailer
-script.  Alternatively, modify the {\tt log()} function in the
-configuration file, or its invocations.
+see {\tt\$MAILSHARE/cf/standard.cf} for routine  {\tt dribble()},
+and especially its invocations!
 
-*** NOTE, THIS IS INCORRECT INFO, see  \$MAILSHARE/cf/standard.cf for
-*** routine   dribble(),  and especially its invocations!
-
-\vspace{1pt}
 \item Scheduler logs:
 
 Usually kept in {\tt \$LOGDIR/scheduler}.  Same as router.
@@ -749,32 +759,33 @@ All ZMailer programs log using the LOG\_MAIL facility code for normal
 messages.  You can deal with this specifically in your {\tt syslog}
 configuration file on systems with a 4.3bsd-based syslog.  The
 following reflects the recommended configuration on SunOS 4.0:
-\begin{verbatim}
-   mail.crit       /var/log/syslog
-   mail.debug      /var/log/mail
-\end{verbatim}
+\begin{alltt}\medskip\small\hrule\medskip
+mail.crit   /var/log/syslog
+mail.debug  /var/log/mail/mail.syslog
+\medskip\hrule\end{alltt}\medskip
 
 For pre-4.3bsd-based syslogs, you may want the syslog log file
 to be just for important messages (e.g. LOG\_NOTICE and higher
 priority), and have a separate file for informational messages
 (LOG\_DEBUG and up).
 
-\vspace{1pt}
-\item By default, the postmaster will receive a copy of all bounced
-mail; this can be turned off selectively by simply editing the
-various canned forms used to create the error messages.  These
-forms are located in the FORMSDIR ({\tt proto/forms} in the distribution,
-or {\tt \$MAILSHARE/forms} when installed).  You should review these
-in any case to make sure the text is appropriate for your site.
+\item By default, the postmaster will {\bf not} receive a copy
+of all bounced mail; this can be turned on selectively by simply
+editing the various canned forms used to create the error messages.
+These forms are located in the FORMSDIR ({\tt proto/forms} in
+the distribution, or {\tt \$MAILSHARE/forms} when installed).
+You should review these in any case to make sure the text is
+appropriate for your site.
+
 \end{itemize}
 
 
-\subsection{Installation on Clients}
+\section{Installation to Clients}
 
-This section describes the installation on clients.
+This section describes the installation at clients.
 
 
-\subsubsection{Required Files}
+\subsection{Required Files}
 
 The following files/programs are needed on clients:
 \begin{itemize}
@@ -802,17 +813,18 @@ This directory from the server should be mounted and writable.
 \end{itemize}
 
 
-\subsubsection{Mounting {\tt \$MAILBOX}es and/or {\tt \$POSTOFFICE} Hierarchies via NFS}
+\subsection{Mounting {\tt \$MAILBOX}es and/or {\tt \$POSTOFFICE} Hierarchies via NFS}
 
-Mostly at client machines, but also at servers.
+This is mostly for client machines,
+but the NFS may plaque you also at servers.
 
 If you for some obscure reason are mounting {\tt \$MAILBOX}es
 and/or {\tt \$POSTOFFICE} hierarchies via NFS, do it with
 options to disable various attribute caches:
-\begin{verbatim}
+\begin{alltt}
               actimeo=0
     alias:    noac
-\end{verbatim}
+\end{alltt}
 
 {\bf The best advice is to NOT to mount anything over NFS},
 but some people can't be persuaded...
@@ -825,21 +837,22 @@ caused by bad attribute caches.)
 If you are mounting people's home directories ({\tt .forward} et al.)
 via NFS, consider the same rule!
 
-Often if the mail folder directory is shared, also (depending upon the system):
-\begin{verbatim}
+Often if the mail folder directory is shared, also
+one of following (depending upon the system):
+\begin{alltt}
     /usr/mail
     /usr/spool/mail
     /var/mail
     /var/spool/mail
-\end{verbatim}
+\end{alltt}
 
 
-\subsubsection{{\tt ./configure} options}%
+\subsection{{\tt ./configure} options}%
 \index{build!configure!options}%
 \index{configure!options}%
 \label{configure_options_list}
 
-configure  options of ZMailer package, per version 2.99.49p10
+configure  options of ZMailer package, per version 2.99.50.
 
 
 The  configure  script has three kinds of parameters for it:
@@ -850,7 +863,7 @@ The  configure  script has three kinds of parameters for it:
 \end{itemize}
 
 
-\paragraph{Used environment variables}
+\subsubsection{Used environment variables}
 
 \begin{description}
 \item[\tt ZCONFIG="/file/path"] \mbox{}
@@ -865,48 +878,48 @@ Obvious ones, compiler, and possible "-g -O" flags...
 
 \item[\tt CPPDEP="command"] \mbox{}
 
-Not normally needed --- builds dependencies
+Not normally needed -- builds dependencies
 
 \item[\tt INEWSBIN=/file/path] \mbox{}
 
 If you want to pre-define where your `inews' program
-is --- for possible use of `usenet' channel.
+is -- for possible use of `usenet' channel.
 \end{description}
 
 Recycled ZENV variables (from {\tt \$ZCONFIG} file):
-\begin{verbatim}
-    For these see  SiteConfig(.in)  file
+\begin{alltt}\medskip
+  For these see  SiteConfig(.in)  file
 
-    ZCONFIG=
-    MAILBOX=
-    POSTOFFICE=
-    MAILSHARE=
-    MAILVAR=
-    MAILBIN=
-    LOGDIR=
-    NNTPSERVER=
-    SCHEDULEROPTIONS=
-    ROUTEROPTIONS=
-    SMTPOPTIONS=
-    LOGDIR=
-    SENDMAILPATH=
-    RMAILPATH=
-    SELFADDRESSES=
-\end{verbatim}
+  ZCONFIG=
+  MAILBOX=
+  POSTOFFICE=
+  MAILSHARE=
+  MAILVAR=
+  MAILBIN=
+  LOGDIR=
+  NNTPSERVER=
+  SCHEDULEROPTIONS=
+  ROUTEROPTIONS=
+  SMTPOPTIONS=
+  LOGDIR=
+  SENDMAILPATH=
+  RMAILPATH=
+  SELFADDRESSES=
+\end{alltt}
 
-\paragraph{Options for various facilities}
+\subsubsection{Options for various facilities}
 
 \begin{description}
-\item[\tt ---prefix=/DIR/PATH] \mbox{}
+\item[\tt --prefix=/DIR/PATH] \mbox{}
 
 The only really mandatory option, gives actually
 defaults for \verb:MAILSHARE/MAILVAR/MAILBIN:.
 
-\item[\tt ---with-gcc] \mbox{}
+\item[\tt --with-gcc] \mbox{}
 
 Compile with GCC even when you have "cc" around.
 
-\item[\tt ---with-zconfig=/FILE/PATH] \mbox{}
+\item[\tt --with-zconfig=/FILE/PATH] \mbox{}
 
 Where the runtime   {\tt zmailer.conf}   file is located
 at (and with what name).  This is {\bf the only} hard-coded
@@ -916,17 +929,20 @@ Everything else is runtime relocatable by means of using
 
 Default: {\tt /etc/zmailer.conf}
 
-\item[\tt ---with-mailbox=/DIR/PATH] \mbox{}
+\item[\tt --with-mailbox=/DIR/PATH] \mbox{}
 
 Overrides system-dependent location of the user mail-boxes.
 Defaults are looked up thru list of directories:
-\begin{verbatim}
-   /var/mail /var/spool/mail /usr/mail /usr/spool/mail
-\end{verbatim}
-First found directory will be the default --- or then
+\begin{alltt}
+ /var/mail
+ /var/spool/mail
+ /usr/mail
+ /usr/spool/mail
+\end{alltt}
+First found directory will be the default -- or then
 system yields  {\tt /usr/spool/mail}
 
-\item[\tt ---with-postoffice=/DIR/PATH] \mbox{}
+\item[\tt --with-postoffice=/DIR/PATH] \mbox{}
 
 Overrides system-dependent location of the "{\tt \$POSTOFFICE}"
 directory under which system stores queued email.
@@ -935,48 +951,48 @@ see, if previously installed directory tree exists.
 Default will be  \verb:/var/spool/postoffice/:
 in case there is no previously created postoffice directory.
 
-\item[\tt ---with-mailshare=/DIR/PATH] \mbox{}
-\item[\tt ---with-mailvar=/DIR/PATH] \mbox{}
-\item[\tt ---with-mailbin=/DIR/PATH] \mbox{}
+\item[\tt --with-mailshare=/DIR/PATH]
+\item[\tt --with-mailvar=/DIR/PATH]
+\item[\tt --with-mailbin=/DIR/PATH] \mbox{}
 
 These are overrides for values derived from  \verb:--prefix=/DIR:
 option.  {\tt MAILSHARE = "\$PREFIX"}, {\tt MAILVAR = "\$PREFIX"},
 but the last is {\tt MAILBIN = "\$PREFIX/bin"}
 
-\item[\tt ---with-logdir=/DIR/PATH] \mbox{}
+\item[\tt --with-logdir=/DIR/PATH] \mbox{}
 
 Explicite value to replace {\tt \$LOGDIR} ZENV value and/or to
 override default value of:  {\tt /var/log/mail}
 
-\item[\tt ---with-nntpserver=HOST] \mbox{}
+\item[\tt --with-nntpserver=HOST] \mbox{}
 
 If you want to use `{tt usenet}' channel, you need to name
 NNTP server into which you feed news with NNTP.
 
-\item[\tt ---with-sendmailpath=/FILE/PATH] \mbox{}
+\item[\tt --with-sendmailpath=/FILE/PATH] \mbox{}
 
 Overrider for default location(s) of sendmail program.
 ZENV variable \verb:$SENDMAILPATH: can be overridden with this.
 
-\item[\tt ---with-rmailpath=/FILE/PATH] \mbox{}
+\item[\tt --with-rmailpath=/FILE/PATH] \mbox{}
 
 Overrider for default location(s) of rmail program.
 ZENV variable \verb:$RMAILPATH: can be overridden with this.
 
-\item[\tt ---with-selfaddresses="NAME,NAME"] \mbox{}
+\item[\tt --with-selfaddresses="NAME,NAME"] \mbox{}
 
 Obsolete option regarding providing into in ZENV variable
 to yield system internal names automagically for the SMTP
 transport channel uses, and also for the router to see,
 if destination IP address is local at the system.
 
-\item[\tt ---with-system-malloc] \mbox{}
+\item[\tt --with-system-malloc] \mbox{}
 
 Use system malloc() library, don't compile own:
 Alternate for using: \verb:--with-libmalloc=system:
 This is default.
 
-\item[\tt ---with-libmalloc=LIBNAME] \mbox{}
+\item[\tt --with-libmalloc=LIBNAME] \mbox{}
 
 Where "{\tt LIBNAME}" is one of:
 \begin{description}
@@ -993,71 +1009,71 @@ Bundled "libmalloc" without debugging things.
 Bundled "libmalloc" {\bf with} debugging things.
 \end{description}
 
-\item[\tt ---with-yp] \mbox{}
+\item[\tt --with-yp] \mbox{}
 
 Want to use YP, and has it at default locations
 
-\item[\tt ---with-yp-lib='-L... -lyp'] \mbox{}
+\item[\tt --with-yp-lib='-L... -lyp'] \mbox{}
 
 If needed to define linking-time options to find the YP-library.
 
-\item[\tt ---with-ldap-prefix=DIRPREFIX] \mbox{}
+\item[\tt --with-ldap-prefix=DIRPREFIX] \mbox{}
 
 If UMich/NetScape {\em LDAP} are available thru {\tt DIRPREFIX/include/}
 and {\tt DIRPREFIX/lib/} locations, this is a short-hand to find
-the interface --- with files in the system primary include
+the interface -- with files in the system primary include
 and lib locations,  "{\tt /usr}" is a special value which will be
 ignored.  No default value for {\tt DIRPREFIX}.
 
-\item[\tt ---with-ldap-include-dir=/DIR/PATH] \mbox{}
+\item[\tt --with-ldap-include-dir=/DIR/PATH] \mbox{}
 
 Special overrider for compilation include directory of LDAP
 
-\item[\tt ---with-ldap-library-dir=/DIR/PATH] \mbox{}
+\item[\tt --with-ldap-library-dir=/DIR/PATH] \mbox{}
 
 Special overrider for linkage library directory of LDAP
 
-\item[\tt ---without-fsync] \mbox{}
+\item[\tt --without-fsync] \mbox{}
 
 At systems where the local filesystem is log-based/journaling,
 doing   fsync()  is wastefull.  This disables fsync() in
 cases where it is not needed.    (In others it may boost
-your system performance by about 20% --- with dangers..
+your system performance by about 20% -- with dangers..
 On the other hand, recently a system disk(?) fault which
 hang mailer at spool directory access did cause severe
 damage all over, and propably use of this option would
 not have made any difference..  fsck was mighty unhappy..)
 
-\item[\tt ---with-bundled-libresolv] \mbox{}
+\item[\tt --with-bundled-libresolv] \mbox{}
 
 If your system is not very modern, you may consider using
 this option to compile in a resolver from bind-4.9.4-REL.
 On the other hand, if your system is modern, it may have
 even newer resolver in it.  At such time, don't use this!
 
-\item[\tt ---with-ipv6] \mbox{}
+\item[\tt --with-ipv6] \mbox{}
 
 Use IPv6 at things where it is supported.  This is often
 highly experimental, although many subsystems in ZMailer
 are built with   getnameinfo()  et.al. interfaces, which
 works both on IPv4 and IPv6.
 
-\item[\tt ---with-ipv6-replacement-libc] \mbox{}
+\item[\tt --with-ipv6-replacement-libc] \mbox{}
 
 If the system needs more support for user-space IPv6
 things, this generates those.
 
-\item[\tt ---without-rfc822-tabs] \mbox{}
+\item[\tt --without-rfc822-tabs] \mbox{}
 
 Some systems dislike getting RFC-822 headers with form of:
-\begin{verbatim}
-   "Headername: <TAB> value"
-\end{verbatim}
-With this option, no TABs are used and instead "ordinary"
+\begin{alltt}
+   "Headername: <HTAB> value"
+\end{alltt}
+With this option, no HTABs are used and instead "ordinary"
 space character is used.
 
-\item[\tt ---with-tcp-wrappers] \mbox{}
-\item[\tt ---with-tcp-wrappers=/DIR/PATH] \mbox{}
+\item[\tt --with-tcp-wrappers]
+\item[\tt --with-tcp-wrappers=/DIR/PATH] \mbox{}
 
 Optional  {\tt =/DIR/PATH}  value gives directory where there are
 {\tt <tcpd.h>}  and  {\tt libwrap.a}  files.
@@ -1065,12 +1081,12 @@ Without value this option looks for several common locations
 for those files, and if finds them, yields compile and linking
 hooks,
 
-\item[\tt ---with-ta-mmap] \mbox{}
+\item[\tt --with-ta-mmap] \mbox{}
 
-Some systems with good {\tt mmap()} with MAP\_FILE|MAP\_SHARED,
+On some systems with good {\tt mmap()} with ``MAP\_FILE\verb/|/MAP\_SHARED,''
 and well behaving  {\tt munmap()}  it does make sense to replace
 read()/write() thru a file-descriptor to the file with
-mmap() --- however that requires munmap() {\bf not to} scrub
+mmap() -- however that requires munmap() {\bf not to} scrub
 away in-mapped blocks any more actively, than the buffer-cache
 works at read()/write() blocks.
 
@@ -1078,7 +1094,7 @@ This was default for a while, however most systems don't
 have really well-behaved munmap()s :-/
 (Perhaps IBM AIX is the only exception ?)
 
-\item[\tt ---with-getpwnam-library="-L... -l..."] \mbox{}
+\item[\tt --with-getpwnam-library="-L... -l..."] \mbox{}
 
 Certain sites have expressed wishes to use their own libraries
 to replace the standard {\tt getpwnam()} (and possibly {\tt getpwuid()}
@@ -1099,6 +1115,9 @@ For {\em ZMailer} needs the library must support userids:
 and whatever others your local system magic needs.
 \end{description}
 
-\subsection{Verifying the System}
+\section{Verifying the System}
 
-Text to be inserted here.
+{\em\large TO BE WRITTEN}
+
+
+\end{multicols}

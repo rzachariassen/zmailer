@@ -1,6 +1,7 @@
-%% \subsection{Internal File Data Formats}
+%% \section{Internal File Data Formats}
 
-\subsection{Message File Format}
+\section{Message File Format}
+\label{msg_file_format}
 
 As mentioned, the {\em router\/} picks up message files from a specific directory.
 Normally, message file names can be arbitrary valid file names, and indeed
@@ -34,7 +35,7 @@ different, and will be covered later.
 
 
 
-\subsubsection{Envelope Header Lines}
+\subsection{Envelope Header Lines}
 
 
 
@@ -253,7 +254,7 @@ SMTP only deals with ASCII data with a small guaranteed line length.
 
 
 
-\subsection{Message Control File}
+\section{Message Control File}
 
 A message control file is a file created by the {\em router\/} to contain all the
 information necessary for delivery of a message submitted in a
@@ -284,7 +285,7 @@ by the sample control file shown in the following subsection.
 
 
 
-\subsubsection{Format}
+\subsection{Format}
 
 A control file consists of a sequence of fields.  Each field starts at the
 beginning of a line (i.e. at byte 0 or after a Newline), and is identified
@@ -529,7 +530,7 @@ last message header field.
 
 
 
-\subsection{Scheduler and Transport Agent Protocol}
+\section{Scheduler and Transport Agent Protocol}
 
 
 
@@ -594,11 +595,11 @@ The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
 
 
 
-\subsection{Database File Formats}
+\section{Database File Formats}
 
 
 
-\subsubsection{Aliases File}
+\subsection{Aliases File}
 
 
 

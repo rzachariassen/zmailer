@@ -1,4 +1,4 @@
-%% \subsection{sendmail}
+%% \section{sendmail}
 
 This {\em sendmail\/} program is an emulation of the original
 {\em sendmail\/} interface. It provides all the original options
@@ -34,21 +34,21 @@ appended to a {\tt dead.letter} file in the submitters home directory.
 {\bf Parameters}
 
 \begin{description}
-\item[ {\tt -bm}] \mbox{}
+\item[ {\tt -bm}] \mbox{} \\
 
 asks {\em sendmail\/} to deliver mail, which it does anyway. 
 This option has no effect.
 
 
 
-\item[ {\tt -bs}] \mbox{}
+\item[ {\tt -bs}] \mbox{} \\
 
 will start an {\em SMTP\/} server reading from {\tt stdin}. 
 This causes the {\em smtpserver(8)\/} program to be executed.
 
 
 
-\item[ {\tt -bd}] \mbox{}
+\item[ {\tt -bd}] \mbox{} \\
 
 starts the {\em router(8)\/} and {\em scheduler(8)\/} 
 programs to emulate {\em sendmail\/}'s daemon mode. This is {\bf not} a 
@@ -56,31 +56,31 @@ recommended method to start these programs, instead use {\em zmailer(1)\/}.
 
 
 
-\item[ {\tt -bt}] \mbox{}
+\item[ {\tt -bt}] \mbox{} \\
 
 runs the {\em router(8)\/} in interactive mode for testing.
 
 
 
-\item[ {\tt -bi}] \mbox{}
+\item[ {\tt -bi}] \mbox{} \\
 
 runs {\em newaliases(8)\/} to rebuild the alias file database.
 
 
 
-\item[ {\tt -bp}] \mbox{}
+\item[ {\tt -bp}] \mbox{} \\
 
 runs {\em mailq(1)\/} to print the mail transport queue status.
 
 
 
-\item[ {\tt -C configfile}] \mbox{}
+\item[ {\tt -C configfile}] \mbox{} \\
 
 specifies the {\em router(8)\/} configuration file.
 
 
 
-\item[ {\tt -E}] \mbox{}
+\item[ {\tt -E}] \mbox{} \\
 
 indicates the origin of this message is an insecure 
 channel. This should be used when {\em sendmail\/} is used to submit 
@@ -90,7 +90,7 @@ have no privileges even if the current {\tt userid} is ``trusted''.
 
 
 
-\item[ {\tt -f address}] \mbox{}
+\item[ {\tt -f address}] \mbox{} \\
 
 specifies the sender address. This is the default 
 originator address if there is no {\tt From:} header in the message. 
@@ -101,27 +101,27 @@ authenticated originator information.
 
 
 
-\item[ {\tt -F fullname}] \mbox{}
+\item[ {\tt -F fullname}] \mbox{} \\
 
 specifies the full name of the (local) sender.
 
 
 
-\item[ {\tt -i}] \mbox{}
+\item[ {\tt -i}] \mbox{} \\
 
 tells {\em sendmail\/} to not use a period (`.') on a line 
 by itself as a message terminator, only the end of file will terminate the message.
 
 
 
-\item[ {\tt -m}] \mbox{}
+\item[ {\tt -m}] \mbox{} \\
 
 asks the mailer not to ignore the originator in the 
 addressee list. This is default behaviour, so this option has no effect.
 
 
 
-\item[ {\tt -N notify}] \mbox{}
+\item[ {\tt -N notify}] \mbox{} \\
 
 sets Delivery-Status-Notification notify parameter 
 to be: {\tt NEVER}, or any combination of: {\tt SUCCESS}, 
@@ -129,46 +129,46 @@ to be: {\tt NEVER}, or any combination of: {\tt SUCCESS},
 
 
 
-\item[ {\tt -oi}] \mbox{}
+\item[ {\tt -oi}] \mbox{} \\
 
 is like {\tt -i}.
 
 
 
-\item[ {\tt -oQ postoffice}] \mbox{}
+\item[ {\tt -oQ postoffice}] \mbox{} \\
 
 specifies an alternate {\tt \$POSTOFFICE/} 
 directory.
 
 
 
-\item[ {\tt -q}] \mbox{}
+\item[ {\tt -q}] \mbox{} \\
 
 asks for queue processing. This option has no effect.
 
 
 
-\item[ {\tt -R retmode}] \mbox{}
+\item[ {\tt -R retmode}] \mbox{} \\
 
 sets Delivery-Status-Notification parameter to be 
 either of: {\tt FULL}, {\tt HDRS}.
 
 
 
-\item[ {\tt -r address}] \mbox{}
+\item[ {\tt -r address}] \mbox{} \\
 
 is like {\tt -f}.
 
 
 
-\item[ {\tt -t}] \mbox{}
+\item[ {\tt -t}] \mbox{} \\
 
 scans header for recipient addresses if none are specified 
 on the command line. This is also the default behaviour, so this option has no effect.
 
 
 
-\item[ {\tt -v}] \mbox{}
+\item[ {\tt -v}] \mbox{} \\
 
 will report the progress of the message after it has been 
 submitted. The {\em sendmail\/} process will write verbose log information 
@@ -176,7 +176,7 @@ to the {\tt stderr} stream until the {\em scheduler\/} deletes the message.
 
 
 
-\item[ {\tt -V envid}] \mbox{}
+\item[ {\tt -V envid}] \mbox{} \\
 
 sets Delivery-Status-Notification parameter {\tt ENVID} 
 to be any arbitrary [{\tt xtext}] string.

@@ -1,4 +1,4 @@
-%% \subsection{Scheduler}
+%% \section{Scheduler}
 
 The {\em scheduler\/} daemon manages the delivery processing of 
 messages in ZMailer.
@@ -155,10 +155,7 @@ This option overrides the default location for this special file, either
 
 
 
-
-
-
-\subsubsection{Configuration Language}
+\subsection{Configuration Language}
 \label{schedulerconfig}
 \index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
 
@@ -167,7 +164,7 @@ The {\em scheduler\/} configuration file consists of a set of clauses.
 
 
 
-\paragraph{Clause selection}
+\subsubsection{Clause selection}
 
 Each clause is selected by
 the pattern it starts with. The patterns for the clauses are matched,
@@ -201,7 +198,7 @@ be a channel pattern and the host pattern is assumed to be the wildcard
 
 
 
-\paragraph{Clause components}
+\subsubsection{Clause components}
 
 The components of a clause are separated by whitespace. The pattern
 introducing a clause must start in the first column of a line, and the
@@ -237,7 +234,7 @@ a second, minute, hour, or day value. For example: {\tt 1h5m20s}.
 
 
 
-\paragraph{Variables and keywords}
+\subsubsection{Variables and keywords}
 
 The known variables and keywords, and their typical values and semantics are:
 \begin{description}
@@ -454,7 +451,7 @@ errors leading to a deadlock of any queue.
 
 
 
-\subsubsection{Resource Management}
+\subsection{Resource Management}
 
 
 
@@ -502,7 +499,7 @@ the original spool-file MTIME. Oldest first.
 
 
 
-\subsubsection{mailq}
+\subsection{mailq}
 
 
 
@@ -607,7 +604,7 @@ to find more information than what is shown here by
 actually  looking  up  the  message     control  and  data  files
 referred to.
 
-\subsubsection{Security Issues}
+\subsection{Security Issues}
 
 Text to be inserted here.
 

@@ -3,17 +3,20 @@
 % generate \internal[xx]{} statements
 %
 
-\tableofcontents
-%begin{latexonly}
-\cleardoublepage
-%end{latexonly}
+{
+  \setlength{\parskip}{0pt}
 
-\listoffigures
-%begin{latexonly}
-\cleardoublepage
-%end{latexonly}
+    \tableofcontents
+    %begin{latexonly}
+    \cleardoublepage
+    %end{latexonly}
 
+    \listoffigures
+    %begin{latexonly}
+    \cleardoublepage
+    %end{latexonly}
 
+}
 
 %
 %  MAIN MANUAL
@@ -27,47 +30,57 @@
 
 \relax   %% this is important, else the next segment doesn't get processed
 
-\segment{ztutorial}{section}{Tutorial}
+\afterpage{}
+\twocolumn
+
+\segment{ztutorial}{chapter}{Tutorial}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zinstall}{section}{Build and Install}
+\onecolumn
+\afterpage{\clearpage}
+
+\segment{zinstall}{chapter}{Build and Install}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zadministration}{section}{Administration}
+
+\segment{zadministration}{chapter}{Administration}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zreference}{section}{Reference}
-
+\segment{zreference}{chapter}{Reference}
 
 \appendix
 
-\segment{zapp-scripts}{section}{Sample Router Configuration Scripts}
+
+% \segment{zapp-scripts}{chapter}{Sample Router Configuration Scripts}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zapp-listmgrs}{section}{Using ZMailer with Mailinglist Managers}
+\afterpage{}
+\twocolumn
+
+\segment{zapp-listmgrs}{chapter}{Using ZMailer with Mailinglist Managers}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zapp-tragents}{section}{Adding new transport agents}
+\segment{zapp-tragents}{chapter}{Adding new transport agents}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zapp-filefmts}{section}{Internal File Data Formats}
+\segment{zapp-filefmts}{chapter}{Internal File Data Formats}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}
 
-\segment{zapp-ssl-lang}{section}{S/SL Language}
+\segment{zapp-ssl-lang}{chapter}{S/SL Language}
 %begin{latexonly}
 \cleardoublepage
 %end{latexonly}

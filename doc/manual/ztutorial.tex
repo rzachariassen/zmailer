@@ -1,8 +1,8 @@
 %% \section{Tutorial}
 
-\subsection{Introduction to Email}
+\section{Introduction to Email}
 
-\subsubsection{Messaging}
+\subsection{Messaging}
 
 This chapter is quite different from the rest of this document.
 Here we build a foundation for understanding messaging, instead
@@ -50,7 +50,7 @@ but not interpersonal.
 
 
 
-\paragraph{The Messaging Model}
+\subsubsection{The Messaging Model}
 
 In addition to users, the basic building blocks of messaging are
 {\bf User Agents (UAs)} and {\bf Message Transfer Agents (MTAs)}.
@@ -75,16 +75,10 @@ namely {\bf MTS (Message Transport System)} and
 MTS is the collection of MTAs (and GWs),
 while MHS includes MTS and UA functionality (UAs, MSs and AUs).
 
-{\bf This area will be modified!!!}
 
-
-
-A graphical example of the messaging model is shown in figure 
-\ref{fig:msgmodl}.
-%begin{latexonly}
-(Page \pageref{fig:msgmodl}.)
-%end{latexonly}
-It shows the relationships between different elements of the model.
+A graphical example of the messaging model is shown in figure
+\vref{fig:msgmodl}.    It shows the relationships between different
+elements of the model.
 
 \begin{figure}[ht]
   \htmlimage{noantialias,transparent}
@@ -92,13 +86,12 @@ It shows the relationships between different elements of the model.
 %begin{latexonly}
 \fbox{
 %end{latexonly}
-  \centering\includegraphics[width=\textwidth]{msgmodl.eps}
+  \centering\includegraphics[width=0.45\textwidth]{msgmodl.eps}
 %begin{latexonly}
 }
 %end{latexonly}
   \caption{\label{fig:msgmodl}A graphical example of the messaging model.}
 \end{figure}
-
 
 As can be seen, a user may use more than one UA, and a UA can be connected 
 to more than one MTA.
@@ -111,36 +104,38 @@ A message consists of a body and headers. In case of messages with more
 than one bodypart (for example some MIME messages) the different body 
 parts are all part of the outermost bodypart.
 
+\vbox{
 Normally a message looks roughly like this:
 
 \begin{verbatim}
   Headers
-        From:   The Manager
-        To:     One Bright Employee
-        CC:     secretary
-        Subject:Salary raise
-        Date:   17 May 1997
+    From:   The Manager
+    To:     One Bright Employee
+    CC:     secretary
+    Subject:Salary raise
+    Date:   17 May 1997
 
   Body
-        Dear Employee,
-        ...
-        The Manager
-\end{verbatim}
+    Dear Employee,
+    ...
+    The Manager
+\end{verbatim}}
 
+\vbox{
 In a more complex case the structure of a message might be something like this:
 
 \begin{verbatim}
   Headers
   Body
-        Headers
-        Body
-                Headers
-                Body
-                Headers
-                Body
-        Headers
-        Body
-\end{verbatim}
+    Headers
+    Body
+      Headers
+      Body
+      Headers
+      Body
+    Headers
+    Body
+\end{verbatim}}
 
 As can be seen, there is always just one outermost body that contains 
 all other bodyparts. In some cases, for example X.400 the protocol 
@@ -159,17 +154,14 @@ it is always a UA function, and done on behalf, and on the authority of, a UA.
 There are some violations of this. When using the SMTP protocol, the 
 {\tt Received:} lines are put in the headers by MTAs. This is bad 
 engineering, but as the process of adding a new header line is fairly 
-straightforward, it doesn't cause too much pain. In some cases MTAs 
-modify the header even more, and sometimes they even mess with the body. 
-This is a sure recipe for trouble.
-
+straightforward, it doesn't cause too much pain. In some cases MTAs,
+and especially the GWs modify the header even more, and sometimes they
+even mess with the body.  This is a sure recipe for trouble.
 
 
 Graphically, the way a message should be dealt with is shown 
-in figure
-%begin{latexonly}
- \ref{fig:msgrout}, page \pageref{fig:msgrout}.
-%end{latexonly}
+in figure \vref{fig:msgrout}.
+
 \begin{figure}[ht]
   \htmlimage{noantialias,transparent}
   \htmlborder{2}
@@ -177,7 +169,7 @@ in figure
 %begin{latexonly}
 \fbox{
 %end{latexonly}
-  \includegraphics[width=\textwidth]{msgrout.eps}
+  \includegraphics[width=0.45\textwidth]{msgrout.eps}
 %begin{latexonly}
 }
 %end{latexonly}
@@ -198,21 +190,21 @@ The message may be pushed to a (running) UA, a UA may pull it from an MTA,
 or an MTA may pass the message to an MS from which a UA will receive it at 
 a convenient time.
 
-The normal UNIX way of delivering mail ({\tt /usr/spool/mail/user}) can be 
-seen as any of the above three mechanisms, but should normally be seen as a 
-UA pulling a message. The reason for this confusion is with the de-facto SMTP 
-standard MTA, Sendmail. Although Sendmail is in many ways a very clever 
-piece of software, it is also the reason for many problems, as it has 
-blurred the line between MTA and UA. Sendmail is clearly an MTA, but 
-it also performs many of the UA level functions, like handling of 
-{\tt .forward} files. This behaviour has become the de-facto standard 
-way for UNIX MTAs to behave, making it necessary for any MTA, including
-ZMailer, to behave the same way.
+The normal UNIX way of delivering mail ({\tt /usr/spool/mail/user})
+can be seen as any of the above three mechanisms, but should normally
+be seen as a UA pulling a message. The reason for this confusion is
+with the de-facto SMTP standard MTA, Sendmail.
+
+Although Sendmail is in many ways a very clever piece of software,
+it is also the reason for many problems, as it has blurred the line
+between MTA and UA. Sendmail is clearly an MTA, but it also performs
+many of the UA level functions, like handling of ``{\tt .forward}''
+files.  This behaviour has become the de-facto standard  way for UNIX
+MTAs to behave, making it necessary for any MTA, including ZMailer,
+to behave the same way.
 
 
-
-\paragraph{Routing And Delivering Messages}
-
+\subsubsection{Routing And Delivering Messages}
 
 
 As MTAs only deal with envelopes, all routing and delivery decisions have to be
@@ -242,23 +234,22 @@ address but also the sender address in the envelope. In this way,
 undeliverable messages are sent to the owner of the list, who can deal 
 with the problem, and not to the sender of the message, who can do nothing 
 to remedy the situation.
+(The ZMailer has some builtin facilities for this, see about
+ {\em Mailing Lists\ldots} on section \vref{mailing_list_maintenance}.)
 
 Error messages must be sent to the envelope sender address, as this is a 
-MTA function. If a header like {\tt Errors-to:} is being used, it implies 
-that envelope sender should be sent to the one in the {\tt Errors-to:} header.
+MTA function. If a header like ``{\tt Errors-to:}'' is being used, it implies 
+that envelope sender should be sent to the one in the ``{\tt Errors-to:}''
+header.
 
 Replies to messages should be sent to header addresses, because replying is 
 a UA function.
 
 
+\section{ZMailer's Features, and Facilities}
 
 
-\subsection{ZMailer's Features and Facilities}
-
-
-
-
-\subsubsection{Introduction}
+\subsection{Introduction}
 
 ZMailer is a mailer subsystem for the UNIX operating system.
 It is in charge of handling all mail messages that are created
@@ -278,7 +269,23 @@ which will excel in demanding environments, but is simple enough to
 fit easily everywhere.
 
 
-\subsubsection{Design Summary}
+\subsection{Design Summary}
+
+\begin{figure}[ht]
+  \htmlimage{noantialias,transparent}
+  \htmlborder{2}
+  \centering
+  \includegraphics[width=0.45\textwidth]{zmprocs.eps}
+  \caption{\label{fig:zmprocs}ZMailer's processes}
+\end{figure}
+
+% %begin{latexonly}
+% { \sloppy
+% \begin{figwindow}[0,l,%
+%   {\fbox{\epsfig{file=zmprocs.eps,width=0.45\textwidth}}},%
+%   {{\label{fig:zmprocs}ZMailer's processes}}]
+%  %---------- WINDOW GOES WAY DOWN!
+% %end{latexonly}
 
 ZMailer is a multi-process mailer, using two daemon processes to manipulate
 messages.  One of these processes is a router, and makes all decisions
@@ -302,6 +309,10 @@ specified by familiar shell script statements.  When the Router is
 finished, it will produce a message control file for use by the delivery
 processing stage of ZMailer, and move the original message file to another
 location.
+
+% %begin{latexonly}
+% \end{figwindow} }
+% %end{latexonly}
 
 Once the Router has decided what to do with each of the addresses in a
 message, the Scheduler builds a summary of this information by reading the
@@ -333,9 +344,9 @@ without requiring changes in standard User Agents.
   \htmlborder{2}
   \centering
 %begin{latexonly}
-\fbox{
+ \fbox{
 %end{latexonly}
-  \includegraphics[width=\textwidth]{zmdirs.eps}
+  \includegraphics[width=0.45\textwidth]{zmdirs.eps}
 %begin{latexonly}
 }
 %end{latexonly}
@@ -343,7 +354,7 @@ without requiring changes in standard User Agents.
 \end{figure}
 
 
-\subsection{Running ZMailer}
+\section{Running ZMailer}
 
 ZMailer is fairly simple to run, once the setups are completed
 it can be left to run on its own with very little supervision.
@@ -376,21 +387,24 @@ subsystems is command
   zmailer
 \end{verbatim}
 
-which the system installs into {\tt \$MAILBIN/} directory, and which command usually needs a symlink to itself from some more common location for
+which the system installs into {\tt \$MAILBIN/} directory, and which command
+usually needs a symlink to itself from some more common location for
 administrative convenience
-( {\tt /usr/sbin/zmailer --> \$MAILBIN/zmailer} )
+( {\tt /usr/sbin/zmailer -> \$MAILBIN/zmailer} )
 so that the administrator does not need to add  {\tt \$MAILBIN/}  directory
 into his or her {\tt PATH}.   On overall, it is intention that not even 
-admin
-user should need to run directly the programs at the {\tt \$MAILBIN/} directory.
+admin user should need to run directly the programs at the {\tt \$MAILBIN/}
+directory.
 
 Basically the administration is as follows:
 \begin{itemize}
-\item At system startup (to start all subsystems):
+\item
+At system startup (to start all subsystems):
 \begin{verbatim}
   zmailer
 \end{verbatim}
-\item At system shutdown (to kill all subsystems):
+\item
+At system shutdown (to kill all subsystems):
 \begin{verbatim}
   zmailer kill
 \end{verbatim}
@@ -399,35 +413,37 @@ Basically the administration is as follows:
 There is also a way to make sure the system will not let the ZMailer
 to start at the system startup, because you have some massive work
 going on, and the system is not in condition to accept email for a while: 
+\nopagebreak
 \begin{verbatim}
   zmailer freeze
 \end{verbatim}
 
 and the antidote for the ``freeze'' is, naturally:
+\nopagebreak
 \begin{verbatim}
   zmailer thaw
 \end{verbatim}
 
-Normal operations can not be started at ``frozen'' system without ``thawing'' it at first.
+Normal operations can not be started at ``frozen'' system without
+``thawing'' it at first.
 
 The user-visible component of the ZMailer is (for de-facto interface)
 \begin{verbatim}
   /usr/lib/sendmail
 \end{verbatim}
-
-(a.k.a.) {\tt /usr/sbin/sendmail}
+(a.k.a. {\tt /usr/sbin/sendmail})
 which is ``simple'' message submission program that mimics sendmail
 commands behaviour, but of course many details of sendmail are
 not really implemented at all, mostly because they do not have
 equivalents in the ZMailer system.
 
 There are also functional equivalents (or near equivalents) of
-other sendmail/system utilities:  {\em mailq\/}, {\em newaliases\/}, {\em vacation\/}
+other sendmail/system utilities:
+{\em mailq}, {\em newaliases}, and {\em vacation}.
 
 
 
-
-\subsection{Comparison With Other Popular MTA's}
+\section{Comparison With Other Popular MTA's}
 
 {\bf Sendmail}, in the right hands, can be quite a flexible tool to translate
 between the different conventions of various networks.  Unfortunately this
@@ -439,6 +455,9 @@ single large program. Both of these design decisions have been acknowledged
 as mistakes by the author of Sendmail.  Its major shortcoming in comparison
 to the MMDF mailer is its primitive database facility and lack of caching.
 
+{\bf sendmail 8.x ???}
+
+
 {\bf MMDF} is a comprehensive mail environment, including its own mail
 composition program and of course a mailer.  There are too many parts to it
 (as can be said, it is a system, not a subsystem), and the address
@@ -446,8 +465,11 @@ manipulation is only sufficient for a relatively homogenous environment. It
 does have reasonable database facilities and caching, as opposed to
 Sendmail, and the concept of Channels.  However, knowledge about address
 semantics is distributed in several programs instead of being centralized.
-{\bf PMDF} is a smaller version of MMDF with correspondingly reduced features and
-flexibility.
+
+{\bf PMDF} was originally a smaller version of MMDF with correspondingly
+reduced features and flexibility, but it has had years of development
+since late 1980'es, and its commercial version is amongst the high
+performers of MTAs in late 1990'es.
 
 {\bf Upas} is a curious approach to the problem. It lets the user do half the
 work of message routing, in a manner similar to PMDF on VMS systems. It is
@@ -471,6 +493,12 @@ rules and algorithms), and retaining Sendmail's single-program design.  It
 addresses database and caching issues, and seems generally like a nicer
 design in many respects, a bit like PMDF's configuration options in a
 Sendmail package.
+
+{\bf Smail 3.1 ???}
+
+{\bf Exim ???}
+
+{\bf Qmail ???}
 
 Until the recent increase in the demand for inter-network mail gatewaying,
 Sendmail's flexibility had quite adequately served to implement a gateway

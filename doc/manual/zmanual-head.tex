@@ -1,19 +1,31 @@
-\documentclass[twoside,a4paper,draft]{article}
+\documentclass[twoside,twocolumn,a4paper,draft]{book}
 
-%\usepackage[light]{draftcopy}
+\onecolumn
 
 \usepackage{times} % PostScript fonts into use at printout
 
 \usepackage{html,htmllist,makeidx,enumerate}
-\usepackage[final]{graphicx}
+\usepackage[final]{graphicx,epsfig}
 \usepackage{color}
+\usepackage{picinpar}
+\usepackage{varioref}
+\usepackage{alltt}
 
 % \setlength{\textwidth}{5.5in}
 % \addtolength{\oddsidemargin}{-1in}
 % \addtolength{\evensidemargin}{-1in}
 
 
+\newcommand{\ZMailerManual}{ZMailer Manual}
+\newcommand{\ZManVersion}{v.1.99.10}
+
 %begin{latexonly}
+
+\usepackage{float}
+%\usepackage{flafter}
+\usepackage{afterpage}
+\afterpage{}
+\usepackage{multicol}
 
 %
 % Do rather fancy heading style..
@@ -22,13 +34,19 @@
 
 \usepackage{fancyheadings}
 \pagestyle{fancyplain}
-\addtolength{\textwidth}{0.5\marginparwidth}
+
+% Throw away the margin space for side notes..
+\newlength{\footerrecenter}
+\setlength{\footerrecenter}{0.4\marginparwidth}
+\addtolength{\footerrecenter}{0.5\marginparsep}
+
+\addtolength{\textwidth}{0.8\marginparwidth}
 \addtolength{\headwidth}{\marginparsep}
 \addtolength{\headwidth}{\marginparwidth}
-\setlength{\marginparwidth}{0.5\marginparwidth}
+\setlength{\marginparwidth}{0.2\marginparwidth}
 
-%\renewcommand{\chaptermark}[1]%  % (BOOK-style only)
-%	{\markboth{#1}{}}
+\renewcommand{\chaptermark}[1]%  % (BOOK-style only)
+	{\markboth{#1}{}}
 \renewcommand{\sectionmark}[1]%
 	{\markboth{\thesection\ #1}{\thesection\ #1}}
 \renewcommand{\subsectionmark}[1]%
@@ -40,11 +58,15 @@
 \renewcommand{\subparagraphmark}[1]%
 	{\markboth{\thesubparagraph\ #1}{\thesubparagraph\ #1}}
 
+% \lhead[evenpage]{oddpage}
 \lhead[\fancyplain{}{\bf\thepage}]%
       {\fancyplain{}{\bf\rightmark}}
+% \rhead[evenpage]{oddpage}
 \rhead[\fancyplain{}{\bf\leftmark}]%
       {\fancyplain{}{\bf\thepage}}
-\cfoot{{\sf ZMailer manual}}
+% \cfoot[evenpage]{oddpage}
+\cfoot[{\hspace{\footerrecenter}}{\sf \ZMailerManual} -- \ZManVersion]%
+	{{\hspace{-1.0\footerrecenter}}{\sf \ZMailerManual} -- \ZManVersion}
 
 %
 % Modify the article style seriously at \paragraph,
@@ -61,6 +83,7 @@
 	{\normalfont\normalsize\bfseries}}
 \makeatother
 
+
 %
 % Modify the way how basic text body presents separate paragraphs
 %
@@ -70,8 +93,8 @@
  \setlength{\partopsep}{\parskip}
  \setlength{\topsep}{-\parskip}
 
-
 %end{latexonly}
+
 
 \setcounter{secnumdepth}{10}
 \setcounter{tocdepth}{10}
@@ -89,15 +112,14 @@
 \startdocument
 
 \begin{titlepage}
-{
-\hrule
+\rule{\textwidth}{1mm}
 \begin{center}
 \bf
 \Huge
 %begin{latexonly}
 \vspace{2ex}
 %end{latexonly}
-ZMailer Manual \\
+\ZMailerManual \\
 %begin{latexonly}
 \vspace{2ex}
 %end{latexonly}
@@ -125,8 +147,9 @@ Matti Aarnio, et.al. \\
 \vspace{1ex}
 \end{htmlonly}
 % ------------
-v1.99.8 \\
-7 May 1998 \\
+\ZManVersion \\
+\date \\
+\today \\
 for ZMailer 2.99.50 \\
 % ------------
 %begin{latexonly}
@@ -141,8 +164,7 @@ for ZMailer 2.99.50 \\
 *** THIS IS WORK IN PROGRESS ***
 \end{center}
 \vfill
-\hrule
-}
+\rule{\textwidth}{1mm}
 \end{titlepage}
 
 %begin{latexonly}

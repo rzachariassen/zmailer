@@ -14,7 +14,7 @@ PARTS=	zadministration.tex     zref-router.tex			\
 	zmanual-head.tex	zmanual-tail.tex
 
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
-		zmdirs.fig
+		zmdirs.fig zmprocs.fig
 
 FIGEPS :=	$(FIGS:%.fig=%.eps)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
@@ -155,23 +155,23 @@ html: zmanual.aux $(PARTS) $(FIGEPS) Makefile $(GIFS)
 	#    	do echo "1;" > $$y.pl ; done
 	echo "$(TEXENV)" > TEXENV
 	# $(L2H) $(L2HLTOP)  zmanual.tex
-	./L2H.sh  ztutorial.tex		TUT	section	"Tutorial"
-	./L2H.sh  zinstall.tex		INS	section	"Build and Install"
-	./L2H.sh  zadministration.tex	ADM	section	"Administation"
-	./L2H.sh  zreference.tex	REF	section	"Reference"
-	./L2H.sh  zref-smtpserver.tex	RSM  subsection "SMTP-server"
-	./L2H.sh  zref-sendmail.tex	RSE  subsection "sendmail"
-	./L2H.sh  zref-rmail.tex 	RRM  subsection "rmail"
-	./L2H.sh  zref-zmailer3.tex	RZL  subsection "zmailer(3)"
-	./L2H.sh  zref-router.tex	RRT  subsection "Router"
-	./L2H.sh  zref-scheduler.tex	RSC  subsection "Scheduler"
-	./L2H.sh  zref-transport-agents.tex RTA subsection "Transport Agents"
-	./L2H.sh  zref-utilities.tex	RUT  subsection "Utilities"
-	./L2H.sh  zapp-scripts.tex	ASC	section	"Sample Router Configuration Scripts"
-	./L2H.sh  zapp-listmgrs.tex	ALM	section	"Using Zmailer with Mailinglist Managers"
-	./L2H.sh  zapp-tragents.tex	ATA	section "Adding new Transport Agents"
-	./L2H.sh  zapp-filefmts.tex	AFM	section "Internal File Data Formats"
-	./L2H.sh  zapp-ssl-lang.tex	ASS	section "The S/SL language"
+	./L2H.sh  ztutorial.tex		TUT	chapter	"Tutorial"
+	./L2H.sh  zinstall.tex		INS	chapter	"Build and Install"
+	./L2H.sh  zadministration.tex	ADM	chapter	"Administation"
+	./L2H.sh  zreference.tex	REF	chapter	"Reference"
+	./L2H.sh  zref-smtpserver.tex	RSM	section "SMTP-server"
+	./L2H.sh  zref-sendmail.tex	RSE	section "sendmail"
+	./L2H.sh  zref-rmail.tex 	RRM	section "rmail"
+	./L2H.sh  zref-zmailer3.tex	RZL	section "zmailer(3)"
+	./L2H.sh  zref-router.tex	RRT	section "Router"
+	./L2H.sh  zref-scheduler.tex	RSC	section "Scheduler"
+	./L2H.sh  zref-transport-agents.tex RTA	section "Transport Agents"
+	./L2H.sh  zref-utilities.tex	RUT	section "Utilities"
+	./L2H.sh  zapp-scripts.tex	ASC	chapter	"Sample Router Configuration Scripts"
+	./L2H.sh  zapp-listmgrs.tex	ALM	chapter	"Using Zmailer with Mailinglist Managers"
+	./L2H.sh  zapp-tragents.tex	ATA	chapter "Adding new Transport Agents"
+	./L2H.sh  zapp-filefmts.tex	AFM	chapter "Internal File Data Formats"
+	./L2H.sh  zapp-ssl-lang.tex	ASS	chapter "The S/SL language"
 	#
 	# Ok, now repeat those same commands...
 	#
@@ -186,35 +186,35 @@ zman:	$(FIGEPS) zmanual.tex $(GIFS)
 
 ztut:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  ztutorial.tex		TUT	section	"Tutorial"
+	./L2H.sh  ztutorial.tex		TUT	chapter	"Tutorial"
 
 zinst:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zinstall.tex		INS	section	"Build and Install"
+	./L2H.sh  zinstall.tex		INS	chapter	"Build and Install"
 
 zref:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zreference.tex	REF	section	"Reference"
+	./L2H.sh  zreference.tex	REF	chapter	"Reference"
 
 zrrt:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zref-router.tex	RRT  subsection "Router"
+	./L2H.sh  zref-router.tex	RRT	section "Router"
 
 zrsm:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zref-smtpserver.tex	RSM  subsection "SMTP-server"
+	./L2H.sh  zref-smtpserver.tex	RSM	section "SMTP-server"
 
 zrse:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zref-sendmail.tex	RSE  subsection "sendmail"
+	./L2H.sh  zref-sendmail.tex	RSE	section "sendmail"
 
 zrrm:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zref-rmail.tex 	RRM  subsection "rmail"
+	./L2H.sh  zref-rmail.tex 	RRM	section "rmail"
 
 zrzl:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zref-zmailer3.tex	RZL  subsection "zmailer(3)"
+	./L2H.sh  zref-zmailer3.tex	RZL	section "zmailer(3)"
 
 index:	html ps
 	gzip -9 < zmanual.ps > zmanual.ps.gz
