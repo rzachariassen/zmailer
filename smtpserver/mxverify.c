@@ -763,9 +763,11 @@ int rbl_dns_test(state, ipaf, ipaddr, rbldomain, msgp)
 	     size...  */
 	  s = strchr(rbldomain, ':');
 	  if (s) *s = 0;
+#if 0 /* Remove the old hard-coded "+" macro ... */
 	  if (strcmp(rbldomain,"+") == 0)
 	    strncpy (suf, "rbl.maps.vix.com", hspc);
 	  else
+#endif
 	    strncpy (suf, rbldomain, hspc);
 	  suf[hspc] = '\0';
 

@@ -1,5 +1,13 @@
 2004-09-21  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/mxverify.c, man/smtpserver.8.in:
+	    Remove the old hard-coded '+' macro that is no longer valid..
+	    Also warn about RBLs being rather ephemeral in nature..
+
+	* smtpserver/policytest.c, smtpserver/subdaemon-trk.c:
+	    Some initial experiments on adding RCPT counting in
+	    rate-tracking.
+
 	* smtpserver/subdaemon-rtr.c:
 	    Report (into log) if the i-router subsystem response
 	    time exceeds 30 seconds.

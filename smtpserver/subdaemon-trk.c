@@ -7,6 +7,8 @@
  *      Copyright 1991-2004.
  */
 
+/*  SMTPSERVER RATE-TRACKER SUBDAEMON    */
+
 /*
  * Protocol from client to server is of TEXT LINES that end with '\n'
  * and are without '\r'... (that are meaningless inside the system.)
@@ -51,7 +53,8 @@ struct subdaemon_handler subdaemon_handler_ratetracker = {
 	subdaemon_handler_trk_input,
 	subdaemon_handler_trk_preselect,
 	subdaemon_handler_trk_postselect,
-	subdaemon_handler_trk_shutdown
+	subdaemon_handler_trk_shutdown,
+	NULL
 };
 
 
@@ -73,14 +76,17 @@ struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
 	int slots;
-	int lastlimit;
+	int lastlimitmsgs, lastlimitrcpts, lastlimitmsgsday, lastlimitrcptsday;
 	time_t alloc_time, last_excess, last_recipients;
 	int aborts, aborts2, aborts3;
 	int afails, afails2, afails3;
 	int mails, mails2, mails3;
 	int excesses, excesses2, excesses3;
 	int recipients, recipients2, recipients3;
-	int countset[SLOTCOUNT];
+	int countsetmsgs[SLOTCOUNT];
+	int countsetrcpts[SLOTCOUNT];
+	/* int countsetmsgsday[SLOTCOUNT];
+	   int countsetrcptsday[SLOTCOUNT]; */
 };
 
 struct ipv4_regs_head {
@@ -94,7 +100,10 @@ struct ipv6_regs {
 	struct ipv6_regs *next;
 	struct spblk *spl;
 	struct in6_addr ip6addr;
-	int countset[SLOTCOUNT];
+	int countsetmsgs[SLOTCOUNT];
+	int countsetrcpts[SLOTCOUNT];
+	/* int countsetmsgsday[SLOTCOUNT];
+	   int countsetrcptsday[SLOTCOUNT]; */
 };
 
 struct ipv6_regs_head {
@@ -104,10 +113,10 @@ struct ipv6_regs_head {
 };
 #endif
 
-
 struct trk_state {
 	time_t	next_slotchange;
-	int	slotindex;		/* = 0..7 */
+	int	hourslotindex;		/* = 0..7 */
+	int	dayslotindex;		/* = 0..7 */
 
 	int	alloccount_v4;
 	int	allocgauge_v4;
@@ -217,14 +226,16 @@ static struct ipv4_regs * lookup_ipv4_reg( state, ipv4addr )
 	return reg;
 }
 
-static int count_ipv4( state, ipv4addr, lastlimit,
-		       incr /* , counterlistspecs ? */ )
+static int count_ipv4( state, ipv4addr, lastlimitm, lastlimitr, lastlimitmd, lastlimitrd,
+		       incrm, incrr /* , counterlistspecs ? */ ,
+		       sum1p, sum2p )
      struct trk_state *state;
      unsigned int ipv4addr;
-     int incr, lastlimit;
+     int incrm, incrr, lastlimitm, lastlimitr, lastlimitmd, lastlimitrd;
+     int *sum1p, *sum2p;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
-	int i, sum;
+	int i, sum1, sum2;
 
 	if (!reg) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
@@ -234,78 +245,97 @@ static int count_ipv4( state, ipv4addr, lastlimit,
 
 	/* reg->mails += incr; -- this is independent of slotcounts! */
 
-	if (lastlimit > 0)
-	  reg->lastlimit = lastlimit;
-	reg->countset[ state->slotindex ] += incr;
+	if (lastlimitm > 0)
+	  reg->lastlimitmsgs = lastlimitm;
+	if (lastlimitr > 0)
+	  reg->lastlimitrcpts = lastlimitr;
 
-	sum = 0;
-	for (i = 0; i < SLOTCOUNT; ++i)
-	  sum += reg->countset[ i ];
+	if (lastlimitmd > 0)
+	  reg->lastlimitmsgsday = lastlimitmd;
+	if (lastlimitrd > 0)
+	  reg->lastlimitrcptsday = lastlimitrd;
 
-	return sum;
+	reg->countsetmsgs [ state->hourslotindex ] += incrm;
+	reg->countsetrcpts[ state->hourslotindex ] += incrr;
+
+	sum1 = sum2 = 0;
+	for (i = 0; i < SLOTCOUNT; ++i) {
+	  sum1 += reg->countsetmsgs [ i ];
+	  sum2 += reg->countsetrcpts[ i ];
+	}
+	
+	*sum1p = sum1;
+	*sum2p = sum2;
+
+	return sum1;
 }
 
 
 static void new_ipv4_timeslot( state )
      struct trk_state *state;
 {
-	struct ipv4_regs *r;
-	struct ipv4_regs_head *rhead;
-	int i;
+	;
+	if (now >= state->next_slotchange) {
 
-	static const int zerocountset[SLOTCOUNT] = {0,};
+	  struct ipv4_regs *r;
+	  struct ipv4_regs_head *rhead;
+	  int i;
 
-	state->slotindex += 1;
-	if (state->slotindex > SLOTCOUNT-1) state->slotindex = 0;
+	  static const int zerocountset[SLOTCOUNT] = {0,};
 
-	state->next_slotchange = now + SLOTINTERVAL;
-	state->slot_starts[ state->slotindex ] = now;
+	  state->hourslotindex += 1;
+	  if (state->hourslotindex > SLOTCOUNT-1) state->hourslotindex = 0;
 
-	rhead = state->ipv4_regs_head;
+	  state->next_slotchange = now + SLOTINTERVAL;
+	  state->slot_starts[ state->hourslotindex ] = now;
 
-	for ( ; rhead ; rhead = rhead->next ) {
+	  rhead = state->ipv4_regs_head;
 
-	  r = rhead->ipv4;
+	  for ( ; rhead ; rhead = rhead->next ) {
 
-	  for (i = 0; i < rhead->count; ++i) {
+	    r = rhead->ipv4;
 
-	    /* Clear this just now changed head of slots! */
-	    r[i].countset[ state->slotindex ] = 0;
+	    for (i = 0; i < rhead->count; ++i) {
 
-	    ++ r[i].slots;
-	    if (r[i].slots > SLOTCOUNT) {
-	      r[i].excesses3 += r[i].excesses2;
-	      r[i].excesses2  = r[i].excesses;
-	      r[i].excesses   = 0;
-	      r[i].recipients3 += r[i].recipients2;
-	      r[i].recipients2  = r[i].recipients;
-	      r[i].recipients   = 0;
-	      r[i].mails3 += r[i].mails2;
-	      r[i].mails2  = r[i].mails;
-	      r[i].mails   = 0;
-	      r[i].afails3 += r[i].afails2;
-	      r[i].afails2  = r[i].afails;
-	      r[i].afails   = 0;
-	      r[i].aborts3 += r[i].aborts2;
-	      r[i].aborts2  = r[i].aborts;
-	      r[i].aborts   = 0;
-	      r[i].slots = 0;
-	    }
+	      /* Clear this just now changed head of slots! */
+	      r[i].countsetmsgs [ state->hourslotindex ] = 0;
+	      r[i].countsetrcpts[ state->hourslotindex ] = 0;
 
-	    /* If there have been excesses, keep FOREVER,
-	       otherwise keep for about two hours... */
-	    if (r[i].excesses   || r[i].excesses2  || r[i].excesses3 ||
-		r[i].afails     || r[i].afails2    ||
-		r[i].mails      || r[i].mails2     ||
-		r[i].aborts     || r[i].aborts2    ||
-		r[i].recipients || r[i].recipients2  ) continue;
+	      ++ r[i].slots;
+	      if (r[i].slots > SLOTCOUNT) {
+		r[i].excesses3 += r[i].excesses2;
+		r[i].excesses2  = r[i].excesses;
+		r[i].excesses   = 0;
+		r[i].recipients3 += r[i].recipients2;
+		r[i].recipients2  = r[i].recipients;
+		r[i].recipients   = 0;
+		r[i].mails3 += r[i].mails2;
+		r[i].mails2  = r[i].mails;
+		r[i].mails   = 0;
+		r[i].afails3 += r[i].afails2;
+		r[i].afails2  = r[i].afails;
+		r[i].afails   = 0;
+		r[i].aborts3 += r[i].aborts2;
+		r[i].aborts2  = r[i].aborts;
+		r[i].aborts   = 0;
+		r[i].slots = 0;
+	      }
 
-	    /* See if now ALL slots are ZERO value.. */
-	    if (memcmp(zerocountset, r[i].countset,
-		       sizeof(zerocountset)) == 0 ) {
+	      /* If there have been excesses, keep FOREVER,
+		 otherwise keep for about two hours... */
+	      if (r[i].excesses   || r[i].excesses2  || r[i].excesses3 ||
+		  r[i].afails     || r[i].afails2    ||
+		  r[i].mails      || r[i].mails2     ||
+		  r[i].aborts     || r[i].aborts2    ||
+		  r[i].recipients || r[i].recipients2  ) continue;
 
-	      /* It is all-zero counter set */
-	      free_ipv4_reg( state, & r[i] );
+	      /* See if now ALL slots are ZERO value.. */
+	      if (memcmp(zerocountset, r[i].countsetmsgs,
+			 sizeof(zerocountset)) == 0 ) {
+
+		/* It is all-zero counter set */
+		free_ipv4_reg( state, & r[i] );
+	      }
 	    }
 	  }
 	}
@@ -419,11 +449,31 @@ dump_v4_rcptline(p, spl)
 	fprintf(fp, "%s%-16s", dp->lineprefix, buf);
 
 	for (j = 0; j < SLOTCOUNT; ++j) {
-	  fprintf(fp, "%3d ", rp->countset[tr[j]]);
+	  fprintf(fp, "%3d ", rp->countsetmsgs[tr[j]]);
 	}
 
-	fprintf(fp, "\t");
-	fprintf(fp, "Lmt: %4d", rp->lastlimit);
+	fprintf(fp, "  ");
+
+	for (j = 0; j < SLOTCOUNT; ++j) {
+	  fprintf(fp, "%3d ", rp->countsetrcpts[tr[j]]);
+	}
+
+	fprintf(fp, "  ");
+
+#if 0
+	for (j = 0; j < SLOTCOUNT; ++j) {
+	  fprintf(fp, "%3d ", rp->countsetmsgsday[tr[j]]);
+	}
+
+	fprintf(fp, "  ");
+
+	for (j = 0; j < SLOTCOUNT; ++j) {
+	  fprintf(fp, "%3d ", rp->countsetrcptsday[tr[j]]);
+	}
+#endif
+
+	fprintf(fp, "  ");
+	fprintf(fp, "Lmt: %4d %4d", rp->lastlimitmsgs, rp->lastlimitrcpts);
 
 	fprintf(fp, " AAge: %6.3fh", (double)(now-rp->alloc_time)/3600.0);
 
@@ -488,7 +538,7 @@ static void subdaemon_trk_checksigusr1(state)
 
 	if (!fp) return;
 
-	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	for (i = 0, j = state->hourslotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
 	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
@@ -499,7 +549,7 @@ static void subdaemon_trk_checksigusr1(state)
 	dp4.cnt = 0;
 	dp4.lineprefix = " ";
 
-	fprintf(fp, "DUMP BEGINS; %s", rfc822date(&now));
+	fprintf(fp, "DUMP BEGINS; cnt=%d %s", state->spt4->eltscnt, rfc822date(&now));
 
 	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
 
@@ -547,14 +597,14 @@ dump_trk(state, peerdata)
 	
 	time(&now);
 
-	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	for (i = 0, j = state->hourslotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
 	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
 
 	rhead = state->ipv4_regs_head;
 
-	fprintf(fp, "200-DUMP BEGINS; %s", rfc822date(&now));
+	fprintf(fp, "200-DUMP BEGINS; cnt=%d  %s", state->spt4->eltscnt, rfc822date(&now));
 	fflush(fp);
 
 	dp4.fp = fp;
@@ -580,7 +630,7 @@ slot_ages(state, outbuf)
 	int i, j, tr[SLOTCOUNT];
 	char *s = outbuf;
 
-	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	for (i = 0, j = state->hourslotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
 	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
@@ -621,7 +671,7 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	  return;
 	}
 
-	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	for (i = 0, j = state->hourslotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
 	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
@@ -629,14 +679,14 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	strcpy(s, "200 Slot-IPv4-data:");
 	s += strlen(s);
 	for (j = 0; j < SLOTCOUNT; ++j) {
-	  sprintf(s, " %d", reg->countset[tr[j]]);
+	  sprintf(s, " %d", reg->countsetmsgs[tr[j]]);
 	  s += strlen(s);
 	}
 	sprintf(s, " MAILs: %d", reg->mails);
 	s += strlen(s);
 	sprintf(s, " SLOTAGE: %d", (int)(now - reg->alloc_time));
 	s += strlen(s);
-	sprintf(s, " Limit: %d", reg->lastlimit);
+	sprintf(s, " Limit: %d %d", reg->lastlimitmsgs, reg->lastlimitrcpts);
 	s += strlen(s);
 	sprintf(s, " Excesses: %d %d %d Latest: %ld",
 		reg->excesses, reg->excesses2, reg->excesses3,
@@ -696,8 +746,8 @@ subdaemon_handler_trk_input (statep, peerdata)
 {
 	struct trk_state *state = statep;
 	char actionlabel[8], iplabel[40], typelabel[10];
-	char lastlimits[12], countstr[10], *s1, *s2, *s3, *s4, *s5;
-	int i, lastlimitval, countval;
+	char lastlimits[20], countstr[20], *s1, *s2, *s3, *s4, *s5;
+	int i, llv1, llv2, llv3, llv4, count1, count2;
 	long ipv4addr;
 
 	subdaemon_trk_checksigusr1(state);
@@ -705,8 +755,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	/* If it is about time to handle next slot, we flip to it,
 	   and run garbage collect run on system. */
 
-	if (now >= state->next_slotchange)
-	  new_ipv4_timeslot( state );
+	new_ipv4_timeslot( state );
 
 	/*
 	 * Protocol:
@@ -743,8 +792,11 @@ subdaemon_handler_trk_input (statep, peerdata)
 	countstr[sizeof(countstr)-1] = 0;
 	iplabel[sizeof(iplabel)-1] = 0;
 
-	lastlimitval = atoi(lastlimits);
-	countval     = atoi(countstr);
+	llv1 = llv2 = llv3 = llv4 = 0;
+	i = sscanf(lastlimits, "%d,%d,%d,%d", &llv1, &llv2, &llv3, &llv4);
+
+	count1 = count2 = 0;
+	i = sscanf(countstr, "%d,%d", &count1, &count2);
 
 	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'=%d '%s'", 
 	   actionlabel, iplabel, lastlimits,lastlimitval, typelabel); */
@@ -776,28 +828,30 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 
 	  if (i >= 0) {		/* "MSGS" data */
-	    i = count_ipv4( state, ipv4addr, lastlimitval, countval );
-	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	    int sum1 = 0, sum2 = 0;
+	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
+	    sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2);
 	  } else if (i == -2) {	/* "RATES" report */
 	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
 	  } else if (i == -3) {	/* "AGES" report */
 	    slot_ages(statep, peerdata->outbuf);
 	  } else if (i == -4) {	/* "EXCESS" data */
-	    i = count_excess_ipv4( state, ipv4addr, countval );
+	    i = count_excess_ipv4( state, ipv4addr );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -5) {	/* "DUMP" report */
 	    dump_trk( state, peerdata );
 	  } else if (i == -6) {	/* "RCPT" data -- "DATAOK" */
-	    if (countval > 0)
-	      count_ipv4( state, ipv4addr, lastlimitval, 1 );
-	    i = count_rcpts_ipv4( state, ipv4addr, countval );
-	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	    int sum1 = 0, sum2 = 0;
+	    if (count1 > 0)
+	      count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
+	    i = count_rcpts_ipv4( state, ipv4addr, count2 );
+	    sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2);
 	  } else if (i == -7) {
-	    i = count_authfails_ipv4( state, ipv4addr, countval );
+	    i = count_authfails_ipv4( state, ipv4addr, count1 );
 	    if (i > auth_failrate) i = -999;
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -8) {
-	    i = count_daborts_ipv4( state, ipv4addr, countval );
+	    i = count_daborts_ipv4( state, ipv4addr, count1 );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
 	  peerdata->outlen = strlen(peerdata->outbuf);

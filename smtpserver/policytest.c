@@ -1270,9 +1270,9 @@ int policytestaddr(state, what, raddr)
     return rc;
 }
 
-static int call_rate_counter(state, incr, what, countp)
+static int call_rate_counter(state, incr, what, countp, countp2)
      struct policystate *state;
-     int incr, *countp;
+     int incr, *countp, *countp2;
      PolicyTest what;
 {
     int rc, rc2;
@@ -1280,7 +1280,7 @@ static int call_rate_counter(state, incr, what, countp)
     char wbuf[20], *p;
     const char *cmd = "zz";
     const char *whatp = "CONNECT";
-    int count = 0;
+    int count = 0, count2 = 0;
     const char *limitp = state->ratelimitmsgsvalue;
 
     if (!limitp) limitp = "-1";
@@ -1343,7 +1343,7 @@ static int call_rate_counter(state, incr, what, countp)
     if (p) *p = 0;
 
     if (rc >= 0)
-      rc2 = sscanf(pbuf, "%*s %d", &count);
+      rc2 = sscanf(pbuf, "%*s %d %d", &count, &count2);
     else
       rc2 = -3;
 
@@ -1360,6 +1360,7 @@ static int call_rate_counter(state, incr, what, countp)
 
     if (!countp) return 0; /* Don't actually care! */
     *countp = count;
+    if (countp2) *countp2 = count2;
 
     return 0;
 }
@@ -1813,7 +1814,7 @@ static int pt_mailfrom(state, str, len)
       /* If we are in 'alwaysaccept' mode, which is true for IP-acl:s,
 	 then we check to see rate-limits */
 
-      int count;
+      int count, count2 = 0;
       int limitval;
 
       if (debug)
@@ -1830,7 +1831,7 @@ static int pt_mailfrom(state, str, len)
 			     authenticated user. */
 
 	rc = call_rate_counter(state, 0, POLICY_MAILFROM,
-			       &count);
+			       &count, &count2);
 
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
@@ -1848,7 +1849,7 @@ static int pt_mailfrom(state, str, len)
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
 	  if (rc != 0) {
 	    /* register the excess! */
-	    call_rate_counter(state, 1, POLICY_EXCESS, &count);
+	    call_rate_counter(state, 1, POLICY_EXCESS, &count, NULL);
 	  }
 	  return rc;
 	}
@@ -2347,16 +2348,16 @@ int policytest(state, what, str, len, authuser)
 	break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-	rc = call_rate_counter(state, len, POLICY_DATAOK, NULL);
+	rc = call_rate_counter(state, len, POLICY_DATAOK, NULL, NULL);
 	/* type(NULL,0,NULL," call_rate_counter(): DATAOK: i=%d",len); */
 	break;
     case POLICY_DATAABORT:
-	rc = call_rate_counter(state, len, POLICY_DATAABORT, NULL);
+	rc = call_rate_counter(state, len, POLICY_DATAABORT, NULL, NULL);
 	/* type(NULL,0,NULL," call_rate_counter(): DABORT: i=%d",len); */
 	break;
     case POLICY_AUTHFAIL:
 	/* FIXME: usernamestr, or NULL, is available at the 'str' .. */
-	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL);
+	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL, NULL);
 	/*type(NULL,0,NULL," call_rate_counter(): AUTHFAIL: i=%d",len);*/
 	break;
     default:
