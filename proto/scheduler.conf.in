@@ -128,6 +128,11 @@ PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 #PARAMmailqsock = "UNIX:/path/to/mailq.sock"
 #PARAMmailqsock = "TCP:174"
 
+# Time for accumulating diagnostic reports for a given message, before
+# all said diagnostics are reported -- so that reports would carry more
+# than one diagnostic in case of multi-recipient messages.
+#PARAMglobal-report-interval = 15m
+
 #
 # ------------------------------------------------------------------------
 #
