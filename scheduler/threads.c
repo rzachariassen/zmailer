@@ -315,6 +315,7 @@ pick_next_thread(proc)
 	    /* XXXX: found thread, prepare it for start, shuffle vertices,
 	       if so configured, and set results.. */
 
+	    thr->proc = proc;
 	    proc->pthread = thr;
 	    proc->pvertex = thr->vertices;
 
@@ -845,6 +846,9 @@ struct thread *thr;
 
 	  proc->pvertex = thr->vertices;
 	  proc->pthread = thr;
+
+	  thr->proc           = proc;
+	  thr->vertices->proc = proc;
 
 	  ta_hungry(proc);
 

@@ -164,7 +164,7 @@ vtxprint(vp)
 		   vp->orig[L_HOST]->name);
 	else
 	  sfprintf(sfstdout, "%s/%s", ISS(ce->channel), ISS(ce->host));
-	sfprintf(sfstdout," 0x%lx\n",		(unsigned long)ce);
+	sfprintf(sfstdout," %p\n",		ce);
 	sfprintf(sfstdout,"\tinterval %d\n",	(int)ce->interval);
 	sfprintf(sfstdout,"\tidlemax %d\n",	ce->idlemax);
 	sfprintf(sfstdout,"\texpiry %d\n",		(int)ce->expiry);
