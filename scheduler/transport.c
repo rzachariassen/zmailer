@@ -1183,7 +1183,8 @@ time_t timeout;
 
 	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
 
-	      if (proc->pid != 0 && _Z_FD_ISSET(i, rdmask)) {
+	      if (proc->pid < 0 ||
+		  (proc->pid > 0 && _Z_FD_ISSET(i, rdmask))) {
 		_Z_FD_CLR(i, rdmask);
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */

@@ -40,7 +40,7 @@ int	default_full_content = 1;
 
 /* If we use ZMailer malloc library in debug mode, BAD-PTR looks like
    following value.. */
-void *BADPTR = (void*) 0x5555555555555555L;
+void *BADPTR = (void*) (unsigned long)0x5555555555555555L;
 
 /* Push reports regarding recipients out this often, unless
    parametrized to do differently */
