@@ -50,6 +50,7 @@
 #include <varargs.h>		/* If no  <stdarg.h>,  then presume <varargs.h> ... */
 #endif
 
+#include <netinet/in.h> /* In some systems needed before <arpa/inet.h> */
 #include <arpa/inet.h>
 
 #include "mail.h"

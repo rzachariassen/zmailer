@@ -7,7 +7,7 @@
  *
  */
 
-#include "mailer.h"
+#include "hostenv.h"
 #include <stdio.h>
 #include <sysexits.h>
 #ifdef HAVE_STDARG_H
@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include "malloc.h"
 #include "zsyslog.h"
 #include "mail.h"
 #include "ta.h"
