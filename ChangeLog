@@ -5,7 +5,7 @@
 	  utils/mxverify/Makefile.in, utils/perl/Makefile.in,
 	  utils/vacation/Makefile.in:
 	    DESTDIR= defined where it overrides inherited
-	    thing from envelope.  Don't define it!
+	    thing from environment.  Don't define it!
 
 2003-08-19  Matti Aarnio  <mea@zmailer.org>
 
