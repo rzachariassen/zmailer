@@ -1,5 +1,20 @@
 2003-05-06  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/zgetbindaddr.c, transports/mailbox/mboxpath.c,
+	  router/rtsyslog.c:
+	    Looking deep into "gcc -Wall" diagnostic reports.
+	    Added includes for missing prototype declarations.
+
+	* router/libdb/bind.c, smtpserver/mxverify.c,
+	  transports/libta/dnsgetrr.c, transports/smtp/getmxrr.c,
+	  utils/mxverify/mxverify-cgi.c, include/zresolv.h:
+	    Modern resolver libraries don't have  _getshort(), and
+	    _getlong() as public prototyped entities.  Took model
+	    off modern resolver libraries, and used macroes
+	    NS_GET16() / NS_GET32() / NS_INT16SZ / NS_INT32SZ.
+	    Where macroes are not available, supplying our own
+	    versions.  Centralized all related defines.
+
 	* proto/zmailer.sh.in:
 	    Reworked  'resubmit'  command internal mechanism
 	    to handle cases, where the 'deferred' directory
