@@ -1121,12 +1121,12 @@ SmtpState *SS;
     redo:
 	rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
-	  goto redo;
-	    if (errno == EINTR || errno == EAGAIN)
-		goto redo;
-	    /* Other results are serious errors -- maybe */
-	    SS->s_status = EOF;
-	    return EOF;
+	  goto redo; /* XX: ??? some input-problem circumvention problem ?? */
+	  if (errno == EINTR || errno == EAGAIN)
+	    goto redo;
+	  /* Other results are serious errors -- maybe */
+	  SS->s_status = EOF;
+	  return EOF;
 	}
 	if (rc == 0) {
 	    SS->s_status = EOF;
