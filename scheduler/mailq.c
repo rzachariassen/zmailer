@@ -116,15 +116,24 @@ main(argc, argv)
 	struct stat stbuf;
 	int r, pid, dsflag;
 #endif	/* AF_INET */
+	int prefer_4 = 0, prefer_6 = 0;
 	char *expn = NULL;
 
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "dip:r:stu:U:vVSQE:K:");
+	  c = getopt(argc, argv, "46dip:r:stu:U:vVSQE:K:");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
+	  case '4':
+	    prefer_4 = 1;
+	    prefer_6 = 0;
+	    break;
+	  case '6':
+	    prefer_4 = 0;
+	    prefer_6 = 1;
+	    break;
 	  case 'd':
 	    ++debug;
 	    break;
@@ -216,7 +225,7 @@ main(argc, argv)
 	}
 	if (errflg) {
 #ifdef	AF_INET
-	  fprintf(stderr, "Usage: %s [-isSvt] [-p#] [host]\n", progname);
+	  fprintf(stderr, "Usage: %s [-46isSvt] [-p#] [host]\n", progname);
 #else  /* !AF_INET */
 	  fprintf(stderr, "Usage: %s [-isSvt]\n", progname);
 #endif /* AF_INET */
@@ -327,6 +336,10 @@ main(argc, argv)
 #if defined(AF_INET6) && defined(INET6)
 	    {
 	      struct addrinfo *ai6;
+	      memset(&req, 0, sizeof(req));
+	      req.ai_socktype = SOCK_STREAM;
+	      req.ai_protocol = IPPROTO_TCP;
+	      req.ai_flags    = AI_CANONNAME;
 	      req.ai_family   = AF_INET6;
 	      ai6 = NULL;
 	      
@@ -340,12 +353,19 @@ main(argc, argv)
 		/* No IPv4, but have IPv6! */
 		ai = ai6;
 	      else if (ai && ai6) {
-		/* Catenate them, FIRST IPv6, then IPv4 things. */
 		struct addrinfo **aip;
-		aip = &ai6->ai_next;
-		while (*aip) aip = &(*aip)->ai_next;
-		*aip = ai;
-		ai = ai6;
+		if (prefer_4) {
+		  /* Catenate them, FIRST IPv4, then IPv6 things. */
+		  aip = &ai->ai_next;
+		  while (*aip) aip = &(*aip)->ai_next;
+		  *aip = ai6;
+		} else {
+		  /* Catenate them, FIRST IPv6, then IPv4 things. */
+		  aip = &ai6->ai_next;
+		  while (*aip) aip = &(*aip)->ai_next;
+		  *aip = ai;
+		  ai = ai6;
+		}
 	      }
 	    }
 #endif
