@@ -127,8 +127,9 @@ or
 scales
 .I interval
 to seconds, minutes, hours, days, or weeks respectively.
+Default multiplier is 'days'.
 .PP
-Default interval is 1.00 days.
+Default interval is 1.00 days, unless ZENV data sets something else.
 .PP
 .I "Minimum supported interval is 30 seconds!"
 .RE

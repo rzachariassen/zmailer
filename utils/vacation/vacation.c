@@ -2,7 +2,7 @@
  *  vacation -- originally BSD vacation by Eric Allman,
  *
  *  Adapted to ZMailer by Rayan Zachariassen, and further
- *  modified by Matti Aarnio over years 1988(?) thru 2002
+ *  modified by Matti Aarnio over years 1988(?) thru 2004
  */
 
 #include "mailer.h"
@@ -153,29 +153,28 @@ static int nsearch __((const char *name, const char *str));
 static void sendmessage __((const char *msgf, const char *myname));
 
 const char *progname;
-
 const char *zenv_vinterval;
+const char *orcpt;
+const char *inrcpt;
 
 
 static void vacation_exit_handler()
 {
+	if (dblog && db) {
 #ifdef	HAVE_NDBM
-	if (dblog)
 	  dbm_close(db);
 #else
 #ifdef HAVE_GDBM
-	if (dblog)
 	  gdbm_close(db);
 #else
 #ifdef HAVE_DB_CLOSE2
-	if (dblog)
 	  db->close(db, 0);
 #else
-	if (dblog)
 	  db->close(db);
 #endif
 #endif
 #endif
+	}
 }
 
 int
@@ -189,11 +188,16 @@ main(argc, argv)
 	time_t interval;
 	char *msgfile = NULL;
 	int ch, iflag, ret;
+
+	/* ZMailer thingies.. */
 	char *zenv = getenv("ZCONFIG");
 	if (zenv) readzenv(getenv("ZCONFIG"));
 	zenv_vinterval = getzenv("VACATIONINTERVAL");
 
 	atexit(vacation_exit_handler);
+
+	orcpt = getenv("ORCPT");
+	inrcpt = getenv("INRCPT");
 
 	progname = argv[0];
 
@@ -332,8 +336,23 @@ main(argc, argv)
 	    readheaders();
 	    purge_input();
 	    if (!recent()) {
+	      const char *myname = pw->pw_name;
+	      if (orcpt) {
+		const char *s = strchr(orcpt, ';');
+		if (s)
+		  myname = s+1;
+		else
+		  myname = orcpt;
+	      }
+	      if (inrcpt) {
+		const char *s = strchr(inrcpt, ';');
+		if (s)
+		  myname = s+1;
+		else
+		  myname = inrcpt;
+	      }
 	      setreply();
-	      sendmessage(msgfile,pw->pw_name);
+	      sendmessage(msgfile,myname);
 	    }
 	  }
 	}
