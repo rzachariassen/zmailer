@@ -1009,6 +1009,18 @@ deliver(dp, rp, usernam, timestring)
 	     rp->addr->user); */
 	  return;
 	case TO_FILE:		/* append to file */
+
+	  /* Solaris has "interesting" /dev/null -- it is a symlink
+	     to the actual device.. So lets just use that magic
+	     name and create a FAST "write" to  /dev/null..  */
+	  if (strcmp(usernam,"/dev/null") == 0) {
+	    notaryreport(rp->addr->user,"delivery",
+			 "2.2.0 (delivery successfull)",
+			 "x-local; 250 (Delivered successfully)");
+	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
+	    return;
+	  }
+
 	  if (uid == nobody) {
 	    if (propably_x400(usernam)) {
 
@@ -1173,15 +1185,6 @@ deliver(dp, rp, usernam, timestring)
 
 	} /* end of  switch (*username)  */
 
-	if (exstat(rp, file, &st, lstat) < 0) {
-	  notaryreport(rp->addr->user,"failed",
-		       "5.2.0 (User's mailbox disappeared, will retry)",
-		       "x-local; 566 (User's mailbox disappeared, will retry)");
-	  DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
-		     "mailbox file \"%s\" disappeared", file);
-	  return;
-	}
-	/* we only deliver to singly-linked, regular file */
 	
 	/* Solaris has "interesting" /dev/null -- it is a symlink
 	   to the actual device.. So lets just use that magic
@@ -1191,6 +1194,17 @@ deliver(dp, rp, usernam, timestring)
 		       "2.2.0 (delivery successfull)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
+	  return;
+	}
+
+	/* we only deliver to singly-linked, regular file */
+
+	if (exstat(rp, file, &st, lstat) < 0) {
+	  notaryreport(rp->addr->user,"failed",
+		       "5.2.0 (User's mailbox disappeared, will retry)",
+		       "x-local; 566 (User's mailbox disappeared, will retry)");
+	  DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
+		     "mailbox file \"%s\" disappeared", file);
 	  return;
 	}
 
