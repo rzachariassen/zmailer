@@ -21,7 +21,7 @@
 +    struct sockaddr_in sin;
 +    int sinlen = sizeof (struct sockaddr_in);
 +    if (getpeername(0,(struct sockaddr *) &sin,&sinlen) == 0)
-+      wso_login(tcp_clienthost(),user,NULL,0);
++      wso_login(inet_ntoa(sin.sin_addr),user,NULL,0);
 +#endif /* WHOSON */
      return pw_login (pw,pw->pw_name,pw->pw_dir,argc,argv);
 +  }
