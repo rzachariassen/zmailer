@@ -331,6 +331,13 @@ process(dp)
 	      if (rp->notify)
 		fprintf(mfp," NOTIFY=%s", rp->notify);
 
+	      if (rp->deliverby) {
+		fprintf(mfp," BY=%ld;", rp->deliverby);
+		if (rp->deliverbyflgs & _DELIVERBY_R) fputc('R',mfp);
+		if (rp->deliverbyflgs & _DELIVERBY_N) fputc('N',mfp);
+		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',mfp);
+	      }
+
 	      putc('\n',mfp);
 	    }
 	  }

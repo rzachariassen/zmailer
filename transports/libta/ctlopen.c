@@ -525,6 +525,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		    } else if (CISTREQN("FAILURE",p,7)) {
 		      p += 7;
 		      prevrp->notifyflgs |= _DSN_NOTIFY_FAILURE;
+		    } else if (CISTREQN("TRACE",p,5)) {
+		      p += 5;
+		      prevrp->notifyflgs |= _DSN_NOTIFY_TRACE;
 		    } else
 		      break; /* Burp !? */
 		    if (*p == ',') ++p;
@@ -532,8 +535,34 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		  continue;
 		}
 		if (CISTREQN("BY=",s,3)) {
+		  long val = 0;
+		  int  neg = 0, cnt = 0;
 		  s += 3;
-		  prevrp->deliverby = s;
+		  if (*s == '-') neg = 1, ++s;
+		  while ('0' <= *s && *s <= '9') {
+		    val = val * 10L + (*s - '0');
+		    ++cnt;
+		    ++s;
+		  }
+		  if (neg) val = -val;
+		  prevrp->deliverby = val;
+		  if (*s == ';') ++s;
+		  while (*s && *s != ' ' && *s != '\t') {
+		    switch (*s) {
+		    case 'R': case 'r':
+		      prevrp->deliverbyflgs |= _DELIVERBY_R;
+		      break;
+		    case 'N': case 'n':
+		      prevrp->deliverbyflgs |= _DELIVERBY_N;
+		      break;
+		    case 'T': case 't':
+		      prevrp->deliverbyflgs |= _DELIVERBY_T;
+		      break;
+		    default:
+		      break;
+		    }
+		    ++s;
+		  }
 		  while (*s && *s != ' ' && *s != '\t') ++s;
 		  if (*s) *s++ = 0;
 		  continue;

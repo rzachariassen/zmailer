@@ -469,7 +469,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	    /* Want, but not have AAAA, ask for it. */
 
-	    struct addrinfo *a;
 	    int n2;
 	    ai2 = NULL;
 

@@ -271,15 +271,16 @@ extern int use_ipv6;
    (even when it violates the protocol..) */
 
 /* Following options can be declared in ESMTP  EHLO response  */
-#define ESMTP_SIZEOPT    0x0001 /* RFC 1427/1653/1870 */
-#define ESMTP_8BITMIME   0x0002 /* RFC 1426/1652 */
-#define ESMTP_DSN        0x0004 /* RFC 1891	 */
-#define ESMTP_PIPELINING 0x0008 /* RFC 1854/2197 */
-#define ESMTP_ENHSTATUS  0x0010 /* RFC 2034	 */
-#define ESMTP_CHUNKING   0x0020 /* RFC 1830	 */
+#define ESMTP_SIZEOPT     0x0001 /* RFC 1427/1653/1870 */
+#define ESMTP_8BITMIME    0x0002 /* RFC 1426/1652 */
+#define ESMTP_DSN         0x0004 /* RFC 1891	 */
+#define ESMTP_PIPELINING  0x0008 /* RFC 1854/2197 */
+#define ESMTP_ENHSTATUS   0x0010 /* RFC 2034	 */
+#define ESMTP_CHUNKING    0x0020 /* RFC 1830	 */
 #ifdef HAVE_OPENSSL
-#define ESMTP_STARTTLS   0x0040 /* RFC 2487	 */
+#define ESMTP_STARTTLS    0x0040 /* RFC 2487	 */
 #endif /* - HAVE_OPENSSL */
+#define ESMTP_DELIVERBY   0x0080 /* RFC 2852      */
 
 
 typedef union {
@@ -330,6 +331,7 @@ typedef struct {
   int  smtp_outcount;		/* we used this much.. */
   int  block_written;		/* written anything in async phase */
   long ehlo_sizeval;
+  long ehlo_deliverbyval;
   int  rcpt_limit;		/* Number of recipients that can be sent on
 				   one session.. */
 
@@ -418,7 +420,7 @@ typedef struct {
 extern const char *FAILED;
 extern time_t now;
 
-extern int errno;
+extern int  errno;
 #ifndef MALLOC_TRACE
 extern void * emalloc __((size_t));
 extern void * erealloc __((void *, size_t));
@@ -434,41 +436,41 @@ extern char *strrchr();
 #endif
 extern char *dottedquad();
 extern char *optarg;
-extern int optind;
+extern int  optind;
 
 extern char **environ;
 
-extern int deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp));
-extern int writebuf   __((SmtpState *SS, const char *buf, int len));
-extern int writemimeline __((SmtpState *SS, const char *buf, int len, CONVERTMODE cvtmode));
-extern int appendlet  __((SmtpState *SS, struct ctldesc *dp, CONVERTMODE convertmode));
-extern int smtpopen   __((SmtpState *SS, const char *host, int noMX));
-extern int smtpconn   __((SmtpState *SS, const char *host, int noMX));
-extern int smtp_ehlo  __((SmtpState *SS, const char *strbuf));
-extern int ehlo_check __((SmtpState *SS, const char *buf));
+extern int  deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp));
+extern int  writebuf   __((SmtpState *SS, const char *buf, int len));
+extern int  writemimeline __((SmtpState *SS, const char *buf, int len, CONVERTMODE cvtmode));
+extern int  appendlet  __((SmtpState *SS, struct ctldesc *dp, CONVERTMODE convertmode));
+extern int  smtpopen   __((SmtpState *SS, const char *host, int noMX));
+extern int  smtpconn   __((SmtpState *SS, const char *host, int noMX));
+extern int  smtp_ehlo  __((SmtpState *SS, const char *strbuf));
+extern int  ehlo_check __((SmtpState *SS, const char *buf));
 extern void smtp_flush __((SmtpState *SS));
-extern int smtp_sync  __((SmtpState *SS, int, int));
-extern int smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
-extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
+extern int  smtp_sync  __((SmtpState *SS, int, int));
+extern int  smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
+extern int  process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
 
-extern int check_7bit_cleanness __((struct ctldesc *dp));
+extern int  check_7bit_cleanness __((struct ctldesc *dp));
 extern void notarystatsave __((SmtpState *SS, char *smtpstatline, char *status));
 
-extern int makeconn  __((SmtpState *SS, struct addrinfo *, int));
-extern int makereconn __((SmtpState *SS));
-extern int vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
+extern int  makeconn  __((SmtpState *SS, struct addrinfo *, int));
+extern int  makereconn __((SmtpState *SS));
+extern int  vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
 #ifdef	BIND
-extern int rightmx  __((const char*, const char*, void*));
-extern int h_errno;
-extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
+extern int  rightmx  __((const char*, const char*, void*));
+extern int  h_errno;
+extern int  res_mkquery(), res_send(), dn_skipname(), dn_expand();
 # ifdef RFC974
-extern int getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
+extern int  getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
 # endif /* RFC974 */
 extern void mxsetsave __((SmtpState *SS, const char *));
 #endif	/* BIND */
-extern int matchroutermxes __((const char*, struct taddress*, void*));
+extern int  matchroutermxes __((const char*, struct taddress*, void*));
 extern RETSIGTYPE sig_pipe __((int));
-extern int getmyhostname();
+extern int  getmyhostname();
 extern void stashmyaddresses();
 extern void getdaemon();
 extern int  has_readable __((int));
@@ -476,8 +478,10 @@ extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS, int failure));
 extern void pipeblockread __((SmtpState *SS));
 extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
-extern int     zsfsetfd     __((Sfio_t *, int));
-extern int     smtp_nbread  __((SmtpState *, void *, int));
+extern int  zsfsetfd     __((Sfio_t *, int));
+extern int  smtp_nbread  __((SmtpState *, void *, int));
+
+extern int  getmxrr __((SmtpState *SS, const char *host, struct mxdata mx[], int maxmx, int depth));
 
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
 extern void report __((SmtpState *SS, char *fmt, ...));

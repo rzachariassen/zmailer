@@ -142,6 +142,7 @@ extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, in
 #define MO_BSMTP		0x01000 /* BSMTP-wrapping -- with HIDDENDOT.. */
 #define MO_BESMTP		0x02000 /* Extended BSMTP -- SIZE+8BITMIME    */
 #define MO_BEDSMTP		0x04000 /* EBSMTP + DSN */
+#define MO_BEBSMTP		0x04000 /* ESMTP + DELIVERBY */
 #define MO_WANTSDATE		0x08000 /* Wants "Date:" -header */
 #define MO_WANTSFROM		0x10000 /* Wants "From:" -header */
 #define MO_BSMTPHELO		0x20000 /* Add HELO/EHLO to the BSMTP */
@@ -615,10 +616,34 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    fprintf(tafp,"RCPT TO:<%s>",rp->addr->user);
 	    /* if (mp->flags & MO_BESMTP) { } */
 	    if (mp->flags & MO_BEDSMTP) {
-	      if (rp->notify)
-		fprintf(tafp," NOTIFY=%s",rp->notify);
+	      if (rp->notifyflgs) {
+		char *s = "";
+		fprintf(tafp," NOTIFY=");
+		if (rp->notifyflgs & _DSN_NOTIFY_NEVER) {
+		  fprintf(tafp,"NEVER");
+		}
+		if (rp->notifyflgs & _DSN_NOTIFY_SUCCESS) {
+		  fprintf(tafp,"SUCCESS");
+		  s = ",";
+		}
+		if (rp->notifyflgs & _DSN_NOTIFY_FAILURE) {
+		  fprintf(tafp,"%sFAILURE",s);
+		  s = ",";
+		}
+		if (rp->notifyflgs & _DSN_NOTIFY_DELAY) {
+		  fprintf(tafp,"%sDELAY",s);
+		}
+	      }
 	      if (rp->orcpt)
 		fprintf(tafp," ORCPT=%s",rp->orcpt);
+	    }
+	    if (mp->flags & MO_BEBSMTP) {
+	      if (rp->deliverby) {
+		fprintf(tafp," BY=%ld;", rp->deliverby);
+		if (rp->deliverbyflgs & _DELIVERBY_R) fputc('R',tafp);
+		if (rp->deliverbyflgs & _DELIVERBY_N) fputc('N',tafp);
+		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',tafp);
+	      }
 	    }
 	    if (mp->flags & MO_CRLF) putc('\r',tafp);
 	    putc('\n',tafp);

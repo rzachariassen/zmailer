@@ -33,6 +33,7 @@ struct taddress {
 #define _DSN_NOTIFY_FAILURE	0x002
 #define _DSN_NOTIFY_DELAY	0x004
 #define _DSN_NOTIFY_NEVER	0x008
+#define _DSN_NOTIFY_TRACE	0x010
 
 #define _DSN__DIAGDELAYMODE	 0x800 /* Internal magic for MAILBOX/SIEVE */
 #define _DSN__TEMPFAIL_NO_UNLOCK 0x400 /* Internal magic for SMTP */
@@ -55,9 +56,14 @@ struct rcpt {
 	struct taddress	*addr;		/* addr.link is the sender address */
 	const char	*orcpt;		/*  DSN  ORCPT=  string */
 	const char	*inrcpt;	/* "DSN" INRCPT= string */
+	const char	*infrom;	/* "DSN" INFROM= string */
 	const char	*notify;	/*  DSN  NOTIFY= flags  */
-	const char	*deliverby;	/*  RFC 2852  DELIVERBY */
 	int		notifyflgs;
+	time_t		deliverby;	/*  RFC 2852  DELIVERBY */
+	int		deliverbyflgs;
+#define _DELIVERBY_N 1
+#define _DELIVERBY_R 2
+#define _DELIVERBY_T 4
 	char		***newmsgheader; /* message header line pointer ptr
 					   that points to an address of
 					      ctldesc->msgheaders[index]
@@ -257,8 +263,10 @@ extern void tatimestr __((char *buf, int dt));
 extern void tasyslog __((struct rcpt *rp, int xdelay, const char *wtthost, const char *wttip, const char *stats, const char *msg));
 
 #ifndef CISTREQ
-#define  CISTREQ(x, y)      (cistrcmp((const char *)(x), (const char *)(y)) == 0)
-#define  CISTREQN(x, y, n)  (cistrncmp((const char *)(x), (const char *)(y), n) == 0)
+#define  CISTREQ(x,y)    (cistrcmp((const char *)(x), (const char *)(y))  ==0)
+#define  CISTREQN(x,y,n) (cistrncmp((const char*)(x), (const char*)(y), n)==0)
+#define  STREQ(x,y)      (strcmp((const char *)(x),   (const char*)(y))   ==0)
+#define  STREQN(x,y,n)   (strncmp((const char *)(x), (const char *)(y), n)==0)
 #endif
 
 extern int getmyuucename __((char *, int));

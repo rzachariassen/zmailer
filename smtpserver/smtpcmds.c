@@ -956,7 +956,9 @@ int insecure;
 	fprintf(SS->mfp, "identinfo %s\n", SS->ident_username);
 
     if (SS->smtpfrom) free((void*)SS->smtpfrom);
-    SS->smtpfrom = strndup(cp, addrlen);
+    SS->smtpfrom = malloc(addrlen+1);
+    memcpy(SS->smtpfrom, cp, addrlen);
+    SS->smtpfrom[addrlen] = 0;
 
     if (addrlen == 0)
 	fputs("channel error\n", SS->mfp);	/* Empty  MAIL FROM:<> */
@@ -1222,6 +1224,12 @@ const char *buf, *cp;
 	    if (strict && !sloppy) break;
 	}
 	/* IETF-NOTARY  SMTP-DSN extensions */
+
+#define NOTIFY_SUCCESS 1
+#define NOTIFY_FAILURE 2
+#define NOTIFY_DELAY   4
+#define NOTIFY_NEVER   8
+
 	if (dsn_ok && CISTREQN("NOTIFY=", s, 7)) {
 	    if (drpt_notify) {
 		smtp_tarpit(SS);
@@ -1232,13 +1240,13 @@ const char *buf, *cp;
 	    s += 7;
 	    while (*s) {
 		if (CISTREQN("SUCCESS", s, 7))
-		    s += 7, notifyflgs |= 1;
+		    s += 7, notifyflgs |= NOTIFY_SUCCESS;
 		else if (CISTREQN("FAILURE", s, 7))
-		    s += 7, notifyflgs |= 2;
+		    s += 7, notifyflgs |= NOTIFY_FAILURE;
 		else if (CISTREQN("DELAY", s, 5))
-		    s += 5, notifyflgs |= 4;
+		    s += 5, notifyflgs |= NOTIFY_DELAY;
 		else if (CISTREQN("NEVER", s, 5))
-		    s += 5, notifyflgs |= 8;
+		    s += 5, notifyflgs |= NOTIFY_NEVER;
 		if (*s != ',')
 		    break;
 		++s;
@@ -1430,11 +1438,17 @@ const char *buf, *cp;
     if (drpt_notify) {
 	fputc(' ', SS->mfp);
 	fwrite(drpt_notify, 1, notifylen, SS->mfp);
-	if (!(notifyflgs & 8) /* Not 'NEVER' */ &&
-	    !(notifyflgs & 4) /* Not 'DELAY' */ &&
+	if (!(notifyflgs & NOTIFY_NEVER) /* Not 'NEVER' */ &&
+	    !(notifyflgs & NOTIFY_DELAY) /* Not 'DELAY' */ &&
 	    (SS->deliverby_flags & DELIVERBY_N) /* 'N' mode */)
 	  /* RFC 2852: 4.1.4.2: */
 	  fwrite(",DELAY", 1, 6, SS->mfp);
+	if (SS->deliverby_flags & DELIVERBY_T)
+	  fwrite(",TRACE", 1, 6, SS->mfp);
+    } else {
+	fprintf(SS->mfp, " NOTIFY=FAILURE,DELAY");
+	if (SS->deliverby_flags & DELIVERBY_T)
+	  fwrite(",TRACE", 1, 6, SS->mfp);
     }
     if (SS->deliverby_time) {
       fprintf(SS->mfp, " BY=%ld;", SS->deliverby_time);

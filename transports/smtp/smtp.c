@@ -489,7 +489,7 @@ main(argc, argv)
 	    localidentity = strdup(optarg);
 	    break;
 	  case 'T':		/* specify Timeout in seconds */
-	    if (strncasecmp(optarg,"conn=",5)==0) {
+	    if (CISTREQN(optarg,"conn=",5)) {
 	      timeout_conn = parse_interval(optarg+5,NULL);
 	      if (timeout_conn < 10) {
 		fprintf(stderr, "%s: bad tcp connection timeout: %s\n",
@@ -497,7 +497,7 @@ main(argc, argv)
 		++errflg;
 	      }
 	      break;
-	    } else if (strncasecmp(optarg,"data=",5)==0) {
+	    } else if (CISTREQN(optarg,"data=",5)) {
 	      timeout_data = parse_interval(optarg+5,NULL);
 	      if (timeout_data < 10) {
 		fprintf(stderr, "%s: bad data timeout: %s\n",
@@ -505,7 +505,7 @@ main(argc, argv)
 		++errflg;
 	      }
 	      break;
-	    } else if (strncasecmp(optarg,"dot=",4)==0) {
+	    } else if (CISTREQN(optarg,"dot=",4)) {
 	      timeout_dot = parse_interval(optarg+4,NULL);
 	      if (timeout_dot < 10) {
 		fprintf(stderr, "%s: bad data-dot-reply timeout: %s\n",
@@ -513,7 +513,7 @@ main(argc, argv)
 		++errflg;
 	      }
 	      break;
-	    } else if (strncasecmp(optarg,"tcpw=",5)==0) {
+	    } else if (CISTREQN(optarg,"tcpw=",5)) {
 	      timeout_tcpw = parse_interval(optarg+5,NULL);
 	      if (timeout_tcpw < 10) {
 		fprintf(stderr, "%s: bad tcp-write timeout: %s\n",
@@ -521,7 +521,7 @@ main(argc, argv)
 		++errflg;
 	      }
 	      break;
-	    } else if (strncasecmp(optarg,"cmd=",4)==0) {
+	    } else if (CISTREQN(optarg,"cmd=",4)) {
 	      timeout_cmd = parse_interval(optarg+4,NULL);
 	      optarg += 4;
 	    } else
@@ -665,7 +665,7 @@ main(argc, argv)
 	  if (logfp)
 	    fprintf(logfp,"%s#\tjobspec: %s",logtag(),filename);
 
-	  if (strcmp(filename, "#idle\n") == 0) {
+	  if (STREQ(filename, "#idle\n")) {
 	    idle = 1;
 	    continue; /* XX: We can't stay idle for very long, but.. */
 	  }
@@ -678,7 +678,7 @@ main(argc, argv)
 	  if (s != NULL) {
 	    *s++ = 0;
 
-	    if (host && strcasecmp((char*)host,s)==0) {
+	    if (host && CISTREQ((char*)host,s)) {
 
 	      /* XXX: Behaviour with 'close_after_data' ??? */
 
@@ -694,7 +694,7 @@ main(argc, argv)
 
 	    /* If different target host, close the old connection.
 	       In theory we could use same host via MX, but...     */
-	    if (host && strcmp(s,(char*)host) != 0) {
+	    if (host && !STREQ(s,(char*)host)) {
 	      if (SS.smtpfp) {
 		if (!getout && !zmalloc_failure)
 		  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
@@ -1128,7 +1128,7 @@ deliver(SS, dp, startrp, endrp)
 	SS->prevcmdstate = 99;
 	SS->cmdstate     = SMTPSTATE_MAILFROM;
 
-	if (strcmp(startrp->addr->link->channel,"error")==0)
+	if (STREQ(startrp->addr->link->channel,"error"))
 	  sprintf(SMTPbuf, "MAIL From:<>");
 	else
 	  sprintf(SMTPbuf, "MAIL From:<%.1000s>", startrp->addr->link->user);
@@ -1688,27 +1688,33 @@ const char *buf;
 {
 	char *r = strchr(buf,'\r');
 	if (r != NULL) *r = 0;
-	if (strcmp(buf,"8BITMIME")==0) {
+	if (STREQ(buf,"8BITMIME")) {
 	  SS->ehlo_capabilities |= ESMTP_8BITMIME;
-	} else if (strcmp(buf,"DSN")==0) {
+	} else if (STREQ(buf,"DSN")) {
 	  SS->ehlo_capabilities |= ESMTP_DSN;
-	} else if (strcmp(buf,"ENHANCEDSTATUSCODES")==0) {
+	} else if (STREQ(buf,"ENHANCEDSTATUSCODES")) {
 	  SS->ehlo_capabilities |= ESMTP_ENHSTATUS;
-	} else if (strcmp(buf,"CHUNKING")==0) {
+	} else if (STREQ(buf,"CHUNKING")) {
 	  SS->ehlo_capabilities |= ESMTP_CHUNKING;
-	} else if (strcmp(buf,"PIPELINING")==0) {
+	} else if (STREQ(buf,"PIPELINING")) {
 	  SS->ehlo_capabilities |= ESMTP_PIPELINING;
 #ifdef HAVE_OPENSSL
-	} else if (strcmp(buf,"STARTTLS")==0) {
+	} else if (STREQ(buf,"STARTTLS")) {
 	  SS->ehlo_capabilities |= ESMTP_STARTTLS;
 #endif /* - HAVE_OPENSSL */
-	} else if (strncmp(buf,"SIZE ",5)==0 ||
-		   strcmp(buf,"SIZE") == 0) {
+	} else if (STREQN(buf,"SIZE ",5) ||
+		   STREQ (buf,"SIZE")   ) {
 	  SS->ehlo_capabilities |= ESMTP_SIZEOPT;
 	  SS->ehlo_sizeval = -1;
 	  if (buf[4] == ' ')
 	    sscanf(buf+5,"%ld",&SS->ehlo_sizeval);
-	} else if (strncmp(buf,"X-RCPTLIMIT ",12)==0) {
+	} else if (STREQN(buf,"DELIVERBY ",10) ||
+		   STREQ (buf,"DELIVERBY")    ) {
+	  SS->ehlo_capabilities |= ESMTP_DELIVERBY;
+	  SS->ehlo_deliverbyval = -1;
+	  if (buf[9] == ' ')
+	    sscanf(buf+10,"%ld;",&SS->ehlo_deliverbyval);
+	} else if (STREQN(buf,"X-RCPTLIMIT ",12)) {
 	  int nn = atoi(buf+12);
 	  if (nn < 10)
 	    nn = 10;
@@ -1729,7 +1735,7 @@ char *str;
 	while (*s) {
 	  while (*s && *s != 'e' && *s != 'E') ++s;
 	  if (!s) return;
-	  if (cistrncmp(s,"ESMTP",5)==0) {
+	  if (CISTREQN(s,"ESMTP",5)) {
 	    SS->esmtp_on_banner = 1;
 	    return;
 	  }
@@ -2003,9 +2009,9 @@ smtpconn(SS, host, noMX)
 	  }
 
 #if defined(AF_INET6) && defined(INET6)
-	  if (cistrncmp(buf,"IPv6 ",5) == 0 ||
-	      cistrncmp(buf,"IPv6.",5) == 0 || 
-	      cistrncmp(buf,"IPv6:",5) == 0  ) {
+	  if (CISTREQN(buf,"IPv6 ",5)  ||
+	      CISTREQN(buf,"IPv6.",5)  ||
+	      CISTREQN(buf,"IPv6:",5)  ) {
 	    /* We parse ONLY IPv6 form of address .. well, also
 	       the potential IPv4 compability addresses ... */
 	    req.ai_family = PF_INET6;
@@ -2627,12 +2633,12 @@ abort();
 	    ;
 #if defined(AF_INET6) && defined(INET6)
 	  else if (af == AF_INET6 &&
-		   cistrncmp(localidentity,"iface:",6) == 0) {
+		   CISTREQN(localidentity,"iface:",6)) {
 	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad6);
 	  }
-	  else if (cistrncmp(localidentity,"[ipv6 ",6) == 0 ||
-		   cistrncmp(localidentity,"[ipv6:",6) == 0 ||
-		   cistrncmp(localidentity,"[ipv6.",6) == 0) {
+	  else if (CISTREQN(localidentity,"[ipv6 ",6)  ||
+		   CISTREQN(localidentity,"[ipv6:",6)  ||
+		   CISTREQN(localidentity,"[ipv6.",6) ) {
 	    char *s = strchr(localidentity,']');
 	    if (s) *s = 0;
 	    if (inet_pton(AF_INET6, localidentity+6, &sad6.sin6_addr) < 1) {
@@ -2642,7 +2648,7 @@ abort();
 	  }
 #endif /* AF_INET6 && INET6 */
 	  else if (af == AF_INET &&
-		   cistrncmp(localidentity,"iface:",6) == 0) {
+		   CISTREQN(localidentity,"iface:",6)) {
 	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad);
 	  }
 	  else if (*localidentity == '[') {
@@ -3510,7 +3516,7 @@ smtp_sync(SS, r, nonblocking)
 	      /* No diagnostic()s for  MAIL FROM:<> nor for DATA/BDAT phases */
 
 	      if (idx == 0 && SS->pipecmds[idx] != NULL &&
-		  strncmp(SS->pipecmds[idx],"MAIL", 4) == 0) {
+		  STREQN(SS->pipecmds[idx],"MAIL", 4)) {
 		/* We are working on MAIL From:<...> command here */
 		if (code >= 500)
 		  SS->rcptstates |= FROMSTATE_500;
