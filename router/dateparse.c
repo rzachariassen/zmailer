@@ -1,6 +1,45 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	Maintenance by Ken Lalonde, 1999.
+ */
+/*
+  From: Ken Lalonde <ken@uunet.ca>
+  To:   mea@nic.funet.fi
+  Subject: Bug fix for zmailer-2.99.50s11/router/dateparse.c
+  Date: Fri, 5 Feb 1999 16:39:45 -0500
+
+  Hi Matti,
+
+  The router/dateparse.c code doesn't handle year 2000 dates correctly.
+  I don't think this actually matters very much,
+  but just in case, here's a version that does.
+
+  All the best,
+
+  Ken Lalonde
+  Network Engineering
+  UUNET, an MCI WorldCom Company
+  Phone: +1 416-216-5133 Fax: +1 416-368-4080
+*/
+
+/*
+
+  Yes, however USAGE of this code is limited; while it does get
+  called by the router, it's result is effectively ignored.
+  People do produce copious amounts of "Date:" headers that are
+  so ingenuinely wrong in syntax, that spending time in parsing
+  them is wasted time.. :-(    Ignoring that wastage, current
+  Mailer passes on arriving "Date:" header, and generates one
+  only when it doesn't exist in the arriving headers.
+
+  However somebody may decide to reuse this code somewhere else;
+  at some userspace program, for example, which can live with that
+  ugly fact of life..
+
+  /Matti Aarnio <mea@nic.funet.fi>
+
  */
 
 /*
@@ -32,8 +71,6 @@
 #include <ctype.h>
 
 extern int cistrncmp();
-
-#define THISCENTURY 19
 
 /* The following table and binary search code originally by Rich Wales */
 
@@ -215,6 +252,36 @@ static struct wordtable {
 	"WET",		StdZone,	60,	/* Western European Time */
 #endif
 
+/*
+ * Lilian day calculation, from
+ * http://www.software.ibm.com/year2000/tips15.html
+ */
+#define INT(x) (x)	/* just to keep the formulae the same */
+
+static int lilian __((int yyyy, int mm, int dd));
+
+static int
+lilian(yyyy, mm, dd)
+	int yyyy, mm, dd;
+{
+	int ly, nnn, lil;
+
+	/* Determine day in year (nnn) */
+	ly = yyyy%4 == 0 ? 1 : 0;
+	if (yyyy%100 == 0) ly = 0;
+	if (yyyy%400 == 0) ly = 1;
+	nnn = INT(3 / (mm + 1)) * (31 * (mm -1) + dd) + 
+		INT((mm + 9) / 12) * (INT(((305 * (mm - 1) - 15) +
+		INT((mm + 3) / 12) * 5 * INT(18 / mm)) / 10) +
+		dd + ly);
+	/* Determine Lilian day from YYYY NNN */
+	lil = INT(((yyyy - 1201) * 36525) / 100) -
+		139444 + nnn -
+		INT((yyyy - 1201) / 100)+
+		INT((yyyy - 1201) / 400);
+	return lil;
+}
+
 /* Multiple-value return of token type and value */
 
 static int
@@ -264,14 +331,6 @@ dateToken(s, len)
 #define YYYY	0400		/* anno domini */
 #define MAXFLAG	YYYY		/* used to tell if one & only one bit is set */
 
-#define DAYS_IN_400YRS		146097L
-#define DAYS_IN_4YRS		1461L
-#define	DAYS_OF_YEAR(m, d)	(((153L * (m) + 2L)/5L) + (d))
-#define	DAYS_TO_YEAR(c, y)	((DAYS_IN_400YRS*(c))/4L+(DAYS_IN_4YRS*(y))/4L)
-
-/* Really 719469: Julian date of January 1, 1970 */
-#define	DAYS_TO_EPOCH		(DAYS_TO_YEAR(19, 69) + DAYS_OF_YEAR(10, 1))
-
 /*
  * Parse a tokenlist scanned from a date-string.
  */
@@ -282,12 +341,16 @@ dateParse(localtmptr, t)
 	token822 *t;
 {
 	register int	val = 0, i, could_be;
-	int	century, year, month, dayinmonth, julian;
+	int	century, year, month, dayinmonth, days;
 	int	*prev_could_be, j, index, zone, aval, zoneindex, expect_zone;
 #define TYPESMAX 50
-	int	values[TYPESMAX], types[TYPESMAX];	/* TODO: fix limits */
+	int     values[TYPESMAX], types[TYPESMAX];      /* TODO: fix limits */
 	long	sec;
+	int	have_year = 0;
+	static int this_century = -1;
 
+	if (this_century < 0)
+		this_century = (localtmptr->tm_year + 1900) / 100;
 	index = 0;
 	zone = 0;		/* minutes offset from UTC */
 	zoneindex = 0;
@@ -331,9 +394,8 @@ dateParse(localtmptr, t)
 					could_be |= MM;
 				if ((*prev_could_be) & MM)
 					could_be |= SS;
-#if	THISCENTURY == 20
-				could_be |= YY;
-#endif
+				if (this_century >= 20)
+					could_be |= YY;
 			}
 			if (val > 59) {
 				if (val < 100)
@@ -347,9 +409,9 @@ dateParse(localtmptr, t)
 						    && (val%10000) < 2400)
 							could_be |= HHMMSS;
 					}
-					if (val/100 == THISCENTURY ||
-					   (val/100 == THISCENTURY+1
-						    && val%100 < 20))
+					if (val/100 == this_century ||
+					   (val/100 == this_century+1
+						    && val%100 <= 20))
 						could_be |= YYYY;
 				}
 			}
@@ -554,44 +616,30 @@ again:	/* \relax */
 		case SS:	sec += values[i];
 				break;
 		case MIY:	month = values[i];
-				/* modify for use in julian date formula */
-				if (month > 2)
-					month -= 3;
-				else {
-					month += 9;
-#if 0
-					if (year == 0) {
-						--century;
-						year = 99;
-					} else
-#endif
-						--year;
-				}
 				break;
 		case DD:	dayinmonth = values[i];
 				break;
-		case YY:	values[i] += THISCENTURY*100;
-		case YYYY:	year += values[i]%100;
+		case YY:
+				/* 00..38 => next century */
+				/* 39 .. 99 => this one */
+				values[i] += values[i] > 38 ? 1900 : 2000;
+		case YYYY:
+				if (types[i] == YYYY)
+					have_year++;	/* explicit year */
+				year += values[i]%100;
 				century = values[i]/100;
 				break;
 		}
 	}
 	if (century < 0)	/* default century */
-		century = THISCENTURY + 1 + century;
-	if (year <= 0)		/* default year (wraparound buggy...) */
-		year += localtmptr->tm_year;
-	if (month < 0) {	/* default month */
+		century = this_century;
+	if (year <= 0 && !have_year) /* default year (wraparound buggy...) */
+		year += localtmptr->tm_year%100;
+	if (month < 0) 	/* default month */
 		month = localtmptr->tm_mon + 1;
-		/* modify for use in julian date formula */
-		if(month > 2) month -= 3;
-		else month += 9, --year;
-	}
 	if (dayinmonth < 0)	/* default day in month */
 		dayinmonth = localtmptr->tm_mday;
-	/* we don't care about defaulting seconds in day */
-	/* this is a standard julian date formula of unknown origin */
-	julian = DAYS_TO_YEAR(century, year) + DAYS_OF_YEAR(month, dayinmonth)
-		- DAYS_TO_EPOCH;
-	sec += (julian * 24 * 60 - zone) * 60;
+	days = lilian(century*100+year, month, dayinmonth) - lilian(1970, 1, 1);
+	sec += (days * 24 * 60 - zone) * 60;
 	return sec < 0 ? 0L : sec;
 }
