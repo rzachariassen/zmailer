@@ -425,6 +425,10 @@ getmxrr(host, mx, maxmx, depth)
 	  fprintf(stdout,"  %s  IN MX %3d %s\n", host,mx[i].pref,mx[i].host);
 	fprintf(stdout, "</PRE>\n<P>\n");
 
+	if (nmx == 1) {
+	  fprintf(stdout, "<H2>Only one MX record, well, no backups, but as all systems are looking for MX record <I>in every case</I>, not bad..</H2>\n<P>\n");
+	}
+
 	mx[nmx].host = NULL;
 	return EX_OK;
 }
