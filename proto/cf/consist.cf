@@ -13,7 +13,8 @@ declare (plist, modules) {
 	local a
 	for m in $modules
 	do
-		a=$(setf $(get $plist $m) $m)
+		lreplace $plist $m $m
+		#a=$(setf $(get $plist $m) $m)
 	done
 }
 

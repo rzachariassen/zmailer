@@ -38,8 +38,11 @@ crossbar (from, to) {
 	tmp=$(intercept "$(user $to)") &&
 		case "$(car $tmp)" in
 		drop)	return ;;
-		error)	setf $(channel $to) error
-			setf $(host $to) $(car $(cdr $tmp))
+		error)	
+			lreplace to 0 error
+			# setf $(channel $to) error
+			lreplace to 1 $(host $tmp)
+			#setf $(host $to) $(car $(cdr $tmp))
 			;;
 		file)	LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
 		esac
@@ -95,7 +98,8 @@ crossbar (from, to) {
 
 	case "$(channel $from)" in
 	defrt1*)
-		setf "$(user $from)" "$(bitnetroute "$(user $from)")"
+		lreplace from 2 "$(bitnetroute "$(user $from)")"
+		#setf "$(user $from)" "$(bitnetroute "$(user $from)")"
 		if [ $rewrite = internet ]; then
 			rewrite=bitnet2internet
 		fi
@@ -111,16 +115,22 @@ crossbar (from, to) {
 		# must be in all-! form, which is the same as the UUCP
 		# transport requirement.
 
-		setf "$(user $from)" "$(uucproute "$(user $from)")"
-		setf "$(user $to)" "$(uucproute "$(user $to)")"
+		lreplace from 2 "$(uucproute "$(user $from)")"
+		#setf "$(user $from)" "$(uucproute "$(user $from)")"
+		lreplace to 2 "$(uucproute "$(user $to)")"
+		#setf "$(user $to)" "$(uucproute "$(user $to)")"
 		tsift "$(user $to)" in
 		(.)!(.*)	if [ \1 = $(host $to) ]; then
-					setf "$(user $to)" \2
+					lreplace to 2 "\2"
+					#setf "$(user $to)" "\2"
 				fi
 				;;
 		tfist
 		tsift "$(user $to)" in
-		(.)\.uucp!(.*)	setf "$(user $to)" \1!\2 ;;
+		(.)\.uucp!(.*)
+				lreplace to 2 "\1!\2"
+				#setf "$(user $to)" \1!\2
+				;;
 		tfist
 		;;
 	smtp|smtpx|local|bsmtp3*)
@@ -149,38 +159,53 @@ crossbar (from, to) {
 		@(.+):(.+:.+)
 			tmp="@\1,\2" ; continue ;;
 		tfist
-		setf "$(user $from)" "$tmp"
+		lreplace from 2 "$tmp"
+		#setf "$(user $from)" "$tmp"
 		tsift "$(user $to)" in
-		(^/).*	setf "$(user $to)" "$(smtproute "$(user $to)")" ;;
+		(^/).*	
+			lreplace to 2 "$(smtproute "$(user $to)")"
+			#setf "$(user $to)" "$(smtproute "$(user $to)")"
+			;;
 		tfist
 
 		;;
 	ean)	
-		setf $(user $from) "$(ean_useratdomain "$(user $from)")"
-		setf "$(user $to)" "$(ean_useratdomain "$(user $to)")"
+		lreplace from 2 "$(ean_useratdomain "$(user $from)")"
+		lreplace to   2 "$(ean_useratdomain "$(user $to)")"
+		#setf $(user $from) "$(ean_useratdomain "$(user $from)")"
+		#setf "$(user $to)" "$(ean_useratdomain "$(user $to)")"
 		;;
 	usenet)
-		setf $(user $from) "$(uucproute "$(user $from)")"
+		lreplace from 2 "$(uucproute "$(user $from)")"
+		#setf $(user $from) "$(uucproute "$(user $from)")"
 		tsift $(user $from) in
 		$hostname!.*	;;
-		.*	setf $(user $from) $hostname!$(user $from) ;;
+		.*	
+			lreplace from 2 $hostname!$(user $from)
+			#setf $(user $from) $hostname!$(user $from)
+			;;
 		tfist
 		# newsgroup name only
-		setf "$(user $to)" $(localpart "$(user $to)")
+		lreplace to 2 "$(localpart "$(user $to)")"
+		#setf "$(user $to)" $(localpart "$(user $to)")
 		;;
 #	bsmtp3|bsmtp3nd)
-#		setf $(user $from) "$(bitnetroute "$(user $from)")"
+#		lreplace from 2 "$(bitnetroute "$(user $from)")"
+#		#setf $(user $from) "$(bitnetroute "$(user $from)")"
 #		tmp="$(bitnetroute "$(user $to)")"
 #		tsift "$tmp" in
 #		.*@([^.]).uucp
 #			tmp="$(bitnetShortroute "$(user $to)")" ;;
 #		tfist
-#		setf "$(user $to)" "$tmp"
+#		lreplace to 2 "$tmp"
+#		#setf "$(user $to)" "$tmp"
 #		rewrite=bitnetShortroute
 #		;;
 	defrt1)
-		setf $(user $from) "$(bitnetroute "$(user $from)")"
-		setf $(user $to) "$(bitnetroute "$(user $to)")"
+		lreplace from 2 "$(bitnetroute "$(user $from)")"
+		lreplace to   2 "$(bitnetroute "$(user $to)")"
+		#setf $(user $from) "$(bitnetroute "$(user $from)")"
+		#setf $(user $to) "$(bitnetroute "$(user $to)")"
 		rewrite=bitnetroute
 		tsift "$(user $to)" in
 		(.*)[!%](.+)@(.*)
