@@ -1,5 +1,10 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.c, smtpserver/subdaemon-trk.c:
+	    Styling beauty-warts, and correcting internal
+	    communications primitives to match client, and
+	    server to each other...
+
 	* smtpserver/smtpreport.c:
 	    When processing the authorization file, turn on root-powers
 	    to access the file, then return into trusted mode.

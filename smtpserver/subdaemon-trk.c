@@ -222,14 +222,13 @@ static int count_ipv4( state, ipv4addr, lastlimit,
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	int i, sum;
 
-	/* Don't allocate until an INCR is called for! */
-	if (!reg && incr) {
+	if (!reg) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
 	  if (reg) reg->mails = 0;
 	}
-	if (!reg) return 0;    /*  not INCR, or alloc failed!  */
+	if (!reg) return 0;    /*  alloc failed!  */
 
-	++ reg->mails;
+	reg->mails += incr;
 
 	if (lastlimit > 0)
 	  reg->lastlimit = lastlimit;
@@ -305,6 +304,8 @@ static int count_excess_ipv4( state, ipv4addr )
 	if (!reg) return 0;    /*  not alloced!  */
 
 	++ reg->excesses;
+	++ reg->mails;
+
 	reg->last_excess = now;
 
 	return reg->excesses;
@@ -318,7 +319,6 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	if (!reg) return 0;    /*  not alloced!  */
 
-	reg->mails      += 1;
 	reg->recipients += incr;
 	reg->last_recipients = now;
 
@@ -368,7 +368,11 @@ dump_v4_rcptline(p, spl)
 	fprintf(fp, " Excesses: %d %d %d",
 		rp->excesses, rp->excesses2, rp->excesses3);
 
-	fprintf(fp, " LastExcess: %ld", rp->last_excess);
+	if (rp->last_excess)
+	  fprintf(fp, " Age: %6.3fh", (double)(now-rp->last_excess)/3600.0);
+	else
+	  fprintf(fp, " Age:       0 ");
+
 	fprintf(fp, " Rcpts: %d %d %d",
 		rp->recipients, rp->recipients2, rp->recipients3);
 
@@ -424,19 +428,12 @@ static void subdaemon_trk_checksigusr1(state)
 	rhead = state->ipv4_regs_head;
 
 	for ( ; rhead ; rhead = rhead->next ) {
-
 	    r = rhead->ipv4;
-
 	    for (i = 0; i < rhead->count; ++i) {
-
-		if (r[i].spl != NULL) {
-
+		if (r[i].spl) {
 		    dump_v4_rcptline(&dp4, r[i].spl);
-
 		}
-
 	    } /* All entries in this block */
-
 	} /* All blocks.. */
 
 
@@ -501,7 +498,7 @@ dump_trk(state, peerdata)
 	for ( ; rhead ; rhead = rhead->next ) {
 	  r = rhead->ipv4;
 	  for (i = 0; i < rhead->count; ++i) {
-	    if (r[i].spl != NULL) {
+	    if (r[i].spl) {
 		    dump_v4_rcptline(&dp4, r[i].spl);
 	    }
 	  } /* All entries in this block */
@@ -713,6 +710,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  ipv4addr = strtoul( iplabel+2, NULL, 16);
 	  /* FIXME ? - htonl() ???  */
 
+
 	  if (i >= 0) {		/* "MSGS" data */
 	    i = count_ipv4( state, ipv4addr, lastlimitval, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
@@ -737,7 +735,9 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	if (0) {
 	bad_input:
-	  sprintf(peerdata->outbuf,"500 bad input; unsupported mode\n");
+	  sprintf(peerdata->outbuf,
+		  "500 bad input; unsupported mode; act='%s', ip='%s' i=%d\n",
+		  actionlabel, iplabel, i);
 	  peerdata->outlen = strlen(peerdata->outbuf);
 	}
 

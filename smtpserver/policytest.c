@@ -1252,7 +1252,7 @@ static int call_rate_counter(state, incr, what, countp)
 {
     int rc;
     char pbuf[2000]; /* Not THAT much space needed.. */
-    const char *cmd = "RATE";
+    const char *cmd = "zz";
     const char *whatp = "CONNECT";
     int count = 0;
     const char *limitp = state->ratelimitmsgsvalue;
@@ -1276,7 +1276,7 @@ static int call_rate_counter(state, incr, what, countp)
 
     switch (incr) {
     case 0:
-      cmd   = "RATE";
+      cmd   = "MSGS";
       count = 0;
       break;
     case 1:
@@ -1797,10 +1797,10 @@ static int pt_mailfrom(state, str, len)
 
 	if (rc == 0) {
 	  /* Got some rate limit data back,  now USE IT ! */
-	  if (limitval < 0 && count > -limitval) {
+	  if (limitval < 0 && count >= -limitval) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
 	    rc = -1;  /* Hard, e.g. 500-series */
-	  } else if (limitval > 0 && count > limitval) {
+	  } else if (limitval > 0 && count >= limitval) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
 	    rc = -100; /* Soft, e.g. 400-series */
 	  }
