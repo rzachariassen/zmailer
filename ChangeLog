@@ -1,3 +1,11 @@
+1998-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpcmds.c:
+	    Reviewed, and changed quite many of the ENHANCEDSTATUSCODES
+	    code values presented in replies.  Not all DNS errors are
+	    POLICY (*.7.*) errors although policy analysis detects them..
+
 1998-06-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/makedb.in:
@@ -8,7 +16,7 @@
 	    Mistakes after code movements in  program()  function :-(
 
 	* smtpserver/smtpdata.c, smtpserver/smtpserver.c,
-	  smtpserver/smtpcmds.c:
+	  smtpserver/smtpcmds.c, utils/smtpserver-log-parser.pl:
 	    Make the verbose debug log more readable -- guaranteed
 	    session end-points to be findable:
 	       ######w \t 221 ...

@@ -16,7 +16,7 @@ all:
 
 install:
 	for BIN in $(BINS); do					\
-		if [ ! -f $$BIN ] ; then			\
+		if [ ! -f $(MAILBIN)/$$BIN ] ; then		\
 			$(INSTALL) -m 755 $$BIN  $(MAILBIN) ;	\
 		else						\
 			echo "*** No overwrite of $$BIN, already exists!" ; \

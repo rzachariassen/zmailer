@@ -231,20 +231,21 @@ db:	FRC
 
 cf:	FRC
 	-@. $(PZCONFIG) ; \
-	if [ ! -d $(prefix)$$MAILSHARE/cf ]; then \
-		$(MKDIR) $(prefix)$$MAILSHARE/cf ; \
-		$(MKDIR) $(prefix)$$MAILSHARE/cf/fc ; \
-		cp -p $(srcdir)/cf/*.cf $(prefix)$$MAILSHARE/cf ; \
-		: cp $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
-		/bin/rm -f `find $(prefix)$$MAILSHARE/. -name "*.fc" -print` \
+	MAILSHARE=$(prefix)$$MAILSHARE; \
+	if [ ! -d $$MAILSHARE/cf ]; then \
+		$(MKDIR) $$MAILSHARE/cf ; \
+		$(MKDIR) $$MAILSHARE/cf/fc ; \
+		cp -p $(srcdir)/cf/*.cf $$MAILSHARE/cf ; \
+		: cp $(srcdir)/cf/SMTP.cf $$MAILSHARE/router.cf ; \
+		/bin/rm -f `find $$MAILSHARE/. -name "*.fc" -print` \
 			foo-file ; \
 	else \
 		echo "*** No overwrite of $$MAILSHARE/cf/ files, old exists"; \
 	fi ; \
-	if [ ! -f $(prefix)$$MAILSHARE/router.cf ]; then \
-		cp -p $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
+	if [ ! -f $$MAILSHARE/router.cf ]; then \
+		cp -p $(srcdir)/cf/SMTP.cf $$MAILSHARE/router.cf ; \
 	else \
-		echo "*** No overwrite of $$MAILSHARE/cf/router.cf file, old exists"; \
+		echo "*** No overwrite of $$MAILSHARE/router.cf file, old exists"; \
 	fi
 
 clean:	FRC

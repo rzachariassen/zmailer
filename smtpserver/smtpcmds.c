@@ -354,20 +354,20 @@ int insecure;
 	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
 	  if (!sloppy) {
-	    type(SS, 501, m552, "where is <...> in that?");
+	    type(SS, 501, m517, "where is <...> in that?");
 	    return;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
-	type(SS, 501, m552, "where is <...> in that?");
+	type(SS, 501, m517, "where is <...> in that?");
 	return;
     } else if (*cp != '<' && !sloppy) {
-	type(SS, 501, m552, "strangeness between : and <");
+	type(SS, 501, m517, "strangeness between : and <");
 	return;
     }
     if (*(cp + 1) == '<') {
-	type(SS, 501, m552, "there are too many <'s in that!");
+	type(SS, 501, m517, "there are too many <'s in that!");
 	return;
     }
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
@@ -375,11 +375,11 @@ int insecure;
       s = rfc821_path(cp, strict);
       if (s == cp) {
 	/* Failure.. */
-	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
+	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	return;
       }
       if (*s == '>') {
-	type(SS, 501, m552, "there are too many >'s in that!");
+	type(SS, 501, m517, "there are too many >'s in that!");
 	return;
       }
       /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -399,12 +399,12 @@ int insecure;
       s = rfc821_path2(cp, strict);
       if (s == cp) {
 	/* Failure.. */
-	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
+	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	return;
       }
 
       if (*s == '>') {
-	type(SS, 501, m552, "there are too many >'s in that!");
+	type(SS, 501, m517, "there are too many >'s in that!");
 	return;
       }
 
@@ -545,14 +545,14 @@ int insecure;
 	type(SS, 453, m471, "%s", s);
       } else if (SS->policyresult < -99) {
 	if (SS->policyresult < -103) { /* -104 */
-	  type(SS, -453, m471, "Policy analysis reports temporary DNS error");
-	  type(SS, -453, m471, "with your source domain.  Retrying may help,");
-	  type(SS, -453, m471, "or if the condition persists, you may need");
-	  type(SS,  453, m471, "to get somebody to fix your DNS servers.");
+	  type(SS, -453, m443, "Policy analysis reports temporary DNS error");
+	  type(SS, -453, m443, "with your source domain.  Retrying may help,");
+	  type(SS, -453, m443, "or if the condition persists, you may need");
+	  type(SS,  453, m443, "to get somebody to fix your DNS servers.");
 	} else if (SS->policyresult < -100) {
-	  type(SS, -453, m471, "Policy analysis reports DNS error with your");
-	  type(SS, -453, m471, "source domain.   Please correct your source");
-	  type(SS,  453, m471, "address and/or the info at the DNS.");
+	  type(SS, -453, m443, "Policy analysis reports DNS error with your");
+	  type(SS, -453, m443, "source domain.   Please correct your source");
+	  type(SS,  453, m443, "address and/or the info at the DNS.");
 	} else {
 	  type(SS, -453, m471, "Access denied by the policy analysis functions.");
 	  type(SS, -453, m471, "This may be due to your source IP address,");
@@ -566,9 +566,9 @@ int insecure;
 	  type(SS,-553, m571, "Policy analysis reported:");
 	  type(SS, 553, m571, "%s", s);
 	} else if (SS->policyresult < -1) {
-	  type(SS, -553, m571, "Policy analysis reports DNS error with your");
-	  type(SS, -553, m571, "source domain.   Please correct your source");
-	  type(SS,  553, m571, "address and/or the info at the DNS.");
+	  type(SS, -553, m543, "Policy analysis reports DNS error with your");
+	  type(SS, -553, m543, "source domain.   Please correct your source");
+	  type(SS,  553, m543, "address and/or the info at the DNS.");
 	} else {
 	  type(SS, -553, m571, "Access denied by the policy analysis functions.");
 	  type(SS, -553, m571, "This may be due to your source IP address,");
@@ -718,11 +718,11 @@ const char *buf, *cp;
        tell the spammers exactly what's happening. */
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
 	 policydb != NULL && SS->policyresult < 0 ) {
-      type(SS, -553, "5.1.8", "Access denied by the policy analysis functions.");
-      type(SS, -553, "5.1.8", "This may be due to your source IP address,");
-      type(SS, -553, "5.1.8", "the IP reversal domain, the data you gave for");
-      type(SS, -553, "5.1.8", "the HELO/EHLO parameter, or address/domain");
-      type(SS,  553, "5.1.8", "you gave at the MAIL FROM:<...> address.");
+      type(SS, -553, m571, "Access denied by the policy analysis functions.");
+      type(SS, -553, m571, "This may be due to your source IP address,");
+      type(SS, -553, m571, "the IP reversal domain, the data you gave for");
+      type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain");
+      type(SS,  553, m571, "you gave at the MAIL FROM:<...> address.");
       return;
     }
 
@@ -749,23 +749,23 @@ const char *buf, *cp;
     for (cp = cp + 3; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace(*cp)) {
 	  if (!sloppy) {
-	    type(SS, 501, m552, "where is <...> in that?");
+	    type(SS, 501, m513, "where is <...> in that?");
 	    return;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
-	type(SS, 501, m552, "where is <...> in that?");
+	type(SS, 501, m513, "where is <...> in that?");
 	return;
     } else if (*cp != '<' && !sloppy) {
-	type(SS, 501, m552, "strangeness between : and <");
+	type(SS, 501, m513, "strangeness between : and <");
 	return;
     } else if (*(cp+1) == '>') {
-	type(SS, 501, m552, "Null address valid only as source");
+	type(SS, 501, m513, "Null address valid only as source");
 	return;
     }
     if (*(cp + 1) == '<') {
-	type(SS, 501, m552, "there are too many <'s in that!");
+	type(SS, 501, m513, "there are too many <'s in that!");
 	return;
     }
     if (*cp == '<') {
@@ -778,12 +778,12 @@ const char *buf, *cp;
 	  s += 12;
 	} else {
 	  /* Genuine failure.. */
-	  type821err(SS, 501, m552, buf, "Path data: %s", rfc821_error);
+	  type821err(SS, 501, m513, buf, "Path data: %s", rfc821_error);
 	  return;
 	}
       }
       if (*s == '>') {
-	type(SS, 501, m552, "there are too many >'s in that!");
+	type(SS, 501, m513, "there are too many >'s in that!");
 	return;
       }
       /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -803,12 +803,12 @@ const char *buf, *cp;
       s = rfc821_path2(cp, strict);
       if (s == cp) {
 	/* Failure.. */
-	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
+	type821err(SS, 501, m513, buf, "Path data: %.200s", rfc821_error);
 	return;
       }
 
       if (*s == '>') {
-	type(SS, 501, m552, "there are too many >'s in that!");
+	type(SS, 501, m513, "there are too many >'s in that!");
 	return;
       }
 
@@ -830,7 +830,7 @@ const char *buf, *cp;
 #endif
 
     if (addrlen < 1) {
-	type(SS, 501, "5.1.3", "What is an empty recipient?");
+	type(SS, 501, m513, "What is an empty recipient?");
 	return;
     }
     drpt_notify = NULL;
@@ -933,11 +933,11 @@ const char *buf, *cp;
 	    type(SS,-453, m471, "Policy analysis reported:");
 	    type(SS, 453, m471, "%s", s);
 	  } else if (SS->policyresult < -103) { /* -104 */
-	    type(SS, -453, m471, "Policy analysis reports temporary DNS error");
-	    type(SS, -453, m471, "with this target domain. Retrying may help,");
-	    type(SS, -453, m471, "or if the condition persists, some further");
-	    type(SS, -453, m471, "work may be in need with the target domain");
-	    type(SS,  453, m471, "DNS servers.");
+	    type(SS, -453, m443, "Policy analysis reports temporary DNS error");
+	    type(SS, -453, m443, "with this target domain. Retrying may help,");
+	    type(SS, -453, m443, "or if the condition persists, some further");
+	    type(SS, -453, m443, "work may be in need with the target domain");
+	    type(SS,  453, m443, "DNS servers.");
 
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
@@ -948,11 +948,11 @@ const char *buf, *cp;
 	    type(SS, 453, m471, "We don't accept this recipient.");
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
-	    type(SS,-453, m471, "Policy analysis found DNS error on");
-	    type(SS,-453, m471, "the target address. This address is");
-	    type(SS, 453, m471, "not currently acceptable.");
+	    type(SS,-453, m443, "Policy analysis found DNS error on");
+	    type(SS,-453, m443, "the target address. This address is");
+	    type(SS, 453, m443, "not currently acceptable.");
 	  } else {
-	    type(SS, 453, m471, "Policy rejection on the target address");
+	    type(SS, 453, m443, "Policy rejection on the target address");
 	  }
 	} else {
 	  char *s = policymsg(policydb, &SS->policystate);
@@ -969,9 +969,9 @@ const char *buf, *cp;
 
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
-	    type(SS,-553, m571, "Policy analysis found DNS error on");
-	    type(SS,-553, m571, "the target address. This address is");
-	    type(SS, 553, m571, "not currently acceptable.");
+	    type(SS,-553, m543, "Policy analysis found DNS error on");
+	    type(SS,-553, m543, "the target address. This address is");
+	    type(SS, 553, m543, "not currently acceptable.");
 	  } else {
 	    type(SS, 553, m571, "Policy rejection on the target address");
 	  }
@@ -1041,9 +1041,9 @@ const char *buf, *cp;
     if (ferror(SS->mfp)) {
 	type(SS, 452, m430, (char *) NULL);
     } else if (maxsize > 0 && SS->sizeoptsum > maxsize) {
-	type(SS, 552, "5.3.4", "Message size exceeds fixed maximum size of %ld chars for acceptable email", maxsize);
+	type(SS, 552, m534, "Message size exceeds fixed maximum size of %ld chars for acceptable email", maxsize);
     } else if (SS->sizeoptsum > availspace) {
-	type(SS, 452, "4.3.1", "insufficient storage space, try again later");
+	type(SS, 452, m431, "insufficient storage space, try again later");
     } else if (s) {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
