@@ -27,7 +27,7 @@
 /* ISO Latin 1 (8859) */
 
 #if defined(__alpha)||defined(__alpha__)
-/* On Alpha the short is slow to access! (this array is modified!) */
+/* On Alpha ``short'' is slow to access! (this array is modified!) */
 int
 #else
 /* All other systems are assumed to contain short-load/store instructions */

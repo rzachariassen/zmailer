@@ -31,10 +31,6 @@ int D_conscell = 0;
 typedef struct consblock {
     struct consblock *nextblock;
     int cellcount;
-#ifdef __alpha /* Align the conscells by cache-line.. */
-	void *dummy1;
-	void *dummy2;
-#endif
     conscell cells[1];		/* Array of ``cellcount'' cells */
 } consblock;
 
