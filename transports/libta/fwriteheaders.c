@@ -44,9 +44,9 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	    int linelen = strlen(*msgheaders);
 	    if (*chunkbufp == NULL) {
 	      /* Actually the SMTP has already malloced a block */
-	      *chunkbufp = emalloc(hsize+linelen+newlinelen);
+	      *chunkbufp = malloc(hsize+linelen+newlinelen);
 	    } else {
-	      *chunkbufp = erealloc(*chunkbufp, hsize+linelen+newlinelen);
+	      *chunkbufp = realloc(*chunkbufp, hsize+linelen+newlinelen);
 	    }
 	    if (*chunkbufp == NULL) {
 	      return -1;

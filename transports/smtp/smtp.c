@@ -221,6 +221,110 @@ int sig;
 }
 
 
+/* #define GLIBC_MALLOC_DEBUG__ */
+#ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
+
+#include <malloc.h> /* GLIBC malloc.h ! */
+
+/* Global variables used to hold underlaying hook values.  */
+static void *(*old_malloc_hook) (size_t, const void * );
+static void *(*old_realloc_hook) (void *, size_t, const void *);
+static void (*old_free_hook) (void*, const void *);
+static void *(*old_memalign_hook) (size_t, size_t, const void *);
+
+/* Prototypes for our hooks.  */
+static void *my_malloc_hook  (size_t, const void*);
+static void *my_realloc_hook (void *,size_t, const void*);
+static void  my_free_hook    (void*, const void*);
+static void *my_memalign_hook  (size_t, size_t, const void*);
+     
+static void *
+my_malloc_hook (size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __malloc_hook = old_malloc_hook;
+  __free_hook   = old_free_hook;
+  /* Call recursively */
+  result = malloc (size);
+  /* Save underlaying hooks */
+  old_malloc_hook = __malloc_hook;
+  old_free_hook   = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  fprintf(stderr,"# malloc (%u) returns %p @%p\n",
+	  (unsigned int) size, result, CALLER);
+  /* Restore our own hooks */
+  __malloc_hook = my_malloc_hook;
+  __free_hook = my_free_hook;
+  return result;
+}
+
+static void *
+my_realloc_hook (void *ptr, size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __realloc_hook = old_realloc_hook;
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  result = realloc (ptr, size);
+  /* Save underlaying hooks */
+  old_realloc_hook = __realloc_hook;
+  old_malloc_hook  = __malloc_hook;
+  old_free_hook    = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  fprintf(stderr,"# realloc (%p,%u) returns %p @%p\n", ptr, (unsigned int) size, result, CALLER);
+  /* Restore our own hooks */
+  __realloc_hook = my_realloc_hook;
+  __malloc_hook  = my_malloc_hook;
+  __free_hook    = my_free_hook;
+  return result;
+}
+
+static void *
+my_memalign_hook (size_t align, size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __memalign_hook = old_memalign_hook;
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  result = memalign (align, size);
+  /* Save underlaying hooks */
+  old_memalign_hook = __memalign_hook;
+  old_malloc_hook  = __malloc_hook;
+  old_free_hook    = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  fprintf(stderr,"# memalign (%u,%u) returns %p @%p\n",
+	  (unsigned)align, (unsigned)size, result, CALLER);
+  /* Restore our own hooks */
+  __memalign_hook = my_memalign_hook;
+  __malloc_hook  = my_malloc_hook;
+  __free_hook    = my_free_hook;
+  return result;
+}
+     
+static void
+my_free_hook (void *ptr, const void *CALLER)
+{
+  /* Restore all old hooks */
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  free (ptr);
+  /* Save underlaying hooks */
+  old_malloc_hook = __malloc_hook;
+  old_free_hook = __free_hook;
+  /* `printf' might call `free', so protect it too. */
+  fprintf(stderr,"# freed pointer %p @%p\n", ptr, CALLER);
+  /* Restore our own hooks */
+  __malloc_hook = my_malloc_hook;
+  __free_hook = my_free_hook;
+}
+#endif
+
 static char filename[MAXPATHLEN+8000];
 
 int
@@ -242,6 +346,17 @@ main(argc, argv)
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
 	volatile const char *smtphost, *punthost = NULL;
+
+#ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
+	old_malloc_hook = __malloc_hook;
+	__malloc_hook = my_malloc_hook;
+	old_memalign_hook = __memalign_hook;
+	__memalign_hook = my_memalign_hook;
+	old_realloc_hook = __realloc_hook;
+	__realloc_hook = my_realloc_hook;
+	old_free_hook = __free_hook;
+	__free_hook = my_free_hook;
+#endif
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
@@ -447,7 +562,7 @@ main(argc, argv)
 	SS.stdinsize = 0;
 	SS.stdincurs = 0;
 
-	while (!getout) {
+	while (!getout && !zmalloc_failure) {
 	  /* Input:
 	       spool/file/name [ \t host.info ] \n
 	   */
@@ -508,7 +623,7 @@ main(argc, argv)
 	       In theory we could use same host via MX, but...     */
 	    if (host && strcmp(s,(char*)host) != 0) {
 	      if (SS.smtpfp) {
-		if (!getout)
+		if (!getout && !zmalloc_failure)
 		  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
 		else
 		  smtpstatus = EX_OK;
@@ -1047,7 +1162,7 @@ deliver(SS, dp, startrp, endrp)
 
 	  chunkptr = & chunkblk;
 
-	  chunkblk = emalloc(256);
+	  chunkblk = malloc(256);
 
 	  /* We do surprising things here, we construct
 	     at first the headers (and perhaps some of
@@ -1175,7 +1290,7 @@ deliver(SS, dp, startrp, endrp)
 
 	if (SS->hsize >= 0 && chunkblk) {
 
-	  chunkblk = erealloc(chunkblk, SS->hsize+2);
+	  chunkblk = realloc(chunkblk, SS->hsize+2);
 	  if (chunkblk) {
 	    memcpy(chunkblk + SS->hsize, "\r\n", 2);
 	    SS->hsize += 2;
@@ -2604,10 +2719,13 @@ smtp_flush(SS)
 	SS->pipebufsize = 0;
 	if (SS->pipebuf == NULL) {
 	  SS->pipebufspace = 240;
-	  SS->pipebuf = emalloc(SS->pipebufspace);
+	  SS->pipebuf = malloc(SS->pipebufspace);
+	  if (! SS->pipebuf) zmalloc_failure = 1;
 	}
 	for (;SS->pipeindex > 0; --SS->pipeindex) {
-	  free(SS->pipecmds[SS->pipeindex-1]);
+	  if (SS->pipecmds[SS->pipeindex-1])
+	    free(SS->pipecmds[SS->pipeindex-1]);
+	  SS->pipecmds[SS->pipeindex-1] = NULL;
 	}
 	SS->pipeindex   = 0;
 	SS->pipereplies = 0;
@@ -2946,7 +3064,8 @@ smtp_sync(SS, r, nonblocking)
 	      if ((SS->pipebufsize+len+1) > SS->pipebufspace) {
 		while ((SS->pipebufsize+len+2) > SS->pipebufspace)
 		  SS->pipebufspace <<= 1; /* Double the size */
-		SS->pipebuf = (void*)erealloc(SS->pipebuf,SS->pipebufspace);
+		SS->pipebuf = (void*)realloc(SS->pipebuf,SS->pipebufspace);
+		if (! SS->pipebuf) zmalloc_failure = 1;
 	      }
 	      if (SS->pipebuf != eof) {
 		/* Block changed.. Reset those pointers */
@@ -3165,11 +3284,13 @@ SmtpState *SS;
 	      SS->pipebufspace <<= 1;
 
 	    if (SS->pipebuf == NULL)
-	      SS->pipebuf = emalloc(SS->pipebufspace);
+	      SS->pipebuf = malloc(SS->pipebufspace);
 	    else
-	      SS->pipebuf = erealloc(SS->pipebuf,SS->pipebufspace);
+	      SS->pipebuf = realloc(SS->pipebuf,SS->pipebufspace);
+	    if (! SS->pipebuf) zmalloc_failure = 1;
 
-	    memcpy(SS->pipebuf+SS->pipebufsize,buf,r);
+	    if (SS->pipebuf)
+	      memcpy(SS->pipebuf+SS->pipebufsize,buf,r);
 	    SS->pipebufsize += r;
 	    SS->block_written = 0; /* We drain the accumulated input here,
 				      and can thus mark this draining
@@ -3211,15 +3332,15 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  if (SS->pipespace <= SS->pipeindex) {
 	    SS->pipespace += 8;
 	    if (SS->pipecmds == NULL) {
-	      SS->pipecmds  = (char**)emalloc(SS->pipespace * sizeof(char*));
-	      SS->pipercpts = (struct rcpt **)emalloc(SS->pipespace *
-						      sizeof(struct rcpt*));
+	      SS->pipecmds  = (char**)malloc(SS->pipespace * sizeof(char*));
+	      SS->pipercpts = (struct rcpt **)malloc(SS->pipespace *
+						     sizeof(struct rcpt*));
 	    } else {
-	      SS->pipecmds  = (char**)erealloc((void**)SS->pipecmds,
-					       SS->pipespace * sizeof(char*));
-	      SS->pipercpts = (struct rcpt **)erealloc((void**)SS->pipercpts,
-						       SS->pipespace *
-						       sizeof(struct rcpt*));
+	      SS->pipecmds  = (char**)realloc((void**)SS->pipecmds,
+					      SS->pipespace * sizeof(char*));
+	      SS->pipercpts = (struct rcpt **)realloc((void**)SS->pipercpts,
+						      SS->pipespace *
+						      sizeof(struct rcpt*));
 	    }
 	  }
 	  SS->pipecmds [SS->pipeindex] = strdup(strbuf);

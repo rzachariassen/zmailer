@@ -4,9 +4,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   and (what is worse) they seem to refer thru pointers located
   within FREED memory blocks..
 
-- scheduler:
-    thr->proc != NULL while proc->pid = 0 ???
-
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
 

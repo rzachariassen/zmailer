@@ -1,3 +1,23 @@
+1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libmalloc/botch.c, libmalloc/defs.h, libmalloc/dumpheap.c,
+	  libmalloc/malloc.c, include/zmalloc.h, libmalloc/_strdup.c,
+	  libmalloc/align.h, libmalloc/globals.c, libmalloc/emalloc.c,
+	  libmalloc/malloc.h, libmalloc/strdup.c
+	    memory debugging tools -- glibc malloc hooks are better!
+	    (See  smtp.c  "_hook" things..)
+
+	* scheduler/mq2.c:
+	    Use SFIO instead of STDIO for some debug reports, and
+	    do clean them too!
+	
+	* include/ta.h, transports/libta/ctlopen.c,
+	  transports/libta/diagnostic.c, transports/libta/fwriteheaders.c,
+	  transports/libta/swriteheaders.c, transports/libta/mimeheaders.c,
+	  transports/libta/routermxes.c, transports/smtp/smtp.c:
+	    Tracked memory freeup order failure!  D'uh it was difficult!
+	    ( ctlclose() did free(d.contents) too early... )
+
 1999-12-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/mq2.c,

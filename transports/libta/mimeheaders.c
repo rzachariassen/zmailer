@@ -152,7 +152,7 @@ int cvtspace_copy(rp)
 
 	/* Allocate, and copy ! */
 
-	newcvt = (char **)emalloc(sizeof(char *)*(hdrcnt+1));
+	newcvt = (char **)malloc(sizeof(char *)*(hdrcnt+1));
 	if (newcvt != NULL) {
 
 	  char **ss = newcvt;
@@ -160,8 +160,8 @@ int cvtspace_copy(rp)
 
 	  while (*probe) { /* Copy over */
 	    int len = strlen(*probe)+1;
-	    *ss = (char *)emalloc(len);
-	    /* emalloc() exits at the 'out of memory' condition */
+	    *ss = (char *)malloc(len);
+	    if (! *ss) return 0;
 	    memcpy(*ss,*probe,len);
 	    ++hdrcnt;
 	    ++probe;
@@ -235,13 +235,16 @@ append_header(va_alist)
 
 	while ((*hdrpp)[linecnt] != NULL) ++linecnt;
 
-	hdrp2 = (char**)erealloc(*hdrpp,sizeof(char **) * (linecnt+3));
+	hdrp2 = (char**)realloc(*hdrpp,sizeof(char **) * (linecnt+3));
 
 	if (!hdrp2) return -1;
-	hdrp2[linecnt] = (char*) emalloc(linelen+3);
-	memcpy(hdrp2[linecnt],lbuf,linelen+2);
-	hdrp2[++linecnt] = NULL;
-	*hdrpp = hdrp2;
+	hdrp2[linecnt] = (char*) malloc(linelen+3);
+	if (! hdrp2[linecnt]) zmalloc_failure = 1;
+	else {
+	  memcpy(hdrp2[linecnt],lbuf,linelen+2);
+	  hdrp2[++linecnt] = NULL;
+	  *hdrpp = hdrp2;
+	}
 	return linecnt;
 }
 
@@ -360,7 +363,11 @@ output_content_type(rp,ct,old)
 	    ++o2, ++oldcnt;
 	}
 	newlines = hdrlines + linecnt - oldcnt + 1;
-	newmsgheaders = (char**)emalloc(sizeof(char*)*newlines);
+	newmsgheaders = (char**)malloc(sizeof(char*)*newlines);
+	if (! newmsgheaders) {
+	  zmalloc_failure = 1;
+	  return;
+	}
 	o2 = newmsgheaders;
 	h1 = *basep;
 	while (*h1 && h1 != old) {
@@ -388,7 +395,7 @@ parse_content_type(ct_linep)
      char **ct_linep;	/* Could be multiline! */
 {
 	char *s, *p, *pv, *ss;
-	struct ct_data *ct = (struct ct_data*)emalloc(sizeof(struct ct_data));
+	struct ct_data *ct = (struct ct_data*)malloc(sizeof(struct ct_data));
 	int unknowncount = 0;
 
 	if (!ct) return NULL; /* Failed to parse it! */
@@ -407,7 +414,8 @@ parse_content_type(ct_linep)
 	p = s;
 	while (*s && *s != ' ' && *s != '/' && *s != '\t' && *s != ';')
 	  ++s;
-	ct->basetype = emalloc((s - p)+2);
+	ct->basetype = malloc((s - p)+2);
+	/* FIXME: malloc problem check ?? */
 	ss = ct->basetype;
 	/* Copy over the basetype */
 	while (p < s) *ss++ = *p++;
@@ -419,7 +427,8 @@ parse_content_type(ct_linep)
 	  p = s;
 	  while (*s && *s != ' ' && *s != '/' && *s != '\t' && *s != ';')
 	    ++s;
-	  ct->subtype = emalloc((s - p)+2);
+	  ct->subtype = malloc((s - p)+2);
+	  /* FIXME: malloc problem check ?? */
 	  ss = ct->subtype;
 	  /* Copy over the subtype */
 	  while (p < s) *ss++ = *p++;
@@ -510,7 +519,8 @@ parse_content_type(ct_linep)
 	    }
 	  }
 
-	  parval = emalloc((s - pv) + 2);
+	  parval = malloc((s - pv) + 2);
+	  /* FIXME: malloc problem check ?? */
 	  ss = parval;
 	  if (*pv == '"') { /* Copy the quoted string to parval */
 	    int quoted = 0;
@@ -543,13 +553,16 @@ parse_content_type(ct_linep)
 	    int unklen = strlen(parval)+5+strlen(paramname);
 	    int unkpos;
 	    if (!ct->unknown) {
-	      ct->unknown = (char**)emalloc(sizeof(char*)*2);
+	      ct->unknown = (char**)malloc(sizeof(char*)*2);
+	/* FIXME: malloc problem check ?? */
 	      ct->unknown[1] = NULL;
 	    } else {
-	      ct->unknown = (char**)erealloc(ct->unknown,
-					     sizeof(char*)*(unknowncount+2));
+	      ct->unknown = (char**)realloc(ct->unknown,
+					    sizeof(char*)*(unknowncount+2));
+	/* FIXME: malloc problem check ?? */
 	    }
-	    ct->unknown[unknowncount] = emalloc(unklen);
+	    ct->unknown[unknowncount] = malloc(unklen);
+	/* FIXME: malloc problem check ?? */
 	    sprintf(ct->unknown[unknowncount],"%s=",paramname);
 	    unkpos = strlen(ct->unknown[unknowncount]);
 	    strqcpy(ct->unknown[unknowncount]+unkpos,unklen-unkpos,parval);
@@ -564,7 +577,9 @@ parse_content_encoding(cte_linep)
      char **cte_linep;	/* Propably is not a multiline entry.. */
 {
 	char *line, *s;
-	struct cte_data *cte = emalloc(sizeof(struct cte_data));
+	struct cte_data *cte = malloc(sizeof(struct cte_data));
+
+	if (!cte) return NULL;
 
 	s = (*cte_linep) + 26;
 	/* Skip over the 'Content-Transfer-Encoding:' */
@@ -572,13 +587,15 @@ parse_content_encoding(cte_linep)
 	line = s;
 	if (*s == '"') {
 	  char *p;
-	  cte->encoder = p = emalloc(strlen(s));
+	  cte->encoder = p = malloc(strlen(s));
+	/* FIXME: malloc problem check ?? */
 	  while (*s && *s != '"')
 	    *p++ = *s++;
 	  *p = 0;
 	} else {
 	  char *p;
-	  cte->encoder = p = emalloc(strlen(s));
+	  cte->encoder = p = malloc(strlen(s));
+	/* FIXME: malloc problem check ?? */
 	  while (*s && *s != ' ' && *s != '\t')
 	    *p++ = *s++;
 	  *p = 0;
@@ -779,15 +796,19 @@ downgrade_headers(rp, convertmode, verboselog)
 "Content-Transfer-Encoding: QUOTED-PRINTABLE",
 NULL };
 
-	  char **newmsgheaders = (char**)emalloc(sizeof(char**)*(lines+15));
+	  char **newmsgheaders = (char**)malloc(sizeof(char**)*(lines+15));
 	  char *defcharset = getzenv("DEFCHARSET");
 	  char *newct;
+
+	/* FIXME: malloc problem check ?? */
+
 	  if (!defcharset)
 	    defcharset = "ISO-8859-1";
 #ifdef HAVE_ALLOCA
 	  newct = alloca(strlen(defcharset)+2+sizeof("Content-Type: TEXT/PLAIN; charset="));
 #else
-	  newct = emalloc(strlen(defcharset)+2+sizeof("Content-Type: TEXT/PLAIN; charset="));
+	  newct = malloc(strlen(defcharset)+2+sizeof("Content-Type: TEXT/PLAIN; charset="));
+	/* FIXME: malloc problem check ?? */
 #endif
 	  sprintf(newct,"Content-Type: TEXT/PLAIN; charset=%s",defcharset);
 
@@ -931,7 +952,7 @@ mime_received_convert(rp, convertstr)
 
 	{
 	  int receivedlen = strlen(*schdr);
-	  char *newreceived = emalloc(receivedlen + convertlen + 1);
+	  char *newreceived = malloc(receivedlen + convertlen + 1);
 	  int  semicindex;
 
 	  if (!newreceived) return 0; /* Failed malloc.. */

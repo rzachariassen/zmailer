@@ -241,7 +241,7 @@ size_t nwords;
 	}
 	spare = (char *) (ptr + sbrkwords);
 	nspare = (morecore - sbrkwords * sizeof(Word));
-	PRTRACE(sprintf(_malloc_statsbuf, "sbrk %lu\n",
+	PRTRACE(sprintf(_malloc_statsbuf, "# sbrk %lu\n",
 			(ulong) sbrkwords*sizeof(Word)));
 	
 	/*
@@ -272,7 +272,7 @@ size_t nwords;
 		_malloc_hiword = ptr;
 		if (_malloc_loword == NULL || _malloc_loword > ptr) {
 			/* First time - set lower bound. */
-			PRTRACE(sprintf(_malloc_statsbuf, "heapstart 0x%lx\n",
+			PRTRACE(sprintf(_malloc_statsbuf, "# heapstart 0x%lx\n",
 					(ulong) ptr));
 			_malloc_loword = ptr;
 		}
@@ -283,7 +283,7 @@ size_t nwords;
 		 */
 		SIZEFIELD(ptr) = ALLOCED | sbrkwords;
 		_malloc_hiword += sbrkwords - 1;
-		PRTRACE(sprintf(_malloc_statsbuf, "heapend 0x%lx\n",
+		PRTRACE(sprintf(_malloc_statsbuf, "# heapend 0x%lx\n",
 				(ulong) _malloc_hiword));
 		SIZEFIELD(_malloc_hiword) = ALLOCED | sbrkwords;
 		
@@ -385,9 +385,10 @@ size_t nbytes;
 	CARVE(search, searchsize, bin, required);
 	p = search - searchsize + 1;
 	SIZEFIELD(p) = SIZEFIELD(p + required - 1) = ALLOCMASK(required);
-	PRTRACE(sprintf(_malloc_statsbuf, "+ %lu %lu 0x%lx\n", (ulong) nbytes,
+	PRTRACE(sprintf(_malloc_statsbuf, "# malloc(%lu) -> %p; %lu @%p\n",
+			(ulong) nbytes, (void*) (p + HEADERWORDS),
 			(ulong) (required - ALLOC_OVERHEAD) * sizeof(Word),
-			(ulong) (p + HEADERWORDS)));
+			CALLER_RETURN_ADDRESS));
 	COUNTSIZE(required);
 	SET_REALSIZE(p, nbytes);
 	return((univptr_t) (p + HEADERWORDS));
@@ -414,6 +415,9 @@ univptr_t cp;
 	REGISTER size_t sizep0;
 	int bin, oldbin = -1;
 
+	PRTRACE(sprintf(_malloc_statsbuf, "# free(%p) @%p\n",
+			cp, CALLER_RETURN_ADDRESS));
+
 	if (cp == NULL)
 		return;
 		
@@ -435,7 +439,7 @@ univptr_t cp;
 	 */
 	sizep0 = SIZE(p0);
 	DMEMSET(p0 + FREEHEADERWORDS, sizep0 - FREE_OVERHEAD);
-	PRTRACE(sprintf(_malloc_statsbuf, "- %lu 0x%lx\n",
+	PRTRACE(sprintf(_malloc_statsbuf, "# ... %lu 0x%lx\n",
 			(ulong) (sizep0 - ALLOC_OVERHEAD) * sizeof(Word),
 			(ulong) (p0 + HEADERWORDS)));
 
@@ -533,6 +537,9 @@ size_t nbytes;
 	REGISTER size_t sizep0;
 	int bin;
 
+	PRTRACE(sprintf(_malloc_statsbuf, "# realloc(%p, %lu) @%p \n",
+			cp,(ulong)nbytes, CALLER_RETURN_ADDRESS));
+
 	if (p0 == NULL)
 		return(malloc(nbytes));
 
@@ -542,7 +549,8 @@ size_t nbytes;
 	}
 	
 	required = ALLOC_OVERHEAD + (nbytes + sizeof(Word) - 1) /
-		sizeof(Word);
+				     sizeof(Word);
+
 	if (required < (size_t) _malloc_minchunk)
 		required = _malloc_minchunk;
 
@@ -566,7 +574,7 @@ size_t nbytes;
 			 * block intact - print no-op for neatness in
 			 * trace output.
 			 */
-			PRTRACE(strcpy(_malloc_statsbuf, "no-op\n"));
+			PRTRACE(strcpy(_malloc_statsbuf, "# .. no-op\n"));
 			return(cp);
 		}
 		SIZEFIELD(p0+required-1) = SIZEFIELD(p0) = ALLOCMASK(required);
@@ -578,6 +586,8 @@ size_t nbytes;
 		 */
 		SIZEFIELD(p0 + after - 1) = SIZEFIELD(p0) = ALLOCMASK(after);
 		SET_REALSIZE(p0, (after - ALLOC_OVERHEAD) * sizeof(Word));
+		PRTRACE(sprintf(_malloc_statsbuf, "# .. carve out %p\n",
+				p0 + HEADERWORDS));
 		free((univptr_t) (p0 + HEADERWORDS));
 		return(cp);
 	}
@@ -595,6 +605,8 @@ size_t nbytes;
 			MEMCPY(tmp, cp, ((SIZE(p0) - ALLOC_OVERHEAD)));
 			free(cp);
 		}
+		PRTRACE(sprintf(_malloc_statsbuf, "# .. realloc(%p, %lu) new\n",
+				tmp, (ulong) nbytes));
 		return(tmp);
 	}
 	/*
@@ -608,10 +620,8 @@ size_t nbytes;
 	sizep0 += required;
 	SIZEFIELD(p0) = SIZEFIELD(p0+sizep0-1) = ALLOCMASK(sizep0);
 	SET_REALSIZE(p0, nbytes);
-	PRTRACE(sprintf(_malloc_statsbuf, "++ %lu %lu 0x%lx\n",
-			(ulong) nbytes,
-			(ulong) (sizep0-ALLOC_OVERHEAD)*sizeof(Word),
-			(ulong) cp));
+	PRTRACE(sprintf(_malloc_statsbuf, "# .. realloc(%p, %lu) enlarge\n",
+			cp, (ulong) nbytes));
 	CHECKHEAP();
 	return(cp);
 }
@@ -629,6 +639,9 @@ size_t nelem, elsize;
 	REGISTER size_t nbytes = nelem * elsize;
 	REGISTER univptr_t cp = malloc(nbytes);
 
+	PRTRACE(sprintf(_malloc_statsbuf, "# calloc(%lu, %lu) @%p -> %p\n",
+			(ulong)nelem, (ulong)elsize, cp,
+			CALLER_RETURN_ADDRESS));
 	if (cp)
 		(void) memset((univptr_t) cp, 0, (memsize_t) nbytes);
 	return(cp);
@@ -642,5 +655,8 @@ void
 cfree(cp)
 univptr_t cp;
 {
+	
+	PRTRACE(sprintf(_malloc_statsbuf, "# cfree(%p) @%p\n",
+			cp, CALLER_RETURN_ADDRESS));
 	free(cp);
 }

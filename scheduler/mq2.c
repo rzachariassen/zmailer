@@ -177,7 +177,7 @@ int mq2_wflush(mq)
      struct mailq *mq;
 {
   if (verbose)
-    fprintf(stderr,"mq2_wflush() fd = %d", mq->fd);
+    sfprintf(sfstderr,"mq2_wflush() fd = %d", mq->fd);
 
   while (mq->outbufcount < mq->outbufsize) {
     int r, i;
@@ -196,7 +196,7 @@ int mq2_wflush(mq)
       /* Err... what ?? */
 
       if (verbose)
-	fprintf(stderr, " -- failure; errno = %d\n", errno);
+	sfprintf(sfstderr, " -- failure; errno = %d\n", errno);
 
       mq2_discard(mq);
 
@@ -216,8 +216,10 @@ int mq2_wflush(mq)
   }
 
   if (verbose && (mq->outbufsize - mq->outbufcount))
-    fprintf(stderr," -- ok; buf left: %d chars\n",
+    sfprintf(sfstderr," -- ok; buf left: %d chars\n",
 	    mq->outbufsize - mq->outbufcount);
+  else if (verbose)
+    sfprintf(sfstderr,"\n");
 
   return (mq->outbufcount < mq->outbufsize);
 }

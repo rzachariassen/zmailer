@@ -61,21 +61,28 @@ routermxes(cp,ap)
 	}
 	/* Well, length overshoots by some characters, but never mind... */
 	len = s - cp + mxes + mxes;
-	ss = (char**)emalloc((u_int)(len + sizeof(char *)*(mxes+1)));
+	ss = (char**)malloc((u_int)(len + sizeof(char *)*(mxes+1)));
 	ap->routermxes = (const char **)ss;
-	*ss = NULL;
+	if (ss)
+	  *ss = NULL;
 	s = (char*)ss + sizeof(char *)*(mxes+1);
 	++cp; /* Skip the first '(' */
 	while (*cp == '(') { /* Inner sequences */
 	  ++cp;
 	  ++priority;
 	  while (*cp && *cp != ')') { /* Parallel level cases */
-	    *ss++ = s;		/* Fill in the routermxes array */
-	    *ss = NULL;
-	    *s++  = priority;
+	    if (ss) {
+	      *ss++ = s;		/* Fill in the routermxes array */
+	      *ss = NULL;
+	      *s++  = priority;
+	    }
 	    while (*cp && *cp != ' ' && *cp != '\t' && *cp != ')')
-	      *s++ = *cp++;
-	    *s++ = 0;
+	      if (ss)
+		*s++ = *cp++;
+	      else
+		++cp;
+	    if (ss)
+	      *s++ = 0;
 	    while (*cp == ' ' || *cp == '\t') /* Skip white space */
 	      ++cp;
 	  }
@@ -86,7 +93,8 @@ routermxes(cp,ap)
 	if (*cp == ')')
 	  ++cp;
 	/* Set 'host' to be the first list entry */
-	ap->host = ap->routermxes[0] + 1;
+	if (ss)
+	  ap->host = ap->routermxes[0] + 1;
 	/* ...and finally, we did scan past them all.. */
 	return cp;
 }

@@ -67,10 +67,13 @@ ctlfree(dp,anyp)
 	struct ctldesc *dp;
 	void *anyp;
 {
-	unsigned long lowlim = (unsigned long) dp->contents;
-	unsigned long highlim = lowlim + dp->contentsize;
-	if ((unsigned long)anyp < lowlim ||
-	    (unsigned long)anyp > highlim)
+	void * lowlim  = (void *) dp->contents;
+	void * highlim = (void *)(((char*)lowlim) + dp->contentsize);
+#if 0
+	fprintf(stderr,"# ctlfree(%p) (%p,%p] @%p\n", anyp,
+		lowlim, highlim, __builtin_return_address(0));
+#endif
+	if (anyp < lowlim || anyp >= highlim)
 	  free(anyp);	/* It isn't within DP->CONTENTS data.. */
 }
 
@@ -80,13 +83,15 @@ ctlrealloc(dp,anyp,size)
 	void *anyp;
 	size_t size;
 {
-	unsigned long lowlim = (unsigned long) dp->contents;
-	unsigned long highlim = lowlim + dp->contentsize;
+	void * lowlim  = (void *) dp->contents;
+	void * highlim = (void *)(((char*)lowlim) + dp->contentsize);
 	void *anyp2;
-
+#if 0
+	fprintf(stderr,"# ctlrealloc(%p,%lu) (%p,%p] @%p\n", anyp, size,
+		lowlim, highlim, __builtin_return_address(0));
+#endif
 	/* If old one isn't our local thing, delete it! */
-	if ((unsigned long)anyp < lowlim ||
-	    (unsigned long)anyp > highlim)
+	if (anyp < lowlim || anyp >= highlim)
 	  return realloc(anyp, size); /* realloc(); it isn't within DP->CONTENTS data.. */
 
 	/* Allocate a new storage.. */
@@ -123,12 +128,6 @@ ctlclose(dp)
 	  close(dp->ctlfd);
 	if (dp->msgfd >= 0)
 	  close(dp->msgfd);
-	if (dp->contents != NULL)
-	  free((void*)dp->contents);
-	dp->contents = NULL;
-	if (dp->offset != NULL)
-	  free((void*)dp->offset);
-	dp->offset = NULL;
 	for (ap = dp->senders; ap != NULL; ap = nextap) {
 	  nextap = ap->link;
 	  free((char *)ap);
@@ -161,6 +160,14 @@ ctlclose(dp)
 	}
 	free(dp->msgheaderscvt);
 	dp->msgheaderscvt = NULL;
+
+	if (dp->offset != NULL)
+	  free((void*)dp->offset);
+	dp->offset = NULL;
+
+	if (dp->contents != NULL)
+	  free((void*)dp->contents);
+	dp->contents = NULL;
 }
 
 
@@ -170,7 +177,7 @@ ctladdr(cp)
 {
 	struct taddress *ap;
 
-	ap = (struct taddress *)emalloc(sizeof (struct taddress));
+	ap = (struct taddress *)malloc(sizeof (struct taddress));
 	if (ap == NULL)
 		return NULL;
 	ap->link = NULL;
@@ -289,12 +296,16 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	}
 	/* 4 is the minimum number of characters per line */
 	n = sizeof (long) * (stbuf.st_size / 4);
-	if ((d.contents = (s = emalloc((u_int)stbuf.st_size+1))) == NULL
-	    || (d.offset = (long *)emalloc((u_int)n)) == NULL) {
+	d.contents = contents = s = malloc((u_int)stbuf.st_size+1);
+	if (d.contents == NULL) {
 	  warning("Out of virtual memory!", (char *)NULL);
 	  exit(EX_SOFTWARE);
 	}
-	contents = s;
+	d.offset = (long *)malloc((u_int)n);
+	if (d.offset == NULL) {
+	  warning("Out of virtual memory!", (char *)NULL);
+	  exit(EX_SOFTWARE);
+	}
 
 	fcntl(d.ctlfd, F_SETFD, 1); /* Close-on-exec */
 
@@ -316,8 +327,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	d.ctlmap = NULL;
 #endif
 	d.contentsize = (int) stbuf.st_size;
-	s[ d.contentsize ] = 0; /* Treat it as a long string.. */
-	if (read(d.ctlfd, s, d.contentsize) != d.contentsize) {
+	contents[ d.contentsize ] = 0; /* Treat it as a long string.. */
+	if (read(d.ctlfd, contents, d.contentsize) != d.contentsize) {
 	  warning("Wrong size read from control file \"%s\"! (%m)",
 		  file);
 	  free((void*)d.contents);
@@ -454,7 +465,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      break;
 	    }
 	    ap->link = d.senders; /* point at sender address */
-	    rp = (struct rcpt *)emalloc(sizeof (struct rcpt));
+	    rp = (struct rcpt *)malloc(sizeof (struct rcpt));
 	    if (rp == NULL) {
 	      lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
 		       _CFTAG_LOCK, _CFTAG_DEFER, file, host, mypid);
@@ -621,8 +632,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	mfpath = alloca((u_int)5 + sizeof(QUEUEDIR)
 			+ strlen(dirprefix) + strlen(d.msgfile));
 #else
-	mfpath = emalloc((u_int)5 + sizeof(QUEUEDIR)
-			 + strlen(dirprefix) + strlen(d.msgfile));
+	mfpath = malloc((u_int)5 + sizeof(QUEUEDIR)
+			+ strlen(dirprefix) + strlen(d.msgfile));
 #endif
 	sprintf(mfpath, "../%s/%s%s", QUEUEDIR, dirprefix, d.msgfile);
 	if ((d.msgfd = open(mfpath, O_RDONLY, 0)) < 0) {

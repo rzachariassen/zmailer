@@ -167,6 +167,8 @@ extern void	       diagnostic __((/* struct rcpt *, int, int, char *,... */));
 /* emptyline.c: */
 extern int	       emptyline __(( char *line, int size ));
 
+extern int zmalloc_failure;
+
 #if 0 /* actually better to include "libz.h" for this */
 /* esyslib.c: */
 extern int cistrcmp  __((const char *s1, const char *s2));

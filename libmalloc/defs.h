@@ -313,6 +313,12 @@ typedef union word Word;
 # define COUNTSIZE(nw)
 #endif
 
+#ifdef __GNUC__
+# define CALLER_RETURN_ADDRESS ((void*)__builtin_return_address(0))
+#else
+# define CALLER_RETURN_ADDRESS ((void*)0)
+#endif
+
 #ifndef USESTDIO
   /* 
    * Much better not to use stdio - stdio calls malloc() and can

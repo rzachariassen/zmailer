@@ -23,7 +23,7 @@ FILE *fp;
 		return 0;
 
 	if ( ! PTR_IN_HEAP(blk)) {
-		sprintf(buf, "  ** pointer 0x%lx not in heap\n", (ulong) blk);
+		sprintf(buf, "#  ** pointer 0x%lx not in heap\n", (ulong) blk);
 		fputs(buf, fp);
 		return 0;
 	}
@@ -35,18 +35,18 @@ FILE *fp;
 	} else {
 		blkend = blk + blksize - 1;
 	}
-	(void) sprintf(buf, "  %s blk: 0x%lx to 0x%lx, %lu (0x%lx) words",
+	(void) sprintf(buf, "#  %s blk: 0x%lx to 0x%lx, %lu (0x%lx) words",
 		       tag == FREE ? "Free" : "Allocated", (ulong) blk,
 		       (ulong) blkend, blksize, blksize);
 	(void) fputs(buf, fp);
 	if ( is_end_ptr && ! PTR_IN_HEAP(blk)) {
-		sprintf(buf, "  ** start pointer 0x%lx not in heap\n",
+		sprintf(buf, "#  ** start pointer 0x%lx not in heap\n",
 			(ulong) blk);
 		fputs(buf, fp);
 		return 0;
 	}
 	if ( !is_end_ptr && ! PTR_IN_HEAP(blkend)) {
-		sprintf(buf, "  ** end pointer 0x%lx not in heap\n",
+		sprintf(buf, "#  ** end pointer 0x%lx not in heap\n",
 			(ulong) blk);
 		fputs(buf, fp);
 		return 0;
@@ -55,7 +55,7 @@ FILE *fp;
 		int i, n;
 		char *cp;
 
-		(void) sprintf(buf, " next=0x%lx, prev=0x%lx\n",
+		(void) sprintf(buf, "# next=0x%lx, prev=0x%lx\n",
 			       (ulong) NEXT(blkend), (ulong) PREV(blkend));
 		(void) fputs(buf, fp);
 		/* Make sure free block is filled with FREEMAGIC */
@@ -64,7 +64,7 @@ FILE *fp;
 #ifdef DEBUG
 		for (i = 0; i < n; i++, cp++) {
 			if (*cp != FREEMAGIC) {
-				(void) fputs("  ** modified after free().\n",
+				(void) fputs("#  ** modified after free().\n",
 					     fp);
 				break;
 			}
@@ -72,26 +72,24 @@ FILE *fp;
 #endif
 	} else {
 #ifdef DEBUG
-		(void) sprintf(buf, " really %lu bytes\n",
+		(void) sprintf(buf, "# really %lu bytes\n",
 			       (ulong) REALSIZE(blk));
 		(void) fputs(buf, fp);
-#else
-		(void) fputs("\n", fp);
 #endif
 	}
 	if (TAG(blk) == FREE) {
 		if( ! VALID_NEXT_PTR(blkend))
-			(void) fputs("  ** bad next pointer\n", fp);
+			(void) fputs("#  ** bad next pointer\n", fp);
 		if( ! VALID_PREV_PTR(blkend))
-			(void) fputs("  ** bad prev pointer\n", fp);
+			(void) fputs("#  ** bad prev pointer\n", fp);
 	} else {
 		if ( ! VALID_MAGIC(blk))
-			(void) fputs("  ** end of block overwritten\n", fp);
+			(void) fputs("#  ** end of block overwritten\n", fp);
 	}
 	if ( ! VALID_START_SIZE_FIELD(blk)) {
 		/* At some systems the  size_t  is 64 bits, while long is
-		   "mere" 32 bits (FreeBSD, for example) */
-		sprintf(buf, "  ** bad size field: tags = 0x%lx, 0x%lx\n",
+		   "mere" 32 bits (32-bit systems usually..) */
+		sprintf(buf, "#  ** bad size field: tags = 0x%lx, 0x%lx\n",
 			(unsigned long) SIZEFIELD(blk),
 			(unsigned long) SIZEFIELD(blkend));
 		(void) fputs(buf, fp);
@@ -117,51 +115,51 @@ FILE *fp;
 	char buf[512];	/* long enough for the sprintfs below */
 
 	if (_malloc_loword == NULL) { /* Nothing malloc'ed yet */
-		(void) fputs("Null heap - nothing malloc'ed yet\n", fp);
+		(void) fputs("# Null heap - nothing malloc'ed yet\n", fp);
 		return;
 	}
 		
-	(void) fputs("Heap printout:\n", fp);
-	(void) fputs("Free list rover pointers:\n", fp);
-	sprintf(buf, "  First non-null bin is %d\n", _malloc_firstbin);
+	(void) fputs("# Heap printout:\n", fp);
+	(void) fputs("# Free list rover pointers:\n", fp);
+	sprintf(buf, "#  First non-null bin is %d\n", _malloc_firstbin);
 	(void) fputs(buf, fp);
 	for (i = 0; i < MAXBINS; i++) {
 		if ((ptr = _malloc_rovers[i]) == NULL)
 			continue;
-		(void) sprintf(buf, "  %d: 0x%lx\n", i, (ulong) ptr);
+		(void) sprintf(buf, "#  %d: 0x%lx\n", i, (ulong) ptr);
 		(void) fputs(buf, fp);
 		if ( ! PTR_IN_HEAP(ptr))
-			(void) fputs("  ** not in heap\n", fp);
+			(void) fputs("#  ** not in heap\n", fp);
 		if ( ! VALID_END_SIZE_FIELD(ptr))
-			(void) fputs("  ** bad end size field\n", fp);
+			(void) fputs("#  ** bad end size field\n", fp);
 		if ( ! VALID_NEXT_PTR(ptr))
-			(void) fputs("  ** bad next pointer\n", fp);
+			(void) fputs("#  ** bad next pointer\n", fp);
 		if ( ! VALID_PREV_PTR(ptr))
-			(void) fputs("  ** bad prev pointer\n", fp);
+			(void) fputs("#  ** bad prev pointer\n", fp);
 	}
 	if (_malloc_rovers[MAXBINS] != NULL) {
-		(void) sprintf(buf, "  ** rover terminator is 0x%lx, fixing\n",
+		(void) sprintf(buf, "#  ** rover terminator is 0x%lx, fixing\n",
 			       (ulong) _malloc_rovers[MAXBINS]);
 		(void) fputs(buf, fp);
 		_malloc_rovers[MAXBINS] = NULL;
 	}
 	for (ptr = _malloc_mem; ptr != NULL; ptr = ptr->next) {
 		/* print the arena */
-		(void) sprintf(buf, "Arena from 0x%lx to 0x%lx, %lu (0x%lx) words\n",
+		(void) sprintf(buf, "# Arena from 0x%lx to 0x%lx, %lu (0x%lx) words\n",
 			       (ulong) ptr, (ulong) (ptr + SIZE(ptr+1)),
 			       (ulong) SIZE(ptr+1)+1, (ulong) SIZE(ptr+1)+1);
 		(void) fputs(buf, fp);
-		(void) sprintf(buf, "Next arena is 0x%lx\n", (ulong)ptr->next);
+		(void) sprintf(buf, "# Next arena is 0x%lx\n", (ulong)ptr->next);
 		(void) fputs(buf, fp);
 		(void) fflush(fp);
 		ASSERT(SIZEFIELD(ptr+1) == SIZEFIELD(ptr + SIZE(ptr+1)),
-		       "mal_dumpheap: corrupt malloc arena");
+		       "# mal_dumpheap: corrupt malloc arena");
 		blkend = ptr + SIZE(ptr + 1);
 		for(blk = ptr + ARENASTART; blk < blkend; blk += SIZE(blk)) {
 			ASSERT(__m_prblock((univptr_t) blk, 0, fp),
-				"mal_dumpheap: corrupt block");
+			       "# mal_dumpheap: corrupt block");
 		}
 	}
-	(void) fputs("==============\n", fp);
+	(void) fputs("# ==============\n", fp);
 	(void) fflush(fp);
 }

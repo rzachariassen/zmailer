@@ -48,6 +48,14 @@
 
 int ta_logs_diagnostics = 1;
 
+/*
+
+  If we encounter malloc failure, we diagnose everything grimly as
+  EX_TEMPFAIL - always.. and hope the TA caller understands to exit..
+  
+*/
+int zmalloc_failure = 0;
+
 char *notarybuf = NULL;
 time_t retryat_time = 0; /* Used at SMTP to avoid trying same host too soon.. */
 
@@ -145,9 +153,15 @@ notaryreport(arg1,arg2,arg3,arg4)
 	if (wttip) len += strlen(wttip)+5;
 
 	if (!notarybuf)
-	  notarybuf = (char*) emalloc(len);
+	  notarybuf = (char*) malloc(len);
 	else
-	  notarybuf = (char*) erealloc(notarybuf,len);
+	  notarybuf = (char*) realloc(notarybuf,len);
+
+	if (! notarybuf) {
+	  zmalloc_failure = 1;
+	  return;
+	}
+
 	sprintf(notarybuf, notaryfmt,
 		A1?A1:"", A2?A2:"", A3?A3:"", A4?A4:"",
 		wtthost?wtthost:"");
@@ -231,6 +245,29 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	*s = '\0';
 	va_end(ap);
 
+	/* If we had ZMALLOC_FAILURE -> ABORT!  */
+	if (zmalloc_failure && !(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
+
+	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
+		  rp->desc->ctlid, rp->id,
+		  (notarybuf && report_notary) ? notarybuf : "",
+		  
+		  "deferred", "MALLOC FAILURE!");
+	  fflush(stdout);
+
+	  if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
+			rp->lockoffset, _CFTAG_LOCK, _CFTAG_DEFER,
+			(char*)rp->desc->msgfile, rp->addr->host, getpid())) {
+	    /* something went wrong in unlocking it, concurrency problem? */
+	  }
+	  rp->lockoffset = 0;	/* mark this recipient unlocked */
+
+	  tasyslog(rp, xdelay, wtthost, wttip, "deferred", "MALLOC FAILURE!");
+
+	  return;
+	}
+
+
 	retryat_time = 0;
 
 	/* Optimize the common case -- less stuff into back-report
@@ -299,6 +336,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	  /* Right, we have a honour to append our diagnostics to the
 	     transport specification file ourselves */
 	  int oldfl = fcntl(rp->desc->ctlfd, F_GETFL);
+	  int newfl;
 	  int len = 80 + strlen(notarybuf ? notarybuf : "") + strlen(message);
 	  int rc2;
 	  off_t ctlsize;
@@ -307,53 +345,58 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 
 	  /* Set the APPEND-mode on.. We need it now !
 	     (and make sure the non-blocking mode is NOT on!) */
-	  if ((oldfl & O_APPEND) == 0 || (oldfl & O_NONBLOCK) != 0)
-	    fcntl(rp->desc->ctlfd, F_SETFL, (oldfl & ~O_NONBLOCK) | O_APPEND);
+	  newfl = (oldfl & ~O_NONBLOCK) | O_APPEND;
+	  if (oldfl != newfl)
+	    fcntl(rp->desc->ctlfd, F_SETFL, newfl);
 
 #ifdef HAVE_ALLOCA
 	  sbuf = alloca(len);
 #else
-	  sbuf = emalloc(len);
+	  sbuf = malloc(len);
+	  if (!sbuf)
+	    zmalloc_failure = 1;
 #endif
 
-	  /* Log the diagnostic string to the file */
+	  if (sbuf) {
+	    /* Log the diagnostic string to the file */
 #ifndef SPRINTF_CHAR
-	  len = 
+	    len = 
 #endif
-	    sprintf(sbuf, "%c%c%d:%d:%d::%ld\t%s\t%s\n",
-		    _CF_DIAGNOSTIC, _CFTAG_NORMAL,
-		    rp->id, rp->headeroffset, rp->drptoffset,
-		    (long)time(NULL), notarybuf ? notarybuf : "", message);
+	      sprintf(sbuf, "%c%c%d:%d:%d::%ld\t%s\t%s\n",
+		      _CF_DIAGNOSTIC, _CFTAG_NORMAL,
+		      rp->id, rp->headeroffset, rp->drptoffset,
+		      (long)time(NULL), notarybuf ? notarybuf : "", message);
 #ifdef SPRINTF_CHAR
-	  len = strlen(sbuf);
+	    len = strlen(sbuf);
 #endif
 
-	  oldalarm = alarm(0);	/* We do NOT want to be alarmed while
-				   writing to the log! */
+	    oldalarm = alarm(0);	/* We do NOT want to be alarmed while
+					   writing to the log! */
 
-	  ctlsize = lseek(rp->desc->ctlfd, 0, SEEK_END);
+	    ctlsize = lseek(rp->desc->ctlfd, 0, SEEK_END);
 
-	  rc2 = write(rp->desc->ctlfd, sbuf, len);
-	  if (rc2 != len || rc2 < 0 || len < 0) {
-	    /* UAARGH! -- write failed, must have disk full! */
+	    rc2 = write(rp->desc->ctlfd, sbuf, len);
+	    if (rc2 != len || rc2 < 0 || len < 0) {
+	      /* UAARGH! -- write failed, must have disk full! */
 #ifdef HAVE_FTRUNCATE
-	    ftruncate(rp->desc->ctlfd, ctlsize); /* Sigh.. */
+	      ftruncate(rp->desc->ctlfd, ctlsize); /* Sigh.. */
 #endif
-	    fprintf(stdout,"#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
-	    exit(EX_DATAERR);
-	  }
+	      fprintf(stdout,"#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
+	      exit(EX_DATAERR);
+	    }
 #ifdef HAVE_FSYNC
-	  fsync(rp->desc->ctlfd);
+	    fsync(rp->desc->ctlfd);
 #endif
-	  if (oldalarm)		/* Restore it, if it was ticking. */
-	    alarm(oldalarm);
+	    if (oldalarm)		/* Restore it, if it was ticking. */
+	      alarm(oldalarm);
 
 #ifndef HAVE_ALLOCA
-	  free(sbuf);
+	    free(sbuf);
 #endif
+	  }
 
 	  /* If we had to set the APPEND mode previously, clear it now! */
-	  if ((oldfl & O_APPEND) == 0 || (oldfl & O_NONBLOCK) != 0)
+	  if (oldfl != newfl)
 	    fcntl(rp->desc->ctlfd, F_SETFL, oldfl);
 
 	  /* Now we have no reason to send also the NOTARY report up.. */
@@ -365,16 +408,6 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	   Actually DON'T do then at all! */
 	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
 
-	  int fd = FILENO(stdout);
-
-	  /* This should always be in blocking mode, but... */
-	  fd_blockingmode(fd);
-#if 0
-	  int len;
-	  char *buf;
-	  len = (9+9+4+strlen(notarybuf ? notarybuf : "") +
-		 strlen(statmsg) + strlen(message));
-#endif
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
 		  (notarybuf && report_notary) ? notarybuf : "",

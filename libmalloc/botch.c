@@ -27,8 +27,8 @@ int linenumber, is_end_ptr;
 		if (_malloc_statsfile)
 		  (void) fflush(_malloc_statsfile);
 		(void) setvbuf(stderr, (char *) 0, _IONBF, 0);
-		(void) sprintf(linebuf, "%d: ", linenumber);
-		(void) fputs("memory corruption found, file ",
+		(void) sprintf(linebuf, " %d: ", linenumber);
+		(void) fputs("# memory corruption found, file ",
 			     stderr);
 		(void) fputs(filename, stderr);
 		(void) fputs(", line ", stderr);
