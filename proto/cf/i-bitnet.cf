@@ -33,7 +33,7 @@ if [ -f $MAILVAR/db/routes.bitnet ]; then
 #| with the manually maintained routes file, a separate relation
 #| is created for a separate file in the same format as routes.
 
-    if [ -f $MAILVAR/db/routes.bitnet$DBEXTtest ]
+    if [ -f $MAILVAR/db/routes.bitnet$DBEXTtest ]; then
 	relation -lmt $DBTYPE -f $MAILVAR/db/routes.bitnet$DBEXT -d pathalias bitnetdb
     else
 	relation -lmt ordered -f $MAILVAR/db/routes.bitnet -d pathalias bitnetdb
