@@ -1,8 +1,13 @@
 %\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
 %\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
-\documentclass[twoside,a4paper]{article}
+\documentclass[twoside,a4paper,draft]{article}
+
+\usepackage{times} % PostScript fonts into use at printout
+
 \usepackage{html,htmllist,makeidx,enumerate}
 \usepackage{graphicx,color}
+
+\usepackage[light]{draftcopy}
 
 %\input{zlat2html.tex}
 %\input{manhtml.tex}
@@ -10,6 +15,64 @@
 % \setlength{\textwidth}{5.5in}
 % \addtolength{\oddsidemargin}{-1in}
 % \addtolength{\evensidemargin}{-1in}
+
+
+%begin{latexonly}
+
+%
+% Do rather fancy heading style..
+% In fact imitate  The \LaTeX\ Companion  -book
+%
+
+\usepackage{fancyheadings}
+\pagestyle{fancyplain}
+\addtolength{\textwidth}{0.5\marginparwidth}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+\setlength{\marginparwidth}{0.5\marginparwidth}
+
+%\renewcommand{\chaptermark}[1]%  % (BOOK-style only)
+%	{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]%
+	{\markboth{\thesection\ #1}{\thesection\ #1}}
+\renewcommand{\subsectionmark}[1]%
+	{\markboth{\thesubsection\ #1}{\thesubsection\ #1}}
+\renewcommand{\subsubsectionmark}[1]%
+	{\markboth{\thesubsubsection\ #1}{\thesubsubsection\ #1}}
+\renewcommand{\paragraphmark}[1]%
+	{\markboth{\theparagraph\ #1}{\theparagraph\ #1}}
+\renewcommand{\subparagraphmark}[1]%
+	{\markboth{\thesubparagraph\ #1}{\thesubparagraph\ #1}}
+
+\lhead[\fancyplain{}{\bf\thepage}]%
+      {\fancyplain{}{\bf\rightmark}}
+\rhead[\fancyplain{}{\bf\leftmark}]%
+      {\fancyplain{}{\bf\thepage}}
+\cfoot{{\sf ZMailer manual}}
+
+% \setlength{\parskip}{\baselineskip}
+% \setlength{\parindent}{0pt}
+% \setlength{\partopsep}{\parskip}
+% \setlength{\topsep}{-\parskip}
+
+%
+% Modify the article style seriously at \paragraph,
+% and \subparagraph commands
+%
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+	{3.25ex \@plus1ex \@minus.2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+	{3.25ex \@plus1ex \@minus .2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\normalsize\bfseries}}
+\makeatother
+%end{latexonly}
+
+\setcounter{secnumdepth}{10}
+\setcounter{tocdepth}{10}
 
 \sloppy
 
@@ -27,7 +90,7 @@
 {
 \hrule
 \begin{center}
-\bfseries
+\bf
 \Huge
 %begin{latexonly}
 \vspace{2ex}
@@ -60,8 +123,8 @@ Matti Aarnio, et.al. \\
 \vspace{1ex}
 \end{htmlonly}
 % ------------
-v1.99.7 \\
-10 April 1998 \\
+v1.99.8 \\
+7 May 1998 \\
 for ZMailer 2.99.50 \\
 % ------------
 %begin{latexonly}
@@ -71,8 +134,8 @@ for ZMailer 2.99.50 \\
 \vspace{1ex}
 \end{htmlonly}
 % ------------
-\Huge
-\sffamily
+\Large
+\sf
 *** THIS IS WORK IN PROGRESS ***
 \end{center}
 \vfill

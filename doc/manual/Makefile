@@ -62,12 +62,13 @@ L2HLSEC5     =	$(L2HCOMMON)
 
 
 all:
-	@echo "make tag choices: clean dist html dvi ps"
+	@echo "make tag choices: clean dist html dvi ps pdf"
 
-dvi: zmanual.dvi
-ps:  zmanual.ps
-#html: zmanual.html
-dist: manual_parts.tar.gz
+dvi:	zmanual.dvi
+ps:	zmanual.ps
+pdf:	zmanual.pdf
+#html:	zmanual.html
+dist:	manual_parts.tar.gz
 
 zmailer-logo2.gif zlogo: zmailer-logo2.gif-green
 	cp -p zmailer-logo2.gif-green zmailer-logo2.gif
@@ -115,6 +116,10 @@ distclean clean:
 
 %.eps: %.fig
 	fig2dev -Lps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
+
+%.pdf: %.ps
+	gs510 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $^ -c quit
+
 
 $(FIG_PS): $(FIGS)
 $(FIGEPS): $(FIGS)

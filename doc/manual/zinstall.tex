@@ -248,9 +248,13 @@ old files will be saved in a ``bak'' directory.
 
 You must now pick a toplevel router configuration file.  The
 default is provided in {\tt proto/cf/SMTP+UUCP.cf} (by now copied to
-{\tt \$MAILSHARE/cf/SMTP+UUCP.cf}). You need to create {\tt \$MAILSHARE/router.cf}.
+{\tt \$MAILSHARE/cf/SMTP+UUCP.cf}).
+
+You need to create {\tt \$MAILSHARE/router.cf}.
+
 The simplest method is to make it symbolic link to, or copy of,
 the {\tt cf/SMTP+UUCP.cf} file.
+
 Some real-life samples of {\tt router.cf} are at the {\tt proto/} directory.
 
 
@@ -304,8 +308,13 @@ multi-host site, determining these things can be automated according
 to your local policies and conventions.  See the files specific to
 the University of Toronto ({\tt UT*.cf}) for examples of this.
 
-Location of this file is written in {\tt \$MAILSHARE/router.cf}, at which
-you can alter it. Into {\tt \$MAILSHARE/mail.conf} --- for example.
+Location of this file is written in {\tt \$MAILSHARE/router.cf}.
+By editing that entry you can alter it --- into {\tt \$MAILSHARE/mail.conf},
+for example.
+
+{\em Note that {\tt hostname=} entry above {\bf is not alone sufficient}
+for getting the system to know all of the domains it should consider
+as local.  See below about {\tt localnames} database.}
 
 
 \subsubsection{/etc/group}%
@@ -383,16 +392,24 @@ The provided skeleton aliases file on purpose contains syntax errors,
 so you are reminded to change the contents.
 
 The aliases database is rebuilt using the {\tt \$MAILBIN/newaliases} script.
-This can be invoked in several ways: directly as a command if you
-have {\tt /usr/ucb/newaliases} symlinked properly, or by {\tt zmailer newaliases}
-or {\tt sendmail -bi} if the ZMailer sendmail replacement is installed.
+This can be invoked in several ways:
+\begin{itemize}
+\item
+ directly as a command, if you have {\tt /usr/ucb/newaliases}
+ symlinked properly
+\item
+ by {\tt zmailer newaliases}
+\item
+ by {\tt sendmail -bi} if the ZMailer {\tt sendmail} replacement is installed.
+\end{itemize}
 
 Choose one of the following methods to rebuild the database:
 \begin{verbatim}
   # $MAILBIN/newaliases
   # $MAILBIN/zmailer newaliases
   # /usr/lib/sendmail -bi
-  # ln -s /usr/lib/sendmail /usr/ucb/newaliases ; /usr/ucb/newaliases
+  # ln -s /usr/lib/sendmail /usr/bin/newaliases ; \
+      /usr/bin/newaliases
 \end{verbatim}
 
 If there are errors, correct them in the {\tt \$MAILVAR/db/aliases} file
@@ -405,8 +422,11 @@ The final message should look something like:
 See also IETF's RFC 2142: ``Mailbox Names for Common Services, Roles and
 Functions'' (file {\tt rfc2142.txt} in the {\tt doc/rfc} directory) 
 for other suggestable aliases you may need. 
-                                                               
+
+
 \item[{\tt \$MAILVAR/db/localnames} file] \mbox{}
+\index{build!{\tt \$MAILVAR/db/localnames} file}%
+\label{configure_localnames_file}
 
 Add the hostnames you want ZMailer to do local delivery for, to the
 {\tt \$MAILVAR/db/localnames} file.  Due to my own belief in Murphy,
@@ -465,8 +485,16 @@ separate people to be postmasters for each of them:
 \begin{verbatim}
   postmaster@domain1: person1
   postmaster@domain2: person2
-  postmaster@domain3: person3
+  postmaster@domain3: person3, person4
 \end{verbatim}
+
+
+It is also possible to shunt all recipient addresses for given domain
+to some arbitary addresses:
+\begin{verbatim}
+  @domain4:  person4
+\end{verbatim}
+
 
 This facility is always in stand-by --- just add the file, and
 you have it.
