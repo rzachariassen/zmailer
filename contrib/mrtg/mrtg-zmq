@@ -1,0 +1,48 @@
+#!/usr/local/bin/perl
+#
+# Copyright Telecom Finland 1998
+#  Heikki Hannikainen <heikki.hannikainen@tele.fi>
+#
+# This is ZMailer queue poller script to produce data poll results
+# for the MRTG monitoring grapher utility
+#
+# This is intended to be run from under inetd(8) with following
+# kind of parameter line:
+#
+#   mrtg-zmq  stream tcp nowait root /usr/sbin/tcpd /usr/local/sbin/mrtg-zmq
+#
+# It obviously needs adding "mrtg-zmq" into /etc/services (or equivalent
+# NIS/NIS+ service), plus installing and configuring the TCP-Wrapper.
+#
+# How to do those is left as an excercise to the reader; the reader
+# is assumed to be quite bright when s/he is playing with MRTG.
+#
+
+open(f, "/usr/bin/mailq -svQ|") || crash("Cannot open mailq: $!");
+
+($routerq) = split(' ', <f>);
+($transpq) = split(' ', <f>);
+
+while ($l = <f>) {
+	chomp($l);
+	$l =~ s/\s+/ /g;
+	(@t) = split (' ', $l);
+	if (@t[0] eq "Kids:") {
+		($kids, $idle, $msgs, $threads, $rcpnts) = (@t[1], @t[3], @t[5], @t[7], @t[9]);
+	} elsif (substr($l, 0, 1) ne ' ') {
+		push @dst, @t[0];
+	} elsif (@t[0] eq "Threads:") {
+		push @dst, @t[1,3];
+	}
+}
+
+close(f);
+
+print "$routerq $transpq $kids $idle $msgs $threads $rcpnts @dst\n";
+
+exit 0;
+
+sub crash {
+	print "\nAiee: @_\n";
+	exit 1;
+}
