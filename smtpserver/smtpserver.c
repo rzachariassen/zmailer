@@ -586,7 +586,8 @@ char **argv;
       SS.ihostaddr[0] = '\0';
       sprintf(SS.ident_username, "uid#%d@localhost", (int)getuid());
 
-      s_setup(&SS, FILENO(stdin));
+      /* INTERACTIVE */
+      s_setup(&SS, FILENO(stdin), FILENO(stdout));
       smtpserver(&SS, 0);
 
     } else
@@ -626,7 +627,10 @@ char **argv;
 	}
 	zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-	s_setup(&SS, FILENO(stdin));
+	if (netconnected_flg)
+	  s_setup(&SS, FILENO(stdin), FILENO(stdin));
+	else
+	  s_setup(&SS, FILENO(stdin), FILENO(stdout));
 
 	if (ident_flag != 0 && !daemon_flg)
 	    setrfc1413ident(&SS);
@@ -984,7 +988,7 @@ char **argv;
 	    }
 	    zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-	    s_setup(&SS, msgfd);
+	    s_setup(&SS, msgfd, msgfd);
 
 	    if (ident_flag != 0)
 	      setrfc1413ident(&SS);
@@ -1411,12 +1415,12 @@ int buflen, *rcp;
 }
 
 
-void s_setup(SS, infd)
+void s_setup(SS, infd, outfd)
 SmtpState *SS;
 int infd;
 {
 
-    FILE *outfp = fdopen(dup(infd),"w");
+    FILE *outfp = fdopen(outfd,"w");
 
     setvbuf(outfp, NULL, _IOFBF, 8192);
 

@@ -3,6 +3,11 @@
 	* smtpserver/smtpserver.c:
 	    Don't do ident query when in interactive mode.
 
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    Call  s_setup()  with appropriate fd's for input,
+	    and output.  Sometimes we are *not* running with
+	    bidirectional socket as the point of contact..
+
 1999-10-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/Makefile.in, smtpserver/smtpserver.c,

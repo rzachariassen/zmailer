@@ -364,7 +364,7 @@ extern int kill __((pid_t, int));
 extern const char *rfc822atom __((const char *str));
 extern const char *xtext_string __((const char *str));
 
-extern void s_setup __((SmtpState * SS, int fd));
+extern void s_setup __((SmtpState * SS, int infd, int outfd));
 extern int s_feof __((SmtpState * SS));
 extern int s_getc __((SmtpState * SS));
 extern int s_hasinput __((SmtpState * SS));
