@@ -13,6 +13,10 @@
 # include "netdb6.h"
 #endif
 
+#ifndef __STDC__
+# define const
+#endif
+
 /*
 %%% copyright-cmetz-97
 This software is Copyright 1997 by Craig Metz, All Rights Reserved.
