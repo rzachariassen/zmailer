@@ -243,8 +243,9 @@ feed_child(proc)
 	proc->cmdlen += cmdlen;
 
 	if (verbose) {
-	  sfprintf(sfstdout,"feed: tofd=%d, chan='%s', proc=%p, vtx=%p, ",
-		 proc->tofd, proc->ch->name, proc, vtx);
+	  sfprintf(sfstdout,
+		   "feed: tofd=%d, chan='%s', proc=%p, vtx=%p thr=%p ",
+		   proc->tofd, proc->ch->name, proc, vtx, vtx->thread);
 	}
 
 	if (vtx->cfp->vfpfn != NULL) {
