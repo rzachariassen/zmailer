@@ -392,6 +392,12 @@ can be turned off.
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
 
+.IP PARAM\ force\-rcpt\-notify\-never
+Whatever the incoming DNS NOTIFY= value is, we force it always
+to be NOTIFY=NEVER.   This is for those who won't like to let
+others even to find out that the message made into the system,
+but still want to support incoming DSN. (That is, not to disable DSN!)
+
 .IP "PARAM hdr220 a string of stuff"
 This allows full customization of the initial greeting message.
 For details, see the sample configuration below.
@@ -564,6 +570,7 @@ PARAM  enable-router
 #PARAM  NoDSN
 #PARAM  NoETRN
 #PARAM  no-multiline-replies # except to EHLO
+#PARAM  force-rcpt-notify-never # Want to hide something...
 #
 # HDR220 metatags:
 #  %% -- '%' character

@@ -374,6 +374,8 @@ static void cfparam(str,size)
       etrn_ok = 0;
     } else if (cistrcmp(name, "no-multiline-replies") == 0) {
       multilinereplies = 0;
+    } else if (cistrcmp(name, "force-rcpt-notify-never") == 0) {
+      force_rcpt_notify_never = 1;
     }
 
     /* TLSv1/SSLv* options */

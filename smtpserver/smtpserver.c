@@ -257,6 +257,7 @@ int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
 			   NOT for real use! */
 
 int detect_incorrect_tls_use;
+int force_rcpt_notify_never;
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5

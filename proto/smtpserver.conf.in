@@ -73,6 +73,7 @@
 #PARAM  NoDSN
 #PARAM  NoETRN
 PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
+#PARAM  force-rcpt-notify-never # Some want to hide the delivery knowledge..
 #
 # HDR220 metatags:
 #  %%  =  '%' character

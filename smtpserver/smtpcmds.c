@@ -1448,7 +1448,9 @@ const char *buf, *cp;
 
     /* IETF-NOTARY DSN data: */
     fputs("todsn", SS->mfp);
-    if (drpt_notify) {
+    if (force_rcpt_notify_never) {
+      fwrite(" NOTIFY=NEVER", 1, 13, SS->mfp);
+    } else if (drpt_notify) {
 	fputc(' ', SS->mfp);
 	fwrite(drpt_notify, 1, notifylen, SS->mfp);
 	if (!(notifyflgs & NOTIFY_NEVER) /* Not 'NEVER' */ &&

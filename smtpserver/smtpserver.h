@@ -349,6 +349,7 @@ extern int unknown_cmd_limit;
 extern int sum_sizeoption_value;
 extern int lmtp_mode;
 extern int detect_incorrect_tls_use;
+extern int force_rcpt_notify_never;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;
