@@ -386,23 +386,51 @@ static void cfparam(str,size)
       detect_incorrect_tls_use = 1;	/* Default: OFF */
 
     } else if (cistrcmp(name, "tls-cert-file") == 0 && param1) {
-      if (tls_cert_file) free(tls_cert_file);
+      if (tls_cert_file) free((void*)tls_cert_file);
       tls_cert_file = strdup(param1);
       if (!tls_key_file)	/* default the other */
 	tls_key_file = strdup(param1);
 
     } else if (cistrcmp(name, "tls-key-file")  == 0 && param1) {
-      if (tls_key_file) free(tls_key_file);
+      if (tls_key_file) free((void*)tls_key_file);
       tls_key_file = strdup(param1);
       if (!tls_cert_file)	/* default the other */
 	tls_cert_file = strdup(param1);
 
+    } else if (cistrcmp(name, "tls-dcert-file") == 0 && param1) {
+      if (tls_dcert_file) free((void*)tls_dcert_file);
+      tls_dcert_file = strdup(param1);
+      if (!tls_dkey_file)	/* default the other */
+	tls_dkey_file = strdup(param1);
+
+    } else if (cistrcmp(name, "tls-dkey-file")  == 0 && param1) {
+      if (tls_dkey_file) free((void*)tls_dkey_file);
+      tls_dkey_file = strdup(param1);
+      if (!tls_dcert_file)	/* default the other */
+	tls_dcert_file = strdup(param1);
+
+    } else if (cistrcmp(name, "tls-dh1024")  == 0 && param1) {
+      if (tls_dh1024_param) free((void*)tls_dh1024_param);
+      tls_dh1024_param = strdup(param1);
+
+    } else if (cistrcmp(name, "tls-dh512")  == 0 && param1) {
+      if (tls_dh512_param) free((void*)tls_dh512_param);
+      tls_dh512_param = strdup(param1);
+
+    } else if (cistrcmp(name, "tls-random-source")  == 0 && param1) {
+      if (tls_random_source) free((void*)tls_random_source);
+      tls_random_source = strdup(param1);
+
+    } else if (cistrcmp(name, "tls-cipher-list")  == 0 && param1) {
+      if (tls_cipherlist) free((void*)tls_cipherlist);
+      tls_cipherlist = strdup(param1);
+
     } else if (cistrcmp(name, "tls-CAfile")    == 0 && param1) {
-      if (tls_CAfile) free(tls_CAfile);
+      if (tls_CAfile) free((void*)tls_CAfile);
       tls_CAfile = strdup(param1);
 
     } else if (cistrcmp(name, "tls-CApath")    == 0 && param1) {
-      if (tls_CApath) free(tls_CApath);
+      if (tls_CApath) free((void*)tls_CApath);
       tls_CApath = strdup(param1);
 
     } else if (cistrcmp(name, "tls-loglevel")  == 0 && param1) {

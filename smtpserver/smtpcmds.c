@@ -905,15 +905,15 @@ int insecure;
       if (SS->sslmode) {
 	if (log_rcvd_tls_mode) {
 	  fprintf(SS->mfp, " TLS-CIPHER: ");
-	  if (SS->tls_cipher_info)
-	    rfc822commentprint(SS->mfp, SS->tls_cipher_info);
+	  if (SS->TLS.cipher_info)
+	    rfc822commentprint(SS->mfp, SS->TLS.cipher_info);
 	  else
 	    fprintf(SS->mfp, "<none>");
 	}
 	if (log_rcvd_tls_peer) {
 	  fprintf(SS->mfp, " TLS-PEER: ");
-	  if (SS->tls_peer_subject)
-	    rfc822commentprint(SS->mfp, SS->tls_peer_subject);
+	  if (SS->TLS.peer_subject)
+	    rfc822commentprint(SS->mfp, SS->TLS.peer_subject);
 	  else
 	    fprintf(SS->mfp, "<none>");
 	}
@@ -949,14 +949,14 @@ int insecure;
       }
       if (SS->sslmode) {
 	fprintf(SS->mfp, " TLS-CIPHER: ");
-	if (SS->tls_cipher_info)
-	  rfc822commentprint(SS->mfp, SS->tls_cipher_info);
+	if (SS->TLS.cipher_info)
+	  rfc822commentprint(SS->mfp, SS->TLS.cipher_info);
 	else
 	  fprintf(SS->mfp, "<none>");
 
 	fprintf(SS->mfp, " TLS-PEER: ");
-	if (SS->tls_peer_subject)
-	  rfc822commentprint(SS->mfp, SS->tls_peer_subject);
+	if (SS->TLS.peer_subject)
+	  rfc822commentprint(SS->mfp, SS->TLS.peer_subject);
 	else
 	  fprintf(SS->mfp, "<none>");
       } else {

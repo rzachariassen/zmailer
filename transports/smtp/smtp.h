@@ -324,6 +324,46 @@ typedef enum {
   SMTPSTATE99        = 99
 } SMTPSTATES;
 
+
+#ifdef HAVE_OPENSSL
+struct _SmtpState_SSL_aux {
+  int   sslmode;		/* Set, when SSL/TLS in running */
+  SSL * ssl;
+  SSL_CTX * ctx;
+
+  int   wantreadwrite;		/* <0: read, =0: nothing, >0: write */
+#if 0
+  char *sslwrbuf;
+  int   sslwrspace, sslwrin, sslwrout;
+  /* space, how much stuff in, where the output cursor is */
+#endif
+
+  const char *peername_save;	 /* strdup()ed string */
+  const char *peer_subject;      /* strdup()ed string */
+  const char *peer_issuer;       /* strdup()ed string */
+  const char *peer_fingerprint;  /* strdup()ed string */
+  const char *peer_CN;           /* strdup()ed string */
+  const char *issuer_CN;         /* strdup()ed string */
+
+  unsigned char peername_md5[MD5_DIGEST_LENGTH];
+
+  int	peer_verified;
+
+  const char *protocol;		/* from SSL_get_version() */
+  const char *cipher_name;	/* from SSL_CIPHER_get_name() */
+  int	cipher_usebits;
+  int	cipher_algbits;
+
+  int verify_depth;
+  int verify_error; /*  = X509_V_OK; */
+
+  int enforce_verify_errors;
+  int enforce_CN;
+};
+
+#endif /* - HAVE_OPENSSL */
+
+
 typedef struct { /* SmtpState */
   int  ehlo_capabilities;	/* Capabilities of the remote system */
   int  esmtp_on_banner;
@@ -413,19 +453,8 @@ typedef struct { /* SmtpState */
   int  stdincurs; /* Consumed  */
 
 #ifdef HAVE_OPENSSL
-  int   sslmode;		/* Set, when SSL/TLS in running */
-  SSL * ssl;
-  SSL_CTX * ctx;
-
-  char *sslwrbuf;
-  int   sslwrspace, sslwrin, sslwrout;
-  /* space, how much stuff in, where the output cursor is */
-  int   wantreadwrite;		/* <0: read, =0: nothing, >0: write */
+  struct _SmtpState_SSL_aux TLS;
 #endif /* - HAVE_OPENSSL */
-  char *tls_cipher_info;
-  char *tls_ccert_subject;
-  char *tls_ccert_issuer;
-  char *tls_ccert_fingerprint;
 
   const char *taspoolid;
 

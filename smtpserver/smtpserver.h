@@ -87,6 +87,9 @@ extern int wait();
 #endif
 
 #include <sys/socket.h>
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 #include <netinet/in.h>
 #ifdef HAVE_NETINET_IN6_H
 #include <netinet/in6.h>
@@ -171,6 +174,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/rand.h>
 #endif /* - HAVE_OPENSSL */
 
 #ifdef HAVE_SASL2
@@ -212,6 +216,34 @@ struct command {
 
 extern struct command command_list[];
 
+#ifdef HAVE_OPENSSL
+
+#define CCERT_BUFSIZ 256
+
+struct smtpserver_ssl_subset {
+    SSL * ssl;
+
+    const char *protocol;
+    const char *cipher_name;
+    int         cipher_usebits;
+    int         cipher_algbits;
+
+    int  peer_verified;
+
+    const char *cipher_info;
+    const char *issuer_CN;
+    const char *peer_issuer;
+    const char *peer_CN;
+    const char *peer_subject;
+    const char *peer_fingerprint;
+
+    unsigned char peer_md[EVP_MAX_MD_SIZE];
+};
+
+
+#endif /* - HAVE_OPENSSL */
+
+
 typedef struct {
     int  outputfd;		/* stdout */
     int  inputfd;		/* stdin  */
@@ -241,17 +273,15 @@ typedef struct {
 #define DELIVERBY_N  2
 #define DELIVERBY_T  4
 
-    int   sslmode;		/* Set, when SSL/TLS in running */
-    char *sslwrbuf;
+    char *sslwrbuf;		/* Despite of the name, all modes
+				   use this write-out buffer.. */
     int   sslwrspace, sslwrin, sslwrout;
     /* space, how much stuff in, where the output cursor is */
+
+    int   sslmode;		/* Set, when SSL/TLS in running */
 #ifdef HAVE_OPENSSL
-    SSL * ssl;
+    struct smtpserver_ssl_subset TLS; /* TLS specific things */
 #endif /* - HAVE_OPENSSL */
-    char *tls_cipher_info;
-    char *tls_peer_subject;
-    char *tls_peer_issuer;
-    char *tls_peer_fingerprint;
 
     int  read_alarm_ival;
     int  s_bufread;
@@ -344,7 +374,11 @@ typedef struct {
   char *nodename; char *username; char *password;
 } etrn_cluster_ent;
 extern etrn_cluster_ent etrn_cluster[];
-extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
+extern const char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
+extern const char *tls_dcert_file, *tls_dkey_file, *tls_dh1024_param;
+extern const char *tls_dh512_param;
+extern const char *tls_random_source;
+extern const char *tls_cipherlist;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
 extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;
 extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;

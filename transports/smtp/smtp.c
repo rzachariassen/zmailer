@@ -1663,7 +1663,7 @@ deliver(SS, dp, startrp, endrp)
 
 	if (SS->smtpfp) {
 #ifdef HAVE_OPENSSL
-	  if (!SS->sslmode)
+	  if (!SS->TLS.sslmode)
 #endif /* - HAVE_OPENSSL */
 	    tcpstream_nagle(sffileno(SS->smtpfp));
 	}
@@ -2109,28 +2109,23 @@ smtpopen(SS, host, noMX)
 		}
 		if (SS->verboselog) {
 		  if (i == EX_OK) {
-		    extern const char *tls_cipher_name;
-		    extern char       *tls_protocol;
-		    extern int tls_cipher_usebits, tls_cipher_algbits;
-		    extern char tls_peer_cert_name [];
-		    extern char tls_peer_cert_issuer_name [];
 		    fprintf(SS->verboselog,
 			    " TLS mode running successfully!\n");
-		    if (tls_cipher_name)
+		    if (SS->TLS.cipher_name)
 		      fprintf(SS->verboselog,
-			      " TLS cipher: %s\n", tls_cipher_name);
-		    if (tls_protocol)
+			      " TLS cipher: %s\n", SS->TLS.cipher_name);
+		    if (SS->TLS.protocol)
 		      fprintf(SS->verboselog,
-			      " TLS protocol: %s\n", tls_protocol);
+			      " TLS protocol: %s\n", SS->TLS.protocol);
 		    fprintf(SS->verboselog,
 			    " TLS cipher bits: %d in use: %d\n",
-			    tls_cipher_algbits, tls_cipher_usebits);
+			    SS->TLS.cipher_algbits, SS->TLS.cipher_usebits);
 		    fprintf(SS->verboselog,
 			    " TLS peer cert name:        %s\n",
-			    tls_peer_cert_name);
+			    SS->TLS.peer_subject);
 		    fprintf(SS->verboselog,
 			    " TLS peer cert issuer name: %s\n",
-			    tls_peer_cert_issuer_name);
+			    SS->TLS.peer_issuer);
 		  } else
 		    fprintf(SS->verboselog, " Failed the TLS startup!\n");
 		}
@@ -3427,9 +3422,9 @@ smtpclose(SS, failure)
 	}
 
 #ifdef HAVE_OPENSSL
-	if (SS->sslmode)
+	if (SS->TLS.sslmode)
 	  tls_stop_clienttls(SS, failure);
-	SS->sslmode = 0;
+	SS->TLS.sslmode = 0;
 #endif /* - HAVE_OPENSSL */
 
 }
@@ -3812,7 +3807,7 @@ smtp_sync(SS, r, nonblocking)
 	    waitwr = 0;
 
 #ifdef HAVE_OPENSSL
-	    if (SS->sslmode && SS->wantreadwrite > 0) waitwr = 1;
+	    if (SS->TLS.sslmode && SS->TLS.wantreadwrite > 0) waitwr = 1;
 #endif /* - HAVE_OPENSSL */
 
 	    if (len < 0)

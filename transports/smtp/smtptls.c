@@ -14,45 +14,60 @@ extern int timeout_tcpw;
 
 #ifdef HAVE_OPENSSL
 
-static FILE *vlog = NULL;
+/* Global variables -- BOO! */
 
+static FILE *vlog = NULL;
+static int TLScontext_index = -1;
+static int TLSpeername_index = -1;
+static int tls_clientengine = 0;
+
+/* Other global static data */
 static const char MAIL_TLS_CLNT_CACHE[] = "TLSclntcache";
+/*
+ * When saving sessions, we want to make sure, that the lenght of the key
+ * is somehow limited. When saving client sessions, the hostname is used
+ * as key. According to HP-UX 10.20, MAXHOSTNAMELEN=64. Maybe new standards
+ * will increase this value, but as this will break compatiblity with existing
+ * implementations, we won't see this for long. We therefore choose a limit
+ * of 64 bytes.
+ * The length of the (TLS) session id can be up to 32 bytes according to
+ * RFC2246, so it fits well into the 64bytes limit.
+ */
 static const int id_maxlength = 32;	/* Max ID length in bytes */
 
-static int verify_depth;
-static int verify_error = X509_V_OK;
+/* Configuration variables */
+
 static int do_dump = 0;
-/* static SSL_CTX *ctx = NULL; */
-/* static SSL *con = NULL; */
 
 int	tls_scache_timeout = 3600;	/* One hour */
 int	tls_use_scache     = 0;
 
-#define CCERT_BUFSIZ 256
-char tls_peer_cert_name        [CCERT_BUFSIZ];
-char tls_peer_cert_issuer_name [CCERT_BUFSIZ];
-
-static unsigned char peername_md5[MD5_DIGEST_LENGTH];
-
 extern int demand_TLS_mode;
 extern int tls_available;
 
-int	tls_peer_verified  = 0;
-int	tls_use_read_ahead = 1;
+const char *tls_random_source;
+const char *tls_cipherlist;
 
-char   *tls_CAfile    = NULL;
-char   *tls_CApath    = NULL;
-char   *tls_cert_file = NULL;
-char   *tls_key_file  = NULL;
+const char *tls_CAfile;
+const char *tls_CApath;
+const char *tls_cert_file;
+const char *tls_key_file;
+const char *tls_dcert_file;
+const char *tls_dkey_file;
 
-const char *tls_protocol    = NULL;
-const char *tls_cipher_name = NULL;
-int	tls_cipher_usebits  = 0;
-int	tls_cipher_algbits  = 0;
-const char *tls_random_source = NULL;
+int	tls_use_read_ahead = 0;
+int	tls_protocol_tlsv1_only = 0;
+int     tls_enforce_peername = 0;
 
 int	tls_loglevel = 0;
-int     tls_rand_seeded = 0;
+
+
+/* Structure used for random generator seeding.. */
+struct _randseed {
+	int pid;
+	int ppid;
+	struct timeval tv;
+} tls_randseed;
 
 
 
@@ -121,7 +136,7 @@ void mail_queue_path(buf, subdir, filename)
 
 /* skeleton taken from OpenSSL crypto/err/err_prn.c */
 
-static void tls_print_errors(void)
+static void tls_print_errors(SmtpState *SS)
 {
     unsigned long l;
     char    buf[256];
@@ -133,12 +148,12 @@ static void tls_print_errors(void)
 
     es = CRYPTO_thread_id();
     while ((l = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
-	if (flags & ERR_TXT_STRING)
-	    msg_info(NULL, "%lu:%s:%s:%d:%s:", es, ERR_error_string(l, buf),
-		     file, line, data);
-	else
-	    msg_info(NULL, "%lu:%s:%s:%d:", es, ERR_error_string(l, buf),
-		     file, line);
+      if (flags & ERR_TXT_STRING)
+	msg_info(SS, "%lu:%s:%s:%d:%s:", es, ERR_error_string(l, buf),
+		 file, line, data);
+      else
+	msg_info(SS, "%lu:%s:%s:%d:", es, ERR_error_string(l, buf),
+		 file, line);
     }
 }
 
@@ -150,21 +165,25 @@ static void tls_print_errors(void)
   * This function is taken from OpenSSL apps/s_cb.c
   */
 
-static int set_cert_stuff(SSL_CTX * ctx, char *cert_file, char *key_file)
+static int set_cert_stuff(SmtpState *SS,
+			  const char *cert_file, const char *key_file)
 {
-    if (cert_file != NULL) {
+    SSL_CTX * ctx = SS->TLS.ctx;
+
+    if (cert_file && *cert_file) {
+
 	if (SSL_CTX_use_certificate_file(ctx, cert_file,
 					 SSL_FILETYPE_PEM) <= 0) {
 	    msg_info(NULL, "unable to get certificate from '%s'", cert_file);
-	    tls_print_errors();
+	    tls_print_errors(SS);
 	    return (0);
 	}
-	if (key_file == NULL)
+	if (!key_file || !*key_file )
 	    key_file = cert_file;
 	if (SSL_CTX_use_PrivateKey_file(ctx, key_file,
 					SSL_FILETYPE_PEM) <= 0) {
 	    msg_info(NULL, "unable to get private key from '%s'", key_file);
-	    tls_print_errors();
+	    tls_print_errors(SS);
 	    return (0);
 	}
 	/* Now we know that a key and cert have been set against
@@ -190,50 +209,150 @@ static RSA *tmp_rsa_cb(SSL * s, int export, int keylength)
     return (rsa_tmp);
 }
 
-/* taken from OpenSSL apps/s_cb.c */
+
+/*
+ * Skeleton taken from OpenSSL apps/s_cb.c
+ *
+ * The verify_callback is called several times (directly or indirectly) from
+ * crypto/x509/x509_vfy.c. It is called as a last check for several issues,
+ * so this verify_callback() has the famous "last word". If it does return "0",
+ * the handshake is immediately shut down and the connection fails.
+ *
+ * Postfix/TLS has two modes, the "use" mode and the "enforce" mode:
+ *
+ * In the "use" mode we never want the connection to fail just because there is
+ * something wrong with the certificate (as we would have sent happily without
+ * TLS).  Therefore the return value is always "1".
+ *
+ * In the "enforce" mode we can shut down the connection as soon as possible.
+ * In server mode TLS itself may be enforced (e.g. to protect passwords),
+ * but certificates are optional. In this case the handshake must not fail
+ * if we are unhappy with the certificate and return "1" in any case.
+ * Only if a certificate is required the certificate must pass the verification
+ * and failure to do so will result in immediate termination (return 0).
+ * In the client mode the decision is made with respect to the peername
+ * enforcement. If we strictly enforce the matching of the expected peername
+ * the verification must fail immediatly on verification errors. We can also
+ * immediatly check the expected peername, as it is the CommonName at level 0.
+ * In all other cases, the problem is logged, so the SSL_get_verify_result()
+ * will inform about the verification failure, but the handshake (and SMTP
+ * connection will continue).
+ *
+ * The only error condition not handled inside the OpenSSL-Library is the
+ * case of a too-long certificate chain, so we check inside verify_callback().
+ * We only take care of this problem, if "ok = 1", because otherwise the
+ * verification already failed because of another problem and we don't want
+ * to overwrite the other error message. And if the verification failed,
+ * there is no such thing as "more failed", "most failed"... :-)
+ */
+
 
 static int verify_callback(int ok, X509_STORE_CTX * ctx)
 {
-    char    buf[256];
+    char    buf[4000];
+    char   *peername_left;
     X509   *err_cert;
     int     err;
     int     depth;
+    int     verify_depth;
+    int     hostname_matched;
+    SSL    *con;
+    SmtpState *SS;
 
     err_cert = X509_STORE_CTX_get_current_cert(ctx);
-    err = X509_STORE_CTX_get_error(ctx);
-    depth = X509_STORE_CTX_get_error_depth(ctx);
+    err      = X509_STORE_CTX_get_error(ctx);
+    depth    = X509_STORE_CTX_get_error_depth(ctx);
 
-    X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
+    con = X509_STORE_CTX_get_ex_data(ctx,
+				     SSL_get_ex_data_X509_STORE_CTX_idx());
+
+    SS = SSL_get_ex_data(con, TLScontext_index);
+
+
+    X509_NAME_oneline(X509_get_subject_name(err_cert), buf, sizeof(buf));
+
     if (tls_loglevel >= 1)
-	msg_info(NULL, "Peer cert verify depth=%d %s", depth, buf);
+      msg_info(SS, "Peer cert verify depth=%d %s", depth, buf);
+
+    verify_depth = SSL_get_verify_depth(con);
+
+    if (ok && (verify_depth >= 0) && (depth > verify_depth)) {
+	ok = 0;
+	err = X509_V_ERR_CERT_CHAIN_TOO_LONG;
+	X509_STORE_CTX_set_error(ctx, err);
+    }
     if (!ok) {
-	msg_info(NULL, "verify error:num=%d:%s", err,
-		 X509_verify_cert_error_string(err));
-	if (verify_depth >= depth) {
-	    ok = 1;
-	    verify_error = X509_V_OK;
-	} else {
+      msg_info(SS, "verify error:num=%d:%s", err,
+	       X509_verify_cert_error_string(err));
+    }
+
+    if (ok && (depth == 0) && SS->TLS.sslmode) {
+	/*
+	 * Check out the name certified against the hostname expected.
+	 * In case it does not match, print an information about the result.
+	 * If a matching is enforced, bump out with a verification error
+	 * immediately.
+	 */
+	buf[0] = '\0';
+	if (!X509_NAME_get_text_by_NID(X509_get_subject_name(err_cert),
+				       NID_commonName, buf, sizeof(buf))) {
+	  msg_info(SS,"Could not parse server's subject CN");
+	  tls_print_errors(SS);
+	}
+
+	hostname_matched = 0;
+	if (cistrcmp(SS->TLS.peername_save, buf) == 0)
+	    hostname_matched = 1;
+	else if ((strlen(buf) > 2) &&
+		 (buf[0] == '*') && (buf[1] == '.')) {
+	    /*
+	     * Allow wildcard certificate matching. The proposed rules in
+	     * RFCs (2818: HTTP/TLS, 2830: LDAP/TLS) are different, RFC2874
+	     * does not specify a rule, so here the strict rule is applied.
+	     * An asterisk '*' is allowed as the leftmost component and may
+	     * replace the left most part of the hostname. Matching is done
+	     * by removing '*.' from the wildcard name and the `name.` from
+	     * the peername and compare what is left.
+	     */
+	    peername_left = strchr(SS->TLS.peername_save, '.');
+	    if (peername_left) {
+		if (cistrcmp(peername_left + 1, buf + 2) == 0)
+		    hostname_matched = 1;
+	    }
+	}
+
+	if (!hostname_matched) {
+	  msg_info(SS,"Peer verification: CommonName in certificate does not match: '%s' != '%s'", buf, SS->TLS.peername_save);
+	  if (SS->TLS.enforce_verify_errors && SS->TLS.enforce_CN) {
+	    err = X509_V_ERR_CERT_REJECTED;
+	    X509_STORE_CTX_set_error(ctx, err);
+	    msg_info(SS,"Verify failure: Hostname mismatch");
 	    ok = 0;
-	    verify_error = X509_V_ERR_CERT_CHAIN_TOO_LONG;
+	  }
 	}
     }
+
     switch (ctx->error) {
     case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
-	X509_NAME_oneline(X509_get_issuer_name(ctx->current_cert), buf, 256);
-	msg_info(NULL, "issuer= %s", buf);
+	X509_NAME_oneline(X509_get_issuer_name(ctx->current_cert),
+			  buf, sizeof(buf));
+	msg_info(SS, "issuer= %s", buf);
 	break;
     case X509_V_ERR_CERT_NOT_YET_VALID:
     case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-	msg_info(NULL, "cert not yet valid");
+	msg_info(SS, "cert not yet valid");
 	break;
     case X509_V_ERR_CERT_HAS_EXPIRED:
     case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-	msg_info(NULL, "cert has expired");
+	msg_info(SS, "cert has expired");
 	break;
     }
     if (tls_loglevel >= 1)
-	msg_info(NULL, "verify return:%d", ok);
-    return (ok);
+	msg_info(SS, "verify return:%d", ok);
+    if (SS->TLS.enforce_verify_errors)
+	return (ok); 
+    else
+	return (1);
 }
 
 /* taken from OpenSSL apps/s_cb.c */
@@ -242,6 +361,7 @@ static void apps_ssl_info_callback(SSL * s, int where, int ret)
 {
     char   *str;
     int     w;
+    void *SS = NULL; /* FIXME! use context-saved ptr.. */
 
     w = where & ~SSL_ST_MASK;
 
@@ -254,20 +374,20 @@ static void apps_ssl_info_callback(SSL * s, int where, int ret)
 
     if (where & SSL_CB_LOOP) {
 	if (tls_loglevel >= 2)
-	    msg_info(NULL, "%s:%s", str, SSL_state_string_long(s));
+	    msg_info(SS, "%s:%s", str, SSL_state_string_long(s));
     } else if (where & SSL_CB_ALERT) {
 	str = (where & SSL_CB_READ) ? "read" : "write";
 	if (tls_loglevel >= 2 ||
 	    ((ret & 0xff) != SSL3_AD_CLOSE_NOTIFY))
-	msg_info(NULL, "SSL3 alert %s:%s:%s", str,
+	msg_info(SS, "SSL3 alert %s:%s:%s", str,
 		 SSL_alert_type_string_long(ret),
 		 SSL_alert_desc_string_long(ret));
     } else if (where & SSL_CB_EXIT) {
 	if (ret == 0)
-	    msg_info(NULL, "%s:failed in %s",
+	    msg_info(SS, "%s:failed in %s",
 		     str, SSL_state_string_long(s));
 	else if (ret < 0) {
-	    msg_info(NULL, "%s:error in %s",
+	    msg_info(SS, "%s:error in %s",
 		     str, SSL_state_string_long(s));
 	}
     }
@@ -291,6 +411,7 @@ int tls_dump(const char *s, int len)
     int     rows;
     int     trunc;
     unsigned char ch;
+    SmtpState *SS = NULL; /* FIXME ?? */
 
     trunc = 0;
 
@@ -333,13 +454,13 @@ int tls_dump(const char *s, int len)
 	 * if this is the last call then update the ddt_dump thing so that
          * we will move the selection point in the debug window
          */
-	msg_info(NULL, "%s", buf);
+	msg_info(SS, "%s", buf);
 	ret += strlen(buf);
     }
 #ifdef TRUNCATE
     if (trunc > 0) {
 	sprintf(buf, "%04x - <SPACES/NULS>", len + trunc);
-	msg_info(NULL, "%s", buf);
+	msg_info(SS, "%s", buf);
 	ret += strlen(buf);
     }
 #endif
@@ -353,16 +474,17 @@ int tls_dump(const char *s, int len)
 static long bio_dump_cb(BIO * bio, int cmd, const char *argp, int argi,
 			long argl, long ret)
 {
+    void * SS = NULL; /* FIXME: use stored state local thingie ??? */
     if (!do_dump)
 	return (ret);
 
     if (cmd == (BIO_CB_READ | BIO_CB_RETURN)) {
-	msg_info(NULL, "read from %08X [%08lX] (%d bytes => %ld (0x%X))",
+	msg_info(SS, "read from %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
 	tls_dump(argp, (int) ret);
 	return (ret);
     } else if (cmd == (BIO_CB_WRITE | BIO_CB_RETURN)) {
-	msg_info(NULL, "write to %08X [%08lX] (%d bytes => %ld (0x%X))",
+	msg_info(SS, "write to %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
 	tls_dump(argp, (int) ret);
     }
@@ -370,67 +492,270 @@ static long bio_dump_cb(BIO * bio, int cmd, const char *argp, int argi,
 }
 
 
-static SSL_SESSION *load_clnt_session(unsigned char *SessionID, int length,
-				      int *verify_result)
+/*
+ * We need space to save the peername into the SSL_SESSION, as we must
+ * look up the external database for client sessions by peername, not
+ * by session id. We therefore allocate place for the peername string,
+ * when a new SSL_SESSION is generated. It is filled later.
+ */
+static int new_peername_func(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
+			     int idx, long argl, void *argp)
 {
-    SSL_SESSION *session;
-    char *buf;
-    FILE *fp;
-    struct stat st;
-    char *idstring;
+    char *peername;
+
+    peername = (char *)malloc(id_maxlength + 1);
+    if (!peername)
+	return 0;
+    peername[0] = '\0'; 	/* initialize */
+    return CRYPTO_set_ex_data(ad, idx, peername);
+}
+
+/*
+ * When the SSL_SESSION is removed again, we must free the memory to avoid
+ * leaks.
+ */
+static void free_peername_func(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
+			       int idx, long argl, void *argp)
+{
+    free(CRYPTO_get_ex_data(ad, idx));
+}
+
+/*
+ * Duplicate application data, when a SSL_SESSION is duplicated
+ */
+static int dup_peername_func(CRYPTO_EX_DATA *to, CRYPTO_EX_DATA *from,
+			     void *from_d, int idx, long argl, void *argp)
+{
+    char *peername_old, *peername_new;
+
+    peername_old = CRYPTO_get_ex_data(from, idx);
+    peername_new = CRYPTO_get_ex_data(to, idx);
+    if (!peername_old || !peername_new)
+	return 0;
+    memcpy(peername_new, peername_old, id_maxlength + 1);
+    return 1;
+}
+
+
+#if 0 /* some day */
+static SSL_SESSION *load_clnt_session(const char *hostname,
+				      int enforce_peername)
+{
+    SSL_SESSION *session = NULL;
     int n;
     int uselength;
+    int length;
+    int hex_length;
+    const char *session_hex;
+    pfixtls_scache_info_t scache_info;
+    unsigned char nibble, *data, *sess_data;
+    char *idstring[ID_MAXLENGTH + 1]; /* ALLOCA!! */
 
+    length = strlen(hostname); 
     if (length > id_maxlength)
 	uselength = id_maxlength;	/* Limit length of ID */
     else
 	uselength = length;
 
-    idstring = (char *)malloc(2 * uselength + 1);
-    if (!idstring) {
-	msg_info(NULL, "could not allocate memory for IDstring");
-	return (NULL);
-    }
-
     for(n=0 ; n < uselength ; n++)
-	sprintf(idstring+2*n, "%02X", SessionID[n]);
-    if (tls_loglevel >= 3)
-	msg_info(NULL, "Trying to reload Session from disc: %s", idstring);
+	idstring[n] = tolower(hostname[n]);
+    idstring[uselength] = '\0';
+    if (var_smtp_tls_loglevel >= 3)
+	msg_info("Trying to reload Session from disc: %s", idstring);
 
-    /* FIXME: xxx */
-    buf = (char *)malloc(100 + 2 * uselength + 1);
-    mail_queue_path(buf, MAIL_TLS_CLNT_CACHE, idstring);
-
-    /*
-     * Try to read the session from the file. If the file exists, but its
-     * mtime is so old, that the session has already expired, we don´t
-     * waste time anymore, we rather delete the session file immediately.
-     *
-     * There is a race condition included. If another process is putting
-     * a new session file for the same HostID in the time during the
-     * "stat()" and the REMOVE, we will delete this new session from the
-     * disc cache. Well, then we have to negotiate a new one.
-     */
-    session = NULL;
-    if (stat(buf, &st) == 0) {
-	if (st.st_mtime + tls_scache_timeout < time(NULL))
-            unlink(buf);
-	else if ((fp = fopen(buf, "r")) != 0) {
-	    if (fscanf(fp, "%d", verify_result) <= 0)
-		*verify_result = X509_V_ERR_APPLICATION_VERIFICATION;
-	    session = PEM_read_SSL_SESSION(fp, NULL, NULL, NULL);
-	    fclose(fp);
+    session_hex = dict_get(scache_db, idstring);
+    if (session_hex) {
+	hex_length = strlen(session_hex);
+	data = (unsigned char *)mymalloc(hex_length / 2);
+	if (!data) {
+	    msg_info("could not allocate memory for session reload");
+	    return(NULL);
 	}
+
+	memset(data, 0, hex_length / 2);
+	for (n = 0; n < hex_length; n++) {
+	    if ((session_hex[n] >= '0') && (session_hex[n] <= '9'))
+		nibble = session_hex[n] - '0';
+	    else
+		nibble = session_hex[n] - 'A' + 10;
+	    if (n % 2)
+		data[n / 2] |= nibble;
+	    else
+		data[n / 2] |= (nibble << 4);
+	}
+
+	/*
+	 * First check the version numbers, since wrong session data might
+	 * hit us hard (SEGFAULT). We also have to check for expiry.
+	 * When we enforce_peername, we may find an old session, that was
+	 * saved when enforcement was not set. In this case the session will
+	 * be removed and a fresh session will be negotiated.
+	 */
+	memcpy(&scache_info, data, sizeof(pfixtls_scache_info_t));
+	if ((scache_info.scache_db_version != scache_db_version) ||
+	    (scache_info.openssl_version != openssl_version) ||
+	    (scache_info.timestamp + var_smtpd_tls_scache_timeout < time(NULL)))
+	    dict_del(scache_db, idstring);
+	else if (enforce_peername && (!scache_info.enforce_peername))
+	    dict_del(scache_db, idstring);
+	else {
+	    sess_data = data + sizeof(pfixtls_scache_info_t);
+	    session = d2i_SSL_SESSION(NULL, &sess_data,
+				      hex_length / 2 - sizeof(time_t));
+	    strncpy(SSL_SESSION_get_ex_data(session, TLSpeername_index),
+		    idstring, id_maxlength + 1);
+	    if (!session)
+		pfixtls_print_errors();
+	}
+	free((char *)data);
     }
 
-    free(buf);
-    free(idstring);
-
-    if (session && (tls_loglevel >= 3))
-        msg_info(NULL, "Successfully reloaded session from disc");
+    if (session && (var_smtp_tls_loglevel >= 3))
+        msg_info("Successfully reloaded session from disc");
 
     return (session);
 }
+
+
+static void create_client_lookup_id(char *idstring, char *hostname)
+{
+    int n, len, uselength;
+
+    len = strlen(hostname);
+    if (len > id_maxlength)
+	uselength = id_maxlength;	/* Limit length of ID */
+    else
+	uselength = len;
+
+    for (n = 0 ; n < uselength ; n++)
+	idstring[n] = tolower(hostname[n]);
+    idstring[uselength] = '\0';
+}
+
+/*
+ * Save a new session to the external cache
+ */
+static int new_session_cb(SSL *ssl, SSL_SESSION *session)
+{
+  char idstring[2 * ID_MAXLENGTH + 1]; /* ALLOCA! */
+    int n;
+    int dsize;
+    int len;
+    unsigned char *data, *sess_data;
+    pfixtls_scache_info_t scache_info;
+    char *hexdata, *hostname;
+    SmtpState *SS;
+
+    if (tls_clientengine) {
+        TLScontext = SSL_get_ex_data(ssl, TLScontext_index);
+	hostname = SS->TLS.peername_save;
+	create_client_lookup_id(idstring, hostname);
+	strncpy(SSL_SESSION_get_ex_data(session, TLSpeername_index),
+		hostname, id_maxlength + 1);
+	/*
+	 * Remember, whether peername matching was enforced when the session
+	 * was created. If later enforce mode is enabled, we do not want to
+	 * reuse a session that was not sufficiently checked.
+	 */
+	scache_info.enforce_peername =
+		(SS->TLS.enforce_verify_errors && SS->TLS.enforce_CN);
+
+	if (var_smtp_tls_loglevel >= 3)
+	    msg_info(SS,"Trying to save session for hostID to disc: %s", idstring);
+
+#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
+	    /*
+	     * Ugly Hack: OpenSSL before 0.9.6a does not store the verify
+	     * result in sessions for the client side.
+	     * We modify the session directly which is version specific,
+	     * but this bug is version specific, too.
+	     *
+	     * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before
+	     * beta1 have this bug, it has been fixed during development
+	     * of 0.9.6a. The development version of 0.9.7 can have this
+	     * bug, too. It has been fixed on 2000/11/29.
+	     */
+	    session->verify_result = SSL_get_verify_result(SS->TLS.con);
+#endif
+
+    }
+    else {
+	create_server_lookup_id(idstring, session);
+	if (var_smtpd_tls_loglevel >= 3)
+	    msg_info(SS,"Trying to save Session to disc: %s", idstring);
+    }
+
+
+    /*
+     * Get the session and convert it into some "database" useable form.
+     * First, get the length of the session to allocate the memory.
+     */
+    dsize = i2d_SSL_SESSION(session, NULL);
+    if (dsize < 0) {
+	msg_info(SS,"Could not access session");
+	return 0;
+    }
+    data = (unsigned char *)mymalloc(dsize + sizeof(pfixtls_scache_info_t));
+    if (!data) {
+	msg_info(SS,"could not allocate memory for SSL session");
+	return 0;
+    }
+
+    /*
+     * OpenSSL is not robust against wrong session data (might SEGFAULT),
+     * so we secure it against version ids (session cache structure as well
+     * as OpenSSL version).
+     */
+    scache_info.scache_db_version = scache_db_version;
+    scache_info.openssl_version = openssl_version;
+
+    /*
+     * Put a timestamp, so that expiration can be checked without
+     * analyzing the session data itself. (We would need OpenSSL funtions,
+     * since the SSL_SESSION is a private structure.)
+     */
+    scache_info.timestamp = time(NULL);
+
+    memcpy(data, &scache_info, sizeof(pfixtls_scache_info_t));
+    sess_data = data + sizeof(pfixtls_scache_info_t);
+
+    /*
+     * Now, obtain the session. Unfortunately, it is binary and dict_update
+     * cannot handle binary data (it could contain '\0' in it) directly.
+     * To save memory we could use base64 encoding. To make handling easier,
+     * we simply use hex format.
+     */
+    len = i2d_SSL_SESSION(session, &sess_data);
+    len += sizeof(pfixtls_scache_info_t);
+
+    hexdata = (char *)mymalloc(2 * len + 1);
+
+    if (!hexdata) {
+	msg_info(SS,"could not allocate memory for SSL session (HEX)");
+	free((char *)data);
+	return 0;
+    }
+    for (n = 0; n < len; n++) {
+	hexdata[n * 2] = hexcodes[(data[n] & 0xf0) >> 4];
+	hexdata[(n * 2) + 1] = hexcodes[(data[n] & 0x0f)];
+    }
+    hexdata[len * 2] = '\0';
+
+    /*
+     * The session id is a hex string, all uppercase. We are using SDBM as
+     * compiled into Postfix with 8kB maximum entry size, so we set a limit
+     * when caching. If the session is not cached, we have to renegotiate,
+     * not more, not less. For a real session, this limit should never be
+     * met
+     */
+    if (strlen(idstring) + strlen(hexdata) < 8000)
+      dict_put(scache_db, idstring, hexdata);
+
+    free(hexdata);
+    free((char *)data);
+    return (1);
+}
+#endif
 
 
 static void remove_clnt_session(unsigned char *SessionID, int length)
@@ -439,6 +764,7 @@ static void remove_clnt_session(unsigned char *SessionID, int length)
     char *idstring;
     int n;
     int uselength;
+    SmtpState *SS = NULL; /* FIXME: proper pointer ?? */
 
     if (length > id_maxlength)
 	uselength = id_maxlength;	/* Limit length of ID */
@@ -447,14 +773,14 @@ static void remove_clnt_session(unsigned char *SessionID, int length)
 
     idstring = (char *)malloc(2 * uselength + 1);
     if (!idstring) {
-	msg_info(NULL, "could not allocate memory for IDstring");
+	msg_info(SS, "could not allocate memory for IDstring");
 	return;
     }
 
     for(n=0 ; n < uselength ; n++)
 	sprintf(idstring + 2 * n, "%02X", SessionID[n]);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "Trying to remove session from disc: %s", idstring);
+	msg_info(SS, "Trying to remove session from disc: %s", idstring);
 
     /*
      * The constant "100" is taken from mail_queue.c and also used there.
@@ -501,6 +827,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
     int n;
     int fd;
     int success;
+    SmtpState *SS = NULL; /* FIXME: proper pointer ?? */
 
     if (length > id_maxlength)
 	uselength = id_maxlength;	/* Limit length of ID */
@@ -509,7 +836,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
 
     idstring = (char *)malloc(2 * id_maxlength + 1);
     if (!idstring) {
-	msg_info(NULL, "could not allocate memory for IDstring");
+	msg_info(SS, "could not allocate memory for IDstring");
     }
 
     for(n=0 ; n < uselength ; n++)
@@ -518,7 +845,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
     buf = malloc(100 + 2 * id_maxlength + 1);
     mail_queue_path(buf, MAIL_TLS_CLNT_CACHE, idstring);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "Trying to save session for hostID to disc: %s", idstring);
+	msg_info(SS, "Trying to save session for hostID to disc: %s", idstring);
 
     if (session->session_id_length > id_maxlength)
 	uselength = id_maxlength;	/* Limit length of ID */
@@ -528,7 +855,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
     for(n=0 ; n < uselength ; n++)
         sprintf(idstring + 2 * n, "%02X", session->session_id[n]);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "Session ID is %s", idstring);
+	msg_info(SS, "Session ID is %s", idstring);
 
     temp = malloc(100 + 2 * id_maxlength + 1);
     mail_queue_path(temp, MAIL_TLS_CLNT_CACHE, idstring);
@@ -545,7 +872,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
      */
     if ((fd = open(temp, O_WRONLY | O_CREAT | O_EXCL, 0600)) >= 0) {
       if ((fp = fdopen(fd, "w")) == 0) {
-	msg_info(NULL, "%s: could not fdopen %s: %s", myname, temp,
+	msg_info(SS, "%s: could not fdopen %s: %s", myname, temp,
 		 strerror(errno));
 	return;
       }
@@ -557,7 +884,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
       else if (rename(temp, buf) != 0)
 	unlink(temp);
       else if (tls_loglevel >= 3)
-	msg_info(NULL, "Successfully saved session to disc");
+	msg_info(SS, "Successfully saved session to disc");
     }
 
     free(temp);
@@ -666,230 +993,369 @@ int     tls_init_clientengine(SS, cfgpath)
      SmtpState *SS;
      char *cfgpath;
 {
-  int     off = 0, linenum = 0;
-  int     verify_flags = SSL_VERIFY_NONE;
-  char   *CApath;
-  char   *CAfile;
-  char   *c_cert_file;
-  char   *c_key_file;
-  int	  verifydepth = 0;
-  FILE   *fp;
-  char	  buf[1024], *n, *a1;
-  unsigned char *s;
+	int     off = 0;
+	int     verify_flags = SSL_VERIFY_NONE;
+	char	  buf[1024], *n, *a1;
 
-  vlog = SS->verboselog;
+	int	linenum = 0;
+	FILE   *fp;
+	unsigned char *s;
 
-  if (SS->sslmode)
-    return (0);				/* already running */
+	const char   *CApath;
+	const char   *CAfile;
+	const char   *c_cert_file;
+	const char   *c_key_file;
+	const char   *c_dcert_file;
+	const char   *c_dkey_file;
 
-  fp = fopen(cfgpath,"r");
-  if (!fp) {
-    msg_info(SS, "Can't read TLS config file: '%s'",cfgpath);
-    return -1;
-  }
-  while (!feof(fp) && !ferror(fp)) {
-    if (!fgets(buf, sizeof(buf), fp))
-      break;
-    ++linenum;
-    s = (void*) strchr(buf, '\n');
-    if (s) *s = 0;
-    s = (void*) buf;
 
+	vlog = SS->verboselog;
+
+	if (tls_clientengine) return 0;		/* already running */
+
+	if (SS->TLS.sslmode)
+	  return (0);				/* already running */
+
+	fp = fopen(cfgpath,"r");
+	if (!fp) {
+	  msg_info(SS, "Can't read TLS config file: '%s'",cfgpath);
+	  return -1;
+	}
+	while (!feof(fp) && !ferror(fp)) {
+	  if (!fgets(buf, sizeof(buf), fp))
+	    break;
+	  ++linenum;
+	  s = (void*) strchr(buf, '\n');
+	  if (s) *s = 0;
+	  s = (void*) buf;
+	  
 #define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t' || *Y == '\n') ++Y
 #define SKIPTEXT(Y ) while (*Y && !(*Y == ' ' || *Y == '\t' || *Y == '\n')) ++Y
+	  
+	  SKIPSPACE(s);
+	  if (!*s || *s == '#' || *s == ';')
+	    continue; /* First non-whitespace char is comment start (or EOL) */
+	  
+	  SKIPSPACE(s);
+	  n = (char *)s;
+	  SKIPTEXT(s);
+	  if (*s) *s++ = 0;
+	  
+	  SKIPSPACE(s);
+	  a1 = (char *)s;
+	  SKIPTEXT(s);
+	  if (*s) *s++ = 0;
+	  
 
-    SKIPSPACE(s);
-    if (!*s || *s == '#' || *s == ';')
-      continue; /* First non-whitespace char is comment start (or EOL) */
-
-    SKIPSPACE(s);
-    n = (char *)s;
-    SKIPTEXT(s);
-    if (*s) *s++ = 0;
-
-    SKIPSPACE(s);
-    a1 = (char *)s;
-    SKIPTEXT(s);
-    if (*s) *s++ = 0;
-
-
-    if        (strcasecmp(n, "tls-cert-file") == 0 && a1) {
-      tls_cert_file = strdup(a1);
-    } else if (strcasecmp(n, "tls-key-file") == 0  && a1) {
-      tls_key_file = strdup(a1);
-    } else if (strcasecmp(n, "tls-CAfile") == 0     && a1) {
-      tls_CAfile = strdup(a1);
-    } else if (strcasecmp(n, "tls-CApath") == 0     && a1) {
-      tls_CApath = strdup(a1);
-    } else if (strcasecmp(n, "tls-loglevel") == 0   && a1) {
-      tls_loglevel = atol(a1);
-      if (tls_loglevel < 0) tls_loglevel = 0;
-      if (tls_loglevel > 4) tls_loglevel = 4;
-    } else if (strcasecmp(n, "tls-use-scache") == 0) {
-      tls_use_scache = 1;
-    } else if (strcasecmp(n, "tls-random-source") == 0 && a1) {
-      tls_random_source = strdup(a1);
-    } else if (strcasecmp(n, "tls-scache-timeout") == 0 && a1) {
-      tls_scache_timeout = atol(a1);
-      if (tls_loglevel < 0) tls_loglevel = 0;
-      if (tls_loglevel > 4) tls_loglevel = 4;
-    } else if (strcasecmp(n, "demand-tls-mode") == 0) {
-      demand_TLS_mode = 1;
-    } else if (strcasecmp(n, "no-tls-readahead") == 0) {
-      tls_use_read_ahead = 0;
-    } else {
-      sfprintf(sfstderr,"# TLS config file, line %d verb: '%s' unknown or missing parameters!\n",
-	       linenum, n);
-    }
-  }
-  fclose(fp);
-
-  /* Lets try to do RAND-pool initing.. */
-  /* We don't loop, we bail-out from loop-contruction
-     enclosed alternate codes */
-  while ( !tls_rand_seeded ) {
-
-    /* Parametrized version ? */
-    if (tls_random_source && tls_randseeder(tls_random_source) >= 0) break;
-
-    /* How about  /dev/urandom  ?  */
-    if (tls_randseeder("dev:/dev/urandom") >= 0) break;
-
-    /* How about  EGD at /var/run/egd-seed  ?  */
-    if (tls_randseeder("egd:/var/run/egd-pool") >= 0) break;
-
-    break;
-  }
-
-  tls_rand_seeded = 1;
+	  if        (strcasecmp(n, "tls-cert-file") == 0 && a1) {
+	    tls_cert_file = strdup(a1);
+	  } else if (strcasecmp(n, "tls-key-file") == 0  && a1) {
+	    tls_key_file = strdup(a1);
+	  } else if (strcasecmp(n, "tls-dcert-file") == 0 && a1) {
+	    tls_dcert_file = strdup(a1);
+	  } else if (strcasecmp(n, "tls-dkey-file") == 0  && a1) {
+	    tls_dkey_file = strdup(a1);
+	  } else if (strcasecmp(n, "tls-CAfile") == 0     && a1) {
+	    tls_CAfile = strdup(a1);
+	  } else if (strcasecmp(n, "tls-CApath") == 0     && a1) {
+	    tls_CApath = strdup(a1);
+	  } else if (strcasecmp(n, "tls-loglevel") == 0   && a1) {
+	    tls_loglevel = atol(a1);
+	    if (tls_loglevel < 0) tls_loglevel = 0;
+	    if (tls_loglevel > 4) tls_loglevel = 4;
+	  } else if (strcasecmp(n, "tls-strict-rfc2487") == 0) {
+	    tls_protocol_tlsv1_only = 1;
+	  } else if (strcasecmp(n, "tls-use-scache") == 0) {
+	    tls_use_scache = 1;
+	  } else if (strcasecmp(n, "tls-random-source") == 0 && a1) {
+	    tls_random_source = strdup(a1);
+	  } else if (strcasecmp(n, "tls-cipher-list") == 0 && a1) {
+	    tls_cipherlist = strdup(a1);
+	  } else if (strcasecmp(n, "tls-scache-timeout") == 0 && a1) {
+	    tls_scache_timeout = atol(a1);
+	    if (tls_loglevel < 0) tls_loglevel = 0;
+	    if (tls_loglevel > 4) tls_loglevel = 4;
+	  } else if (strcasecmp(n, "demand-tls-mode") == 0) {
+	    demand_TLS_mode = 1;
+	  } else if (strcasecmp(n, "no-tls-readahead") == 0) {
+	    tls_use_read_ahead = 0;
+	  } else {
+	    sfprintf(sfstderr,"# TLS config file, line %d verb: '%s' unknown or missing parameters!\n",
+		     linenum, n);
+	  }
+	}
+	fclose(fp);
 
 
-  if (tls_loglevel >= 2)
-    msg_info(SS, "starting TLS engine");
+	/*
+	 * Initialize the OpenSSL library by the book!
+	 * To start with, we must initialize the algorithms.
+	 * We want cleartext error messages instead of just error codes, so we
+	 * load the error_strings.
+	 */ 
+	SSL_load_error_strings();
+	SSLeay_add_ssl_algorithms();
 
-  /*
-   * Initialize the OpenSSL library by the book!
-   * To start with, we must initialize the algorithms.
-   * We want cleartext error messages instead of just error codes, so we
-   * load the error_strings.
-   */ 
-  SSL_load_error_strings();
-  SSLeay_add_ssl_algorithms();
-
-  /*
-   * The SSL/TLS speficications require the client to send a message in
-   * the oldest specification it understands with the highest level it
-   * understands in the message.
-   * RFC2487 is only specified for TLSv1, but we want to be as compatible
-   * as possible, so we will start off with a SSLv2 greeting allowing
-   * the best we can offer: TLSv1.
-   * We can restrict this with the options setting later, anyhow.
-   */
-  SS->ctx = SSL_CTX_new(SSLv23_client_method());
-  if (SS->ctx == NULL) {
-    tls_print_errors();
-    return (-1);
-  }
-
-  /*
-   * Here we might set SSL_OP_NO_SSLv2, SSL_OP_NO_SSLv3, SSL_OP_NO_TLSv1.
-   * Of course, the last one would not make sense, since RFC2487 is only
-   * defined for TLS, but we don´t know what is out there. So leave things
-   * completely open, as of today.
-   */
-  off |= SSL_OP_ALL;		/* Work around all known bugs */
-  SSL_CTX_set_options(SS->ctx, off);
-
-  /*
-   * Set the info_callback, that will print out messages during
-   * communication on demand.
-   */
-  SSL_CTX_set_info_callback(SS->ctx, apps_ssl_info_callback);
-
-  /*
-   * Initialize the session cache. We only want external caching to
-   * synchronize between server sessions, so we set it to a minimum value
-   * of 1. If the external cache is disabled, we won´t cache at all.
-   *
-   * In case of the client, there is no callback used in OpenSSL, so
-   * we must call the session cache functions manually during the process.
-   */
-  SSL_CTX_sess_set_cache_size(SS->ctx, 1);
-  SSL_CTX_set_timeout(SS->ctx, tls_scache_timeout);
-   
-  /*
-   * Now we must add the necessary certificate stuff: A client key, a
-   * client certificate, and the CA certificates for both the client
-   * cert and the verification of server certificates.
-   * In fact, we do not need a client certificate,  so the certificates
-   * are only loaded (and checked), if supplied. A clever client would
-   * handle multiple client certificates and decide based on the list
-   * of acceptable CAs, sent by the server, which certificate to submit.
-   * OpenSSL does however not do this and also has no callback hoods to
-   * easily realize it.
-   *
-   * As provided by OpenSSL we support two types of CA certificate handling:
-   * One possibility is to add all CA certificates to one large CAfile,
-   * the other possibility is a directory pointed to by CApath, containing
-   * seperate files for each CA pointed on by softlinks named by the hash
-   * values of the certificate.
-   * The first alternative has the advantage, that the file is opened and
-   * read at startup time, so that you don´t have the hassle to maintain
-   * another copy of the CApath directory for chroot-jail. On the other
-   * hand, the file is not really readable.
-   */ 
-  if (!tls_CAfile || strlen(tls_CAfile) == 0)
-    CAfile = NULL;
-  else
-    CAfile = tls_CAfile;
-  if (!tls_CApath || strlen(tls_CApath) == 0)
-    CApath = NULL;
-  else
-    CApath = tls_CApath;
-#if 1
-  if (CAfile || CApath)
-    if ((!SSL_CTX_load_verify_locations(SS->ctx, CAfile, CApath)) ||
-	(!SSL_CTX_set_default_verify_paths(SS->ctx))) {
-      msg_info(SS, "TLS engine: cannot load CA data");
-      tls_print_errors();
-      return (-1);
-    }
+#if (OPENSSL_VERSION_NUMBER < 0x00905100L)
+	/*
+	 * Side effect, call a non-existing function to disable TLS usage with
+	 * an outdated OpenSSL version. There is a security reason
+	 * (verify_result is not stored with the session data).
+	 */
+	needs_openssl_095_or_later();
 #endif
 
-  if (!tls_cert_file || strlen(tls_cert_file) == 0)
-    c_cert_file = NULL;
-  else
-    c_cert_file = tls_cert_file;
-  if (!tls_key_file || strlen(tls_key_file) == 0)
-    c_key_file = NULL;
-  else
-    c_key_file = tls_key_file;
+	/* Lets try to do RAND-pool initing.. */
+	/* We don't loop, we bail-out from loop-contruction
+	   enclosed alternate codes */
 
-  if (c_cert_file || c_key_file)
-    if (!set_cert_stuff(SS->ctx, c_cert_file, c_key_file)) {
+
+	/*
+	 * Initialize the PRNG Pseudo Random Number Generator with some seed.
+	 */
+	tls_randseed.pid  = getpid();
+	tls_randseed.ppid = getppid();
+	gettimeofday(&tls_randseed.tv, NULL);
+	RAND_seed(&tls_randseed, sizeof(tls_randseed));
+
+
+	/*
+	 * Access the external sources for random seed. We will only query them
+	 * once, this should be sufficient and we will stir our entropy by
+	 * using the prng-exchange file anyway.
+	 * For reliability, we don't consider failure to access the additional
+	 * source fatal, as we can run happily without it (considering that we
+	 * still have the exchange-file). We also don't care how much entropy
+	 * we get back, as we must run anyway. We simply stir in the buffer
+	 * regardless how many bytes are actually in it.
+	 */
+	while ( 1 ) {
+
+	  /* Parametrized version ? */
+	  if (tls_random_source && tls_randseeder(tls_random_source) >= 0)
+	    break;
+	  
+	  /* How about  /dev/urandom  ?  */
+	  if (tls_randseeder("dev:/dev/urandom") >= 0) break;
+
+	  /* How about  EGD at /var/run/egd-seed  ?  */
+	  if (tls_randseeder("egd:/var/run/egd-pool") >= 0) break;
+
+	  break;
+	}
+
+	/*
+	 * Some more seeding...
+	 */
+	tls_randseed.pid = getpid();
+	tls_randseed.ppid = getppid();
+	gettimeofday(&tls_randseed.tv, NULL);
+	RAND_seed(&tls_randseed, sizeof(tls_randseed));
+
+
+	if (tls_loglevel >= 2)
+	  msg_info(SS, "starting TLS engine");
+
+	/*
+	 * The SSL/TLS speficications require the client to send a message in
+	 * the oldest specification it understands with the highest level it
+	 * understands in the message.
+	 * RFC2487 is only specified for TLSv1, but we want to be as compatible
+	 * as possible, so we will start off with a SSLv2 greeting allowing
+	 * the best we can offer: TLSv1.
+	 * We can restrict this with the options setting later, anyhow.
+	 */
+
+	SS->TLS.ctx = SSL_CTX_new(SSLv23_client_method());
+	if (! SS->TLS.ctx) {
+	  tls_print_errors(SS);
+	  return (-1);
+	}
+
+	/*
+	 * Here we might set SSL_OP_NO_SSLv2, SSL_OP_NO_SSLv3, SSL_OP_NO_TLSv1.
+	 * Of course, the last one would not make sense, since RFC2487 is only
+	 * defined for TLS, but we don´t know what is out there. So leave 
+	 * things completely open, as of today.
+	 */
+	off = SSL_OP_ALL;		/* Work around all known bugs */
+	if (tls_protocol_tlsv1_only)
+	  off |= (SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
+	SSL_CTX_set_options(SS->TLS.ctx, off);
+
+	/*
+	 * Set the info_callback, that will print out messages during
+	 * communication on demand.
+	 */
+	SSL_CTX_set_info_callback(SS->TLS.ctx, apps_ssl_info_callback);
+
+	/*
+	 * Set the list of ciphers, if explicitely given; otherwise the
+	 * (reasonable) default list is kept.
+	 */
+	if (strlen(tls_cipherlist) != 0) {
+	  if (SSL_CTX_set_cipher_list(SS->TLS.ctx, tls_cipherlist) == 0) {
+	    tls_print_errors(SS);
+	    return (-1);
+	  }
+	}
+
+  
+	/*
+	 * Now we must add the necessary certificate stuff: A client key,
+	 * a client certificate, and the CA certificates for both the client
+	 * cert and the verification of server certificates.
+	 * In fact, we do not need a client certificate,  so the certificates
+	 * are only loaded (and checked), if supplied. A clever client would
+	 * handle multiple client certificates and decide based on the list
+	 * of acceptable CAs, sent by the server, which certificate to submit.
+	 * OpenSSL does however not do this and also has no callback hoods to
+	 * easily realize it.
+	 *
+	 * As provided by OpenSSL we support two types of CA certificate
+	 * handling:  One possibility is to add all CA certificates to
+	 * one large CAfile,  the other possibility is a directory pointed
+	 * to by CApath, containing seperate files for each CA pointed on
+	 * by softlinks named by the hash values of the certificate.
+	 * The first alternative has the advantage, that the file is opened and
+	 * read at startup time, so that you don´t have the hassle to maintain
+	 * another copy of the CApath directory for chroot-jail. On the other
+	 * hand, the file is not really readable.
+	 */ 
+
+	if (!tls_CAfile || strlen(tls_CAfile) == 0)
+	  CAfile = NULL;
+	else
+	  CAfile = tls_CAfile;
+	if (!tls_CApath || strlen(tls_CApath) == 0)
+	  CApath = NULL;
+	else
+	  CApath = tls_CApath;
+
+	if (CAfile || CApath)
+	  if ((!SSL_CTX_load_verify_locations(SS->TLS.ctx, CAfile, CApath)) ||
+	      (!SSL_CTX_set_default_verify_paths(SS->TLS.ctx))) {
+	    msg_info(SS, "TLS engine: cannot load CA data");
+	    tls_print_errors(SS);
+	    return (-1);
+	  }
+	
+	if (!tls_cert_file || *tls_cert_file == 0)
+	  c_cert_file = NULL;
+	else
+	  c_cert_file = tls_cert_file;
+	if (!tls_key_file || *tls_key_file == 0)
+	  c_key_file = NULL;
+	else
+	  c_key_file = tls_key_file;
+
+	if (c_cert_file || c_key_file) {
+	  if (!set_cert_stuff(SS, c_cert_file, c_key_file)) {
+	    msg_info(SS, "TLS engine: cannot load cert/key data");
+	    tls_print_errors(SS);
+	    return (-1);
+	  }
+	}
+
+	if (!tls_dcert_file || *tls_dcert_file == 0)
+	  c_dcert_file = NULL;
+	else
+	  c_dcert_file = tls_dcert_file;
+	if (!tls_dkey_file || *tls_dkey_file == 0)
+	  c_dkey_file = NULL;
+	else
+	  c_dkey_file = tls_dkey_file;
+
+	if (c_dcert_file || c_dkey_file) {
+	  if (!set_cert_stuff(SS, c_dcert_file, c_dkey_file)) {
+	    msg_info(SS, "TLS engine: cannot load dcert/dkey data");
+	    tls_print_errors(SS);
+	    return (-1);
+	  }
+	}
+
+	/*
+	 * Sometimes a temporary RSA key might be needed by the OpenSSL
+	 * library. The OpenSSL doc indicates, that this might happen when
+	 * export ciphers are in use. We have to provide one, so well, we
+	 * just do it.
+	 */
+
+	SSL_CTX_set_tmp_rsa_callback(SS->TLS.ctx, tmp_rsa_cb);
+
+	/*
+	 * Finally, the setup for the server certificate checking, done
+	 * "by the book".
+	 */
+
+	SSL_CTX_set_verify(SS->TLS.ctx, verify_flags, verify_callback);
+
 #if 0
-      msg_info(SS, "TLS engine: cannot load cert/key data");
-      tls_print_errors();
-      return (-1);
+	/*
+	 * Initialize the session cache. We only want external caching to
+	 * synchronize between server sessions, so we set it to a minimum value
+	 * of 1. If the external cache is disabled, we won´t cache at all.
+	 *
+	 * In case of the client, there is no callback used in OpenSSL,
+	 * so we must call the session cache functions manually during
+	 * the process.
+	 */
+	SSL_CTX_sess_set_cache_size(SS->TLS.ctx, 1);
+	SSL_CTX_set_timeout(SS->TLS.ctx, tls_scache_timeout);
 #endif
-    }
 
-  /*
-   * Sometimes a temporary RSA key might be needed by the OpenSSL
-   * library. The OpenSSL doc indicates, that this might happen when
-   * export ciphers are in use. We have to provide one, so well, we
-   * just do it.
-   */
-  SSL_CTX_set_tmp_rsa_callback(SS->ctx, tmp_rsa_cb);
+#if 0
+	/*
+	 * The session cache is realized by an external database file, that
+	 * must be opened before going to chroot jail. Since the session cache
+	 * data can become quite large, "[n]dbm" cannot be used as it has a
+	 * size limit that is by far to small.
+	 */
+	if (*var_smtp_tls_scache_db) {
+	  /*
+	   * Insert a test against other dbms here, otherwise while writing
+	   * a session (content to large), we will receive a fatal error!
+	   */
+	  if (strncmp(var_smtp_tls_scache_db, "sdbm:", 5))
+	    msg_warn("Only sdbm: type allowed for %s",
+		     var_smtp_tls_scache_db);
+	  else
+	    scache_db = dict_open(var_smtp_tls_scache_db, O_RDWR,
+				  ( DICT_FLAG_DUP_REPLACE | DICT_FLAG_LOCK |
+				    DICT_FLAG_SYNC_UPDATE ));
+	  if (!scache_db)
+	    msg_warn("Could not open session cache %s",
+		     var_smtp_tls_scache_db);
+	  /*
+	   * It is practical to have OpenSSL automatically save newly created
+	   * sessions for us by callback. Therefore we have to enable the
+	   * internal session cache for the client side. Disable automatic
+	   * clearing, as smtp has limited lifetime anyway and we can call
+	   * the cleanup routine at will.
+	   */
+	  SSL_CTX_set_session_cache_mode(ctx,
+					 ( SSL_SESS_CACHE_CLIENT |
+					   SSL_SESS_CACHE_NO_AUTO_CLEAR ));
+	  SSL_CTX_sess_set_new_cb(ctx, new_session_cb);
+	}
+#endif
 
-  /*
-   * Finally, the setup for the server certificate checking, done
-   * "by the book".
-   */
-  verify_depth = verifydepth;
-  SSL_CTX_set_verify(SS->ctx, verify_flags, verify_callback);
+	/*
+	 * Finally create the global index to access TLScontext information
+	 * inside verify_callback.
+	 */
+	TLScontext_index = SSL_get_ex_new_index(0, "TLScontext ex_data index",
+						NULL, NULL, NULL);
+	TLSpeername_index = SSL_SESSION_get_ex_new_index(0,
+							 "TLSpeername ex_data index",
+							 new_peername_func,
+							 dup_peername_func,
+							 free_peername_func);
 
-  return (0);
+	tls_clientengine = 1;
+
+
+	return (0);
 }
 
  /*
@@ -898,17 +1364,16 @@ int     tls_init_clientengine(SS, cfgpath)
   * received by us, so that we can immediately can start the TLS
   * handshake process.
   */
-int     tls_start_clienttls(SS,peername)
+int     tls_start_clienttls(SS, peername) /* XX: enforce-peername ? */
      SmtpState *SS;
      const char *peername;
 {
     int     sts;
-    SSL_SESSION *session;
+    SSL_SESSION *session, *old_session;
     SSL_CIPHER *cipher;
     X509   *peer;
-    int     save_session;
-    int     verify_result;
-    unsigned char *old_session_id;
+    int     verify_flags;
+    char cbuf[4000];
 
     vlog = SS->verboselog;
 
@@ -925,56 +1390,108 @@ int     tls_start_clienttls(SS,peername)
      * old ones on closure, so it might not be always necessary. We however
      * reset the old one, just in case.
      */
-    if (SS->ssl != NULL)
-	SSL_clear(SS->ssl);
-    else if ((SS->ssl = (SSL *) SSL_new(SS->ctx)) == NULL) {
+    if (SS->TLS.ssl != NULL) {
+      SSL_clear(SS->TLS.ssl);
+    } else {
+      SS->TLS.ssl = SSL_new(SS->TLS.ctx);
+      if (! SS->TLS.ssl) {
 	msg_info(SS, "Could not allocate 'con' with SSL_new()");
-	tls_print_errors();
+	tls_print_errors(SS);
 	alarm(0);
 	return (-1);
+      }
     }
-    old_session_id = NULL;	/* make sure no old info is kept */
+
+    /*
+     * Add the location of TLS-context to the SSL to later
+     * retrieve the information inside the verify_callback().
+     */
+
+    if (!SSL_set_ex_data(SS->TLS.ssl, TLScontext_index, SS)) {
+      msg_info(SS, "Could not set application data for 'SS->TLS.con'");
+      tls_print_errors(SS);
+      tls_stop_clienttls(SS, 1);
+      return (-1);
+    }
+
+
+
+    old_session = NULL;	/* make sure no old info is kept */
+
+    /*
+     * Set the verification parameters to be checked in verify_callback().
+     */
+    if (tls_enforce_peername) {
+      verify_flags = SSL_VERIFY_PEER;
+      SS->TLS.enforce_verify_errors = 1;
+      SS->TLS.enforce_CN = 1;
+      SSL_set_verify(SS->TLS.ssl, verify_flags, verify_callback);
+    } else {
+      SS->TLS.enforce_verify_errors = 0;
+      SS->TLS.enforce_CN = 0;
+    }
 
     /*
      * Now, connect the filedescripter set earlier to the SSL connection
      * (this is for clean UNIX environment, for example windows "sockets"
      *  need somewhat different approach with customized BIO_METHODs.)
      */
-    if (!SSL_set_fd(SS->ssl, sffileno(SS->smtpfp))) {
+    if (!SSL_set_fd(SS->TLS.ssl, sffileno(SS->smtpfp))) {
 	msg_info(SS, "SSL_set_fd failed");
-	tls_print_errors();
+	tls_print_errors(SS);
 	alarm(0);
 	return (-1);
     }
 
+
     /*
      * Find out the hashed HostID for the client cache and try to
      * load the session from the cache.
-     * "old_session_id" holds the session ID of the reloaded session, so that
-     * we can later check, whether it is really reused.
      */
-    if (tls_use_scache) {
-	MD5((void *)peername, strlen(peername), peername_md5);
-	session = load_clnt_session(peername_md5, MD5_DIGEST_LENGTH,
-				    &verify_result);
-	if (session) {
-	   SSL_CTX_add_session(SS->ctx, session);
-	   SSL_set_session(SS->ssl, session);
-	   old_session_id = malloc(session->session_id_length);
-	   if (old_session_id)
-	     memcpy(old_session_id, session->session_id,
-		    session->session_id_length);
+    SS->TLS.peername_save = strdup(peername);
+
+#if 0 /* some day.. */
+    if (scache_db) {
+      old_session = load_clnt_session(peername, enforce_peername);
+      if (old_session) {
+	SSL_set_session(SS->TLS.con, old_session);
+#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
+	/*
+	 * Ugly Hack: OpenSSL before 0.9.6a does not store the verify
+	 * result in sessions for the client side.
+	 * We modify the session directly which is version specific,
+	 * but this bug is version specific, too.
+	 *
+	 * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before
+	 * beta1 have this bug, it has been fixed during development
+	 * of 0.9.6a. The development version of 0.9.7 can have this
+	 * bug, too. It has been fixed on 2000/11/29.
+	 */
+	SSL_set_verify_result(SS->TLS.con, old_session->verify_result);
+#endif
 	   
-	}
+      }
     }
+#endif
+
+#if 0 /* Some day... */
+    /*
+     * Before really starting anything, try to seed the PRNG a little bit
+     * more.
+     */
+    pfixtls_stir_seed();
+    pfixtls_exchange_seed();
+#endif
+
 #if 0
     /*
      * Initialize the SSL connection to connect state. This should not be
      * necessary anymore since 0.9.3, but the call is still in the library
      * and maintaining compatibility never hurts.
      */
-    SSL_set_connect_state(SS->ssl);
+    SSL_set_connect_state(SS->TLS.ssl);
 #endif
+
     /*
      * If the debug level selected is high enough, all of the data is
      * dumped: 3 will dump the SSL negotiation, 4 will dump everything.
@@ -984,7 +1501,7 @@ int     tls_start_clienttls(SS,peername)
      * created for us, so we can use it for debugging purposes.
      */
     if (tls_loglevel >= 3)
-	BIO_set_callback(SSL_get_rbio(SS->ssl), bio_dump_cb);
+	BIO_set_callback(SSL_get_rbio(SS->TLS.ssl), bio_dump_cb);
 
     /* Dump the negotiation for loglevels 3 and 4 */
     if (tls_loglevel >= 3)
@@ -1009,20 +1526,20 @@ int     tls_start_clienttls(SS,peername)
 
     ssl_connect_retry:;
 
-	wbio = SSL_get_wbio(SS->ssl);
-	rbio = SSL_get_rbio(SS->ssl);
+	wbio = SSL_get_wbio(SS->TLS.ssl);
+	rbio = SSL_get_rbio(SS->TLS.ssl);
 
-	sts = SSL_connect(SS->ssl);
-	sslerr = SSL_get_error(SS->ssl, sts);
+	sts = SSL_connect(SS->TLS.ssl);
+	sslerr = SSL_get_error(SS->TLS.ssl, sts);
 
 	switch (sslerr) {
 
 	case SSL_ERROR_WANT_READ:
-	    SS->wantreadwrite = -1;
+	    SS->TLS.wantreadwrite = -1;
 	    sslerr = EAGAIN;
 	    break;
 	case SSL_ERROR_WANT_WRITE:
-	    SS->wantreadwrite =  1;
+	    SS->TLS.wantreadwrite =  1;
 	    sslerr = EAGAIN;
 	    break;
 
@@ -1035,42 +1552,46 @@ int     tls_start_clienttls(SS,peername)
 	    break;
 
 	default:
-	    SS->wantreadwrite =  0;
+	    SS->TLS.wantreadwrite =  0;
 	    break;
 	}
 
 	if (BIO_should_read(rbio))
-	    SS->wantreadwrite = -1;
-	else if (BIO_should_write(wbio))
-	    SS->wantreadwrite =  1;
+	  SS->TLS.wantreadwrite = -1;
+	if (BIO_should_write(wbio))
+	  SS->TLS.wantreadwrite =  1; /* write overrides, always.. */
 
-	if (! SS->wantreadwrite) {
+	if (! SS->TLS.wantreadwrite) {
 	  /* Not proper retry by read or write! */
 
 	ssl_connect_error_bailout:;
 
 	  msg_info(SS, "SSL_connect error %d/%d", sts, sslerr);
-	  tls_print_errors();
-	  session = SSL_get_session(SS->ssl);
+	  tls_print_errors(SS);
+	  session = SSL_get_session(SS->TLS.ssl);
 	  if (session) {
 	    remove_clnt_session(session->session_id,
 			        session->session_id_length);
-	    SSL_CTX_remove_session(SS->ctx, session);
-	    msg_info(SS, "SSL session removed");
+	    SSL_CTX_remove_session(SS->TLS.ctx, session);
+	    if (tls_loglevel >= 2)
+	      msg_info(SS, "SSL session removed");
 	  }
-	  SSL_free(SS->ssl);
-	  SS->ssl = NULL;
+	  if (old_session && (!SSL_session_reused(SS->TLS.ssl)))
+	    SSL_SESSION_free(old_session); /* Must also be removed */
+
+	  tls_stop_clienttls(SS, 1);
+
 	  alarm(0);
 	  return (-1);
 	}
 
-	i = SSL_get_fd(SS->ssl);
+	i = SSL_get_fd(SS->TLS.ssl);
 	_Z_FD_ZERO(wrset);
 	_Z_FD_ZERO(rdset);
 
-	if (SS->wantreadwrite < 0)
+	if (SS->TLS.wantreadwrite < 0)
 	  _Z_FD_SET(i, rdset); /* READ WANTED */
-	else if (SS->wantreadwrite > 0)
+	else if (SS->TLS.wantreadwrite > 0)
 	  _Z_FD_SET(i, wrset); /* WRITE WANTED */
 
 	tv.tv_sec = timeout_tcpw;
@@ -1097,72 +1618,84 @@ int     tls_start_clienttls(SS,peername)
 
  ssl_connect_done:;
 
-    /*
-     * Now we must save the new session to disk, if necessary. If we had
-     * an old session, its ID was saved in "old_session_id" for comparison.
-     */
-    session = SSL_get_session(SS->ssl);
-    if (tls_use_scache && session) {
-	save_session = 1;
-	if (old_session_id) {
-	    if (memcmp(session->session_id, old_session_id,
-		       session->session_id_length) == 0) {
-		if (tls_loglevel >= 3)
-		    msg_info(SS, "Reusing old session");
-		save_session = 0;
-		SSL_set_verify_result(SS->ssl, verify_result);
-	    }
-	    free(old_session_id);
-	}
-	if (save_session)
-	    save_clnt_session(session, peername_md5, MD5_DIGEST_LENGTH,
-			      SSL_get_verify_result(SS->ssl));
-    }
+    if (!SSL_session_reused(SS->TLS.ssl)) {
+      SSL_SESSION_free(old_session);	/* Remove unused session */
+    } else if (tls_loglevel >= 3)
+      msg_info(SS,"Reusing old session");
+
 
     /* Only loglevel==4 dumps everything */
     if (tls_loglevel < 4)
 	do_dump = 0;
 
     /*
-     * Check the verification state of the peer certificate.
-     */
-    if (SSL_get_verify_result(SS->ssl) == X509_V_OK) {
-	tls_peer_verified = 1;
-    }
-
-    /*
      * Lets see, whether a peer certificate is available and what is
      * the actual information. We want to save it for later use.
      */
-    peer = SSL_get_peer_certificate(SS->ssl);
+    peer = SSL_get_peer_certificate(SS->TLS.ssl);
     if (peer != NULL) {
-	X509_NAME_oneline(X509_get_subject_name(peer), tls_peer_cert_name,
-			  CCERT_BUFSIZ);
-	X509_NAME_oneline(X509_get_issuer_name(peer),
-			  tls_peer_cert_issuer_name, CCERT_BUFSIZ);
-	if (tls_loglevel >= 3)
-	    msg_info(SS, "subject=%s, issuer=%s",
-		     tls_peer_cert_name, tls_peer_cert_issuer_name);
+	if (SSL_get_verify_result(SS->TLS.ssl) == X509_V_OK)
+	    SS->TLS.peer_verified = 1;
+
+	cbuf[0] = 0;
+	if (!X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
+				       NID_commonName,
+				       cbuf, sizeof(cbuf))) {
+	  msg_info(SS,"Could not parse server's subject CN");
+	  tls_print_errors(SS);
+	} else
+	  SS->TLS.peer_CN = strdup(cbuf);
+
+	cbuf[0] = '\0';
+	if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peer),
+				       NID_commonName, cbuf, sizeof(cbuf))) {
+	  msg_info(SS,"Could not parse server's issuer CN");
+	  tls_print_errors(SS);
+	}
+	if (!cbuf[0]) {
+	  /* No issuer CN field, use Organization instead */
+	  if (!X509_NAME_get_text_by_NID(X509_get_issuer_name(peer),
+					 NID_organizationName, 
+					 cbuf, sizeof(cbuf))) {
+	    msg_info(SS,"Could not parse server's issuer Organization");
+	    tls_print_errors(SS);
+	  }
+	}
+	if (cbuf[0])
+	  SS->TLS.issuer_CN = strdup(cbuf);
+
+	if (tls_loglevel >= 1) {
+	    if (SS->TLS.peer_verified)
+	      msg_info(SS,"Verified: subject_CN=%s, issuer=%s",
+		       SS->TLS.peer_CN ? SS->TLS.peer_CN : "",
+		       SS->TLS.issuer_CN ? SS->TLS.issuer_CN : "");
+	    else
+	      msg_info(SS,"Unverified: subject_CN=%s, issuer=%s",
+		       SS->TLS.peer_CN ? SS->TLS.peer_CN : "",
+		       SS->TLS.issuer_CN ? SS->TLS.issuer_CN : "");
+	}
 	X509_free(peer);
     }
+
 
     /*
      * Finally, collect information about protocol and cipher for logging
      */ 
-    tls_protocol = SSL_get_version(SS->ssl);
-    cipher = SSL_get_current_cipher(SS->ssl);
-    tls_cipher_name = SSL_CIPHER_get_name(cipher);
-    tls_cipher_usebits = SSL_CIPHER_get_bits(cipher, &tls_cipher_algbits);
+    SS->TLS.protocol       = SSL_get_version(SS->TLS.ssl);
+    cipher = SSL_get_current_cipher(SS->TLS.ssl);
+    SS->TLS.cipher_name    = SSL_CIPHER_get_name(cipher);
+    SS->TLS.cipher_usebits = SSL_CIPHER_get_bits(cipher,
+						 &SS->TLS.cipher_algbits);
 
     msg_info(SS, "TLS connection established: %s with cipher %s (%d/%d bits)",
-	     tls_protocol, tls_cipher_name,
-	     tls_cipher_usebits, tls_cipher_algbits);
+	     SS->TLS.protocol, SS->TLS.cipher_name,
+	     SS->TLS.cipher_usebits, SS->TLS.cipher_algbits);
 
     if (tls_use_read_ahead)
-      SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
+      SSL_set_read_ahead(SS->TLS.ssl, 1); /* Improves performance */
 
     /* Mark the mode! */
-    SS->sslmode = 1;
+    SS->TLS.sslmode = 1;
 
     return (0);
 }
@@ -1187,25 +1720,36 @@ int     tls_stop_clienttls(SS, failure)
 
 	vlog = SS->verboselog;
 
-	if (SS->sslmode) {
-	  session = SSL_get_session(SS->ssl);
-	  SSL_shutdown(SS->ssl);
+	if (SS->TLS.sslmode) {
+	  session = SSL_get_session(SS->TLS.ssl);
+	  SSL_shutdown(SS->TLS.ssl);
 	  if (session) {
 	    if (failure) {
-	      remove_clnt_session(peername_md5, MD5_DIGEST_LENGTH);
+	      remove_clnt_session(SS->TLS.peername_md5, MD5_DIGEST_LENGTH);
 	      msg_info(SS, "SSL session removed");
 	    }
-	    SSL_CTX_remove_session(SS->ctx, session);
-	    SSL_free(SS->ssl);
-	    SS->ssl = NULL;
+	    SSL_CTX_remove_session(SS->TLS.ctx, session);
 	  }
-	  SSL_CTX_flush_sessions(SS->ctx,time(NULL));
+	  if (SS->TLS.ssl) SSL_free(SS->TLS.ssl);
+	  SS->TLS.ssl = NULL;
 
-	  tls_peer_verified = 0;
-	  tls_protocol = NULL;
-	  tls_cipher_name = NULL;
-	  tls_cipher_usebits = 0;
-	  tls_cipher_algbits = 0;
+	  SSL_CTX_flush_sessions(SS->TLS.ctx,time(NULL));
+
+	  SS->TLS.peer_verified = 0;
+	  SS->TLS.protocol = NULL;
+	  SS->TLS.cipher_name = NULL;
+	  SS->TLS.cipher_usebits = 0;
+	  SS->TLS.cipher_algbits = 0;
+
+#define ZCONDFREE(var) if (var) free((void*)(var))
+
+	  ZCONDFREE(SS->TLS.peername_save);
+	  ZCONDFREE(SS->TLS.peer_subject); /* server only ??? */
+	  ZCONDFREE(SS->TLS.peer_issuer);
+	  ZCONDFREE(SS->TLS.peer_fingerprint);
+	  ZCONDFREE(SS->TLS.peer_CN);
+	  ZCONDFREE(SS->TLS.issuer_CN);
+
 	}
 
 	return (0);
@@ -1297,20 +1841,20 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	while (len > 0 && !sferror(sfp) && sffileno(sfp) >= 0) {
 
 #ifdef HAVE_OPENSSL
-	  if (SS->sslmode) {
-	    r = SSL_write(SS->ssl, p, len);
-	    e = SSL_get_error(SS->ssl, r);
+	  if (SS->TLS.sslmode) {
+	    r = SSL_write(SS->TLS.ssl, p, len);
+	    e = SSL_get_error(SS->TLS.ssl, r);
 	    switch (e) {
 	    case SSL_ERROR_WANT_READ:
-	      SS->wantreadwrite = -1;
+	      SS->TLS.wantreadwrite = -1;
 	      e = EAGAIN;
 	      break;
 	    case SSL_ERROR_WANT_WRITE:
-	      SS->wantreadwrite = 1;
+	      SS->TLS.wantreadwrite = 1;
 	      e = EAGAIN;
 	      break;
 	    default:
-	      SS->wantreadwrite = 0;
+	      SS->TLS.wantreadwrite = 0;
 	      break;
 	    }
 	  } else
@@ -1351,10 +1895,10 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	      _Z_FD_ZERO(rdset);
 
 #ifdef HAVE_OPENSSL
-	      if (SS->sslmode) {
-		if (SS->wantreadwrite < 0)
+	      if (SS->TLS.sslmode) {
+		if (SS->TLS.wantreadwrite < 0)
 		  _Z_FD_SET(i, rdset); /* READ WANTED */
-		else if (SS->wantreadwrite > 0)
+		else if (SS->TLS.wantreadwrite > 0)
 		  _Z_FD_SET(i, wrset); /* WRITE WANTED */
 		else
 		  ; /* FIXME! What???  No reading, nor writing ??? */
@@ -1456,24 +2000,24 @@ int smtp_nbread(SS, buf, spc)
 #ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
 
-	if (SS->sslmode) {
-	  r = SSL_read(SS->ssl, buf, spc);
-	  e = SSL_get_error(SS->ssl, r);
+	if (SS->TLS.sslmode) {
+	  r = SSL_read(SS->TLS.ssl, buf, spc);
+	  e = SSL_get_error(SS->TLS.ssl, r);
 	  switch (e) {
 	  case SSL_ERROR_WANT_READ:
-	    SS->wantreadwrite = -1;
+	    SS->TLS.wantreadwrite = -1;
 	    e = EAGAIN;
 	    break;
 	  case SSL_ERROR_WANT_WRITE:
-	    SS->wantreadwrite =  1;
+	    SS->TLS.wantreadwrite =  1;
 	    e = EAGAIN;
 	    break;
 	  default:
-	    SS->wantreadwrite =  0;
+	    SS->TLS.wantreadwrite =  0;
 	    break;
 	  }
 	  if (tls_loglevel >= 3) {
-	    msg_info(NULL,"smtp_nbread() rc=%d errno=%d", r, e);
+	    msg_info(SS,"smtp_nbread() rc=%d errno=%d", r, e);
 	    if (r > 0) tls_dump(buf, r);
 	  }
 	} else
