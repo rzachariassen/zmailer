@@ -41,7 +41,7 @@ you didn't get a copy, you may request one from <license@inner.net>.
 #include <sys/utsname.h>
 
 #include <netdb.h>
-#if !defined(EAI_AGAIN) || !defined(NI_NOFQDN)
+#if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
 #include "netdb6.h"
 #endif
 

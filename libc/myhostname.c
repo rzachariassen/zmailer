@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #if	defined(HAVE_RESOLVER)
 #include <netdb.h>
-#ifndef EAI_AGAIN
+#if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
 # include "netdb6.h"
 #endif
 #include <netinet/in.h>
