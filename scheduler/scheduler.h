@@ -125,6 +125,7 @@ struct thread {
 	int		attempts;	/* How many times activated ?	    */
 	int		retryindex;	/* when, what ?			    */
 	char		*channel, *host; /* documenting */
+	char		*pending;	/* reason for pending		    */
 	struct web	*wchan;		/* Web of CHANNELs		    */
 	struct web	*whost;		/* Web of HOSTs			    */
 	struct thread	*nexttr;	/* Next one in threads queue	    */

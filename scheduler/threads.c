@@ -802,6 +802,7 @@ thread_start(thr, queue_only_too)
 
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (procselect) {
+	  thr->pending = "procsel-mismatch";
 	  if (*procselect != '*' &&
 	      strcmp(procselect,ch->name) != 0)
 	    return 0;
@@ -809,6 +810,7 @@ thread_start(thr, queue_only_too)
 	      strcmp(procselhost,ho->name) != 0)
 	    return 0;
 	}
+	thr->pending = NULL;
 
 	if (verbose)
 	  sfprintf(sfstderr,"thread_start(thr=%s/%d/%s) (dt=%d thr=%p jobs=%d)\n",
@@ -930,16 +932,22 @@ thread_start(thr, queue_only_too)
 
 	vp = thr->thvertices;
 
-	if (numkids >= ce->maxkids)
+	if (numkids >= ce->maxkids) {
 	  vp->ce_pending = SIZE_L;
-	else if (vp->orig[L_CHANNEL]->kids >= ce->maxkidChannel)
+	  thr->pending = ">MaxTA";
+	} else if (vp->orig[L_CHANNEL]->kids >= ce->maxkidChannel) {
 	  vp->ce_pending = L_CHANNEL;
-	else if (thg->transporters >= ce->maxkidThreads)
+	  thr->pending = ">MaxChannel";
+	} else if (thg->transporters >= ce->maxkidThreads) {
 	  vp->ce_pending = L_HOST;
-	else if (thr->thrkids >= ce->maxkidThread)
+	  thr->pending = ">MaxRing";
+	} else if (thr->thrkids >= ce->maxkidThread) {
 	  vp->ce_pending = SIZE_L;
-	else
+	  thr->pending = ">MaxThr";
+	} else {
 	  vp->ce_pending = 0;
+	  thr->pending = NULL;
+	}
 
 	if (vp->ce_pending) {
 	  if (verbose)
@@ -981,8 +989,11 @@ thread_start(thr, queue_only_too)
 			 thr->thvertices->orig[L_CHANNEL],
 			 thr->thvertices->orig[L_HOST]);
 
-	if (rc) /* non-zero when child has started */
+	if (rc) { /* non-zero when child has started */
 	  thr->attempts += 1;
+	} else {
+	  thr->pending = "StartFailure";
+	}
 
 	if (thr->proc && verbose)
 	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
@@ -1555,12 +1566,16 @@ void thread_report(fp,mqmode)
 		  }
 		  sfprintf(fp, "}s");
 		} else
-		sfprintf(fp," S=%d", (int)thr->proc->state);
+		  sfprintf(fp," S=%d", (int)thr->proc->state);
 	      }
 
 	    } else if (thr->wakeup > now) {
 	      if (mqmode & MQ2MODE_FULL) {
 		sfprintf(fp," W=%ds",(int)(thr->wakeup - now));
+	      }
+	    } else if (thr->pending) {
+	      if (mqmode & MQ2MODE_FULL) {
+		sfprintf(fp," pend=%s", thr->pending);
 	      }
 	    }
 
@@ -1576,6 +1591,7 @@ void thread_report(fp,mqmode)
 			    L_CHANNEL ? " channelwait" : " threadwait"));
 	      sfprintf(fp, "\n");
 	    }
+
 	  }
 
 	  if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ)) {
