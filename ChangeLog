@@ -1,3 +1,11 @@
+1999-08-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/rrouter.cf:
+	    Another missed "$(dequote ...)" call.  Without this,
+	    pipe/file stores don't get "magic" 'pipe.*' and 'file.*'
+	    local channel tags so that all other cases can safely
+	    be run to procmail as the local delivery agent.
+
 1999-08-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

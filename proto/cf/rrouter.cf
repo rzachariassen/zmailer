@@ -194,7 +194,9 @@ rrouter (address, origaddr, A, plustail, domain) {
 		;;
 	tfist
 
-	ssift "$address" in
+	# Ok, possible LOCAL things must be matched dequoted here!
+
+	ssift "$(dequote "$address")" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		#return $(rrouter "\1" "$origaddr" $A "$plustail" "")
 		tmp=(local "$origaddr" "$address" $A)
