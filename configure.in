@@ -1854,7 +1854,7 @@ AC_OUTPUT(Makefile
 	proto/Makefile			proto/zmailer.sh		\
 	proto/newaliases		proto/newfqdnaliases		\
 	proto/newdb			proto/newdbprocessor		\
-	proto/scheduler.conf						\
+	proto/scheduler.conf		proto/scheduler.auth		\
 	proto/mailrm.sh			proto/db/Makefile		\
 	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\

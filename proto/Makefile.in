@@ -190,8 +190,9 @@ db:	FRC
 	fi ;							\
 	echo "Don't forget to set up MAILVAR/db by hand -- if there is nothing, we seed it now" ; \
 	$(INSTALL) -m 644 db/aliases $$MAILVAR/db/proto/aliases ; \
-	for x in fqdnaliases   dbases.conf  localnames	\
-		 routes  smtp-policy.* kill-headers ;		\
+	for x in fqdnaliases   dbases.conf  localnames routes \
+		 smtp-policy.mx smtp-policy.src smtp-policy.relay \
+		 userdb kill-headers ;		\
 	do							\
 		$(INSTALL) -m 644 $(srcdir)/db/$$x $$MAILVAR/db/proto/$$x ; \
 	done ; )
