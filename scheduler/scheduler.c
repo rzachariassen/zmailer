@@ -1747,10 +1747,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	}
 	close(cfp->fd);	/* closes the fd opened in schedule() */
 
-	if (is_turnme && cfp->mid == NULL)
-	  unlink(file);
-
-
 	if (fpath[0] >= 'A') {
 	  /* Prefixed with a subdir path */
 	  int hash = 0;
@@ -1825,9 +1821,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  else
 	    sprintf(mfpath, "../%s/%s", QUEUEDIR, cfp->mid);
 	}
-	if (cfp->mid == NULL || cfp->logident == NULL
-	    || estat(mfpath, &stbuf) < 0) {
-	  if (cfp->vfpfn != NULL) {
+	if (cfp->mid == NULL || cfp->logident == NULL ||
+	    estat(mfpath, &stbuf) < 0) {
+	  if (!is_turnme && cfp->vfpfn != NULL) {
 	    FILE *vfp = vfp_open(cfp);
 	    if (vfp) {
 	      fprintf(vfp,
