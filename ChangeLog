@@ -1,5 +1,10 @@
 2003-08-28  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in, transports/libta/ctlopen.c, SiteConfig.in:
+	    Change the  --with-ta-mmap  to control what  SiteConfig
+	    file (and thus  zmailer.conf  file) gets about TA_USE_MMAP=
+	    variable value.
+
 	* man/*:
 	    Massive rework of man-pages; all cross-references will
 	    be using suffix names like:  (8zm).  Man-sections got

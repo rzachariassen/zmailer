@@ -2094,10 +2094,12 @@ AC_FUNC_GETPGRP
 AC_FUNC_MMAP
 dnl AC_FUNC_UTIME_NULL
 
+AC_SUBST(TA_USE_MMAP)
+TA_USE_MMAP="0"
 AC_ARG_WITH(ta-mmap,   [  --with-ta-mmap           TA's to use MMAP for reading the message bodies],
         use_ta_mmap=1, use_ta_mmap=0)
 if test "$use_ta_mmap" = "1"; then
-  AC_DEFINE(TA_USE_MMAP,1,[Want the Transport Agents to use mmap() for reading the message bodies.])
+    TA_USE_MMAP="1"
 fi
 
 AC_SUBST(GETPWLIB)

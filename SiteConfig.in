@@ -185,7 +185,7 @@ NOBODY=nobody
 # TA_USE_MMAP - existence of this definition mmap()s control-,
 # and message body files into transport agent process memories.
 # This may, or may not give performance boost.
-#TA_USE_MMAP=1
+TA_USE_MMAP=@TA_USE_MMAP@
 
 # TALOCKMODE=[TFW] -- don't use!
 

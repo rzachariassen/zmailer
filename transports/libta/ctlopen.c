@@ -359,7 +359,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 
 #if defined(HAVE_MMAP)
 	if (!ta_use_mmap) {
-	  if (getzenv("TA_USE_MMAP"))
+	  const char *s = getzenv("TA_USE_MMAP");
+	  if (s && *s == '1')
 	    ta_use_mmap = 1;
 	  else
 	    ta_use_mmap = -1;
