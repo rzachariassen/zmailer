@@ -111,6 +111,8 @@ struct procinfo *proc;
 	if (proc->cmdbuf == NULL)
 	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
 	if (proc->cmdlen != 0) {
+	  if (proc->cmdlen >= proc->cmdspc)
+	    cmdbufalloc(proc->cmdlen, &proc->cmdbuf, &proc->cmdspc);
 	  proc->cmdbuf[proc->cmdlen] = 0;
 	  fprintf(stderr,"idle_child(proc->cmdbuf=\"%s\") -> abort()!\n",proc->cmdbuf);
 	  fflush(stderr);

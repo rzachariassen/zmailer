@@ -1442,7 +1442,7 @@ idle_cleanup()
 		continue; /* Next! */
 	      if (!p) /* No process */
 		continue;
-	      if ((p->cmdlen == 0) && (p->overfed == 0) &&
+	      if ((p->cmdlen == 0) && (p->overfed == 0) && (p->tofd >= 0) &&
 		  (p->hungertime != 0) && (p->hungertime + MAX_HUNGER_AGE <= now)) {
 
 		/* Close the command channel, let it die itself.
@@ -1485,8 +1485,8 @@ idle_cleanup()
 
 	    while (p != NULL) {
 	      ++idlecnt;
-	      if (thg->cep->idlemax + p->hungertime < now &&
-		  p->cmdlen == 0) {
+	      if ((thg->cep->idlemax + p->hungertime < now) &&
+		  (p->cmdlen == 0) && (p->tofd >= 0)) {
 		/* It is old enough -- ancient, one might say.. */
 
 		/* Close the command channel, let it die itself.
@@ -1503,14 +1503,14 @@ idle_cleanup()
 		++freecount;
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
-#if 0
+#if 1
 		--numkids;
 		p->thg        = NULL;
 		p->thread     = NULL;
+#endif
 
 		/* Remove this entry from the chain, and move to a next one */
 		p = *pp = p->next;
-#endif
 	      } else {
 		++newidlecnt;
 		/* Move to the next possible idle process */
