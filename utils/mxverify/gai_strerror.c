@@ -44,8 +44,10 @@ int errnum;
       return "temporary failure in name resolution";
     case EAI_FAIL:
       return "non-recoverable failure in name resolution";
+#ifdef EAI_NODATA
     case EAI_NODATA:
       return "no address associated with name";
+#endif
     case EAI_FAMILY:
       return "ai_family not supported";
     case EAI_SOCKTYPE:
