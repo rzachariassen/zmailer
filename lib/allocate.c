@@ -451,7 +451,7 @@ strnsave(s, n)
 }
 
 /*
- * Save a arbitary long string. (NIL ends)
+ * Save a arbitrary long string. (NIL ends)
  */
 
 char *

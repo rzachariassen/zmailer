@@ -116,16 +116,20 @@ main(argc, argv)
 	struct stat stbuf;
 	int r, pid, dsflag;
 #endif	/* AF_INET */
+	char *expn = NULL;
 
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "dip:r:stu:U:vVSQ");
+	  c = getopt(argc, argv, "dip:r:stu:U:vVSQE:K:");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
 	  case 'd':
 	    ++debug;
+	    break;
+	  case 'E':
+	    expn = optarg;
 	    break;
 	  case 'i':
 	    user = getuid();

@@ -333,7 +333,7 @@ const char *name, *cp;
     if (!((*cp >= 'A' && *cp <= 'Z') || (*cp >= 'a' && *cp <= 'z') ||
 	  (*cp >= '0' && *cp <= '9'))) {
       /* Has some special character beginning it; we don't support
-	 either arbitary subdomains (@foo.dom), nor "channel-based"
+	 either arbitrary subdomains (@foo.dom), nor "channel-based"
 	 starting (#foo) */
       type(SS, 458, m571, "Sorry, only literal target domains accepted");
       typeflush(SS);

@@ -1359,7 +1359,7 @@ const char *buf, *cp;
 	      type(SS,-450, m471, "This target address is not our MX service");
 	      type(SS,-450, m471, "client, nor you are connecting from address");
 	      type(SS,-450, m471, "that is allowed to openly use us to relay");
-	      type(SS,-450, m471, "to any arbitary address thru us.");
+	      type(SS,-450, m471, "to any arbitrary address thru us.");
 	      type(SS, 450, m471, "We don't accept this recipient: <%.*s>",
 		   addrlen, cp);
 	    }
@@ -1389,7 +1389,7 @@ const char *buf, *cp;
 	      type(SS,-550, m571, "This target address is not our MX service");
 	      type(SS,-550, m571, "client, nor you are connecting from address");
 	      type(SS,-550, m571, "that is allowed to openly use us to relay");
-	      type(SS,-550, m571, "to any arbitary address thru us.");
+	      type(SS,-550, m571, "to any arbitrary address thru us.");
 	      type(SS, 550, m571, "We don't accept this recipient: <%.*s>",
 		   addrlen, cp);
 	    }
@@ -1573,7 +1573,7 @@ const char *buf, *cp;
 
     cfi = STYLE(SS->cfinfo, 'v');
 
-#if 0				/* The input string is ARBITARY STRING (shudder..) */
+#if 0				/* The input string is ARBITRARY STRING (shudder..) */
     if (*cp == '<')
 	s = rfc821_path(cp, cfi);	/* with < > */
     else
@@ -1626,7 +1626,7 @@ const char *buf, *cp;
 
     cfi = STYLE(SS->cfinfo, 'e');
     if (cfi != 0) {
-#if 0				/* The input string is an arbitary string! */
+#if 0				/* The input string is an arbitrary string! */
 	if (*cp == '<')
 	    s = rfc821_path(cp, cfi);	/* with < > */
 	else
