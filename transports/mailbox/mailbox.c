@@ -1417,7 +1417,7 @@ const char *timestring;
 	if (verboselog)
 	  fprintf(verboselog,
 		  "To open a file with euid=%d egid=%d ismbox=%d file='%s'\n",
-		  geteuid(), getegid(), ismbox, file);
+		  (int)geteuid(), (int)getegid(), ismbox, file);
 
 	fdmail = open(file, O_RDWR|O_APPEND);
 	if (fdmail < 0) {
@@ -1902,7 +1902,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 		  "%s: %ld + %ld : %s (pid %d user %s)\n",
 		  dp->logident, eofindex,
 		  (fp ? ftell(fp): 0) - eofindex, file,
-		  getpid(), rp->addr->user);
+		  (int)getpid(), rp->addr->user);
 #if 0
 	  fprintf(logfp, "%s: %ld + %ld : %s\n",
 		  dp->logident, eofindex,
@@ -2330,7 +2330,7 @@ createfile(rp, file, iuid, ismbox)
 	if (verboselog)
 	  fprintf(verboselog,
 		  "To create a file with euid=%d egid=%d file='%s', mode=%o\n",
-		  geteuid(), getegid(), file, mailmode);
+		  (int)geteuid(), (int)getegid(), file, mailmode);
 
 	fd = open(file, O_RDWR|O_CREAT|O_EXCL, mailmode);
 	if (fd < 0) {
@@ -2373,7 +2373,7 @@ createfile(rp, file, iuid, ismbox)
 	  if (verboselog)
 	    fprintf(verboselog,
 		    "To create a file with euid=%d egid=%d file='%s' mode=%o\n",
-		    geteuid(), getegid(), file, mailmode);
+		    (int)geteuid(), (int)getegid(), file, mailmode);
 
 	  fd = open(file, O_RDWR|O_CREAT|O_EXCL, mailmode);
 	  if (fd < 0) {
@@ -3158,7 +3158,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	  struct stat stbuf;
 
 	  fstat(FILENO(mfp),&stbuf);
-	  sprintf(fname,"%d",stbuf.st_ino);
+	  sprintf(fname,"%ld",(long)stbuf.st_ino);
 	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
 	  strcat(boundarystr, "=_/return-receipt/");
 	  strcat(boundarystr, dom);
