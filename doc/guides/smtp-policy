@@ -37,7 +37,11 @@
 	- smtp-policy.relay	Who can use us as outbound relay,
 			Use  [ip.number]/maskwidth  here for listing
 			those senders (networks) we absolutely trust.
-			You may also domains
+			You may also enter domains, but it is not
+			very wise -- domains are tested on "MAIL FROM",
+			and thus if somebody claims local origin for
+			the message, they can relay thru you...
+
 			We can set the "always_accept" flag at the
 			source IP test, and never after.
 
