@@ -174,7 +174,7 @@ append_header(va_alist)
 #endif
 {
 	va_list pvar;
-	char linebuf[2000]; /* XX: SHOULD be enough..  damn vsprintf()..*/
+	char lbuf[2000]; /* XX: SHOULD be enough..  damn vsprintf()..*/
 	u_int linelen;
 	u_int linecnt;
 	char ***hdrpp, **hdrp2;
@@ -189,17 +189,17 @@ append_header(va_alist)
 	rp  = va_arg(pvar, struct rcpt*);
 	fmt = va_arg(pvar, char *);
 #endif
-	linebuf[0] = 0;
+	lbuf[0] = 0;
 
 #ifdef HAVE_VSNPRINTF
-	vsnprintf(linebuf, sizeof(linebuf)-1, fmt, pvar);
+	vsnprintf(lbuf, sizeof(lbuf)-1, fmt, pvar);
 #else
-	vsprintf(linebuf, fmt, pvar);
+	vsprintf(lbuf, fmt, pvar);
 #endif
 	va_end(pvar);
 
-	linelen = strlen(linebuf);
-	if (linelen > sizeof(linebuf)) {
+	linelen = strlen(lbuf);
+	if (linelen > sizeof(lbuf)) {
 	  exit(240); /* BUG TIME! */
 	}
 
@@ -219,7 +219,7 @@ append_header(va_alist)
 
 	if (!hdrp2) return -1;
 	hdrp2[linecnt] = (char*) emalloc(linelen+3);
-	memcpy(hdrp2[linecnt],linebuf,linelen+2);
+	memcpy(hdrp2[linecnt],lbuf,linelen+2);
 	hdrp2[++linecnt] = NULL;
 	*hdrpp = hdrp2;
 	return linecnt;

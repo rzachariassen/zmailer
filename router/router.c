@@ -281,7 +281,7 @@ main(argc, argv)
 		    /* parent */
 		  }
 		  printf("%s: number %d started as pid %d\n",
-			 progname, router_id, getpid());
+			 progname, router_id, (int)getpid());
 		  router_id = getpid();
 		}
 		else

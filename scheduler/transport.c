@@ -528,7 +528,8 @@ static void reclaim(fromfd, tofd)
 
 if (verbose)
   fprintf(stderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
-	  fromfd,tofd,proc->pid,proc->reaped,proc->ch->name,proc->ho->name);
+	  fromfd,tofd,(int)proc->pid,proc->reaped,
+	  proc->ch->name,proc->ho->name);
 
 	proc->pid = 0;
 	proc->reaped = 0;
@@ -991,7 +992,7 @@ static void readfrom(fd)
 	      *cp = '\0';
 	      if (verbose)
 		fprintf(stderr, "%d fd=%d processed: %s\n",
-			proc->pid,fd, pcp);
+			(int)proc->pid,fd, pcp);
 	      update(fd,pcp);
 	      *cp = '_';
 	      pcp = cp + 1;

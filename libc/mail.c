@@ -189,7 +189,7 @@ mail_open(type)
 	cp = (host == NULL) ? "I" : host ;
 	scratch = mail_alloc(strlen(PUBLICDIR)+strlen(cp)+3+1+10);
 
-	sprintf(scratch, "%s/%7s:%d%%", PUBLICDIR, cp, getpid());
+	sprintf(scratch, "%s/%7s:%d%%", PUBLICDIR, cp, (int)getpid());
 
 	fp = _mail_fopen(&scratch);
 	if (fp == NULL) {

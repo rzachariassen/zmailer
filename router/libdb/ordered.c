@@ -63,7 +63,9 @@ search_bin(sip)
 
 	retry = 0;
 
+#ifndef HAVE_MMAP
  reopen:
+#endif
 	spl = _open_seq(sip, "r");
 
 	if (spl == NULL)

@@ -356,7 +356,7 @@ extern int smtp_ehlo  __((SmtpState *SS, const char *strbuf));
 extern int ehlo_check __((SmtpState *SS, const char *buf));
 extern void smtp_flush __((SmtpState *SS));
 extern int smtp_sync  __((SmtpState *SS, int, int));
-extern int smtpwrite  __((SmtpState *SS, int saverpt, const char *linebuf, int pipelining, struct rcpt *syncrp));
+extern int smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
 extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
 
 extern int check_7bit_cleanness __((struct ctldesc *dp));
@@ -626,6 +626,8 @@ main(argc, argv)
 	cmdline = &argv[0][0];
 	eocmdline = cmdline;
 
+	& oldsig; /* volatile-like trick.. */
+
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
 	SS.servport      = -1;
@@ -833,11 +835,12 @@ main(argc, argv)
 	  printf("#hungry\n");
 	  fflush(stdout);
 
-	  if (statusreport)
+	  if (statusreport) {
 	    if (idle)
 	      report(&SS,"#idle");
 	    else
 	      report(&SS,"#hungry");
+	  }
 
 	  /* if (fgets(file, sizeof file, stdin) == NULL) break; */
 	  if (ssfgets(file, sizeof(file), stdin, &SS) == NULL)
@@ -1680,7 +1683,7 @@ appendlet(SS, dp, convertmode)
 	int lastwasnl = 0;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	int bufferfull = 0;
+	volatile int bufferfull = 0;
 	char iobuf[BUFSIZ];
 	FILE *mfp = NULL;
 #endif
@@ -2321,11 +2324,9 @@ smtpconn(SS, host, noMX)
 	int noMX;
 {
 	int	i, r, retval;
-	char ipaddr[16];
-	int	af, addrstructsize;
-	char	hbuf[MAXHOSTNAMELEN+1], *addrs[2];
+	char	hbuf[MAXHOSTNAMELEN+1];
 	struct addrinfo req, *ai;
-	int	rc;
+	volatile int	rc;
 
 	memset(&req, 0, sizeof(req));
 	req.ai_socktype = SOCK_STREAM;
@@ -2426,7 +2427,7 @@ if (SS->verboselog)
 
 	    SS->mxcount = 0;
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
-	    if (SS->verboselog)
+	    if (SS->verboselog) {
 	      if (SS->mxcount == 0)
 		fprintf(SS->verboselog,
 			" rc=%d, no MXes (host=%.200s)\n", rc, host);
@@ -2435,7 +2436,7 @@ if (SS->verboselog)
 			" rc=%d, mxh[0].host=%.200s (host=%.200s) mxcnt=%d\n",
 			rc, (SS->mxh[0].host) ? (char*)SS->mxh[0].host : "<NUL>",
 			host, SS->mxcount);
-
+	    }
 	    switch (rc) {
 	      /* remotemsg is generated within getmxrr */
 	    case EX_TEMPFAIL:
@@ -2807,7 +2808,7 @@ vcsetup(SS, sa, fdp, hostname)
 	char *hostname;
 {
 	int af, addrsiz;
-	register int s;
+	register int sk;
 	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
 	struct sockaddr_in sad;
 #if defined(AF_INET6) && defined(INET6)
@@ -2853,8 +2854,8 @@ vcsetup(SS, sa, fdp, hostname)
 	  report(SS,"connecting to [%s]",SS->ipaddress);
 	}
 
-	s = socket(af, SOCK_STREAM, 0);
-	if (s < 0) {
+	sk = socket(af, SOCK_STREAM, 0);
+	if (sk < 0) {
 	  se = strerror(errno);
 	  sprintf(SS->remotemsg, "smtp; 500 (Internal error, socket(AF=%d): %s)", af, se);
 	  time(&endtime);
@@ -2936,14 +2937,14 @@ if (SS->verboselog)
 	    if (af == AF_INET) {
 	      sad.sin_family = AF_INET;
 	      sad.sin_port   = htons(p);
-	      if (bind(s, (struct sockaddr *)&sad, sizeof sad) >= 0)
+	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad) >= 0)
 		break;
 	    }
 #if defined(AF_INET6) && defined(INET6)
 	    else if (af == AF_INET6) {
 	      sad6.sin6_family = AF_INET6;
 	      sad6.sin6_port   = htons(p);
-	      if (bind(s, (struct sockaddr *)&sad6, sizeof sad6) >= 0)
+	      if (bind(sk, (struct sockaddr *)&sad6, sizeof sad6) >= 0)
 		break;
 	    }
 #endif
@@ -2981,10 +2982,10 @@ if (SS->verboselog)
 	     binding on the specific IP will be accepted. */
 	  errno = 0;
 	  if (af == AF_INET)
-	    bind(s, (struct sockaddr *)&sad, sizeof sad);
+	    bind(sk, (struct sockaddr *)&sad, sizeof sad);
 #if defined(AF_INET6) && defined(INET6)
 	  if (af == AF_INET6)
-	    bind(s, (struct sockaddr *)&sad6, sizeof sad6);
+	    bind(sk, (struct sockaddr *)&sad6, sizeof sad6);
 #endif
 	  if (logfp)
 	    fprintf(logfp,"%s#\tlocalidentity=%s bind() errno = %d\n",
@@ -3010,18 +3011,18 @@ if (SS->verboselog)
 	gotalarm = 0;
 
 	if (setjmp(alarmjmp) == 0) {
-	  if (connect(s, sa, addrsiz) == 0) {
+	  if (connect(sk, sa, addrsiz) == 0) {
 	    int on = 1;
 	    /* setreuid(0,0); */
-	    *fdp = s;
+	    *fdp = sk;
 	    alarm(0);
 #if 1
-	    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
+	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
 #else
 #if	defined(__svr4__) || defined(BSD) && (BSD-0) >= 43
-	    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
+	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
 #else  /* BSD < 43 */
-	    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
+	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
 #endif /* BSD >= 43 */
 #endif
 	    if (conndebug)
@@ -3032,7 +3033,7 @@ if (SS->verboselog)
 
 	    memset(&upeername, 0, sizeof(upeername));
 	    upeernamelen = sizeof(upeername);
-	    getsockname(s, (struct sockaddr*) &upeername, &upeernamelen);
+	    getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
 
 #if defined(AF_INET6) && defined(INET6)
 	    if (upeername.sai6.sin6_family == AF_INET6) {
@@ -3107,10 +3108,10 @@ if (SS->verboselog)
 	case EPERM:
 	/* wonder how Sendmail missed this one... */
 	case EINTR:
-		close(s);
+		close(sk);
 		return EX_TEMPFAIL;
 	}
-	close(s);
+	close(sk);
 	return EX_UNAVAILABLE;
 }
 
@@ -3123,8 +3124,8 @@ int sig;
 	  fprintf(logfp, "%s#\t*** Received SIGPIPE!\n", logtag());
 	  abort();
 	}
-	SIGNAL_HANDLE(SIGPIPE, sig_pipe);
-	SIGNAL_RELEASE(SIGPIPE);
+	SIGNAL_HANDLE(sig, sig_pipe);
+	SIGNAL_RELEASE(sig);
 }
 
 RETSIGTYPE
@@ -3133,8 +3134,8 @@ int sig;
 {
 	gotalarm = 1;
 	errno = EINTR;
-	SIGNAL_HANDLE(SIGALRM, sig_alarm);
-	SIGNAL_RELEASE(SIGALRM);
+	SIGNAL_HANDLE(sig, sig_alarm);
+	SIGNAL_RELEASE(sig);
 	if (!noalarmjmp)
 	  longjmp(alarmjmp, 1);
 }
@@ -3234,14 +3235,14 @@ int bdat_flush(SS, lastflg)
 	int lastflg;
 {
 	int pos, i, wrlen, r;
-	char linebuf[80];
+	char lbuf[80];
 
 	if (lastflg)
-	  sprintf(linebuf, "BDAT %d LAST", SS->chunksize);
+	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
 	else
-	  sprintf(linebuf, "BDAT %d", SS->chunksize);
+	  sprintf(lbuf, "BDAT %d", SS->chunksize);
 
-	r = smtpwrite(SS, 1, linebuf, 1 /* ALWAYS "pipeline" */, NULL);
+	r = smtpwrite(SS, 1, lbuf, 1 /* ALWAYS "pipeline" */, NULL);
 	if (r != EX_OK)
 	  return r;
 
@@ -3271,14 +3272,14 @@ int bdat_flush(SS, lastflg)
 
 #ifdef	HAVE_SELECT
 
-int select_sleep(fd,timeout)
-int fd, timeout;
+int select_sleep(fd,tout)
+int fd, tout;
 {
 	struct timeval tv;
 	int rc;
 	fd_set rdmask;
 
-	tv.tv_sec = timeout;
+	tv.tv_sec = tout;
 	tv.tv_usec = 0;
 	_Z_FD_ZERO(rdmask);
 	_Z_FD_SET(fd,rdmask);
@@ -3309,8 +3310,8 @@ int fd;
 	return 0;    /* interrupt or timeout, or some such.. */
 }
 #else /* not HAVE_SELECT */
-int select_sleep(fd, timeout)
-int fd, timeout;
+int select_sleep(fd, tout)
+int fd, tout;
 {
 	return -1;
 }
@@ -3431,10 +3432,10 @@ smtp_sync(SS, r, nonblocking)
 {
 	char *s, *eof, *eol;
 	int infd = FILENO(SS->smtpfp);
-	int idx = 0, code = 0;
-	int rc = EX_OK, len;
-	int some_ok = 0;
-	int datafail = EX_OK;
+	volatile int idx = 0, code = 0;
+	volatile int rc = EX_OK, len;
+	volatile int some_ok = 0;
+	volatile int datafail = EX_OK;
 	int err;
 	char buf[512];
 	char *p;
@@ -3791,9 +3792,10 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	int pipelining;
 	struct rcpt *syncrp;
 {
-	register char *s, *cp;
-	int i, response, infd, outfd, rc;
-	int r = 0;
+	register char *s;
+	volatile char *cp;
+	int response, infd, outfd, rc;
+	volatile int r = 0, i;
 	char *se;
 	char *status = NULL;
 	char buf[2*8192]; /* XX: static buffer - used in several places */
@@ -3833,7 +3835,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	if (strbuf != NULL) {
 	  int len = strlen(strbuf) + 2;
-	  int err = 0;
+	  volatile int err = 0;
 
 
 	   if (!gotalarm && setjmp(alarmjmp) == 0) {

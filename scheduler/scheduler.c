@@ -571,7 +571,7 @@ main(argc, argv)
 	  detach();		/* leave worldy matters behind */
 	  mytime(&now);
 	  printf("%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
-		 progname, Version, getpid(), (char *)rfc822date(&now));
+		 progname, Version, (int)getpid(), (char *)rfc822date(&now));
 	}
 	/* Actually we want this to act as daemon,
 	   even when not in daemon mode.. */

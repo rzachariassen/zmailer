@@ -309,7 +309,7 @@ const char *key;
 int init;
 {
     char *str, *str_base, pbuf[256];
-    int rlen, result, interest, len;
+    int rlen, result, interest;
 
     if (init) {
 	/* First call of this function. Not called recursively. */
@@ -460,9 +460,9 @@ const char *pbuf;
 	  printf("000- checkaddr(): domain of '%s'\n",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
-	  int i;
 	  printf("000- Results: %s\n", showresults(state->values));
 /*
+	  int i;
 	  printf("000- Results: ");
 	  for (i = 0; i < sizeof(state->values); i++)
 	    printf(":%c", state->values[i] ? state->values[i] : '0');
@@ -476,9 +476,9 @@ const char *pbuf;
 	  printf("000- checkaddr(): user of '%s'\n",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
-	  int i;
 	  printf("000- Results: %s\n", showresults(state->values));
 /*
+	  int i;
 	  printf("000- Results: ");
 	  for (i = 0; i < sizeof(state->values); i++)
 	    printf(":%c", state->values[i] ? state->values[i] : '0');
@@ -927,7 +927,7 @@ int inlen;
 {
     char pbuf[512];
     const char *at;
-    int i, result;
+    int result;
 
     if (inlen > (sizeof(pbuf) - 3))
       inlen = sizeof(pbuf) - 3;

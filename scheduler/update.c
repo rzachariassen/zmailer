@@ -211,7 +211,7 @@ update(fd, diagnostic)
 	    } else {
 	      if (verbose)
 		printf("... child pid %d overfed=%d\n",
-		       proc->pid, proc->overfed);
+		       (int)proc->pid, proc->overfed);
 	    }
 	  } else
 	    if (verbose)

@@ -157,7 +157,7 @@ static int qpctlfile(spl)
 	    ++i;
 	  } else {
 	    if (vp->proc) {
-	      fprintf(qpfp,"(running now, pid=%d ",vp->proc->pid);
+	      fprintf(qpfp,"(running now, pid=%d ", (int)vp->proc->pid);
 	      if (vp->proc->vertex == vp)
 		fprintf(qpfp,"active");
 	      else
@@ -169,7 +169,7 @@ static int qpctlfile(spl)
 	      fprintf(qpfp, "(activation pending, thread");
 	      /* A vertex is always on some thread.. */
 	      if (vp->thread && vp->thread->proc) {
-		fprintf(qpfp," pid=%d ", vp->thread->proc->pid);
+		fprintf(qpfp," pid=%d ", (int)vp->thread->proc->pid);
 		if (vp->thread->proc->thread == vp->thread)
 		  fprintf(qpfp,"expected");
 		else

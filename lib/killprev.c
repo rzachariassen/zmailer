@@ -46,7 +46,7 @@ killprevious(sig, pidfile)
 	if ((sig == 0 || sig == SIGTERM || -sig == SIGTERM)
 	    && (fp = fopen(path, "w+")) != NULL) {
 		setvbuf(fp, buf, _IOFBF, sizeof buf);
-		fprintf(fp, "%d\n", getpid());
+		fprintf(fp, "%d\n", (int)getpid());
 		rc = fflush(fp);
 		if (fclose(fp) != 0)
 		  rc |= 1; /* indicate error */

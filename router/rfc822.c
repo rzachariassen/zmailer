@@ -1896,7 +1896,7 @@ sequencer(e, file)
 	ofpname = (char *)emalloc((u_int)(strlen(file)+9));
 #endif
 	/* Guaranteed unique within this machine */
-	sprintf(ofpname,".%s.%d",file,getpid());
+	sprintf(ofpname,".%s.%d", file, (int)getpid());
 	if ((ofp = fopen(ofpname, "w+")) == NULL) {
 #ifndef USE_ALLOCA
 		free(ofpname);

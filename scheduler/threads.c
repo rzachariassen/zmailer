@@ -336,11 +336,11 @@ int ok;
 	    thr->proc->vertex = NULL;
 	    if (verbose)
 	      fprintf(stderr,"delete_thread(1) thr->proc=0x%p pid=%d\n",
-		      thr->proc, thr->proc->pid);
+		      thr->proc, (int)thr->proc->pid);
 	  } else {
 	    if (verbose)
 	      fprintf(stderr,"delete_thread(1b) thr->proc=0x%p pid=%d\n",
-		      thr->proc, thr->proc ? thr->proc->pid : 0);
+		      thr->proc, thr->proc ? (int)thr->proc->pid : 0);
 	  }
 	} else {
 	  /* Some threads left						*/
@@ -361,7 +361,7 @@ int ok;
 	    ++idleprocs;
 	    if (verbose)
 	      fprintf(stderr, "delete_thread(2) thr->proc=0x%p pid=%d ",
-		      proc, proc->pid);
+		      proc, (int)proc->pid);
 	    /* Find a free thread - or stay in idle.. */
 	    pick_next_thread(thg, thr, proc);
 	    if (verbose)
@@ -373,11 +373,11 @@ int ok;
 	    thr->proc->vertex = NULL;
 	    if (verbose)
 	      fprintf(stderr, "delete_thread(2b) thr->proc=0x%p pid=%d\n",
-		      thr->proc, thr->proc->pid);
+		      thr->proc, (int)thr->proc->pid);
 	  } else {
 	    if (verbose)
 	      fprintf(stderr, "delete_thread(3) thr->proc=0x%p pid=%d\n",
-		      thr->proc, thr->proc ? thr->proc->pid : 0);
+		      thr->proc, thr->proc ? (int)thr->proc->pid : 0);
 	  }
 	}
 
@@ -1441,7 +1441,7 @@ if (verbose) printf("idle_cleanup()\n");
 		   Rest of the cleanup happens via mux() service. */
 		if (verbose)
 		  printf("idle_cleanup() killing TA on tofd=%d pid=%d\n",
-			 p->tofd,p->pid);
+			 p->tofd, (int)p->pid);
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
 		p->tofd       = -1;
@@ -1567,8 +1567,8 @@ int fullmode;
 	      if (thr->proc != NULL &&
 		  thr->proc->thread == thr) {
 		++procs;
-		fprintf(fp," P=%-5d",thr->proc->pid);
-		fprintf(fp," HA=%ds",(int)(now - thr->proc->hungertime));
+		fprintf(fp," P=%-5d", (int)thr->proc->pid);
+		fprintf(fp," HA=%ds", (int)(now - thr->proc->hungertime));
 		if (thr->proc->feedtime == 0)
 		  fprintf(fp," FA=never");
 		else

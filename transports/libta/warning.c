@@ -50,7 +50,7 @@ warning(fmt, va_alist) /* ("fmtstr", remotemsg) */
 #endif
 	
 	if (progname != NULL)
-	  fprintf(stderr, "# %s:%d: ", progname, getpid());
+	  fprintf(stderr, "# %s:%d: ", progname, (int)getpid());
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
 	va_end(ap);

@@ -248,9 +248,9 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  
 	    {
 	      struct addrinfo *ai2 = ai;
-	      int i = 1, rc;
+	      int k = 1, rc;
 	    
-	      for ( ; ai2 != NULL; ai2 = ai2->ai_next, ++i ) {
+	      for ( ; ai2 != NULL; ai2 = ai2->ai_next, ++k ) {
 #if 0
 		if (debug) {
 		  struct sockaddr * sa = ai2->ai_addr;

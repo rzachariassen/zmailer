@@ -530,19 +530,19 @@ int insecure;
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_MAILFROM, cp, addrlen);
     if (logfp) {
-      char *s = policymsg(policydb, &SS->policystate);
-      if (SS->policyresult != 0 || s != NULL) {
+      char *ss = policymsg(policydb, &SS->policystate);
+      if (SS->policyresult != 0 || ss != NULL) {
 	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-		SS->policyresult, (s ? s : "<NONE!>"));
+		SS->policyresult, (ss ? ss : "<NONE!>"));
 	fflush(logfp);
       }
     }
 
     if (SS->policyresult < 0) {
-      char *s = policymsg(policydb, &SS->policystate);
+      char *ss = policymsg(policydb, &SS->policystate);
       if (s != NULL) {
 	type(SS,-453, m471, "Policy analysis reported:");
-	type(SS, 453, m471, "%s", s);
+	type(SS, 453, m471, "%s", ss);
       } else if (SS->policyresult < -99) {
 	if (SS->policyresult < -103) { /* -104 */
 	  type(SS, -453, m443, "Policy analysis reports temporary DNS error");
@@ -561,10 +561,10 @@ int insecure;
 	  type(SS,  453, m471, "gave at the MAIL FROM:<...> address.");
 	}
       } else {
-	char *s = policymsg(policydb, &SS->policystate);
+	char *ss = policymsg(policydb, &SS->policystate);
 	if (s != NULL) {
 	  type(SS,-553, m571, "Policy analysis reported:");
-	  type(SS, 553, m571, "%s", s);
+	  type(SS, 553, m571, "%s", ss);
 	} else if (SS->policyresult < -1) {
 	  type(SS, -553, m543, "Policy analysis reports DNS error with your");
 	  type(SS, -553, m543, "source domain.   Please correct your source");
@@ -684,8 +684,8 @@ int insecure;
 	SS->mfp = NULL;
     } else {
 	if (s) {
-	    int rc = atoi(s);
-	    type(SS, rc, s + 4, "Ok");
+	    int rrc = atoi(s);
+	    type(SS, rrc, s + 4, "Ok");
 	    if (rc >= 400) {
 	      mail_abort(SS->mfp);
 	      SS->mfp = NULL;
@@ -892,10 +892,10 @@ const char *buf, *cp;
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_RCPTTO, cp, addrlen);
     if (logfp) {
-      char *s = policymsg(policydb, &SS->policystate);
-      if (SS->policyresult != 0 || s != NULL) {
+      char *ss = policymsg(policydb, &SS->policystate);
+      if (SS->policyresult != 0 || ss != NULL) {
 	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-		SS->policyresult, (s ? s : "<NONE!>"));
+		SS->policyresult, (ss ? ss : "<NONE!>"));
 	fflush(logfp);
       }
     }
@@ -913,10 +913,10 @@ const char *buf, *cp;
 	      SS->policyresult = 0;
 
 	    if (logfp) {
-	      char *s = policymsg(policydb, &SS->policystate);
-	      if (SS->policyresult != 0 || s != NULL) {
+	      char *ss = policymsg(policydb, &SS->policystate);
+	      if (SS->policyresult != 0 || ss != NULL) {
 		fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-			SS->policyresult, (s ? s : "<NONE!>"));
+			SS->policyresult, (ss ? ss : "<NONE!>"));
 		fflush(logfp);
 	      }
 	    }
@@ -924,16 +924,16 @@ const char *buf, *cp;
       }
     }
     if (SS->policyresult < 0) {
-	char *s = policymsg(policydb, &SS->policystate);
+	char *ss = policymsg(policydb, &SS->policystate);
 
 	fprintf(SS->mfp, "comment policytest() rejected rcptaddr: <");
 	fwrite(cp, 1, addrlen, SS->mfp);
 	fprintf(SS->mfp,">\n");
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
-	  if (s != NULL) {
+	  if (ss != NULL) {
 	    type(SS,-453, m471, "Policy analysis reported:");
-	    type(SS, 453, m471, "%s", s);
+	    type(SS, 453, m471, "%s", ss);
 	  } else if (SS->policyresult < -103) { /* -104 */
 	    type(SS, -453, m443, "Policy analysis reports temporary DNS error");
 	    type(SS, -453, m443, "with this target domain. Retrying may help,");
@@ -957,8 +957,7 @@ const char *buf, *cp;
 	    type(SS, 453, m443, "Policy rejection on the target address");
 	  }
 	} else {
-	  char *s = policymsg(policydb, &SS->policystate);
-	  if (s != NULL) {
+	  if (ss != NULL) {
 	    type(SS,-553, m571, "Policy analysis reported:");
 	    type(SS, 553, m571, "%s", s);
 	  } else if (SS->policyresult < -2) {

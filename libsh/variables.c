@@ -206,7 +206,7 @@ v_expand(s, caller, retcode)
 		return newstring(strsave(np));
 
 	case '$':
-		sprintf(np, "%d", getpid());
+		sprintf(np, "%d", (int)getpid());
 		return newstring(strsave(np));
 
 	case '?':
