@@ -1902,7 +1902,7 @@ static void print_shm __((void))
 #define M  MIBMtaEntry->m
 
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
-  printf("Time_now                      %lu\n", (unsigned long)time(NULL));
+  printf("Time_now                       %10lu\n", (unsigned long)time(NULL));
 
   printf("SYS.mtaRouterMasterPID          %9u",M.mtaRouterMasterPID);
   if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
@@ -1917,8 +1917,8 @@ static void print_shm __((void))
   printf("\n");
 
 
-  printf("SYS.mtaSpoolFreeSpace           %9u\n", M.mtaSpoolFreeSpace);
-  printf("SYS.mtaLogFreeSpace             %9u\n", M.mtaLogFreeSpace);
+  printf("SYS.mtaSpoolFreeSpace-kB        %9u\n", M.mtaSpoolFreeSpace);
+  printf("SYS.mtaLogFreeSpace-kB          %9u\n", M.mtaLogFreeSpace);
 
 
   printf("SS.mtaIncomingProcesses              %4u\n",
@@ -1952,9 +1952,9 @@ static void print_shm __((void))
   printf("SS.mtaIncomingSMTP_BDAT         %9u\n", M.mtaIncomingSMTP_BDAT);
   printf("SS.mtaIncomingSMTP_BDAT_ok      %9u\n", M.mtaIncomingSMTP_BDAT_ok);
   printf("SS.mtaIncomingSMTP_BDAT_bad     %9u\n", M.mtaIncomingSMTP_BDAT_bad);
-  printf("SS.mtaIncomingSMTP_DATA_KBYTES  %9u\n", M.mtaIncomingSMTP_DATA_KBYTES);
-  printf("SS.mtaIncomingSMTP_BDAT_KBYTES  %9u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
-  printf("SS.mtaIncomingSMTP_spool_KBYTES %9u\n", M.mtaIncomingSMTP_spool_KBYTES);
+  printf("SS.mtaIncomingSMTP_DATA-kB      %9u\n", M.mtaIncomingSMTP_DATA_KBYTES);
+  printf("SS.mtaIncomingSMTP_BDAT-kB      %9u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
+  printf("SS.mtaIncomingSMTP_spool-kB     %9u\n", M.mtaIncomingSMTP_spool_KBYTES);
 
   printf("SS.mtaReceivedMessages          %9u\n", M.mtaReceivedMessagesSs);
   printf("SS.mtaReceivedRecipients        %9u\n", M.mtaReceivedRecipientsSs);
@@ -1967,9 +1967,9 @@ static void print_shm __((void))
   printf("RT.mtaTransmittedMessages       %9u\n", M.mtaTransmittedMessagesRt);
   printf("RT.mtaTransmittedRecipientsRt   %9u\n", M.mtaTransmittedRecipientsRt);
 
-  printf("RT.mtaReceivedVolume            %9u\n", M.mtaReceivedVolumeRt);
-  printf("RT.mtaTransmittedVolume         %9u\n", M.mtaTransmittedVolumeRt);
-  printf("RT.mtaTransmittedVolume2        %9u\n", M.mtaTransmittedVolume2Rt);
+  printf("RT.mtaReceivedVolume-kB         %9u\n", M.mtaReceivedVolumeRt);
+  printf("RT.mtaTransmittedVolume-kB      %9u\n", M.mtaTransmittedVolumeRt);
+  printf("RT.mtaTransmittedVolume2-kB     %9u\n", M.mtaTransmittedVolume2Rt);
 
   printf("RT.mtaStoredMessages            %9u\n", M.mtaStoredMessagesRt);
   printf("RT.mtaStoredRecipients          %9u\n", M.mtaStoredRecipientsRt);
