@@ -1,5 +1,8 @@
 2003-06-09  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Mark version 2.99.56-pre7
+
 	* include/libz.h, include/shmmib.h, lib/fdstatfs-test.c,
 	  lib/fdstatfs.c, lib/zshmmibattach.c, router/daemonsub.c,
 	  scheduler/mailq.inc, scheduler/scheduler.c, smtpserver/smtpcmds.c,
