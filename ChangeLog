@@ -1,6 +1,6 @@
 2002-04-18  Matti Aarnio  <mea@zmailer.org>
 
-	* libc/mail.c, libc/sfmail.c:
+	* libc/mail.c, libc/sfmail.c, router/rfc822.c:
 	    Add missing  #include "zmsignal.h"  lines...
 
 2002-04-17  Matti Aarnio  <mea@zmailer.org>

@@ -2,6 +2,10 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  */
+/*
+ *	Some modifications  by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /*
  * This file contains most of the RFC822-specific message manipulation.
@@ -28,6 +32,7 @@
 
 #include "prototypes.h"
 #include "libsh.h"
+#include "zmsignal.h"
 
 #ifndef _IOFBF
 #define _IOFBF  0
