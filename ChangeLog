@@ -1,3 +1,13 @@
+1998-02-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    A weird error report surfaced, which turned out to be
+	    error in PIPELINING smtp_sync() processing.  Remote
+	    end gave 250 answers to all MAIL FROM, and RCPT TO lines,
+	    but then gave 451 for DATA.  The code had NO handling
+	    of DATA command error :-(  (There was apparent assumption
+	    that if any RCPT TO is ok, then DATA will be ok too..)
+
 1998-02-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/scheduler.c, scheduler/update.c:
