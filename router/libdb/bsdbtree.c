@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1996-1997 Matti Aarnio
+ *	Copyright 1996-1998 Matti Aarnio
  */
 
 /* LINTLIBRARY */
@@ -13,9 +13,9 @@
 # include <fcntl.h>
 #endif
 #ifdef HAVE_DB_185_H
-# include <db_185.h>
+# include <db_185.h>	/* This code is in fact for BSD DB 1.85, ... */
 #else
-# include <db.h>
+# include <db.h>	/* ... NOT for BSD DB 2.* if that is in the system! */
 #endif
 #include <sys/file.h>
 #include "search.h"
@@ -26,7 +26,6 @@
 
 extern int errno;
 extern int deferit;
-
 
 static BTREEINFO BINFO = { 0, 2560, 0, 0, 0, NULL,  NULL, 0 };
 

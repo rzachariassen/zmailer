@@ -3591,7 +3591,7 @@ DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
  # Default db-type, unless we figure out something.
   # Default db-extension (pag/db) for FILE OPEN
  # Default db-extension (pag/db) for FILE AGE TESTS
-for ac_hdr in gdbm.h ndbm.h sdbm.h db_185.h db.h
+for ac_hdr in gdbm.h ndbm.h sdbm.h db.h db_185.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
