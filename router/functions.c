@@ -118,7 +118,9 @@ struct shCmd fnctns[] = {
 {	"process",	run_process,	NULL,	NULL,	0	},
 {	"rfc822",	run_rfc822,	NULL,	NULL,	0	},
 {	"groupmembers",	run_grpmems,	NULL,	NULL,	0	},
+#if 0
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
+#endif
 {	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
 {	"zapDSNnotify", zap_DSN_notify,	NULL,	NULL,	SH_ARGV	},
 {	"postzapDSNnotify", post_zap_DSN_notify, NULL, NULL, SH_ARGV },
@@ -483,6 +485,7 @@ static struct headerinfo aliashdr = {
 	"aliases", AddressList, Recipient, normal
 };
 
+#if 0 /* dead code, 'zmailer newdb' does these differently... */
 static int
 run_praliases(argc, argv)
 	int argc;
@@ -648,6 +651,7 @@ run_praliases(argc, argv)
 				argv[0]);
 	return errflg;
 }
+#endif /* ... dead code */
 
 #ifdef DEBUG_FOPEN
 void

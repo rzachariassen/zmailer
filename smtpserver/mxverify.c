@@ -1,7 +1,7 @@
 /*
  *   mx_client_verify() -- subroutine for ZMailer smtpserver
  *
- *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999
+ *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002
  */
 
 #include "smtpserver.h"
@@ -693,6 +693,10 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	  /* "rbldomain" is possibly a COLON-demarked set of
 	     domain names:  rbl.maps.vix.com:dul.maps.vix.com
 	     which isn't so easy to read, but ... */
+	  /* The 2000 char buffer should be way oversized
+	     for this routine's needs..  And it is managerial
+	     input at the policy database, which has the unpredictable
+	     size...  */
 	  s = strchr(rbldomain, ':');
 	  if (s) *s = 0;
 	  if (strcmp(rbldomain,"+") == 0)
@@ -706,6 +710,18 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	  } else {
 	    rbldomain += strlen(rbldomain);
 	  }
+
+	  /* Add explicite DOT into the tail of the lookup object.
+	     That way the lookup should never use resolver's  SEARCH
+	     suffix set. */
+
+	  s = suf + strlen(suf);
+	  if (s > hbuf) --s;
+	  if (*s != '.') {
+	    *suf++ = '.';
+	    *suf = 0;
+	  }
+
 
 	  if (debug)
 	    printf("000- looking up DNS A object: %s\n", hbuf);

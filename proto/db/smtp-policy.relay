@@ -39,3 +39,12 @@
 #|
 #| some.domain.name
 #|
+#|
+#|   Listing addresses who shall _always_ receive email via us:
+#|   (Some caveats exist..  Use of  rcpt-dns-rbl / test-rcpt-dns-rbl
+#|    instead of  test-dns-rbl (if any)  is a must!)
+#|
+#| postmaster@domain2
+#| abuse@domain1
+#| sales@domain3
+#|

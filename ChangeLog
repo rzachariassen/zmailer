@@ -1,3 +1,23 @@
+2002-09-01  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/rfc822scan.c, router/functions.c, router/rfc822.c:
+	    Removed code (for printaliases function) that is no longer
+	    used, observed situations, when the malformed headers
+	    can be split by ZMailer.
+
+	* smtpserver/mxverify.c:
+	    When doing varioud "RBL" lookups, always catenate a "."
+	    into end of the lookup domain in order to suppress
+	    unnecessary "search" work by the resolver libraries.
+	    Doing:  _res.options &= ~RES_DNSRCH;  might do it too...
+
+	* smtpserver/smtpcmds.c:
+	    Noticed that in unused code there is potential for
+	    serious trouble with router call.  '#if 0' wrappers in..
+
+	* proto/db/smtp-policy.relay:
+	    Add a comment covering user-specific destination addresses.
+
 2002-08-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c:
@@ -1598,8 +1618,9 @@
 	    - Modified header handling to process folded lines as single
 	      string, not as a sequence of strings.
 	    - Wrote proper RFC822/MIME token scanner into  mimeheaders.c
-	      which is able to correctly skip over places where (folded)LWSP
-	      is allowed, including possible (comments) in them.
+	      which is able to correctly skip over places where
+	      (folded)LWSP is allowed, including possible (comments)
+	      in them.
 
 2000-11-12  Matti Aarnio  <mea@zmailer.org>
 

@@ -140,6 +140,41 @@ int rfc822_mustquote(s, spc)
  * header field name.
  */
 
+#if 1
+
+/* NOTE: The 'octo' variable is from long ago, dead code.. */
+
+
+int
+hdr_status(cp, lbuf, n, octo)
+	register const char *cp, *lbuf;
+	int	n, octo;
+{
+	if (*cp == ' ' || *cp == '\t') {
+	  while ((cp < lbuf + n) && (rfc_ctype[(*cp) & 0xFF] & (_w|_l)))
+	    ++cp;
+	  if (cp == lbuf + n)
+	    /* a line containing only whitespace is EOH */
+	    return -1;
+	  /* a continuation line (folded header) */
+	  return 0;
+	}
+
+	while ((cp < lbuf + n) && (rfc_ctype[(*cp) & 0xFF] & _h))
+	  ++cp;
+	if ((cp < lbuf + n) &&
+	    (*cp == ':') /*&& (cp > cpin)*/)	/* header line */
+	  return cp - lbuf;
+	/* if we get to here, we have a malformed header line */
+	/* if (*cp == ':' && cp == cpin) return -1; */
+	return lbuf - cp;
+}
+
+#else
+
+/* DEAD CODE:  From time when router did magic things to implement
+   a semi-optimized alias database compilation... */
+
 int
 hdr_status(cp, lbuf, n, octo)
 	register const char *cp, *lbuf;
@@ -187,6 +222,7 @@ hdr_status(cp, lbuf, n, octo)
 	  return lbuf - cp;
 	}
 }
+#endif /* ... dead code */
 
 #if 0
 #define MKERROR(msg,prevp)	tn = makeToken((msg), strlen(msg)); \

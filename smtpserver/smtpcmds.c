@@ -235,6 +235,17 @@ const char *buf, *cp;
     /* Router interacting policy analysis functions */
     /* Note, these are orthogonal to those of smtp-server
        internal policy functions! */
+
+#if 0 /* Original security reviewer reported here a potential
+	 for a buffer overflow, however there are potentially
+	 more severe things lurking in the interactive router
+	 call with these parameters, than mere buffer overflow.
+	 Observe the quotation issues...
+	 This code is now buried into '#if 0', until the
+	 real fix is written -- if ever..
+	 This code has never been in active use...
+      */
+
     if (STYLE(SS->cfinfo, 'h')) {
       char argbuf[100+100];
       char *s;
@@ -256,6 +267,7 @@ const char *buf, *cp;
 	free(s);
       }
     }
+#endif
 
     /* Check `cp' corresponds to the reverse address */
     if (skeptical && SS->ihostaddr[0] != '\0'
@@ -591,14 +603,14 @@ int insecure;
 	    /* This data we use, gather the value */
 	    SS->sizeoptval = 0;
 	    while (isascii(*s) && isdigit(*s)) {
+	        if (SS->sizeoptval > 100000000) /* Next to exceed 1G ? */
+		  break;
 		SS->sizeoptval *= 10;
 		SS->sizeoptval += (*s - '0');
 		++s;
-		if (SS->sizeoptval > 999999999) /* 1GB or more? */
-		  break;
 	    }
 	    if ((*s && *s != ' ' && *s != '\t') ||
-		(SS->sizeoptval > 999999999) /* 1GB */ ) {
+		(SS->sizeoptval > 1000000000) /* 1GB */ ) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "SIZE-param data error");
 		rc = 1;
