@@ -2233,6 +2233,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			sift[nsift].str = NULL;
 			sift[nsift].label = pc+1 - code;
 			sift[nsift].subexps = NULL;
+			sift[nsift].count = 9999; /* Cut eternal loops */
 			v_accessed = NULL;
 			break;
 		case sSiftBody:
@@ -2365,8 +2366,10 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			if (sift[nsift].str == NULL)
 				sift[nsift].str = strsave("");
 			setsubexps(&sift[nsift].subexps, re);
-			if (!reg_exec(re, sift[nsift].str))
+			if ((sift[nsift].count >= 0) &&
+			    !reg_exec(re, sift[nsift].str))
 				pc = code + argi1 - 1;
+			sift[nsift].count -= 1;
 			break;
 
 /* Token RegExpressions: */
@@ -2384,6 +2387,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			sift[nsift].tlist = NULL;
 			sift[nsift].label = pc+1 - code;
 			sift[nsift].subexps = NULL;
+			sift[nsift].count = 9999; /* Cut eternal loops */
 			v_accessed = NULL;
 			break;
 		case sTSiftBody:
@@ -2499,8 +2503,10 @@ std_printf("set %x at %d\n", tre, cdp->trearray_idx);
 			if (sift[nsift].tlist == NULL)
 			  sift[nsift].tlist = makeToken(uBLANK, 0);
 			tsetsubexps(&sift[nsift].subexps, tre);
-			if (!tregexec(tre, sift[nsift].tlist))
+			if ((sift[nsift].count >= 0) &&
+			    !tregexec(tre, sift[nsift].tlist))
 				pc = code + argi1 - 1;
+			sift[nsift].count -= 1;
 			break;
 
 #endif	/* MAILER */

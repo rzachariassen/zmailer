@@ -40,6 +40,7 @@ struct siftinfo {
 	regexp		*program;	/* compiled regular expression stack */
 	tregexp		*tprogram;	/* compiled regular texpression stack*/
 	struct si_retab	*subexps;	/* linked list of subexpressions */
+	int		count;		/* count how many matches on this level */
 };
 
 #endif	/* Z_SIFT_H */
