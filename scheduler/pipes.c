@@ -22,7 +22,7 @@ int pipes_create(tochild, fromchild)
 int tochild[2];
 int fromchild[2];
 {
-	int rc = socketpair(AF_UNIX, SOCK_STREAM, 0, tochild);
+	int rc = socketpair(PF_UNIX, SOCK_STREAM, 0, tochild);
 	if (rc < 0) return rc;
 	fromchild[0] = tochild[1];
 	fromchild[1] = tochild[0];

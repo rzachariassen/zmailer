@@ -1,3 +1,16 @@
+1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/selfaddrs.c, libident/identuser.c, scheduler/mailq.c,
+	  scheduler/pipes.c, scheduler/transport.c, smtpserver/smtpserver.c,
+	  transports/mailbox/mailbox.c, transports/smtp/mprobe.c:
+	    Instead of  AF_xxxx  we call  socket parameter  PF_xxx
+	    (not: Address Family, but Protocol Family ...)
+	
+	* man/scheduler.8, man/mailq.1, scheduler/mailq.c,
+	  scheduler/threads.c:
+	    Updated man-pages a bit (quite a bit!), implemented 'mailq -QQQ'
+	    in MAILQv2 mode.
+
 1999-11-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:
@@ -7,14 +20,15 @@
 	  scheduler/prototypes.h, scheduler/readconfig.c,
 	  scheduler/scheduler.c, scheduler/transport.c:
 	    * scheduler.conf file can now have:
-	        PARAMmailqpath = "UNIX:/path/to/af_unix/mailq/port"
+	        PARAMmailqpath = "UNIX:/path/to/pf_unix/mailq/socket"
 		PARAMmailqpath = "TCP:174"
-	    * mailq -p /path/to/af_unix/mailq/port
+	    * mailq -p /path/to/pf_unix/mailq/port
 	    * mailq -p mailq    (check /etc/services for tcp/mailq)
 	    * mailq -p 174      (default case)
 
 	    Those are for running multiple schedulers in the system,
-	    and allowing each different mailq port.
+	    and allowing each a different mailq port. (Out of PF_UNIX,
+	    and PF_INET protocol families..)
 
 1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "25 Dec 1996"
+.TH SCHEDULER 8 "15 Nov 1999"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -141,6 +141,15 @@ overrides the default log file location \fILOGDIR\fB/scheduler\fR.
 .IP \-l\ \fIstatisticslog\fR
 starts the appending of delivery statistics information (ASCII form)
 into given file.  No default value.
+.IP \-M\ [1|2]
+Version of the
+.I mailq
+protocol this server runs; essentially a test option, as
+existence of
+.I PARAMauthfile=".."
+assignment at the
+.I scheduler.conf
+file turns the protocol into version 2.
 .IP \-N\ \fItransmaxfno\fR
 sets how many filehandles are allocated for the scheduler's started
 children (if the system has adjustable resources.)
@@ -153,6 +162,12 @@ unless the message sender has used DSN facility to define RET=HDRS.
 specifies an alternate \fIPOSTOFFICE\fR directory.
 .IP \-q\ \fIrendezvous\fR
 on machines without TCP/IP networking, the rendezvous between
+.I scheduler
+and
+.IR mailq (1)
+is done using a well-known named pipe.  This option overrides the default
+location for this special file, either \fIRENDEZVOUS\fR or
+\fB/usr/tmp/.mailq.text\fR.
 .IP \-Q
 The ``Q''-mode, don't output the old style data into the queue querier,
 only the new-style one.
@@ -167,12 +182,6 @@ Print version, and exit
 Another option for debugging, delay the start of the verbose logging
 until after all jobs have been scanned in, and it is time to start the
 transporters.
-.I scheduler
-and
-.IR mailq (1)
-is done using a well-known named pipe.  This option overrides the default
-location for this special file, either \fIRENDEZVOUS\fR or
-\fB/usr/tmp/.mailq.text\fR.
 .IP \-v
 be verbose about activity, and do not detach as a daemon.
 .IP \-W
@@ -213,6 +222,9 @@ A clause consists of:
 \fIchannel\fR/\fIhost\fR string for an address.
 .IP
 \- 0 or more variable assignments or keywords (described below).
+.PP
+There are several possible
+.BR PARAM -assignments starting at column 0, more of them below.
 .PP
 If the selection pattern does not contain a '/', it is assumed to
 be a channel pattern and the host pattern is assumed to be the wildcard '*'.
@@ -415,6 +427,18 @@ agent will only be told about the message control files that indicate
 SMTP delivery to a particular host.  The actual host is picked at random
 from the current choices, to avoid systematic errors leading to a deadlock
 of any queue.
+.SH CONFIGURATION FILE PARAM-ASSIGNMENTS
+The scheduler can assign several of its internal parameters
+by having variable assignments beginning at column 0, and
+beginning with "PARAM" text:
+.IP PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
+.IP PARAMmailqpath\ \=\ "TCP:mailq"
+.IP PARAMmailqpath\ \=\ "TCP:174"
+These define two different type of possible socket addresses for
+"mailq" protocol; PF_UNIX socket, and TCP socket.
+Default is "TCP:174".
+.IP PARAMautfile\ \=\ "/path/to/scheduler.auth"
+Location of MAILQv2 autentication control file
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery
 programs like
@@ -705,6 +729,80 @@ This is sufficient information to be able to reconstruct the transport queues
 as seen by the scheduler process, and to find more information than what is
 shown here by actually looking up the message control and data files referred
 to.
+.SH MAILQv2 PROTOCOL
+The MAILQv2 protocol is interactive autenticating protocol, unlike
+its predecessor (v1).  The system begins with a greeting telling
+version, and then giving one line of challenge to be used in subsequent
+autentication command:
+.sp
+.ta 0.5i
+.nf
+	version zmailer 2.0\\n
+	MAILQ-V2-CHALLENGE: 942665308.906504.3\\n
+.fi
+.sp
+.PP
+Protocol commands are:
+.IP AUTH\ username\ hexauthenticator
+The "login" of the mailq session.  The hexauthenticator is
+lowercase hexadecimal character printout of MD5 checksum ran
+over the catenate of the challenge string (without its ending
+newline character), and the user's password.
+This algorithm is essentially the same what APOP scheme uses.
+.IP SHOW\ SNMP
+Implements 'mailq -QQQ'.
+.IP SHOW\ QUEUE\ SHORT
+Implements 'mailq -QQ'.
+.IP SHOW\ QUEUE\ THREADS
+Implements 'mailq -Q'.
+.IP SHOW\ THREAD\ channel\ host
+Unimplemented.
+.IP START\ THREAD\ channel\ host
+Unimplemented.
+.IP KILL\ MSG\ spoolid
+Unimplemented.
+.IP KILL\ THREAD\ channel\ host
+Unimplemented.
+.SH MAILQv2 AUTHENTICATION FILE
+.PP
+For autenticating MAILQv2 protocol users, system can use
+.I PARAMauthfile="/path/to/file.auth"
+PARAM-assignment to identify file containing the data, and
+with the file to authenticate and parametrize what user can do
+thru the MAILQv2 port.
+.PP
+.sp
+.ta 0.5i
+.nf
+#
+# APOP-like authentication control file for the ZMailer scheduler.
+#
+# Fields are double-colon (':') separated, and are:
+#   - Username
+#   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
+#   - Enabled attributes (tokens, space separated)
+#
+# Default-account for 'mailq' is 'nobody' with password 'nobody'.
+# Third field is at the moment a WORK IN PROGRESS!
+#
+# SECURITY NOTE:
+#   OWNER:      root
+#   PROTECTION: 0600
+#
+# Attribute tokens:
+#       ALL     well, a wild-card enabling everything
+#       SNMP    "SHOW SNMP"
+#       QQ      "SHOW QUEUE SHORT"
+#       TT      "SHOW QUEUE THREADS", "SHOW THREAD channel host"
+#       ETRN    "START THREAD channel host"
+#       KILL    "KILL THREAD channel host", "KILL MSG spoolid"
+#
+nobody:nobody:SNMP ETRN
+#watcher:zzzzz:SNMP QQ TT ETRN
+#root:zzzzzzz:ALL
+.fi
+.sp
+.PP
 .SH TCP-WRAPPER AND MAILQ
 If the ZMailer system is configured with tcp-wrapper code, then service-id
 "mailq" is looked for all those addresses that are allowed to do

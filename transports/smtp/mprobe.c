@@ -73,7 +73,7 @@ char *argv[];
 	sad.sin_port = htons(rem_port);
 	memcpy(&sad.sin_addr.s_addr,hp->h_addr,4); /* TCP/IP */
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (sock < 0) exit(3);
 
 	if (connect(sock, (struct sockaddr *)&sad, sizeof(sad)) < 0)

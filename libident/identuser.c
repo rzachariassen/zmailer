@@ -578,7 +578,7 @@ register struct in_addr *inremote;
   register int fl;
   register int saveerrno;
 
-  if ((s = socket(AF_INET,SOCK_STREAM,0)) == -1)
+  if ((s = socket(PF_INET,SOCK_STREAM,0)) == -1)
     return -1;
   if (inlocal->s_addr) {
     memset(&sa,0,sizeof(sa));

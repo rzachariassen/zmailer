@@ -1020,8 +1020,8 @@ queryipcinit()
 	  strncpy(sad.sun_path, modedata, sizeof(sad.sun_path));
 	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
 
-	  if ((querysocket = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-	    perror("querysocket: socket(AF_UNIX)");
+	  if ((querysocket = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+	    perror("querysocket: socket(PF_UNIX)");
 	    return;
 	  }
 
@@ -1061,14 +1061,14 @@ queryipcinit()
 	    if ((serv = getservbyname(modedata ? modedata : "mailq", "tcp")) == NULL) {
 	      fprintf(stderr, "No 'mailq' tcp service defined!\n");
 	    } else
-	      port = serv->s_port;
+	      port = ntohs(serv->s_port);
 	  }
 	  qipcretry = now + 5;
-	  sad.sin_port        = port;
+	  sad.sin_port        = htons(port);
 	  sad.sin_family      = AF_INET;
 	  sad.sin_addr.s_addr = htonl(INADDR_ANY);
-	  if ((querysocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	    perror("querysocket: socket(AF_INET)");
+	  if ((querysocket = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	    perror("querysocket: socket(PF_INET)");
 	    return;
 	  }
 	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILQ 1 "20 May 1997"
+.TH MAILQ 1 "15 Nov 1999"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -10,7 +10,7 @@ mailq \- zmailer mail queue printer
 ]
 [
 .B \-p
-.I port
+.I port_or_socket_path
 ]
 [
 .BR \-s [\fBs\fR]

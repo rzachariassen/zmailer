@@ -103,6 +103,7 @@ struct sockaddr ***sockaddrp;
 	int i;
 	int ifcount = 0;
 	int af = AF_INET;
+	int pf = PF_INET;
         struct ifconf ifc;
 	int ifbufsize = 4 * sizeof(struct ifreq) + 4;
 	char *interfacebuf = (void*)malloc(ifbufsize);
@@ -121,7 +122,7 @@ struct sockaddr ***sockaddrp;
 other_socktype:
 #endif
 
-	s = socket(af, SOCK_DGRAM, 0);
+	s = socket(pf, SOCK_DGRAM, 0);
 	if (s < 0) {
 	  free(interfacebuf);
 	  free(sap);
@@ -250,6 +251,7 @@ other_socktype:
 #if defined(AF_INET6) && defined(INET6)
 	if (af != AF_INET6) {
 	  af = AF_INET6;
+	  pf = PF_INET6;
 	  goto other_socktype;
 	}
 #endif

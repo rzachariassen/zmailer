@@ -1849,9 +1849,15 @@ void mq2_thread_report(mq,mqmode)
 
 	if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ | MQ2MODE_SNMP)) {
 	  *timebuf = 0;
+	  s = linebuf;
 	  saytime((long)(now - sched_starttime), timebuf, 1);
-	  sprintf(linebuf,"Kids: %d  Idle: %2d  Msgs: %3d  Thrds: %3d  Rcpnts: %4d  Uptime: %s\n",
-		  numkids, idleprocs, global_wrkcnt, threadsum, jobtotal, timebuf);
+	  s += sprintf(linebuf,"Kids: %d  Idle: %2d  Msgs: %3d  Thrds: %3d  Rcpnts: %4d  Uptime: ",
+		       numkids, idleprocs, global_wrkcnt, threadsum, jobtotal);
+	  if (mqmode & MQ2MODE_SNMP)
+	    sprintf(s, "%ld sec\n",(long)(now - sched_starttime));
+	  else
+	    sprintf(s, "%s\n",timebuf);
+
 	  mq2_puts(mq, linebuf);
 
 	  sprintf(linebuf, "Msgs in %lu out %lu stored %lu ",

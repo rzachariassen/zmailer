@@ -695,28 +695,28 @@ char **argv;
 	   If we are not explicitely told to use IPv6 only, we will try
 	   here to use IPv6, and if successfull, register it!  */
 	if (!use_ipv6 && !force_ipv4) {
-	  s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
 	  if (s >= 0) {
 	    use_ipv6 = 1;	/* We can do it! */
 	    close(s);
 	  }
 	}
 	if (use_ipv6) {
-	  s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
 #if 0
 	  if (s < 0) {	/* Fallback to the IPv4 mode .. */
-	    s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	    s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 	    use_ipv6 = 0;
 	  }
 #endif
 	} else
-	  s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 #else
-	s = socket(AF_INET, SOCK_STREAM, 0);
+	s = socket(PF_INET, SOCK_STREAM, 0);
 #endif
 	if (s < 0) {
 	  fprintf(stderr,
-		  "%s: socket(AF_INET%s, SOCK_STREAM): %s\n",
+		  "%s: socket(PF_INET%s, SOCK_STREAM): %s\n",
 		  progname, (use_ipv6 ? "6" : ""), strerror(errno));
 	  exit(1);
 	}

@@ -131,7 +131,7 @@ main(argc, argv)
 	    if (verbose == 0)
 	      ++verbose;
 	    break;
-#ifdef	AF_INET
+#if defined(AF_INET) || defined(AF_UNIX)
 	  case 'p':
 	    port = optarg;
 	    break;
@@ -219,7 +219,7 @@ main(argc, argv)
 	  }
 
 	  /* try grabbing a port */
-	  fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	  fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	  if (fd < 0) {
 	    fprintf(stderr, "%s: ", progname);
 	    perror("socket");
@@ -255,7 +255,7 @@ main(argc, argv)
 
 	    } else if (port == 0)
 	      
-	      portnum = serv->s_port;
+	      portnum = ntohs(serv->s_port);
 
 	    if (host == NULL) {
 	      host = getzenv("MAILSERVER");
@@ -302,7 +302,7 @@ main(argc, argv)
 	      exit(0);
 	  }
 	  /* try grabbing a port */
-	  fd = socket(AF_INET, SOCK_STREAM, 0);
+	  fd = socket(PF_INET, SOCK_STREAM, 0);
 	  if (fd < 0) {
 	    fprintf(stderr, "%s: ", progname);
 	    perror("socket");
@@ -336,7 +336,7 @@ main(argc, argv)
 		} else
 		  putc('\n', stderr);
 		close(fd);
-		if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+		if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
 		  fprintf(stderr, "%s: ", progname);
 		  perror("socket");
 		  exit(EX_UNAVAILABLE);
@@ -1070,7 +1070,9 @@ void query2(fpi, fpo)
 
 	if (schedq) {
 
-	  if (schedq > 1)
+	  if (schedq > 2)
+	    strcpy(buf,"SHOW SNMP\n");
+	  else if (schedq > 1)
 	    strcpy(buf,"SHOW QUEUE SHORT\n");
 	  else
 	    strcpy(buf,"SHOW QUEUE THREADS\n");

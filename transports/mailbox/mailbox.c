@@ -2903,7 +2903,7 @@ biff(hostname, username, offset)
 	  biffaddr = *(struct sockaddr_in *)spl->data;
 	buf = emalloc(3+strlen(username)+20);
 	sprintf(buf, "%s@%ld\n", username, offset);
-	f = socket(AF_INET, SOCK_DGRAM, 0);
+	f = socket(PF_INET, SOCK_DGRAM, 0);
 	sendto(f, buf, strlen(buf)+1, 0,
 	       (struct sockaddr *)&biffaddr, sizeof biffaddr);
 	close(f);
