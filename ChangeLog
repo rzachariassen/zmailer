@@ -1,3 +1,15 @@
+1999-12-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/mq2.c,
+	  scheduler/threads.c, scheduler/transport.c, scheduler/readconfig.c,
+	  scheduler/qprint.c, scheduler/update.c:
+	    Implemented changes needed for running multiple TAs at threads.
+
+1999-12-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/netdb.h, libc/getnameinfo.c:
+	    Fixes from Eugene Crosser for Cobalt box.
+
 1999-12-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/hold/Makefile.in, transports/mailbox/Makefile.in,
