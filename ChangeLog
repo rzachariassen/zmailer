@@ -1,7 +1,11 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* man/smtp.8.in, transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    New '-O ignore-ezmlm' option.
+
 	* transports/libta/ctlopen.c, include/ta.h,
-	  transports/expirer/expirer.c, man/expirer.8.in:
+	  transports/expirer/expirer.c, man/expirer.8.in,
+	  man/manual-expirer.8.in:
 	    Added optional '-u' selector for expirer to help
 	    queue purge tasks in some situations, when target
 	    X has lots of recipients, and only one of them is

@@ -32,9 +32,9 @@ Message recipient selector "host" (optional)
 Message recipient selector "user" (optional)
 .IP \-m\ \fI"message\ string"\fR
 An alternate report string.
-.IP \-s
+.IP "\-s\ \ \ \ \ \ \ \ \ \ \ "
 Silent mode. Message expiration occurs without any report to anywhere.
-.IP \-V
+.IP "\-V\ \ \ \ \ \ \ \ \ \ \ "
 prints a version message and exits.
 .IP \-l\ \fIlogfile\fR
 specifies a logfile.

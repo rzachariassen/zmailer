@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MANUAL-EXPIRER 8zm "2003-Aug-28"
+.TH MANUAL-EXPIRER 8zm "2005-Mar-24"
 .SH NAME
 manual-expirer \- wrapper for
 .IR expirer (8zm)
@@ -10,6 +10,7 @@ transport agent program
 .IP \fBmanual-expirer\fR 17em
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fI"hostname"\fR]
+[\fB\-u\fR\ \fI"user@domain"\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
 [\fB\-sV\fR]
 [\fB\-m\fR\ \fI"message\ string"\fR]
@@ -32,6 +33,8 @@ are:
 Message recipient selector "channel" (optional)
 .IP \-h\ hostname
 Message recipient selector "host" (optional)
+.IP \-u\ \fI"user@domain"\fR
+Message recipient selector "user" (optional)
 .IP "\-m 'message string'"
 An alternate report string.
 .IP "\-s\ \ \ \ \ \ \ \ \ \ \ "

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8zm "2004-Aug-22"
+.TH SMTP 8zm "2005-Mar-24"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -12,6 +12,7 @@
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fIheloname\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
+[\fB\-O\fR\ \fIoptions\fR]
 [\fB\-p\fR\ \fIremote-port\fR]
 [\fB\-T\fR\ \fItimeouts\fR]
 [\fB\-w\fR\ \fIsockwbufsize\fR]
@@ -166,6 +167,15 @@ delivering to an explicit IP address is inappropriate.
 Allow connection to local address.
 This may be used in conjunction with -x option only,
 if no -x option present, -X is silently ignored. 
+.IP \-O
+.RS
+Generic text-keyword option interface.
+.PP
+.IP ignore\-ezmlm
+Even when distributing lists in EZMLM-mode, ignore any such.
+Useful in cases where EZMLM-mode results message count multiplication
+to leading to delivery slowdown...
+.RE
 .IP \-P
 disable SMTP-PIPELINING usage (ESMTP keyword: PIPELINING)
 .IP \-S\ \fI/path/to/smtp-tls.conf\fR

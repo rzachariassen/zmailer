@@ -440,7 +440,7 @@ extern int  makeconn  __((SmtpState *SS, const char *, struct addrinfo *, int));
 extern int  makereconn __((SmtpState *SS));
 extern int  vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
 #ifdef	BIND
-extern int  rightmx  __((const char*, const char*, void*));
+extern int  rightmx  __((const char*, const struct taddress *, const void*));
 extern int  h_errno;
 extern int  res_mkquery(), res_send(), dn_skipname(), dn_expand();
 # ifdef RFC974

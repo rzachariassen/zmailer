@@ -71,6 +71,7 @@ int prefer_ip6 = 1;
 int close_after_data;
 
 int lmtp_mode;			/* RFC 2033: LMTP mode */
+int ignore_ezmlm;
 
 
 #ifdef HAVE_OPENSSL
@@ -537,7 +538,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "A:c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:1678");
+	  c = getopt(argc, argv, "A:c:deh:l:p:rsvw:xXDEF:L:HMO:PS:T:VWZ:1678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -646,6 +647,13 @@ main(argc, argv)
 	    if (timeout_cmd < 5) {
 	      fprintf(stderr, "%s: bad general cmd timeout: %s\n",
 		      argv[0], optarg);
+	      ++errflg;
+	    }
+	    break;
+	  case 'O':
+	    if (CISTREQ(optarg,"ignore-ezmlm")) {
+	      ignore_ezmlm = 1;
+	    } else {
 	      ++errflg;
 	    }
 	    break;
@@ -1469,7 +1477,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    *s++ = c;
 	  }
 
-	  if (startrp->ezmlm) {
+	  if (startrp->ezmlm && !ignore_ezmlm) {
 	    /* The EZMLM mode appendix... */
 	    const char *p = startrp->ezmlm;
 	    while (*p && (s < se)) *s++ = *p++;
@@ -1619,13 +1627,13 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    more_rpp = & rp->next;
 	    rp->next = NULL;
 	  }
-	  if (rp->ezmlm) {
+	  if (rp->ezmlm && !ignore_ezmlm) {
 	    /* THIS recipient is EZMLM one */
 	    more_rp  = rp->next;
 	    more_rpp = & rp->next;
 	    rp->next = NULL;
 	  }
-	  if (!rp->ezmlm && rp->next && rp->next->ezmlm) {
+	  if (!ignore_ezmlm && !rp->ezmlm && rp->next && rp->next->ezmlm) {
 	    /* THIS recipient isn't EZMLM one, but NEXT one is! */
 	    more_rp  = rp->next;
 	    more_rpp = & rp->next;
@@ -4910,20 +4918,21 @@ report(va_alist)
  * This is the callback function for ctlopen.  It should return 0 to reject
  * an address, and 1 to accept it.  This routine will only be used if we've
  * been asked to check MX RR's for all hosts for applicability. Therefore we
- * check whether the addr_host has an MX RR pointing at the host that we have
+ * check whether the  ap->host  has an MX RR pointing at the host that we have
  * an SMTP connection open with.  Return 1 if it is so.
  */
 
 int
-rightmx(spec_host, addr_host, cbparam)
-	const char *spec_host, *addr_host;
-	void	*cbparam;
+rightmx(spec_host, ap, cbparam)
+	const char *spec_host;
+	const struct taddress *ap;
+	const void	*cbparam;
 {
 	SmtpState *SS = cbparam;
 	int	i, rc;
 	char realname[1024];
 
-	if (CISTREQ(spec_host, addr_host))
+	if (CISTREQ(spec_host, ap->host))
 	  return 1;
 	if (SS->remotehost[0] == '\0')
 	  return 0;
@@ -4934,13 +4943,13 @@ rightmx(spec_host, addr_host, cbparam)
 	SS->firstmx = 0;
 
 	if (statusreport)
-	  report(SS,"MX-lookup: %s", addr_host);
+	  report(SS,"MX-lookup: %s", ap->host);
 
 	realname[0] = 0;
-	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0, realname, sizeof(realname), NULL)) {
+	switch (getmxrr(SS, ap->host, SS->mxh, MAXFORWARDERS, 0, realname, sizeof(realname), NULL)) {
 	case EX_OK:
 	  if (SS->mxh[0].host == NULL)
-	    return CISTREQ(addr_host, SS->remotehost);
+	    return CISTREQ(ap->host, SS->remotehost);
 	  break;
 	default:
 	  return 0;
