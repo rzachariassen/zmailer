@@ -206,23 +206,15 @@ const int holdlast, len;
       fprintf(stdout, "000 ==> %s %s '", ROUTER_SERVER, function);
     }
 
-    /* Process all double-quotes and backslashes so that
-       no surprises happen.. */
-
+    /* Wrap the user input string into simple quotes, then if
+       the input string contains said character, do (difficult)
+       '...'"'"'...' juggling of the quotes. */
     for (i = 0; *args && i < len; ++args, ++i) {
-#if 0
-	if (*args == '\\' || *args == '"' || *args == '`') {
-	    putc('\\', tofp);
-	    if (debug)
-	      putc('\\', stdout);
-	}
-#else
 	if (*args == '\'') {
 	  fputs("'\"'\"", tofp);
 	  if (debug)
 	    fputs("'\"'\"", stdout);
 	}
-#endif
 	putc(*args, tofp);
 	if (debug)
 	  putc(*args, stdout);
