@@ -153,7 +153,7 @@ static int qpctlfile(spl)
 		     "thread ");
 	    ++i;
 	  } else {
-	    if (vp->thread->proc) {
+	    if (vp->thread && vp->thread->proc) {
 	      sfprintf(qpfp,"(running now, pid=%d",
 		       (int)vp->thread->proc->pid);
 	      /* MULTI-TA-PER-THREAD ?? */

@@ -133,11 +133,6 @@ transports/smtp:
 	(Prepared to do it, however only on SMTP it is fatal -- I think..)
 
 - scheduler:
-	MAILQv1 is now sometimes failing at NULL referral when a message
-	is just beging assimilated into the tholian web.. Reason likely
-	being added instances of  queryipccheck(),  which now can
-	occur in places where message has not yet been fully assimilated.
-
 	Don't count already processed addresses into SNMP counters
 	(return previous state) -- and create a persistent SNMP counter
 	storage..
