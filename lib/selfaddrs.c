@@ -174,140 +174,13 @@ struct sockaddr ***sockaddrp;
 #endif
 	}
 #else /* not HAVE_GETIFADDRS */
-#ifdef SIOCGIFCONF
-	{
-	  struct ifconf ifc;
-	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
-	  char *interfacebuf = (void*)malloc(ifbufsize);
-	  int s;
-
-	  if (!interfacebuf) {
-	    free(sap);
-	    return -2;
-	  }
-
-	  s = socket(PF_INET, SOCK_DGRAM, 0);
-
-	  if (s < 0) {
-	    free(interfacebuf);
-	    free(sap);
-	    return -1;
-	  }
-
-	  /* Redo the buffer size increase until we get response size to
-	     be something of LESS THAN the buffer size minus two-times
-	     the sizeof(struct ifreq) -- because then we don't have
-	     a potential case of having larger block of addresses in
-	     system, but us being unable to get them all..
-	     Usually system has TWO interfaces -- loopback, and the LAN,
-	     thus the following loop is executed exactly once! */
-
-	  /* Some utilities seem to do this probing also with sockets of
-	     AF_X25, AF_IPX, AF_AX25, AF_INET6, etc. -address families,
-	     but on Linux (very least) it can be done with any of them,
-	     thus we use the one that is most likely available: AF_INET */
-
-	  for (;;) {
-
-	    /* get the list of known IP address from the kernel */
-	    ifbufsize <<= 1;
-	    interfacebuf = (void*)realloc(interfacebuf,ifbufsize);
-	    memset(&ifc, 0, sizeof(ifc));
-	    ifc.ifc_buf = interfacebuf;
-	    ifc.ifc_len = ifbufsize;
-	    if (ioctl(s, SIOCGIFCONF, (char *)&ifc) < 0)
-	      if (errno == EINVAL)
-		continue;
-
-	    if (ifc.ifc_len < (ifbufsize - 2*sizeof(struct ifreq)))
-	      break;
-
-	    /* Redo the query, perhaps didn't get them all.. */
-	  }
-
-
-	  /* Count how many addresses listed */
-
-	  for (i = 0; i < ifc.ifc_len; ) {
-
-	    struct ifreq *ifr = (struct ifreq *) &ifc.ifc_buf[i];
-	    union sockaddr_uni *sa = (union sockaddr_uni *) &ifr->ifr_addr;
-#ifdef SIOCGIFFLAGS
-	    struct ifreq ifrf;
-#endif
-
-#if defined(SA_LEN)
-	    if (SA_LEN(((struct sockaddr*)sa)) > sizeof ifr->ifr_addr)
-	      i += sizeof ifr->ifr_name + SA_LEN(((struct sockaddr *)sa));
-	    else
-#elif defined(HAVE_SA_LEN)
-	      if (sa->sa.sa_len > sizeof ifr->ifr_addr)
-		i += sizeof ifr->ifr_name + sa->sa.sa_len;
-	      else
-#endif
-		i += sizeof *ifr;
-
-	    /* Known address families ?
-	       The one we scanned for ??*/
-
-	    if (ifr->ifr_addr.sa_family != PF_INET)
-	      continue;
-
-	    /* Now, what do the flags say ? Are they alive ? */
-
-#ifdef SIOCGIFFLAGS
-
-	    memset(&ifrf, 0, sizeof(struct ifreq));
-	    strncpy(ifrf.ifr_name, ifr->ifr_name, sizeof(ifrf.ifr_name));
-
-	    if (ioctl(s, SIOCGIFFLAGS, (char *) &ifrf) < 0)
-	      continue; /* Failed.. */
-
-#if 0
-	    printf("name='%s'  ifrf_flags=0x%x\n",
-		   ifr->ifr_name,ifrf.ifr_flags);
-#endif
-	    if (!(IFF_UP & ifrf.ifr_flags))
-	      continue;
-#else
-
-	    /* printf("ifr_flags=0x%x\n",ifr->ifr_flags); */
-
-	    if (!(IFF_UP & ifr->ifr_flags))
-	      continue;
-#endif
-
-	    if (sapcount +2 >= sapspace) {
-	      sapspace <<= 1;
-	      sap = (void*)realloc(sap, (sizeof(union sockaddr_uni*) *
-					 (sapspace + 2)));
-	    }
-	    if (! sap) {
-	      close(s);
-	      free(interfacebuf);
-	      return -4; /* UAARGH! */
-	    }
-
-	    if (sa->sa.sa_family == AF_INET) {
-	      struct sockaddr_in *si4 = (void*)malloc(sizeof(*si4));
-	      if (si4 == NULL)
-		break;
-	      /* pick the whole sockaddr package! */
-	      memcpy(si4, &ifr->ifr_addr, sizeof(*si4));
-	      sap[++sapcount] = (union sockaddr_uni *)si4;
-	    }
-	  }
-	  close(s);
-	  free(interfacebuf);
-	}
-#endif /* defined(SIOCGIFCONF) */
 
 #if defined(SIOCGLIFCONF) && defined(AF_INET6) && defined(INET6)
 #warning "experimental INET6 related SIOCGLIFCONF code activated!"
 	{
 	  struct lifconf lifc;
 	  struct ifconf ifc;
-	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
+	  int ifbufsize = 4 * sizeof(struct lifreq) + 4;
 	  char *interfacebuf = (void*)malloc(ifbufsize);
 	  int s;
 
@@ -447,13 +320,142 @@ done_this_ipv6:
 	  free(interfacebuf);
 
 	}
+#else /* SIOCGLIFCONF && IPv6 */
+
+#ifdef SIOCGIFCONF
+	{
+	  struct ifconf ifc;
+	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
+	  char *interfacebuf = (void*)malloc(ifbufsize);
+	  int s;
+
+	  if (!interfacebuf) {
+	    free(sap);
+	    return -2;
+	  }
+
+	  s = socket(PF_INET, SOCK_DGRAM, 0);
+
+	  if (s < 0) {
+	    free(interfacebuf);
+	    free(sap);
+	    return -1;
+	  }
+
+	  /* Redo the buffer size increase until we get response size to
+	     be something of LESS THAN the buffer size minus two-times
+	     the sizeof(struct ifreq) -- because then we don't have
+	     a potential case of having larger block of addresses in
+	     system, but us being unable to get them all..
+	     Usually system has TWO interfaces -- loopback, and the LAN,
+	     thus the following loop is executed exactly once! */
+
+	  /* Some utilities seem to do this probing also with sockets of
+	     AF_X25, AF_IPX, AF_AX25, AF_INET6, etc. -address families,
+	     but on Linux (very least) it can be done with any of them,
+	     thus we use the one that is most likely available: AF_INET */
+
+	  for (;;) {
+
+	    /* get the list of known IP address from the kernel */
+	    ifbufsize <<= 1;
+	    interfacebuf = (void*)realloc(interfacebuf,ifbufsize);
+	    memset(&ifc, 0, sizeof(ifc));
+	    ifc.ifc_buf = interfacebuf;
+	    ifc.ifc_len = ifbufsize;
+	    if (ioctl(s, SIOCGIFCONF, (char *)&ifc) < 0)
+	      if (errno == EINVAL)
+		continue;
+
+	    if (ifc.ifc_len < (ifbufsize - 2*sizeof(struct ifreq)))
+	      break;
+
+	    /* Redo the query, perhaps didn't get them all.. */
+	  }
+
+
+	  /* Count how many addresses listed */
+
+	  for (i = 0; i < ifc.ifc_len; ) {
+
+	    struct ifreq *ifr = (struct ifreq *) &ifc.ifc_buf[i];
+	    union sockaddr_uni *sa = (union sockaddr_uni *) &ifr->ifr_addr;
+#ifdef SIOCGIFFLAGS
+	    struct ifreq ifrf;
 #endif
+
+#if defined(SA_LEN)
+	    if (SA_LEN(((struct sockaddr*)sa)) > sizeof ifr->ifr_addr)
+	      i += sizeof ifr->ifr_name + SA_LEN(((struct sockaddr *)sa));
+	    else
+#elif defined(HAVE_SA_LEN)
+	      if (sa->sa.sa_len > sizeof ifr->ifr_addr)
+		i += sizeof ifr->ifr_name + sa->sa.sa_len;
+	      else
+#endif
+		i += sizeof *ifr;
+
+	    /* Known address families ?
+	       The one we scanned for ??*/
+
+	    if (ifr->ifr_addr.sa_family != PF_INET)
+	      continue;
+
+	    /* Now, what do the flags say ? Are they alive ? */
+
+#ifdef SIOCGIFFLAGS
+
+	    memset(&ifrf, 0, sizeof(struct ifreq));
+	    strncpy(ifrf.ifr_name, ifr->ifr_name, sizeof(ifrf.ifr_name));
+
+	    if (ioctl(s, SIOCGIFFLAGS, (char *) &ifrf) < 0)
+	      continue; /* Failed.. */
+
+#if 0
+	    printf("name='%s'  ifrf_flags=0x%x\n",
+		   ifr->ifr_name,ifrf.ifr_flags);
+#endif
+	    if (!(IFF_UP & ifrf.ifr_flags))
+	      continue;
+#else
+
+	    /* printf("ifr_flags=0x%x\n",ifr->ifr_flags); */
+
+	    if (!(IFF_UP & ifr->ifr_flags))
+	      continue;
+#endif
+
+	    if (sapcount +2 >= sapspace) {
+	      sapspace <<= 1;
+	      sap = (void*)realloc(sap, (sizeof(union sockaddr_uni*) *
+					 (sapspace + 2)));
+	    }
+	    if (! sap) {
+	      close(s);
+	      free(interfacebuf);
+	      return -4; /* UAARGH! */
+	    }
+
+	    if (sa->sa.sa_family == AF_INET) {
+	      struct sockaddr_in *si4 = (void*)malloc(sizeof(*si4));
+	      if (si4 == NULL)
+		break;
+	      /* pick the whole sockaddr package! */
+	      memcpy(si4, &ifr->ifr_addr, sizeof(*si4));
+	      sap[++sapcount] = (union sockaddr_uni *)si4;
+	    }
+	  }
+	  close(s);
+	  free(interfacebuf);
+	}
+#endif /* defined(SIOCGIFCONF) */
+#endif /* SIOCGLIFCONF / SIOCGIFCONF */
+
 #endif /* not HAVE_GETIFADDRS */
 
 	  *sockaddrp = (struct sockaddr **)sap;
 
-	  if (sapcount > 0)
-	    sap[sapcount] = NULL;
+	  sap[++sapcount] = NULL;
 
 	  return sapcount;
 	}
