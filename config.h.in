@@ -64,9 +64,6 @@
    tzname.  */
 #undef HAVE_TZNAME
 
-/* Define if utime(file, NULL) sets file's timestamp to the present.  */
-#undef HAVE_UTIME_NULL
-
 /* Define if you have the vprintf function.  */
 #undef HAVE_VPRINTF
 
@@ -280,9 +277,6 @@
 /* */
 #undef SVR4_elf
 
-/* */
-#undef SVR4_kvm
-
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -477,6 +471,9 @@
 
 /* Define if you have the syslog function.  */
 #undef HAVE_SYSLOG
+
+/* Define if you have the utime function.  */
+#undef HAVE_UTIME
 
 /* Define if you have the utimes function.  */
 #undef HAVE_UTIMES

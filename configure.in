@@ -861,10 +861,10 @@ AC_CHECK_FUNCS(index rindex)
 AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
 		getmntinfo gettimeofday isascii memcpy mkfifo   \
 		getpgrp setsid seteuid setuid)
-AC_CHECK_FUNCS(setrlimit fchown utimes sysconf fpathconf)
+AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
-		protocols/rwhod.h select.h sys/select.h utime.h)
+		protocols/rwhod.h select.h sys/select.h)
 AC_CHECK_FUNCS(select syslog getdtablesize setpriority)
 
 #
@@ -1162,7 +1162,7 @@ AC_CHECK_FUNCS(vsprintf vsnprintf snprintf)
 AC_FUNC_ALLOCA
 AC_FUNC_GETPGRP
 AC_FUNC_MMAP
-AC_FUNC_UTIME_NULL
+dnl AC_FUNC_UTIME_NULL
 
 AC_ARG_WITH(ta-mmap,   [  --with-ta-mmap           TA's to use MMAP for reading the message bodies],
 	use_ta_mmap=1, use_ta_mmap=0)
