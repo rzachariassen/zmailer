@@ -1124,8 +1124,9 @@ int ok, justfree;
 	thg->idlecnt += 1;
 	idle_child(proc);
 	++idleprocs;
-
+#if 0
 	pick_next_thread(thg, thr, proc);
+#endif
 }
 
 /*
