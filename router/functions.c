@@ -38,6 +38,7 @@
 #endif /* HAVE_DIRENT_H */
 
 #include "zmsignal.h"
+#include "zsyslog.h"
 #include "mail.h"
 #include "interpret.h"
 #include "io.h"
@@ -86,6 +87,7 @@ static int run_squirrel  ARGCV;
 static int run_822syntax ARGCV;
 static int run_dequote   ARGCV;
 static int run_condquote ARGCV;
+static int run_syslog    ARGCV;
 
 #if	defined(XMEM) && defined(CSRIMALLOC)
 static int run_malcontents ARGCV;
@@ -137,6 +139,8 @@ struct shCmd fnctns[] = {
 {	"rfc822syntax",	run_822syntax,	NULL,	NULL,	0	},
 {	"dequote",	run_dequote,	NULL,	NULL,	0	},
 {	"condquote",	run_condquote,	NULL,	NULL,	0	},
+{	"syslog",	run_syslog,	NULL,	NULL,	0	},
+{	"logger",	run_syslog,	NULL,	NULL,	0	},
 #if	defined(XMEM) && defined(CSRIMALLOC)
 {	"malcontents",	run_malcontents,NULL,	NULL,	0	},
 #endif	/* CSRIMALLOC */
@@ -2227,6 +2231,52 @@ run_basename(argc, argv)
 	}
 	printf("%s\n", cp);
 	return 0;
+}
+
+static int
+run_syslog(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	int c;
+	int prio = LOG_INFO;
+	int errflg = 0;
+	optind = 1;
+
+	while ((c = getopt(argc, (char*const*)argv, "p:")) != EOF) {
+		switch (c) {
+		case 'p':	/* priority */
+			if(!strcmp(optarg, "debug")) {
+				prio = LOG_DEBUG;
+			} else if(!strcmp(optarg, "info")) {
+				prio = LOG_INFO;
+			} else if(!strcmp(optarg, "notice")) {
+				prio = LOG_NOTICE;
+			} else if(!strcmp(optarg, "warning")) {
+				prio = LOG_WARNING;
+			} else if(!strcmp(optarg, "err")) {
+				prio = LOG_ERR;
+			} else if(!strcmp(optarg, "crit")) {
+				prio = LOG_CRIT;
+			} else if(!strcmp(optarg, "alert")) {
+				prio = LOG_ALERT;
+			} else if(!strcmp(optarg, "emerg")) {
+				prio = LOG_EMERG;
+			} else {
+				++errflg;
+			}
+			break;
+		default:
+			++errflg;
+			break;
+		}
+	}
+
+	if (errflg || optind != argc - 1) {
+		fprintf(stderr, "Usage: %s [-p prio] string\n", argv[0]);
+		return 1;
+	}
+	zsyslog((prio, "%s", argv[optind]));
 }
 
 static int
