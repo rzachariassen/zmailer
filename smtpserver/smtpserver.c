@@ -1733,7 +1733,7 @@ va_dcl
     for (s = s + strlen(s); s < buf + cmdlen; ++s)
 	*s = '\0';
     buf[cmdlen] = '\0';
-    memcpy((char *) cmdline, buf, cmdlen);
+    memcpy((char *) cmdline, buf, cmdlen+1);
     va_end(ap);
 }
 

@@ -149,17 +149,19 @@ const char *name;
 	}
 	buf[sizeof(buf) - 1] = 0;	/* Trunc, just in case.. */
 
-	if (strncmp(buf, "PARAM", 5) == 0) {
-	    cfparam(buf);
+	cp = buf;
+	SKIPWHILE(isspace, cp);
+	if (strncmp(cp, "PARAM", 5) == 0) {
+	    cfparam(cp);
 	    continue;
 	}
 	scf.flags = "";
 	scf.next = NULL;
-	cp = buf;
+	s0 = cp;
 	SKIPWHILE(!isspace, cp);
 	c = *cp;
 	*cp = '\0';
-	s0 = s = strdup(buf);
+	s0 = strdup(s0);
 	for (s = s0; *s; ++s)
 	    if (isascii(*s & 0xFF) && isupper(*s & 0xFF))
 		*s = tolower(*s & 0xFF);
