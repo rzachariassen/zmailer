@@ -12,7 +12,11 @@
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
-#include <db.h>
+#ifdef HAVE_DB_185_H
+# include <db_185.h>
+#else
+# include <db.h>
+#endif
 #include <sys/file.h>
 #include "search.h"
 #include "io.h"
@@ -61,7 +65,7 @@ open_btree(sip, flag, comment)
 	int flag;
 	const char *comment;
 {
-	DB *db;
+	DB *db = NULL;
 	struct spblk *spl;
 	spkey_t symid;
 	int i;
@@ -116,7 +120,7 @@ reopen:
 	if (db == NULL)
 	  return NULL; /* Huh! */
 
-	key.data = (const void*)sip->key;
+	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
 	rc = (db->get)(db, &key, &val, 0);
 	if (rc != 0) {
@@ -149,9 +153,9 @@ add_btree(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.data = (const void*)sip->key;
+	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
-	val.data = (const void*)value;
+	val.data = (void*)value;
 	val.size = strlen(value)+1;
 	rc = (db->put)(db, &key, &val, 0);
 	if (rc < 0) {
@@ -180,7 +184,7 @@ remove_btree(sip)
 	if (db == NULL)
 		return EOF;
 
-	key.data = (const void*)sip->key;
+	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
 	rc = (db->del)(db, &key, 0);
 	if (rc < 0) {

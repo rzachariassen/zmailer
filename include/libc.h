@@ -52,16 +52,28 @@ extern int setvbuf __((FILE *fp, char *buf, int type, int size));
 #endif
 
 /* inet_ntop() & inet_pton() */
+#ifndef HAVE_INET_NTOP
 extern const char *inet_ntop __((int, const void *, char *, size_t));
+#endif
+#ifndef HAVE_INET_PTON
 extern       int   inet_pton __((int, const char *, void *));
+#endif
 /* Must have included <netdb.h> and possibly <netdb6.h> before this .. */
 #ifdef AI_PASSIVE
+#ifndef HAVE_GETADDRINFO
 extern       int   _getaddrinfo_ __((const char *, const char *, const struct addrinfo *, struct addrinfo **, FILE *));
 extern       int   getaddrinfo __((const char *, const char *, const struct addrinfo *, struct addrinfo **));
+#endif
+#ifndef HAVE_GETNAMEINFO
 extern       int   getnameinfo __((const struct sockaddr *, size_t, char *, size_t, char *, size_t, int));
+#endif
+#ifndef HAVE_GETADDRINFO
 extern       void  freeaddrinfo __((struct addrinfo *));
+#endif
+#ifndef HAVE_GAI_STRERROR
 extern       char *gai_strerror __((int));
 #endif
+#endif /* ifdef AI_PASSIVE */
 
 extern const char *progname;
 

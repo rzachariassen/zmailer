@@ -35,7 +35,7 @@ struct sptree *spt_builtins = NULL;
 struct sptree *spt_searchpath;
 
 int saweof;
-FILE *runiofp = stdout;
+FILE *runiofp = NULL;
 conscell *commandline = NULL;	/* argument to -c option */
 const char *progname;
 struct osCmd avcmd;
@@ -106,6 +106,8 @@ zshinit(argc, argv)
 	register struct shCmd *shcmdp;
 	memtypes oval;
 	
+	runiofp = stdout;
+
 	oval = stickymem;
 	stickymem = MEM_PERM;
 

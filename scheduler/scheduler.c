@@ -51,6 +51,7 @@
 #include "prototypes.h"
 #include "zsyslog.h"
 #include "libz.h"
+#include <grp.h>
 
 extern int optind;
 extern char *optarg;

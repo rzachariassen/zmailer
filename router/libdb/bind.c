@@ -45,6 +45,7 @@
 #ifdef __linux__
 #define __USE_BSD 1	/* Linux headers ... Auch..  <endian.h> */
 #endif
+#include <arpa/inet.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
 #include <string.h>

@@ -15,7 +15,7 @@ TOPDIR=		..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
 AR=		@AR@
-#prefix=        @prefix@
+prefix=         @prefix@
 #exec_prefix=   @exec_prefix@
 LIBC_INCL=	@GENINCL@ @INCLRESOLV@
 INCLUDEDIR=	@includedir@
@@ -76,9 +76,9 @@ lint:
 install:  $(TOPDIR)/libs/libzmailer.a
 	-if [ ! -d $(LIBRARYDIR) ] ; then $(MKDIR) $(LIBRARYDIR); fi
 	-if [ ! -d $(INCLUDEDIR) ] ; then $(MKDIR) $(INCLUDEDIR); fi
-	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(LIBRARYDIR)/libzmailer.a
-	-$(RANLIB) $(LIBRARYDIR)/libzmailer.a
-	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(INCLUDEDIR)/zmailer.h
+	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(prefix)$(LIBRARYDIR)/libzmailer.a
+	-$(RANLIB) $(prefix)$(LIBRARYDIR)/libzmailer.a
+	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(prefix)$(INCLUDEDIR)/zmailer.h
 
 clean-recursive clean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log whathost-test

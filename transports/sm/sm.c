@@ -347,17 +347,18 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	struct rcpt *startrp, *endrp;
 	FILE *verboselog;
 {
-	struct rcpt *rp;
+	struct rcpt *rp = NULL;
 	struct exmapinfo *exp;
 	const char *exs, *exd;
-	int i, j, ii, pid, in[2], out[2];
+	int i, j, pid, in[2], out[2], ii = 0;
 	unsigned int avsize;
-	FILE *tafp, *errfp;
-	char *cp, buf[BUFSIZ], buf2[BUFSIZ];
-	char *ws;
+	FILE *tafp = NULL, *errfp = NULL;
+	char *cp = NULL, buf[BUFSIZ], buf2[BUFSIZ];
+	char *ws = NULL;
 	const char *ds, **av, *s;
 	int status;
-	int content_kind, conversion_prohibited, convertmode, ascii_clean = 0;
+	int content_kind, conversion_prohibited,
+	  convertmode = 0, ascii_clean = 0;
 
 	if (lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET) < 0L)
 		warning("Cannot seek to message body! (%m)", (char *)NULL);
@@ -1295,7 +1296,6 @@ struct ctldesc *dp;
 	register int i;
 	register int bufferfull;
 	int lastwasnl;
-	off_t mfd_pos;
 	int mfd = dp->msgfd;
 
 /* can we use cache of message body data */

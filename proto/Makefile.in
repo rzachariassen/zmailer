@@ -160,7 +160,7 @@ cleandirs: FRC $(PZCONFIG)
 
 mailbin: $(PZCONFIG) $(PMAILBIN)
 	-@. $(PZCONFIG) ; \
-	if [ ! -d $$MAILBIN/bak ]; then $(MKDIR) $$MAILBIN/bak ; fi ; \
+	if [ ! -d $(prefix)$$MAILBIN/bak ]; then $(MKDIR) $(prefix)$$MAILBIN/bak ; fi ; \
 	for file in $(PMAILBIN) ; \
 	do \
 		name=`expr $$file : '\([^.]*\)'` ; \

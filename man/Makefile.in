@@ -2,9 +2,10 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
 
-prefix=		@prefix@
-MANDIR=		@MANDIR@
+#prefix=		@prefix@
+MANDIR=		$(prefix)@MANDIR@
 TOPDIR=		..
+S=		$(srcdir)/man
 INSTALL=	@INSTALL@
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
@@ -26,29 +27,29 @@ clean distclean:
 	rm -rf *~
 
 install:
-	$(INSTALL) -m 644 aliases.5	${MANDIR}/man5
-	$(INSTALL) -m 644 errormail.8	${MANDIR}/man8
-	$(INSTALL) -m 644 hold.8	${MANDIR}/man8
-	$(INSTALL) -m 644 mailbox.8	${MANDIR}/man8
-	$(INSTALL) -m 644 mailq.1	${MANDIR}/man1
-	$(INSTALL) -m 644 mboxpath.1	${MANDIR}/man1
-	$(INSTALL) -m 644 mailrm.1	${MANDIR}/man1
-	$(INSTALL) -m 644 newaliases.1	${MANDIR}/man1
-	$(INSTALL) -m 644 rmail.1	${MANDIR}/man1
-	$(INSTALL) -m 644 router.8	${MANDIR}/man8
-	$(INSTALL) -m 644 scheduler.8	${MANDIR}/man8
-	$(INSTALL) -m 644 sendmail.8	${MANDIR}/man8
-	$(INSTALL) -m 644 sm.8		${MANDIR}/man8
-	$(INSTALL) -m 644 smtp.8	${MANDIR}/man8
-	$(INSTALL) -m 644 smtpserver.8	${MANDIR}/man8
-	$(INSTALL) -m 644 mprobe.8	${MANDIR}/man8
-	$(INSTALL) -m 644 ssl.1		${MANDIR}/man1
+	$(INSTALL) -m 644 $S/aliases.5	${MANDIR}/man5
+	$(INSTALL) -m 644 $S/errormail.8 ${MANDIR}/man8
+	$(INSTALL) -m 644 $S/hold.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/mailbox.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/mailq.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/mboxpath.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/mailrm.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/newaliases.1 ${MANDIR}/man1
+	$(INSTALL) -m 644 $S/rmail.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/router.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/scheduler.8 ${MANDIR}/man8
+	$(INSTALL) -m 644 $S/sendmail.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/sm.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/smtp.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/smtpserver.8 ${MANDIR}/man8
+	$(INSTALL) -m 644 $S/mprobe.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/ssl.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/zmailer.1	${MANDIR}/man1
+	$(INSTALL) -m 644 $S/zmailer.3	${MANDIR}/man3
+	$(INSTALL) -m 644 $S/manual-expirer.8 ${MANDIR}/man8
+	$(INSTALL) -m 644 $S/expirer.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/zmsh.1	${MANDIR}/man1
 	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
-	$(INSTALL) -m 644 zmailer.1	${MANDIR}/man1
-	$(INSTALL) -m 644 zmailer.3	${MANDIR}/man3
-	$(INSTALL) -m 644 manual-expirer.8 ${MANDIR}/man8
-	$(INSTALL) -m 644 expirer.8	${MANDIR}/man8
-	$(INSTALL) -m 644 zmsh.1	${MANDIR}/man1
 
 groff: $(MAN1ps) $(MAN3ps) $(MAN5ps) $(MAN8ps)
 

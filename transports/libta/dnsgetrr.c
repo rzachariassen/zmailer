@@ -39,6 +39,8 @@
 #endif
 #endif	/* HAVE_RESOLVER */
 
+#include <arpa/inet.h>
+
 #include "ta.h"
 
 #define DPRINTF(x)

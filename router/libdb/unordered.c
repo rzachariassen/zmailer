@@ -181,7 +181,7 @@ _open_seq(sip, mode)
 	} else
 		imode = O_RDONLY;
 	if (spl == NULL || (fm = (struct file_map *)spl->data) == NULL) {
-		FILE *fp;
+		FILE *fp = NULL;
 		int i;
 		for (i = 0; i < 3; ++i) {
 		  fp = fopen(sip->file, mode);
@@ -470,7 +470,7 @@ readchunk(file, foffset)
 	const char *file;
 	long foffset;
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	register char *cp;
 	char *as;
 	conscell *tmp, *l;

@@ -26,7 +26,11 @@
 #undef datum
 #endif
 #ifdef HAVE_DB_H
-#include <db.h>
+#ifdef HAVE_DB_185_H
+# include <db_185.h>
+#else
+# include <db.h>
+#endif
 #endif
 
 #define PROG "makedb"

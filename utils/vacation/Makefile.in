@@ -17,6 +17,8 @@ MANDIR=		$(prefix)@MANDIR@
 INSTALL=	@INSTALL@
 TOPDIR=		../..
 LIBS=		-L$(TOPDIR)/libs -lzc @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
+LN_S=		"@LN_S@"
+MKDIR=		@MKDIR@
 
 VMSGDEF=	@MAILSHARE@/vacation.msg
 DEFS=		@DEFS@ -DVMSGDEF='"$(VMSGDEF)"'
@@ -51,14 +53,14 @@ distclean: clean
 install: vacation-inst
 	@if [ $(LN_S) = "ln -s" -a					\
 	     "$(VACATIONPATH)" != "$(MAILBIN)/vacation.sh" ]; then	\
-	    if [ -h $(VACATIONPATH) ]; then				\
+	    if [ -h "$(VACATIONPATH)" ]; then				\
 		test -f $(VACATIONPATH) &&				\
 			rm -f $(VACATIONPATH) ;				\
 		echo "ln -s $(MAILBIN)/vacation.sh $(VACATIONPATH)" ;	\
 		ln -s $(MAILBIN)/vacation.sh $(VACATIONPATH) ||		\
 			echo "Failed! rc=$?" ;				\
 	    else							\
-		test -f $(VACATIONPATH) &&				\
+		test -f "$(VACATIONPATH)" &&				\
 			mv -f $(VACATIONPATH) $(VACATIONPATH).orig;	\
 		echo "ln -s $(MAILBIN)/vacation.sh $(VACATIONPATH)";	\
 		ln -s $(MAILBIN)/vacation.sh $(VACATIONPATH) ||		\

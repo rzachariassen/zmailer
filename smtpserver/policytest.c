@@ -20,7 +20,11 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #ifdef HAVE_DB_H
-#include <db.h>
+#ifdef HAVE_DB_185_H
+# include <db_185.h>
+#else
+# include <db.h>
+#endif
 #endif
 #ifdef HAVE_NDBM_H
 #define datum Ndatum
@@ -48,6 +52,7 @@
 #ifdef HAVE_LINUX_IN6_H
 #include <linux/in6.h>
 #endif
+#include <arpa/inet.h>
 
 #endif
 
@@ -1330,8 +1335,6 @@ struct policystate *state;
 const char *str;
 const int len;
 {
-	char *at;
-
     /* state->request initialization !! */
     state->request = ( 1 << P_A_RELAYTARGET );
 

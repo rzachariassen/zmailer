@@ -61,6 +61,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #ifdef HAVE_NETINET_IN6_H
 # include <netinet/in6.h>
 #endif
@@ -627,10 +628,7 @@ main(argc, argv)
 	cmdline = &argv[0][0];
 	eocmdline = cmdline;
 
-	& oldsig; /* volatile-like trick.. */
-	& channel; & host; & smtpstatus;
-	& need_host; & idle; &noMX; & dp;
-	& checkmx; & smtphost; & punthost;
+& oldsig; /* volatile-like trick.. */ & channel; & host; & smtpstatus; & need_host; & idle; &noMX; & dp; & checkmx; & smtphost; & punthost;
 
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
@@ -2843,6 +2841,7 @@ vcsetup(SS, sa, fdp, hostname)
 	char *se;
 
 	& addrsiz;
+
 	time(&now);
 
 	af = sa->sa_family;

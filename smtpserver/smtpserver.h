@@ -50,6 +50,8 @@
 #include <varargs.h>		/* If no  <stdarg.h>,  then presume <varargs.h> ... */
 #endif
 
+#include <arpa/inet.h>
+
 #include "mail.h"
 
 #include <setjmp.h>

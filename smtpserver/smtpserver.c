@@ -1490,7 +1490,7 @@ int insecure;
 	if (policystatus != 0 &&
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	  type(SS, -400, "4.7.0", "Policy database problem, code=%d", policystatus);
-	  type(SS,  400, "4.7.0", "With 'HELP' command you can get out contact information.");
+	  type(SS,  400, "4.7.0", "With 'HELP' command you can get our contact information.");
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver policy database problem, code: %d", policystatus));
 	  sleep(20);

@@ -613,8 +613,8 @@ int strict;
 
     if (*s == 'i' || *s == 'I') {
 	/* Wow! Possibly IPv6 prefix! */
-	if (cistrncmp(s, "IPv6:", 5) == 0 /* ||
-	    cistrncmp(s, "IPv6.", 5) == 0  */  ) {
+	if (strncasecmp(s, "IPv6:", 5) == 0 /* ||
+	    strncasecmp(s, "IPv6.", 5) == 0  */  ) {
 	    p = rfc821_v6dotnum(s + 5, strict);
 	    if (p == s + 5)
 		return s;

@@ -35,7 +35,11 @@
 #include <fcntl.h>
 #else
 #ifdef  HAVE_DB_H
-#include <db.h>
+#ifdef HAVE_DB_185_H
+# include <db_185.h>
+#else
+# include <db.h>
+#endif
 #else
 :error:error:error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"
 #endif
@@ -49,7 +53,6 @@
 #include "libz.h"
 #include "libc.h"
 
-extern void   sendmessage __((const char *, const char *));
 extern char * newstr __((const char *));
 extern void   setinterval __((time_t));
 extern void   setreply __((void));
@@ -142,6 +145,10 @@ extern void usrerr __((char *));
 extern void syserr __((char *));
 extern void readheaders __((void));
 extern char *strerror __((int));
+static int recent __((void));
+static int junkmail __((void));
+static int nsearch __((char *name, char *str));
+static void sendmessage __((const char *msgf, const char *myname));
 
 const char *progname;
 
@@ -317,7 +324,7 @@ main(argc, argv)
 **		sends mail to 'user' using /usr/lib/sendmail.
 */
 
-void
+static void
 sendmessage(msgf, myname)
 	const char *msgf;
 	const char *myname;
@@ -546,7 +553,7 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
  * nsearch --
  *	do a nice, slow, search of a string for a substring.
  */
-int
+static int
 nsearch(name, str)
 	register char *name, *str;
 {
@@ -562,7 +569,7 @@ nsearch(name, str)
  * junkmail --
  *	read the header and return if automagic/junk/bulk mail
  */
-int
+static int
 junkmail()
 {
 	static struct ignore {
@@ -631,7 +638,8 @@ purge_input()
  *	find out if user has gotten a vacation message recently.
  *	use memcpy for machines with alignment restrictions
  */
-int recent()
+static int
+recent()
 {
 	DBT key, data;
 	time_t then, next;
@@ -735,6 +743,6 @@ setreply()
 void
 usage()
 {
-	fprintf(stderr,"vacation: [-i] [-d] [-a alias] [-m msgfile] [-r interval] login\n");
+	fprintf(stderr,"vacation: [-i] [-d] [-a alias] [-m msgfile] [-r interval] {login | 'start' | 'stop' }\n");
 	exit(EX_USAGE);
 }

@@ -24,6 +24,8 @@
 # include <linux/in6.h>
 #endif
 
+#include <arpa/inet.h>
+
 #ifdef NOERROR
 #undef NOERROR /* On Solaris 2.3 the  netinet/in.h  includes
 		  sys/stream.h, which has DIFFERENT "NOERROR" in it.. */

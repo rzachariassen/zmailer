@@ -51,7 +51,7 @@ open_gdbm(sip, flag, comment)
 	int flag;
 	const char *comment;
 {
-	GDBM_FILE db;
+	GDBM_FILE db = NULL;
 	struct spblk *spl;
 	spkey_t symid;
 	int i;
