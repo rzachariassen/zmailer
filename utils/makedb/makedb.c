@@ -710,7 +710,7 @@ char *argv[];
 
     progname = argv[0];
 
-    while ((c = getopt(argc, argv, "Aapv")) != EOF) {
+    while ((c = getopt(argc, argv, "Aalpuv")) != EOF) {
 	switch (c) {
 	case 'l':
 	    lc_key = 1;
