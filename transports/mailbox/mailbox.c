@@ -228,7 +228,8 @@ const char *maildirs[] = {
 						(A1), (A2), (A3), (A4))
 
 #ifdef CHECK_MB_SIZE
-extern int checkmbsize(char *,size_t);
+extern int checkmbsize(const char *uname, const char *host, const char *user,
+		       size_t cursize, struct passwd *pw);
 #endif
 
 #if	defined(HAVE_SOCKET)
@@ -299,6 +300,7 @@ int mmdf_mode = 0;		/* Write out MMDF-style mail folder
 				   ("\001\001\001\001" as the separator..)  */
 long eofindex  = -1;		/* When negative, putmail() can't truncate() */
 int  dirhashes = 0;
+int  pjwhashes = 0;
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
@@ -430,14 +432,14 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:d:Dgh:Hl:rRSMV8");
+	  c = getopt(argc, (char*const*)argv, "abc:d:Dgh:Hl:PrRSMV8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
 	  case 'c':		/* specify channel scanned for */
 	    channel = optarg;
 	    break;
-	  case 'd':             /* log file */
+	  case 'd':             /* mail directory */
 	    maildirs[0] = strdup(optarg);
 	    maildirs[1] = NULL;
 	    break;
@@ -445,6 +447,13 @@ main(argc, argv)
 	    ++dirhashes;	/* For user "abcdefg" the mailbox path is:
 				   MAILBOX/a/b/abcdefg -- supported by
 				   qpopper, for example... */
+	    break;
+	  case 'P':		/* pjw32hash() from the last component of the
+				   mailbox file path (filename) is used to
+				   create hashes by calculating N levels
+				   (one or two) of modulo 26 ('A'..'Z') alike
+				   the scheduler does its directory hashes. */
+	    ++pjwhashes;
 	    break;
 	  case 'M':
 	    mmdf_mode = 1;
@@ -953,7 +962,7 @@ deliver(dp, rp, usernam, timestring)
 	char *path;
 #endif
 #endif
-	struct passwd *pw;
+	struct passwd *pw = NULL;
 	const char *mboxlocks = getzenv("MBOXLOCKS");
 	const char *filelocks = NULL;
 	const char *locks     = NULL;
@@ -1052,7 +1061,8 @@ deliver(dp, rp, usernam, timestring)
 	  setpwent(); /* Effectively rewind the database,
 			 needed for multi-recipient processing ? */
 #endif
-	  if ((pw = getpwnam(usernam)) == NULL) {
+	  pw = getpwnam(usernam);
+	  if (pw == NULL) {
 
 	    /* No match as is ?  Lowercasify, and try again! */
 	    strlower((char*)usernam);
@@ -1150,7 +1160,9 @@ deliver(dp, rp, usernam, timestring)
 #endif /* BIFF || RBIFF */
 	  if (plus) *plus = '+';
 	  break;
-	}
+
+	} /* end of  switch (*username)  */
+
 	if (exstat(rp, file, &st, lstat) < 0) {
 	  notaryreport(rp->addr->user,"failed",
 		       "5.2.0 (User's mailbox disappeared, will retry)",
@@ -1184,16 +1196,22 @@ deliver(dp, rp, usernam, timestring)
 	}
 
 #ifdef CHECK_MB_SIZE
-	/* external procedure checkmbsize() accepts user name
-	   and current mailbox size.  It should return 0 if it is OK to
-	   write to the mailbox, or non-zero if `mailbox full'
+	/* extern  int checkmbsize(const char *uname,
+				   const char *host, const char *user,
+				   size_t cursize, struct passwd *pw); */
+
+	/* external procedure checkmbsize() accepts user name, "host"
+	   name as on routing result, "user" part of routed data,
+	   and current mailbox size.  It should return 0 if it is OK
+	   to write to the mailbox, or non-zero if `mailbox full'
 	   condition encountered.  The procedure itself is not included
 	   in ZMailer distribution; you need to write it yourself and
 	   modify the Makefile to pass -DCHECK_MB_SIZE to the compiler
 	   and to link with the object containing your custom
 	   checkmbsize() procedure. == <crosser@average.org> */
 
-	if (checkmbsize(usernam,st.st_size)) {
+	if (checkmbsize(usernam, rp->addr->host, rp->addr->user,
+			st.st_size, pw)) {
 	  notaryreport(usernam, "failed",
 		       "4.2.2 (Destination mailbox full)",
 		       "x-local; 500 (Attempting to deliver to full mailbox)");
@@ -1996,6 +2014,47 @@ program(dp, rp, user, timestring)
 	return;
 }
 
+static void mkhashpath __((char *, const char *));
+static void mkhashpath(s, uname)
+     char *s;
+     const char *uname;
+{
+	extern int pjwhash32 __((const char *));
+
+	if (pjwhashes) {
+	  int h = pjwhash32(uname);
+	  switch (pjwhashes) {
+	  case 1:
+	    h %= 26;
+	    sprintf(s,"%c/", ('A' + h));
+	    break;
+	  default:
+	    h %= (26*26);
+	    sprintf(s,"%c/%c/", ('A' + (h / 26)), ('A' + (h % 26)));
+	    break;
+	  }
+	}
+	if (dirhashes) {
+	  switch (dirhashes) {
+	  case 1:
+	    sprintf(s,"%c/",uname[0]);
+	    s += 2;
+	    break;
+	  case 2:
+	    if (uname[1])
+	      sprintf(s,"%c/%c/",uname[0],uname[1]);
+	    else /* Err.... One char userid ?? TROUBLE TIME! */
+	      sprintf(s,"%c/%c/",uname[0],uname[0]);
+	    s += 4;
+	    break;
+	  default:
+	    break;
+	  }
+	}
+	strcat(s, uname);
+}
+
+
 /*
  * creatembox - see if we can create the mailbox
  */
@@ -2021,24 +2080,9 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	  *filep = emalloc(8+2+strlen(*maild)+strlen(uname));
 	  sprintf(*filep, "%s/", *maild);
 	  s = *filep + strlen(*filep);
-	  if (dirhashes) {
-	    switch (dirhashes) {
-	    case 1:
-	      sprintf(s,"%c/",uname[0]);
-	      s += 2;
-	      break;
-	    case 2:
-	      if (uname[1])
-		sprintf(s,"%c/%c/",uname[0],uname[1]);
-	      else /* Err.... One char userid ?? TROUBLE TIME! */
-		sprintf(s,"%c/%c/",uname[0],uname[0]);
-	      s += 4;
-	      break;
-	    default:
-	      break;
-	    }
-	  }
-	  strcat(s, uname);
+
+	  mkhashpath(s, uname);
+
 	  fd = createfile(rp, *filep, *uid, 1);
 	  if (fd >= 0) {
 #ifdef	HAVE_FCHOWN
@@ -2231,10 +2275,14 @@ exists(maildir, uname, rp)
 	const char *uname;
 	struct rcpt *rp;
 {
-	char *file;
+	char *file, *s;
 
-	file = emalloc(2+strlen(maildir)+strlen(uname));
-	sprintf(file, "%s/%s", maildir, uname);
+	file = emalloc(8+strlen(maildir)+strlen(uname));
+	sprintf(file, "%s/", maildir);
+
+	s = file + strlen(file);
+	mkhashpath(s, uname);
+
 	if (access(file, F_OK) == 0) { /* file exists */
 	  rp->status = EX_OK;
 	  return file;

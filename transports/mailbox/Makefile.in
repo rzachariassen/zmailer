@@ -34,15 +34,23 @@ LINTLIB=	../libta/llib-llibta.ln
 #	see ../../support/{nfslock,rlockd} for more about this
 MAILBOXDEFS=	-DBIFF -DRBIFF -DRBIFF_ALWAYS # -DUSE_NFSMBOX
 
-all:	$(PROGRAM)-a # in.rlockd
+all:	$(PROGRAM)-a mboxpath-a # in.rlockd
 
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
+mboxpath-a:	$(LIBDEB) mboxpath
 
 $(PROGRAM):	$(PROGRAM).o version.o lock.o $(LIBDEB)
 	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o $(LIB) $(MAILBOX_LIB)
 
+
+mboxpath:	mboxpath.o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ mboxpath.o version.o $(LIB) $(MAILBOX_LIB)
+
 $(PROGRAM).o: $(srcdir)/$(PROGRAM).c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(PROGRAM).c
+
+mboxpath.o:	$(srcdir)/mboxpath.c
+	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/mboxpath.c
 
 version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
