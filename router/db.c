@@ -1134,16 +1134,21 @@ find_longest_match(lookupfn, sip)
 	    &oct1,&oct2,&oct3,&oct4) == 4) { /* IP address with optional [] */
 		unsigned int h_addr,h_mask;
 		int prefix;
-		h_addr=(((oct1&255)<<8|oct2&255)<<8|oct3&255)<<8|oct4&255;
+
+		h_addr = (((oct1 & 255) << 24) |
+			  ((oct2 & 255) << 16) |
+			  ((oct3 & 255) <<  8) |
+			  ((oct4 & 255)));
+
 		sip->key=buf;
 		for (prefix=32, h_mask=0xffffffffL;
 		    prefix>=0;  --prefix, h_mask<<=1) {
 			sprintf((char*)buf,"%u.%u.%u.%u/%d",
-			    (h_addr&h_mask) >> 24 & 255,
-			    (h_addr&h_mask) >> 16 & 255,
-			    (h_addr&h_mask) >>  8 & 255,
-			    (h_addr&h_mask)       & 255,
-			    prefix);
+				((h_addr&h_mask) >> 24) & 255,
+				((h_addr&h_mask) >> 16) & 255,
+				((h_addr&h_mask) >>  8) & 255,
+				((h_addr&h_mask)      ) & 255,
+				prefix);
 			if ((l = (*lookupfn)(sip)) != NULL)
 				return l;
 		}

@@ -2417,8 +2417,8 @@ run_dequote(argc, argv)
 	len = strlen(s);
 
 	if (len > 1 &&
-	    (*s == '"'  && s[len-1] == '"' ) ||
-	    (*s == '\'' && s[len-1] == '\'')) {
+	    ((*s == '"'  && s[len-1] == '"' ) ||
+	     (*s == '\'' && s[len-1] == '\''))) {
 	  fwrite(s+1,1,len-2,stdout);
 	} else
 	  fwrite(s,1,len,stdout);
