@@ -1,3 +1,12 @@
+2000-03-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c:
+	    More systematic approach at MAIL FROM and RCPT TO
+	    related reporting where related addresses are wanted
+	    to be included into the diagnostic messages.  All that
+	    just for completely braindead approach prevalent in
+	    M$ client software...
+
 2000-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/msgerror.c:
