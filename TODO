@@ -71,6 +71,25 @@ transports/smtp:
 	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
 
+   BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
+	and the final DATA is then rejected with 500 series code, DON'T
+	abort with permanent error -- plus retry..
+
+   DRUMS/SMTPUPD:
+	If MX set after the backup-prune is empty (and initially was non-
+	empty), reject the message with suitable report, don't continue
+	to try to use A-record -- parametrized somehow..
+	E.g. go to use of A in this case only if WKS checking is enabled.
+
+   BUG?
+	Bad interaction with scheduler in some instances.  If e.g.
+	message goes to retry because MAIL FROM or some RCPT TO
+	addresses yield 400 series code, it should not kick queue
+	processing back the same way as 'connection timed out' does.
+	(But no response within timeout from remote server should be
+	 treated the same way as 'conn timeout' -- I think ?)
+
+
 	VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
 
@@ -142,6 +161,9 @@ transports/smtp:
 	reports when the command is retried, and the tag selector
 	is unable to start the real processor.
 		(quite old entry -- 1997-1998 ?)
+
+	When there are NO reports to be given out, produce no report
+	message either -- we do seem still do it :-/    (20000313)
 
 	Tool/mechanism for requeueing a message from the transport
 	back to the router -- all message recipients that have not
