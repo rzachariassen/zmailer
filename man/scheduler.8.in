@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "7 Jun 2000"
+.TH SCHEDULER 8 "30 Jul 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -353,28 +353,66 @@ etc.
 .RE
 .PP
 .IP "maxta (0)"
-if retrying an address would cause the number of simultaneously active
+This is
+.B global
+parameter limiting the number of transport-agent processes that
+the sceduler can have running concurrently.
+
+If retrying an address would cause the number of simultaneously active
 transport agents to exceed the specified value, the retry is postponed.
-The check is repeated frequently so the address may be retried as soon
-as possible after the scheduled retry interval.  If the value is 0,
-a value of 1000 is used instead.
-Keep in mind that all running transport agents will keep open
+
+When no
+.I maxta
+parameter is used, or '0' is used, the
+.I scheduler
+(at operating systems supporting it) uses getrlimit(2)/setrlimit(2) to
+maximize the number of available file descriptors for the process.
+The thus maximized value minus about 20 is then used as 
+.I maxta
+value.
+
+At some operating systems there are no bidirectional pipes or sockets
+for the scheduler to talk with the transport agents, thus at those systems
+each TA process uses
 .B two
 .IR pipe (2)
-file-handle, and thus system-wide limits may force lower maximum, than 1000.
-On a system with max 256 open files, this would most likely succeed at 120.
+file-handles, and thus system-wide limit on
+.I maxta
+halves from what was maximum derived above.
+
 .IP "maxchannel (0)"
-if retrying an address would cause the number of simultaneously active
-transport agents processing mail for the same channel to exceed
-the specified value, the retry is postponed.
-The check is repeated frequently so the address may be retried as soon
-as possible after the scheduled retry interval.  If the value is 0,
-a value of 1000 is used instead.
+This limits the number of concurrent transport agent processes for which
+the
+.I channel
+part of the address quad are same.
+
+The default value is copied from the
+.IR maxta .
+
+It is advisable, although not mandatory, to have the same value for all
+.I maxchannel
+parameters at all clauses with matching channel parts.
+
+Case where non-alike values might make sense is when you want to guarantee
+resources for a subset of destinations, e.g. for all other "smtp/" clauses
+have 
+.I maxchannel
+of say 100, but for your very important domain domain have there a bit
+higher, say: 120.
+
+
 .IP "maxring (0)"
-Recipients are groupped into ``threads'', and similar threads are
-groupped into ``thread-rings'', where same transport agent can be
-switched over from one recipient to another.  This defines how many
-transport agents can be running at any time at the ring.
+The recipients are groupped into ``threads'' by recipient channel+host parts,
+and threads matching same selector clause are groupped into ``thread-rings'',
+where same transport agent can be switched over from one recipient to another.
+
+This parameter defines how many transport agents can be running at any time
+at the ring.
+
+When no limit is given, then
+.I maxta
+value is used for default.
+
 .IP "maxthr (1)"
 This limits the number of parallel transport agents within each
 thread; that is, using higher value than default ``1'' will allow
@@ -385,34 +423,41 @@ lowering OVERFEED value.  (E.g. having a queue of 30 messages will
 not benefit from more TAs, unless they all get something to process.
 Having OVERFEED per default at 150 will essentially feed whole queue
 to one TA, others are not getting any.)
+
 .IP "overfeed (150)"
+Because the scheduler spins around a bit sluggishly to spot
+active TAs, it does make sense to feed more than one task to a TA,
+and then wait for the results, thus came about the ``overfeed''
+mechanism.
+
 This tells how many job specifiers to feed to the TA when
-the TA process state is ``STUFFING''  Because the scheduler
-is a bit sluggish to spin around to spot active TAs, it does
-make sense to feed more than one task to a TA, and then wait
-for the results.
+the TA process state is ``STUFFING.''
 
 .IP "skew (5)"
-is the maximum number of retries before the retry time is aligned to a standard
-boundary (seconds since epoch, modulo primary interval).  The lower this
-number (1 is lowest), the faster the alignment is done.  The purpose of
-this alignment is to ensure that eventually a single transport agent invokation
-will be able to process destination addresses that arrived randomly to
-the scheduler.
+Leftover from earlier scheduler internal structure.
+Does not make sense anymore.
+
 .IP "user (root)"
 is the user id of a transport agent processing the address.  The value
 is either numeric (a uid) or an account name.
+
 .IP "group (daemon)"
 is the group id of a transport agent processing the address.  The value
 is either numeric (a gid) or a group name.
+
 .IP "command (smtp -srl ${LOGDIR}/smtp $host)"
 is the command line used to start a transport agent to process the address.
+
 The program pathname is specified relative to the \fIMAILBIN\fB/ta\fR
-directory.  The string "$channel" is replaced by the current matched channel,
+directory.
+
+The string "$channel" is replaced by the current matched channel,
 and "$host" is replaced by the current matched host, from the destination
 address, and "${LOGDIR}" substitutes ZENV variable LOGDIR value there.
+
 .I It is strongly recommended that the "$host" is not to be used on
 .I a command definition, as it limits the usability of idled transporter.
+
 .IP queueonly
 a clause with
 .I queueonly
@@ -423,9 +468,11 @@ be started by means of
 command
 .B ETRN
 thru an SMTP connection.
+
 To have message expiration working, following additional entries are
 suggested:
 .I interval=1h retries="24"
+
 .PP
 For example, this is a complete configuration file:
 .PP
@@ -468,16 +515,20 @@ maxchannel=5 command="sm -c $channel uucp"
 .RE
 .RE
 .fi
+
 .PP
 The first clause (*/*) sets up default values for all addresses.  There
 is no command specification, so clause matching will continue after
 address have picked up the parameters set here.
+
 .PP
 The third clause (error) has an implicit host wildcard of '*', so it would
 match the same as specifying error/* would have.
+
 .PP
 The fifth clause (smtp/*.toronto.edu) has no further components so it
 selects the components of the following non-empty clause (the sixth).
+
 .PP
 Both the fifth and sixth clauses are specific to address destinations
 within the TORONTO.EDU and UTORONTO.CA organization (the two are parallel
@@ -488,16 +539,20 @@ agent will only be told about the message control files that indicate
 SMTP delivery to a particular host.  The actual host is picked at random
 from the current choices, to avoid systematic errors leading to a deadlock
 of any queue.
+
 .SH CONFIGURATION FILE PARAM-ASSIGNMENTS
 The scheduler can assign several of its internal parameters
 by having variable assignments beginning at column 0, and
 beginning with "PARAM" text:
+
 .IP PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
 .IP PARAMmailqpath\ \=\ "TCP:mailq"
 .IP PARAMmailqpath\ \=\ "TCP:174"
-These define two different type of possible socket addresses for
-"mailq" protocol; PF_UNIX socket, and TCP socket.
+These define two different types of possible socket addresses for the
+.RI " mailq "
+protocol; a UNIX socket, and a TCP socket.
 Default is "TCP:174".
+
 .IP PARAMautfile\ \=\ "/path/to/scheduler.auth"
 Location of MAILQv2 autentication control file
 .IP PARAMglobal-report-interval\ \=\ 15m
@@ -505,6 +560,7 @@ Interval by which all permanent reports accumulated into a message
 are reported by; sends out early reports of delivery failures, and
 does not force to wait for maximum queue timeout in case the message
 has more than once recipient.
+
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery
 programs like
@@ -512,11 +568,15 @@ programs like
 and the transport agents.  It is a terse presentation of the
 .IR router 's
 decisions, along with some useful reference information.
+
 .PP
-The message control file consists of a number of fields.  All fields start
-in the first column (i.e., at the beginning of the file or just after a
-newline), and most fields extend to the end of line.  The one exception
-is the message header field which extends till a double-newline terminator.
+The message control file consists of a number of fields.
+
+All fields start in the first column (i.e., at the beginning of the file
+or just after a newline), and most fields extend to the end of line.
+The one exception is the message header field which extends till
+a double-newline terminator.
+
 For all but this message header field, the second column is reserved for
 a tag byte.  This position is used to lock the field and to indicate
 the status of past processing of the field.  For example, the success
@@ -526,85 +586,152 @@ means the field has not been processed, or that processing has been deferred.
 A '~' indicates the field is locked because some transport agent is
 currently processing delivery for the address.
 The known field names and tags are defined in \fB<mail.h>\fR.
+
 For all the
 .I recipient
-addresses, there is 6 characters space for transport-process process-id
+addresses, there is 6 characters space for transport-agent process-id
 so that a quickly restarted scheduler will not do double-delivery on some
 slowly running transporter.
+
 .PP
 The following fields are mandatory:
-.IP i
-the name of the message file in the \fIPOSTOFFICE\fB/queue\fR directory
-and of the message control file in the \fIPOSTOFFICE\fB/transport\fR
-directory.  'i' is a mnemonic for 'inode' since message file names must
-be unique on the system and therefore are named by their inode number.
-.IP o
+
+.IP @\ 0xHHHHHH
+Carries hex-encoded bitflags of what kind of format this dataset really is in.
+
+This is to ensure that ``featurefullness'' relation of:
+router <= scheduler <= TA-programs is not violated, and that the messages in
+the spool meet this criteria too.
+
+Rolling binaries back too far might break things.
+
+.IP i\ 123456\-789
+the name of the message file in the
+.I POSTOFFICE\fB/queue
+directory and of the message control file in the
+.I POSTOFFICE\fB/transport
+directory.
+'i' is a mnemonic for 'inode' since message file names must be unique on
+the system and therefore are named by their inode number.
+
+.IP o\ NNNNNNN
 the byte offset of the message body in the original message.
+
 .PP
 The following fields will frequently exist:
-.IP e
+
+.IP e\ user@some.domain
 is the return address for error messages, in a form that can be put in
 a To: header line.
-.IP l
+
+.IP l\ <mumble@jumble>
 is a string identifying this message in log entries.  Typically the message
 id of the message would be used.
-.IP n
-is the delivery-status-notification environment id data for the message.
-.IP N
-are the delivery-status-notification entries for each recipient address.
+
 .PP
 The following fields will occasionally appear:
-.IP x
+
+.IP x\ <jumble@mumble>
 is the log identification string (usually a message id) of an obsoleted
 message.  The scheduler will purge any such identified message after
 running sanity checks.
-.IP v
+
+.IP v\ ../public/v_filename
 is the name of a file that the delivery system can appended log information
-to.  This would appear as the result of running \fBsendmail -v\fR or
-\fBMail -v\fR.  Since all programs need to refer to the same file,
-on mail clusters it is recommended that this be a relative path naming
-a file within the \fIPOSTOFFICE\fR directory hierarchy.
+to.  This would appear as the result of running
+.B sendmail -v
+or
+.BR Mail\ -v .
+
+Since all programs need to refer to the same file, on mail clusters
+it is recommended that this be a relative path naming a file within
+the
+.I POSTOFFICE
+directory hierarchy.
+
 .PP
-A message control file must contain at least one address "group".  Each
-group consists of a sender address field, one or more recipient address
-fields, and a message header that goes along with these.
+A message control file must contain at least one address "group".
+Each group consists of a sender address field, one or more recipient
+address fields, and a message header that goes along with these.
+
 An address field is a string containing a space-separated 4-tuple (quad)
 as follows:
+
 .IP channel
 is the name of the delivery channel for this address.  This must be
 a contiguous word.
+
 .IP host
 is the name of the next destination host for this address.  This too
 must be a contiguous word.
+
 .IP user
 is the address to be handed to the destination host for further delivery.
 This string may contain space.  It is distinguishable because the last
 component cannot contain spaces.
+
 .IP privilege
 is the numeric uid representing the privileges associated with this address.
+
 .PP
 The address group components are:
-.IP s
-is a sender address field.
-.IP r
-is a recipient address field.
-.IP R
+
+.IP s\ <address\ quad>
+carries a sender address field in address-quad form.
+
+.IP r\ PPPPPPDDDD<address\ quad>
+is a recipient address field in address quad form, but also
+contains fields for transprort agent pid number (PPPPPP), and
+a four character space for delay reporting by the scheduler (DDDD).
+
+.IP N\ string
+are the delivery-status-notification parameters for the previous recipient.
+
+.IP n\ string
+is the delivery-status-notification environment id data for the previous
+recipient.
+
+.IP R\ string
+The DSN RET-mode setting (HDRS/FULL) for the previous recipient.
+
+.IP X\ nnnnnn
 is an XOR recipient address field.  The first element is a tag (a class number)
 to identify collections of recipient addresses which are equivalent
 (and therefore mutually exclusive).  This is followed by an address field
 as described above.
-.IP N
-are the delivery-status-notification parameters for the previous recipient.
+
 .IP m
-is the message header for this address group.
+carries the message header for this address group.
+
 .PP
 After one or more of these address groups, the error messages for addresses
 are appended to the message control file.  This is done by the
 .I scheduler
 as it receives error reports from transport agents.
-.IP d
-is a diagnostic field, consisting of a message control file byte offset
-indicating an address, followed by space and comment to the end of line.
+
+.IP d\ <diag-string>
+Is storage format for diagnostics for recipient addresses.
+
+Structure of the diagnostic string is:
+.nf
+  d \fIid\fR:\fIheaderoffset\fR:\fIdrptoffset\fR::\fIdiagtime\fR\\t\fInotarydata\fR\\t\fImessage\fR
+  d 172:347:226::964917927 ...
+.fi
+
+The \fIid\fR field tells the byte offset to tge ``r'' of the receiver
+definition line.
+
+The \fIheaderoffset\fR gives the byte offset of the first byte of the
+\fIheaders\fR associated with the address group.
+
+The \fIdrptoffset\fR points to the possible ``N'' line.
+
+The \fIdiagtime\fR is just system time of the event.
+
+The \fInotarydata\fR and \fImessage\fR are explained further below, and
+are identical to the transport-agent to the scheduler communication
+protocol objects of the same name.
+
 .PP
 For example, this is a typical message control file (it is a snapshot taken
 while a transport agent was running):
@@ -629,27 +756,42 @@ Date:   Sun, 3 Jun 1990 16:53:54 -0400
 .fi
 .RE
 .PP
+
 .SH TRANSPORT AGENT INTERFACE
 The transport agent interface follows master-slave -model, where the TA
 informs the
 .I scheduler
 that it is ready for the work, and then the scheduler sends it
-one job description, and awaits for diagnistics.
-Once the job is finished, the TA notifies the scheduler, that it
+one job description, and awaits for diagnostics.
+Once the job is finished, the TA notifies the scheduler that it
 is ready for a new job.
+
 .PP
 A short sample session looks like this:
 .PP
 .RS
 .nf
-\fI(start the transport agent)\fR
-\fB#hungry\fR
-\fIspoolid\\\fBt\fIhostspec\fR
-\fBdiagnostics\fR
-\fB#hungry\fR
-...
+S: \fI(start the transport agent)\fR
+T: \fB#hungry\fR
+S: \fIspoolid\\\fBt\fIhostspec\fR
+T: \fBdiagnostics\fR
+T: \fB#hungry\fR
+(etc. active work)
+T: \fB#hungry\fR
+S: \fI#idle\fR
+T: \fB#hungry\fR
+(the scheduler moved the TA into IDLE pool)
+S: \fIspoolid\\\fBt\fIhostspec\fR
+(the TA was reactivated from the IDLE pool)
+T: \fB#hungry\fR
+S: \fBEOF\fR
+(the scheduler determined that the TA should be killed)
+T: \fI(exits)\fR
 .fi
 .RE
+.PP
+("S" = Scheduler, "T" = Transport agent)
+
 .PP
 Normal diagnostic output is of the form:
 .PP
@@ -657,16 +799,19 @@ Normal diagnostic output is of the form:
 \fIid\fR/\fIoffset\fR\\t\fInotarydata\fR\\t\fIstatus\fR \fImessage\fR
 .RE
 .PP
-where 
-.I id
+where:
+
+.IP id
 is the inode number of the message file,
-.I offset
+
+.IP offset
 is a byte offset within its control file where the address being reported
 on is kept,
-.I notarydata
-is a Ctrl-A separated triplet is delivery-status-notification information
-for the message,
-.I status
+
+.IP notarydata
+is a Ctrl-A separated quintet/sextet carrying delivery-status-notification
+information for the recipient.
+.I Status
 is one of
 .BR ok ,
 .BR error ,
@@ -674,7 +819,8 @@ is one of
 or
 .BR retryat ,
 and the
-.I message
+
+.IP message
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
@@ -686,9 +832,42 @@ response will assume the first word of the text is a numeric parameter,
 either an incremental time in seconds if prefixed by
 .B +,
 or otherwise an absolute time in seconds since epoch.
+
 .PP
 The exit status is a code from
 .BR <sysexits.h> .
+
+.PP
+The notarydata has Control-A separated sub-fields, five or six of them:
+.PP
+.RS
+Final-Rcpt-Address DSN-Action ENH-Status Report-String WTT-Host [WTT-TAid]
+.RE
+.PP
+
+.IP Final-Rcpt-Address
+This is the final form of the recipient address used at the final delivery
+of which the diagnostic data is report about.  Compare with ORCPT= data!
+
+.IP DSN-Action
+One of: "delivered", "failed", relayed", "delayed", "expanded".
+See RFC 1892.
+
+.IP ENH-Status
+Enhanced status code per RFC 2034.
+
+.IP Report-String
+A free-form text (one line, no e.g. CRs enbedded).
+
+.IP WTT-Host
+For SMTP systems to produce "Remote-MTA:" header contents.
+
+.IP WTT-TAid
+ZMailer specific extension to report the process name and PID number
+of the transport agent producing this report.  Helps to hunt for the
+syslogged data relating to this diagnostics instance.
+.PP
+
 .SH STATISTICS LOG FORMAT
 The statistics log reports condenced performance oriented information
 in following format:
@@ -704,23 +883,28 @@ in following format:
 .fi
 .sp
 where the fields are:
+
 .IP timestamp
 The original spoolfile ctime (creation time) stamp in decimal.
+
 .IP fileid
 Spoolfile name after the router has processed it
+
 .IP dt1
 The time difference from spoolfile ctime to scheduler control file
 creation by the router
+
 .IP dt2
 The time difference from scheduler file ctime to the delivery that is
 logged on
+
 .IP state
 What happened?  Values: ok, error, expiry
+
 .IP $channel/$host
 Where/how it was processed
-.SH MAILQ PROTOCOL
-.B "*** This is actually out of date, when using \-Q-mode ***"
-.PP
+
+.SH MAILQ(v1) PROTOCOL
 Upon accepting a TCP connection on the \fBMAILQ\fR port (TCP port 174), the
 .I scheduler
 dumps data to the TCP stream in the following format
@@ -753,6 +937,8 @@ following the first \fBLF\fR is:
 	(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+
 	\fBHosts:\fR\fB\\n\fR
 	(<\fIword\fR>\fB:\fR\fB\\t\fR>(\fB>\fR<\fIkey\fR>)+\fB\\n\fR)+)?
+	\fBEnd:\fR\fB\\n\fR
+	<mailq -Q thread and status report>
 .ta 0.7i 2.0i
 
 Where:	\fB\\n\fR	is an ASCII linefeed
@@ -985,6 +1171,7 @@ RFC 1893	 Enhanced Mail System Status Codes
 RFC 1894	 Extensible Message format for DSNs
 RFC 1985	 ESMTP ETRN
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
+RFC 2852	 ESMTP DELIVERBY
 .fi
 .SH AUTHOR
 This program authored and copyright by:
