@@ -86,7 +86,7 @@ detach()
 	  }
 	}
 	setpgrp(0, getpid());	/* change process group */
-#endif	/* GETPGRP_VOID */
+#endif	/* SETPGRP_VOID */
 #endif	/* HAVE_GETPGRP */
 #endif	/* !HAVE_SETSID */
 
