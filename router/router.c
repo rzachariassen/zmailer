@@ -610,7 +610,7 @@ logmessage(e)
 					if (to != buf) {
 						*to = '\0';
 						logit(e->e_file,
-						      e->e_messageid,
+						      e->e_spoolid,
 						      from, buf);
 						to = buf;
 					}
@@ -630,7 +630,7 @@ logmessage(e)
 	}
 	if (to != buf) {
 		*to = '\0';
-		logit(e->e_file, e->e_messageid, from, buf);
+		logit(e->e_file, e->e_spoolid, from, buf);
 	}
 }
 
@@ -652,15 +652,15 @@ logit(file, id, from, to)
 	baselen = strlen(file) + strlen(id) + 4;
 	flen = strlen(from);
 	if (flen > 0)
-	  printf("%.200s: file: %s %s => %s\n", id, file, from, to);
+	  printf("%.30s: file: %s %s => %s\n", id, file, from, to);
 	else
-	  printf("%.200s: file: %s %s\n",       id, file, to);
+	  printf("%.30s: file: %s %s\n",       id, file, to);
 	if (!nosyslog) {
 	  if (flen > 0)
-	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s => %.200s",
+	    zsyslog((LOG_INFO, "%.30s: file: %.150s %.200s => %.200s",
 		     id, file, from, to));
 	  else
-	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s", id, file, to));
+	    zsyslog((LOG_INFO, "%.30s: file: %.150s %.200s", id, file, to));
 	}
 }
 

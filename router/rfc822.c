@@ -1769,8 +1769,8 @@ sequencer(e, file)
 	}
 
 	/*
-	 * Log the message after we find the envelope From address, otherwise
-	 * log entries might have empty sender fields.
+	 * Log the message after we find the envelope From address,
+	 * otherwise log entries might have empty sender fields.
 	 */
 	if (e->e_messageid)
 		logmessage(e);

@@ -1,3 +1,9 @@
+2004-05-10  Matti Aarnio  <mea@zmailer.org>
+
+	* router/router.c, router/shliaise.c, proto/cf/standard.cf:
+	    Change the router's log thingie to log with
+	    spoolid, instead of message-id.
+
 2004-05-09  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,

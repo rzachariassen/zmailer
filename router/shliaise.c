@@ -322,6 +322,9 @@ setenvinfo(e)
 		CONSTSTR(e->e_messageid);
 	}
 
+	CONSTSTR("spoolid");
+	CONSTSTR(e->e_spoolid);
+
 	CONSTSTR("uid");
 	NEWSTRD(e->e_statbuf.st_uid);
 
