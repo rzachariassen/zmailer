@@ -324,6 +324,9 @@ pick_next_thread(proc, thr0)
 	    proc->pthread = thr;
 	    proc->pvertex = thr->vertices;
 
+	    /* Move the pickup pointer forward.. */
+	    thg->thread = thg->thread->nextthg;
+
 	    return (proc->pvertex != NULL);
 	  }
 	}
@@ -973,6 +976,15 @@ time_t retrytime;
 	if (verbose)
 	  sfprintf(sfstdout,"thread_reschedule() ch=%s ho=%s jobs=%d\n",
 		   thr->channel,thr->host,thr->jobs);
+
+	if (thr->proc) {
+	  /* We also disjoin possible current TA process */
+	  if (thr->proc->pvertex)
+	    thr->proc->pvertex->proc = NULL;
+	  thr->proc->pvertex = NULL;
+	  thr->proc->pthread = NULL;
+	  thr->proc = NULL;
+	}
 
 	/* find out when to retry */
 	mytime(&now);
