@@ -80,10 +80,10 @@ void (*funcaddress) __((conscell *));
 /*
  * Some book-keeping variables, and one of GC-trigger counters
  */
-int consblock_cellcount = 1000;	/* Optimizable for different systems.
+int consblock_cellcount = 8000;	/* Optimizable for different systems.
 				   Alphas have 8kB pages, and most others
 				   have 4kB pages.. */
-int newcell_gc_interval = 1000;	/* Number of newcell() calls before GC */
+int newcell_gc_interval = 8000;	/* Number of newcell() calls before GC */
 int newcell_gc_callcount = 0;	/* ... trigger-count of those calls ... */
 int newcell_callcount = 0;	/* ... cumulative count of those calls ... */
 

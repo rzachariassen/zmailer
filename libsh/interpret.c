@@ -441,7 +441,7 @@ insertio(ioopp, command, name, cmd, ioflags, fd, fd2, opflags)
 
 	if (isset('R'))
 		fprintf(stderr,
-			"insertio(%x): %s %d %d\n", ioopp, ename(cmd), fd, fd2);
+			"insertio(%p): %s %d %d\n",ioopp, ename(cmd), fd, fd2);
 	if (opflags)
 		iotmp = (struct IOop *)emalloc(sizeof (struct IOop));
 	else
