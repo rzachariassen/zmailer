@@ -33,7 +33,20 @@ FEATURE:
 INSTALL:
 	Badly out of date!
 
+zmailer.sh:
+    BUG ?
+	Verify that "ldap*" type databases are never recompiled,
+	but that relevant .zmsh scripts are created..
+
+
 router:
+    BUG?
+	The daemon task driver may (have to verify) drive same task
+	to multiple processes in quick successive order, especially
+	if router process whose task it is to pick up something is
+	a bit slow at it.. (e.g. a RACE happens!)
+
+    FEATURE:
 	List expansions should not relay DSN data thru as is, but rather
 	handle NOTIFY=SUCCESS locally ("expanded"), and then continue
 	with whatever fancy the thing may want..
