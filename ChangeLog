@@ -1,3 +1,16 @@
+2000-07-31  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* include/ta.h, include/mailer.h, include/libz.h:
+	    Moved  STREQ()/STREQN()/CISTREQ()/CISTREQN()  macroes
+	    from  mailer.h (and ta.h)  to libz.h.
+
+	* utils/md5sum.c:
+	    Completed  usage()  function, and some comments.
+
+	* compat/sendmail/sendmail.c:
+	    Added acceptance for our internal  -N TRACE flag, which
+	    is for eased debugging of RFC 2852 features.
+
 2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* libident/identuser.c:
