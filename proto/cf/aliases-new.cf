@@ -37,19 +37,44 @@ do_aliases=1
 provide aliases
 
 #
-# Define the 'Sendmail-like' aliases database
+# Define the 'Sendmail-like' aliases database mechanism
 # 
 
-if [ -f $MAILVAR/db/aliases ]; then
+if [ -f $MAILVAR/db/aliases.zmsh ]; then
+
+    # If that file exists, it contains scripts defining our databases
+    # at load-in time (relation entries), and also runtime callable
+    # entrypoint  aliases(uname) { ... }  which "return 1" in case no
+    # lookup succeeds.  It yields the first lookup result that succeeded.
+    # Also, successfull lookup must yield file privileges of the database
+    # file where the lookup was done.  The return is done to a "priv"
+    # variable which has local scope in the caller's symbol stack.
+
+    . $MAILVAR/db/aliases.zmsh
+
+else
+    if [ -f $MAILVAR/db/aliases ]; then
 	# Need to be updated at boot ?
 	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
 	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
 		# Yes, so update!
-		$MAILBIN/zmailer newaliases
+		$MAILBIN/newdb -l -a $MAILVAR/db/aliases
 	fi
-	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliases
-else
+# ---- raw relation entry
+	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliasesdb
+# ---- interface function
+	aliases(key) {
+		local a
+		if a="$(aliasesdb "$key")"; then
+		  priv="$(filepriv -M 644 $MAILVAR/db/aliases$DBEXTtest \
+					$(db owner aliasesdb))" &&
+		  return "$a"
+		fi
+		return 1
+	}
+    else
 	aliases () { return 1 }
+    fi
 fi
 
 # If the 'm' option was NOT specified on the aliases relation,
@@ -349,7 +374,6 @@ routeuser (quad, domain) {
 
 expand_pobox_host(user,host,attr,key) {
 # XXX: UNFINISHED!
-	local pobox
 	pobox="$(mboxmap "$user")" || return 99
 	tsift "$pobox" in
 	([^:]+):([^:]+):(.+)

@@ -231,7 +231,7 @@ routeuser (quad, plustail, domain) {
 		   defer=''
 		return $(listexpand -E "postmaster" -e root -p $priv	\
 				    -c ":include:\1 file expansion"	\
-				    "$nattr" "\1" "$host" < "\1")
+				    "$nattr" "\1" "$host" "" "$domain" < "\1")
 		;;
 
 #	# This following requires ZM 2.99.46+ shell language!
@@ -330,7 +330,7 @@ routeuser (quad, plustail, domain) {
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
 		return $(listexpand -E "$l" -e "$l" -p $priv		\
 				    -c "$a file expansion"		\
-				    "$nattr"  "$a" "$host" < "$a")
+				    "$nattr"  "$a" "$host" "" "$domain" < "$a")
 
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"

@@ -1,7 +1,11 @@
 1998-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf:
+	    Match new listexpand parameters.
+
 	* router/functions.c:
-	    Added two new parameters to function  listexpand.
+	    Added two new parameters to function  listexpand
+	    to match underlying   rrouter  script function.
 
 	* libsh/regex.h, libsh/regex.c:
 	    Matched against GLIBC  <regex.h>  type defines.
