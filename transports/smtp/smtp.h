@@ -344,6 +344,10 @@ struct _SmtpState_SSL_aux {
   const char *peer_fingerprint;  /* strdup()ed string */
   const char *peer_CN;           /* strdup()ed string */
   const char *issuer_CN;         /* strdup()ed string */
+  const char *peer_CN1;          /* strdup()ed string */
+  const char *issuer_CN1;        /* strdup()ed string */
+  const char *notBefore;         /* strdup()ed string */
+  const char *notAfter;          /* strdup()ed string */
 
   unsigned char peername_md5[MD5_DIGEST_LENGTH];
 

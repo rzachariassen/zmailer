@@ -2096,8 +2096,8 @@ smtpopen(SS, host, noMX)
 		  /* Only if we are configured to *demand* the TLS mode,
 		     then this situation is an error! */
 
-		  if (demand_TLS_mode) {
-		    i = EX_UNAVAILABLE;
+		  if (1 /* demand_TLS_mode */) {
+		    i = EX_TEMPFAIL;
 		    notaryreport(NULL,NULL,"5.7.3 (Mandated TLS security mode not available)",
 				 "local; 500 (Remote system doesn't support mandated TLS mode)");
 		    strcpy(SS->remotemsg,"500 (Remote system doesn't support mandated TLS mode)");
@@ -2107,6 +2107,32 @@ smtpopen(SS, host, noMX)
 		  /* Well, TLS startup failed, then just reopen same
 		     server, and don't redo  STARTTLS. */
 		}
+
+#if 0
+		/*
+		 * Now the connection is established and maybe we
+		 * do have a validated cert with a CommonName in it.
+		 * In enforce_peername state, the handshake would
+		 * already have been terminated so the check here
+		 * is for logging only!
+		 */
+		if (session->tls_info.peer_CN) {
+		  if (!session->tls_info.peer_verified) {
+		    msg_info("Peer certficate could not be verified");
+		    if (session->tls_enforce_tls) {
+		      pfixtls_stop_clienttls(session->stream,
+					     var_smtp_starttls_tmout, 1,
+					     &(session->tls_info));
+		      return(smtp_site_fail(state, 450, "TLS-failure: Could not verify certificate"));
+		    }
+		  }
+		} else if (session->tls_enforce_tls) {
+		  pfixtls_stop_clienttls(session->stream,
+					 var_smtp_starttls_tmout, 1,
+					 &(session->tls_info));
+		  return (smtp_site_fail(state, 450, "TLS-failure: Cannot verify hostname"));
+		}
+#endif
 		if (SS->verboselog) {
 		  if (i == EX_OK) {
 		    fprintf(SS->verboselog,
@@ -2121,11 +2147,17 @@ smtpopen(SS, host, noMX)
 			    " TLS cipher bits: %d in use: %d\n",
 			    SS->TLS.cipher_algbits, SS->TLS.cipher_usebits);
 		    fprintf(SS->verboselog,
-			    " TLS peer CN:               %s\n",
-			    SS->TLS.peer_CN ? SS->TLS.peer_CN : "<>");
+			    " TLS peer CN-1:             %s\n",
+			    SS->TLS.peer_CN1 ? SS->TLS.peer_CN1 : "<>");
 		    fprintf(SS->verboselog,
 			    " TLS peer cert issuer name: %s\n",
-			    SS->TLS.issuer_CN ? SS->TLS.issuer_CN : "<>");
+			    SS->TLS.issuer_CN1 ? SS->TLS.issuer_CN1 : "<>");
+		    fprintf(SS->verboselog,
+			    " Cert not valid Before:     %s\n",
+			    SS->TLS.notBefore ? SS->TLS.notBefore : "<>");
+		    fprintf(SS->verboselog,
+			    " Cert not valid After:      %s\n",
+			    SS->TLS.notAfter ? SS->TLS.notAfter : "<>");
 		  } else
 		    fprintf(SS->verboselog, " Failed the TLS startup!\n");
 		}

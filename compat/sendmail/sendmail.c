@@ -552,7 +552,7 @@ otherprog:
 #else
 		  mktemp(verbfile);
 		  if (*verbfile == '\0' ||
-		      (vfd = open(verbfile, O_CREAT|O_RDWR, 0600)) < 0)
+		      (vfd = open(verbfile, O_CREAT|O_EXCL|O_RDWR, 0600)) < 0)
 #endif
 		    {
 		      fprintf(stderr,
@@ -724,20 +724,25 @@ otherprog:
 		  exit(EX_UNAVAILABLE);
 		}
 		if (vfd >= 0) {
+		  long filepos = 0;
 		  int sleeplimit = 260000; /* 260 000 seconds is circa 3d */
 
 		  if (fork() > 0) exit(EX_OK); /* Let the child to do
 						  the trace printout */
 		  if (vfd != 0) close(0);
 		  if (vfd != 1) close(1);
-		  vfp = fdopen(vfd, "r");
+		  vfp = fopen(verbfile, "r");
+		  if (vfp) fseek(vfp, filepos, SEEK_SET);
 		  while (vfp != NULL) {
 		    while (fgets(buf, sizeof buf, vfp) != NULL) {
 		      fprintf(stderr, "%s", buf);
 		      if (STREQN(buf, "scheduler done", 14))
 			sleeplimit = 20; /* 20 seconds to death */
 		    }
-		    clearerr(vfp);
+		    filepos = ftell(vfp);
+		    fclose(vfp);
+		    vfp = fopen(verbfile, "r");
+		    if (vfp) fseek(vfp, filepos, SEEK_SET);
 		    sleep(1);
 		    --sleeplimit;
 		    if (sleeplimit < 0)

@@ -1,4 +1,30 @@
-2002-09-21  root  <root@zmailer.org>
+2002-09-23  Matti Aarnio  <mea@zmailer.org>
+
+	* compat/sendmail/sendmail.c:
+	    Improved the verbose-trace printing code.
+	    Turned out the lattest glibc stdio code didn't
+	    resume reading from fd, when it had reached EOF once,
+	    or some such equally weird thing...
+	    Also noticed temporary file usage insecurity
+	    whereby somebody could persuade us to append
+	    texts into some existing file in systems where
+	    mkstemp() call does not exist.. (Not overwrite,
+	    nor read what invocator's privileges don't allow
+	    to be read...)
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c:
+	    - If TLS mode is mandated, but not available,
+	      yield a TEMPFAIL at connection..  Hopefully
+	      sysadmin will detect it before a full-blown
+	      failure occurs, and traffic is lost.
+	    - Also included template code for handling server
+	      certificate verification failure at SMTP connection
+	      level. (final integration is a TODO thing,)
+	    - A bit more of Postfix TLS code into SMTP client
+	      system.  (Still the session-cache in TODO..)
+
+2002-09-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtpcmds.c, smtpserver/cfgread.c,
@@ -13,12 +39,12 @@
 	    code into ZMailer environment.
 	    TODO: session-cache...
 
-2002-09-19  root  <root@zmailer.org>
+2002-09-19  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtptls.c, transports/smtp/smtp.h, man/smtp.8,
 	  proto/smtp-tls.conf.in:
-	    The OpenSSL code doesn't (anymore) like to work without proper
-	    random pre-seeding...
+	    The OpenSSL code doesn't (anymore) like to work without
+	    proper random pre-seeding...
 
 2002-09-10  Matti Aarnio  <mea@zmailer.org>
 
