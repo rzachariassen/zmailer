@@ -80,6 +80,12 @@ fi
 
 trap "db flush aliases ; log flushed aliases" 16
 
+#
+# If FULLNAMEMAP definition can be found..
+#
+if [ -f $MAILVAR/db/fullnamemap.zmsh ]; then
+	. $MAILVAR/db/fullnamemap.zmsh
+fi
 
 #
 # Safeguard if fullnamemapdb() is not yet created (as part of aliases()?)
@@ -115,6 +121,30 @@ case "$(type fullnamemapdb)" in
     esac
     ;;
 esac
+
+#
+# Hooks to define USERDB mapping
+#
+
+if [ -f $MAILVAR/db/userdb.zmsh ]; then
+   . $MAILVAR/db/userdb.zmsh
+else
+    if [ -f $MAILVAR/db/userdb$DBEXTtest ]; then
+	relation -lmt $DBTYPE -f $MAILVAR/db/userdb$DBEXT userdb
+    else
+	userdb () { return 1 }
+    fi
+fi
+
+#
+# Safeguard if userdb() is not yet created (as part of aliases()?)
+#
+case "$(type userdb)" in
+*"not found")
+	userdb () { return 1 }
+    ;;
+esac
+
 
 # If an mboxmap file exists, only users specified in the mboxmap are
 # recognized, and we want to deliver to them on the host, home directory

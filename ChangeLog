@@ -1,8 +1,18 @@
+2000-04-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/rfc822scan.c, router/functions.c, proto/cf/aliases.cf:
+	    Reworked alias (et.al.) expansion loop preventation
+	    machinery.  Now a message aliased as:
+		user1: user2, user1
+	    will be delivered to both, unless some other mapping diverts.
+	    NOT YET A COMPLETE THING!
+
 2000-03-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/zmailer.sh.in, proto/newdb.in, proto/db/dbases.conf:
 	    Now 'zmailer newdb' uses the  $MAILVAR/db/dbases.conf  file,
-	    if it exists.
+	    if it exists.  (But the converted needs to be rewritten,
+	    and security issues need more thought...)
 
 2000-03-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

@@ -45,7 +45,7 @@ _d|_h,	_d|_h,	_s,	_s|_h,	_s|_h,	_h,	_s|_h,	_h,	/* '8' -  77 */
 _s|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* '@' - 'G' */
 _a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'H' - 'O' */
 _a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'P' - 'X' */
-_a|_h,	_a|_h,	_a|_h,	_s|_h,	_s|_h,	_s|_h,	_h,	_h,	/* 'Y' - 137 */
+_a|_h,	_a|_h,	_a|_h,	_s|_h,	_s|_h,	_s|_h,	_h,	_h,	/* 'Y' - '_' */
 _h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* '`' - 'g' */
 _a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'h' - 'o' */
 _a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'p' - 'x' */
@@ -68,6 +68,56 @@ _8,	_8,	_8,	_8,	_8,	_8,	_8,	_8,	/* 350 - 357 */
 _8,	_8,	_8,	_8,	_8,	_8,	_8,	_8,	/* 360 - 367 */
 _8,	_8,	_8,	_8,	_8,	_8,	_8,	_8	/* 370 - 377 */
 };
+
+
+/*
+ *  Support function for Router's  $(condquote ...) a.k.a $(dequote ...)
+ *  function.
+ */
+
+int rfc822_mustquote(s, spc)
+	register const char *s;
+	const int spc;
+{
+	int inquote = 0, mustquote = 0, hasquotes = 0;
+	int c;
+
+	int spckosher = 0;
+
+	if ((!(rfc_ctype[spc & 0xFF] & (_w|_c|_8|_s)))
+	    || spc == '.')
+	  spckosher = 1;
+
+	for (; *s; ++s) {
+	  c = *(const unsigned char *)s;
+	  if (c == '"') {
+	    hasquotes = 1;
+	    inquote = !inquote;
+	    continue;
+	  }
+	  if (c == '\\') {
+	    /* special, thus must be checked before set lookups below */
+	    /* This is part of a quoted pair, if there is next char,
+	       pick it unchanged */
+	    const char *s2 = s+1;
+	    if (*s2) s = s2;
+	    continue;
+	  }
+	  if (c == '.')
+	    /* special, thus must be checked before set lookups below */
+	    continue;
+
+	  if (c == ' ' && spckosher)
+	    /* We are asked to consider replacing SPACEs with a new char,
+	       if the result is kosher, no need to quote after it */
+	    continue;
+
+	  if ((rfc_ctype[c] & (_w|_c|_8|_s)) || (c == '|')) {
+	    mustquote = 1;
+	  }
+	}
+	return hasquotes | (inquote ? 2 : 0) | (mustquote ? 4 : 0);
+}
 
 
 /*
@@ -466,7 +516,7 @@ token822 * scan822utext(cpp, nn, tlistp)
 {
 	register const char *cp;
 	static token822  t;
-	token822	*tlist, *tp, *tn, *ot;
+	token822	*tlist, *tp, *tn;
 	char	msgbuf[50];
 	short	ct;
 	int n = (int) nn;

@@ -75,7 +75,6 @@ static int run_basename  ARGCV;
 static int run_recase    ARGCV;
 static int run_squirrel  ARGCV;
 static int run_822syntax ARGCV;
-static int run_dequote   ARGCV;
 static int run_condquote ARGCV;
 static int run_syslog    ARGCV;
 
@@ -133,7 +132,7 @@ struct shCmd fnctns[] = {
 {	"recase",	run_recase,	NULL,	NULL,	0	},
 {	"squirrel",	run_squirrel,	NULL,	NULL,	0	},
 {	"rfc822syntax",	run_822syntax,	NULL,	NULL,	0	},
-{	"dequote",	run_dequote,	NULL,	NULL,	0	},
+{	"dequote",	run_condquote,	NULL,	NULL,	0	},
 {	"condquote",	run_condquote,	NULL,	NULL,	0	},
 {	"syslog",	run_syslog,	NULL,	NULL,	0	},
 {	"logger",	run_syslog,	NULL,	NULL,	0	},
@@ -1892,39 +1891,16 @@ run_822syntax(argc, argv)
 
 
 static int
-run_dequote(argc, argv)
-	int argc;
-	const char *argv[];
-{
-	int len;
-	const char *s = argv[1];
-
-	if (argc != 2)
-	  return 2; /* Bad bad! Missing/extra arg! */
-
-	len = strlen(s);
-
-	if (len > 1 &&
-	    ((*s == '"'  && s[len-1] == '"' ) ||
-	     (*s == '\'' && s[len-1] == '\''))) {
-	  fwrite(s+1,1,len-2,stdout);
-	} else
-	  fwrite(s,1,len,stdout);
-	putc('\n',stdout);
-	return 0;
-}
-
-
-static int
 run_condquote(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	int len;
 	const char *s = argv[1];
 	int mustquote = 0;
-	int candequote = 0;
-	int c;
+	int c, quoted;
+	int spc = 0;
+
+	extern int rfc822_mustquote __((const char *, const int));
 
 	/* We remove quotes when they are not needed, and add them when
 	   they really are needed! */
@@ -1932,59 +1908,66 @@ run_condquote(argc, argv)
 	if (argc != 2)
 	  return 2; /* Bad bad! Missing/extra arg! */
 
-	c = *s;
-	if (c == '"') {
-	  ++s; /* Starting quote */
-	  while (*s && *s != '"') {
-	    /* While within quoted string */
-	    if (*s == '\\') {
-	      ++s;
-	    }
-	    if (*s != 0)
-	      ++s;
-	  }
-	  if (*s != '"')
-	    mustquote = 1;
-	  else if (*s == 0)
-	    candequote = 1;
-	}
-	while (*s) {
-	  if (c == '\\') {
-	    ++s;
+
+	mustquote = rfc822_mustquote(s, spc);
+	/* A bitset:
+	   0001  Has Quotes
+	   0002  Ended while inside a quote
+	   0004  Has characters which must be quoted
+	*/
+
+
+	if (mustquote == 1) {
+	  /* Well, we can actually DEQUOTE the thing just fine! */
+	  quoted = 0;
+	  for (; *s; ++s) {
 	    c = *s;
-	    if (c == '!') /* fooo\!baar */
-	      mustquote = 1;
-	  } else if (c == ' ' || c == '\t')
-	    mustquote = 1; /* Unquoted spaces! */
-	  if (c != 0)
-	    ++s;
-	}
-
-	s = argv[1];
-	len = strlen(s);
-
-	/* Quoted, and without a need for quotes */
-	if (!mustquote && candequote) {
-	  /* XXX: THIS SHOULD REALLY USE SOME SYNTAX SCANNER -- LIKE THAT ONE
-	          FOR SMTP: RFC821SCN()    */
-	  fwrite(argv[1] + 1, 1, len -2, stdout); /* Dequoted! */
-	  putc('\n', stdout);
-	  return 0;
-	}
-	if (mustquote) {
-	  /* We need to quote this */
-	  s = argv[1];
-	  putchar('"'); /* First quote */
-	  while (*s) {
-	    if (*s == '"' || *s == '\\')
-	      putchar('\\');
-	    putchar(*s);
-	    ++s;
+	    if (c == ' ' && spc) {
+	      putchar(spc);
+	      quoted = 0;
+	      continue;
+	    }
+	    if (quoted) {
+	      putchar(c);
+	      quoted = 0;
+	      continue;
+	    }
+	    if (c == '\\') {
+	      /* A quoted pair! */
+	      quoted = 1;
+	      putchar(c);
+	      c = *++s;
+	    } else if (c == '"') {
+	      continue; /* Drop it! */
+	    } else
+	      putchar(c);
 	  }
-	  printf("\"\n"); /* The last quote */
-	  return 0;
+	} else if (mustquote > 1 && !(mustquote & 1)) {
+	  /* Has things needing quotes, but no quotes in place! */
+	  putchar('"');
+	  for (; *s; ++s) {
+	    c = *s;
+	    if (c == ' ' && spc)
+	      putchar(spc);
+	    else if (c == '"') {
+	      putchar('\\');
+	      putchar(c);
+	    } else
+	      putchar(c);
+	  }
+	  putchar('"');
+	} else {
+	  /* The original one.. */
+	  for (; *s; ++s) {
+	    c = *s;
+	    if (c == ' ' && spc)
+	      putchar(spc);
+	    else if (c == '\\') {
+	      putchar(c);
+	    } else
+	      putchar(c);
+	  }
 	}
-	/* The original one.. */
-	printf("%s\n",s);
+
 	return 0;
 }
