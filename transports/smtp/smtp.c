@@ -1230,9 +1230,26 @@ deliver(SS, dp, startrp, endrp)
 	  s = SMTPbuf + strlen(SMTPbuf);
 
 	  if (SS->ehlo_capabilities & ESMTP_DSN) {
-	    if (rp->notify) {
+	    if (rp->notifyflgs) {
+	      const char *t = "";
 	      strcat(s, " NOTIFY=");
-	      strcat(s,rp->notify);
+	      s += strlen(s);
+	      if (rp->notifyflgs & _DSN_NOTIFY_NEVER) {
+		strcat(s ,"NEVER");
+	      }
+	      if (rp->notifyflgs & _DSN_NOTIFY_SUCCESS) {
+		strcat(s, "SUCCESS");
+		t = ",";
+	      }
+	      if (rp->notifyflgs & _DSN_NOTIFY_FAILURE) {
+		strcat(s, t);
+		strcat(s, "FAILURE");
+		t = ",";
+	      }
+	      if (rp->notifyflgs & _DSN_NOTIFY_DELAY) {
+		strcat(s, t);
+		strcat(s, "DELAY");
+	      }
 	      s += strlen(s);
 	    }
 	    if (rp->orcpt != NULL) {
@@ -2130,7 +2147,7 @@ smtpconn(SS, host, noMX)
 
 	  if (SS->mxcount == 0 || SS->mxh[0].host == NULL) {
 
-	    struct addrinfo req, *ai, **aip;
+	    struct addrinfo req, *ai;
 
 	    memset(&req, 0, sizeof(req));
 	    req.ai_socktype = SOCK_STREAM;
@@ -2153,7 +2170,7 @@ smtpconn(SS, host, noMX)
 
 #if defined(AF_INET6) && defined(INET6)
 	    if (use_ipv6) {
-	      struct addrinfo *ai2 = NULL;
+	      struct addrinfo *ai2 = NULL, **aip;
 	      int i2;
 
 	      memset(&req, 0, sizeof(req));

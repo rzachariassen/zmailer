@@ -1,5 +1,10 @@
 2000-07-31  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    When 'NOTIFY=TRACE' flag is present, don't send it out
+	    as it is our INTERNAL thing.  Thus the change from string
+	    based output to flag-based output routine.
+
 	* include/ta.h, include/mailer.h, include/libz.h:
 	    Moved  STREQ()/STREQN()/CISTREQ()/CISTREQN()  macroes
 	    from  mailer.h (and ta.h)  to libz.h.
