@@ -1,3 +1,12 @@
+2003-04-04  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/libta/mimeheaders.c:
+	    Additional book-keeper things for knowing when
+	    the thing can fold, and when it can't.
+
+	* router/rfc822hdrs.c:
+	    Tuning (part of) folding header printing code.
+
 2003-04-03  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/sm/sm.c:

@@ -1,5 +1,9 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+VERIFY:  router/rfc822hdrs.c line 720 onwards "NillHeaderSemantics"
+	processing.  Can it break headers sometimes ?
+	What abour line 655 onwards ?  Earlier in that routine ?
+
 VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	dirq[] allocation compared with  nrouters  setting..
 	What happens, when   nrouters  is smaller, than the
