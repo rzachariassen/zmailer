@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-1997
+ *	<mea@nic.funet.fi>, copyright 1992-2000
  */
 
 /*

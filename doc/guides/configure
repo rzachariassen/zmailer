@@ -152,7 +152,7 @@ Options:
 		your system performance by about 20% -- with dangers..
 		On the other hand, recently a system disk(?) fault which
 		hang mailer at spool directory access did cause severe
-		damage all over, and propably use of this option would
+		damage all over, and probably use of this option would
 		not have made any difference..  fsck was mighty unhappy..)
 
 	--with-bundled-libresolv

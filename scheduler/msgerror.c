@@ -419,7 +419,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	  sfprintf(errfp, "This report is classified as 'Multiple-fault', because\n");
 	  sfprintf(errfp, "the error report template file (%s) was not found.\n\n",path);
 	  sfprintf(errfp, "Please report this to this system's postmaster.\n\n");
-	  sfprintf(errfp, "Here are report messages regarding email you (propably) sent:\n\n");
+	  sfprintf(errfp, "Here are report messages regarding email you (probably) sent:\n\n");
 	}
 }
 
@@ -889,7 +889,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	      *buf = 0;
 	    }
 	    /* We leave the first scan-phase with  buf[]  containing some
-	       valid RFC-822 -style header, propably "Received:" */
+	       valid RFC-822 -style header, probably "Received:" */
 	    if (*buf)
 	      sfprintf(errfp, "%s", buf);
 	    else {
@@ -953,7 +953,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	      *buf = 0;
 	    }
 	    /* We leave the first scan-phase with  buf[]  containing some
-	       valid RFC-822 -style header, propably "Received:" */
+	       valid RFC-822 -style header, probably "Received:" */
 	    if (*buf)
 	      sfprintf(errfp, "%s", buf);
 	    else {

@@ -388,7 +388,7 @@ Example (shortened) configuration is:
 
 <tscreen><verb>
 #PARAM maxsize              10000000	# Same as -M -option
-#PARAM max-error-recipients        3	# More than this is propably SPAM!
+#PARAM max-error-recipients        3	# More than this is probably SPAM!
 #PARAM MaxSameIpSource		  10    # Max simultaneous connections from
 #					# any IP source address
 #PARAM ListenQueueSize		   5	# The  listen(2)  parameter

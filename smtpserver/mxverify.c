@@ -640,7 +640,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	    sprintf(hbuf + ((15-i) << 2),
 		    "%x.%x.", ipaddr[i] & 0x0F, (ipaddr[i] >> 4) & 0x0F);
 	  }
-	  strcpy(hbuf+32,"ip6."); /* Fixed length of hex nybbles */
+	  strcpy(hbuf+64,"ip6."); /* Fixed length of hex nybbles */
 	}
 
 	suf = hbuf + strlen(hbuf);

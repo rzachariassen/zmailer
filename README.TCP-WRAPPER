@@ -32,7 +32,7 @@ which you allow mailq to be queried at all.
 
 Make sure these entries are before any wild-card "reject all" entries.
 
-In the long run I will propably remove the wrapper test at SMTPSERVER,
+In the long run I will probably remove the wrapper test at SMTPSERVER,
 because that program has other more powerfull machinery in place for
 access control.
 

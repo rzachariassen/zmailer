@@ -21,7 +21,7 @@ if (defined($ARGV[0])) {
 
 #
 #  You wonder why this utility was written ?
-#  Well, "technical monitoring with tail -f" is something which propably
+#  Well, "technical monitoring with tail -f" is something which probably
 #  is not allowed for people in Telecom Carrier business in Finland, thus
 #  we have to have a way to select only cases containing *errors* (or other
 #  interesting things), while basic flow goes by unseen...

@@ -28,7 +28,7 @@
 extern const char * const gs_name;
 extern const char * const monthname[];
 extern char	*prio_list[];
-#ifndef HAVE_STRERROR /* System has it, and propably has prototype too..
+#ifndef HAVE_STRERROR /* System has it, and probably has prototype too..
 			 IRIX 6.2 */
 extern char	*strerror __((const int errno));
 #endif

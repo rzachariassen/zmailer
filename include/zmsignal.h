@@ -10,7 +10,7 @@
 #include <signal.h>
 
 #ifndef RETSIGTYPE
-#define RETSIGTYPE void	/* Propably not globally portable.. */
+#define RETSIGTYPE void	/* Probably not globally portable.. */
 #endif
 
 #if defined(SV_INTERRUPT) && !defined(HAVE_SIGPROCMASK)	/* BSDism */

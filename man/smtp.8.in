@@ -7,7 +7,7 @@
 .SH SYNOPSIS
 .B smtp
 [
-.B \-678deEHrPsVxW
+.B \-678deEHMrPsVxW
 ]
 [
 .B \-c
@@ -127,6 +127,12 @@ specifies a log file where the complete SMTP command transaction will be
 copied.  Each line in the log will be prefixed with the process id of
 the transport agent process, so the same log file can be used by all SMTP
 clients.
+.IP \-M
+specifies that system shall run in RFC 2033 specified
+.I LMTP
+mode when contacting remote systems.
+Usage of this option requires also that destination port is defined,
+and is not the SMTP default of 25.
 .IP \-r
 asks to set up SMTP connections using a source TCP port number under 1024.
 This is in the range of port numbers only available to a privileged process

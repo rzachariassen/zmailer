@@ -35,7 +35,7 @@ ZMailer Overview
     when available.)
   + Fast binary-transparent SMTP server and client.
     [ It is still binary transparent, but MIME support has slowed
-      it slightly.  Most propably it will still be able to flood
+      it slightly.  Most probably it will still be able to flood
       your Ethernet with a 10 MB SMTP transfer, so beware ;-) ]
 
 
@@ -239,6 +239,7 @@ ZMailer Overview
 			<zmailer-request@nic.funet.fi>
   or preferrably use <mailserver@nic.funet.fi> and send there a request:
 		subscribe zmailer Your Name
+  (With naturally substituting "Your Name" with your own name.)
 
 
 - How do I install this?

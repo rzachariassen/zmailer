@@ -1,7 +1,7 @@
 /* Small pieces for scanning forward on a buffer of RFC-821/822 compliant
    addresses */
 
-/* (c) Matti Aarnio 1993-1997 <mea@nic.funet.fi> */
+/* (c) Matti Aarnio 1993-2000 <mea@nic.funet.fi> */
 
 /* All these routines scan over the lexical elements they are after, and
    if successfull, return pointer just AFTER such element.
@@ -513,7 +513,7 @@ int strict;
      *    Paul Vixie, 1996.
      */
 
-#ifndef IN6ADDRSZ		/* Propably these all set at the same time.. */
+#ifndef IN6ADDRSZ		/* Probably these all set at the same time.. */
 #define IN6ADDRSZ 16
 #define INADDRSZ   4
 #define INT16SZ    2

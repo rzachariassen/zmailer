@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1999.
+ *      Copyright 1991-2000.
  */
 
 #include "smtpserver.h"
@@ -272,7 +272,7 @@ const int holdlast, len;
 	if (!bufp) {
 
 
-	    /* Huh! Got an EOF, while propably didn't expect it ?
+	    /* Huh! Got an EOF, while probably didn't expect it ?
 	       Lets find out what the subprocess status was */
 	    bufp = emalloc(80 + strlen(args0) + strlen(function) +
 			   sizeof(ROUTER_SERVER));

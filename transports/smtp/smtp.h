@@ -450,7 +450,9 @@ extern int  smtp_ehlo  __((SmtpState *SS, const char *strbuf));
 extern int  ehlo_check __((SmtpState *SS, const char *buf));
 extern void smtp_flush __((SmtpState *SS));
 extern int  smtp_sync  __((SmtpState *SS, int, int));
+extern int  smtpreplypick __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
 extern int  smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
+extern void smtppipestowage  __((SmtpState *SS, const char *buf, struct rcpt *syncrp));
 extern int  process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
 
 extern int  check_7bit_cleanness __((struct ctldesc *dp));
@@ -476,7 +478,7 @@ extern void getdaemon();
 extern int  has_readable __((int));
 extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS, int failure));
-extern void pipeblockread __((SmtpState *SS));
+extern int  pipeblockread __((SmtpState *SS));
 extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
 extern int  zsfsetfd     __((Sfio_t *, int));
 extern int  smtp_nbread  __((SmtpState *, void *, int));

@@ -68,7 +68,7 @@ esac
 #
 relation -lt incore expansions
 
-# set up the host expansions cache -- same cavet as above, but propably can
+# set up the host expansions cache -- same cavet as above, but probably can
 # live with it [mea] 94-Aug-04
 relation -lt incore hostexpansions
 

@@ -1416,7 +1416,7 @@ struct ctldesc *dp;
 	  for (i=0; i < readalready; ++i)
 	    if (128 & (let_buffer[i])) {
 	      lseek(mfd, dp->msgbodyoffset, SEEK_SET);
-	      /* We propably have not read everything of the file! */
+	      /* We probably have not read everything of the file! */
 	      readalready = 0;
 	      return 0;		/* Not clean ! */
 	    }

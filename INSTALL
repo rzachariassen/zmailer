@@ -29,7 +29,7 @@ Installation procedure:
 
 2.	If you are on an Ultrix system, replace the mkdep and mklibdep
 	scripts in the bin directory with the versions provided in bin/Ultrix.
-	(although you propably will not do dependency generation)
+	(although you probably will not do dependency generation)
 
 3.	This system uses several preferrably separate partitions for
 	different things:
@@ -533,7 +533,7 @@ FIXME:(write!)		(See notes about post-install below)
 
 13.	At the start the scheduler reads  $MAILSHARE/scheduler.conf  file
 	for the instructions about how to handle router produced files with
-	recipient addresses.   Propably the default boiler-plate file is
+	recipient addresses.   Probably the default boiler-plate file is
 	sufficient for you, but have a look at it anyway.
 	You will need to tinker with it for example when you want to
 	use 'Cyrus' server for local message store.

@@ -1,6 +1,8 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *      Copyright Matti Aarnio <mea@nic.funet.fi> 1992-2000
  */
 
 #include "hostenv.h"
@@ -127,9 +129,9 @@ STATIC struct {
 { eIllegalSpecialInPhrase,	"illegal special character in phrase"	},
 { eIllegalPeriodInPhrase,	"illegal period in phrase"		},
 { eIllegalPhraseMustBeQuoted,	"phrases containing '.' must be quoted"	},
-{ eIllegalSubdomainInDomain,	"illegal subdomain in domain, propably extra '.' at the end of the address"	},
+{ eIllegalSubdomainInDomain,	"illegal subdomain in domain, probably extra '.' at the end of the address"	},
 { eIllegalTokenInRoute,		"illegal token in route"		},
-{ eIllegalWordInLocalPart,	"illegal word in localpart, propably extra '.' at the end of the address"	},
+{ eIllegalWordInLocalPart,	"illegal word in localpart, probably extra '.' at the end of the address"	},
 { eIllegalStartOfMessageId,	"illegal start of message identification"},
 { eIllegalEndOfMessageId,	"illegal end of message identification"	},
 { eIllegalEncryptionIdentifier,	"illegal encryption Identifier"		},

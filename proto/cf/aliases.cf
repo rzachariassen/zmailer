@@ -22,7 +22,7 @@
 #        or 'alias expand' as the delivery status.   NOT any of the final
 #	 destinations possibly thru lots of further diversions.
 #
-#	 Right now all DSN data is just scrubbed away, although propably
+#	 Right now all DSN data is just scrubbed away, although probably
 #	 some semi-strange hybride of redirected ORCPT data would be in
 #	 order -- at least.  (With redirected sender address.)
 #
@@ -119,7 +119,7 @@ case "$(type fullnamemapdb)" in
 *)  # Can be found!
     case "$(type fullnamemap)" in
     *"not found")
-	# The DB is there, but not this function, propably as a part of
+	# The DB is there, but not this function, probably as a part of
 	# aliases() database call entry...
 	fullnamemap() { return 1 }
 	;;

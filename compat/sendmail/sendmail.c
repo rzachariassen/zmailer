@@ -604,7 +604,7 @@ otherprog:
 		fprintf(mfp,"env-end\n");
 
 		if (fflush(mfp) == EOF
-/* #ifdef NFSFSYNC */  /* This is propably ALWAYS a good idea.. */
+/* #ifdef NFSFSYNC */  /* This is probably ALWAYS a good idea.. */
 		    || fsync(fileno(mfp)) < 0
 /* #endif */	/* NFSFSYNC */
 		    || ferror(mfp)) {

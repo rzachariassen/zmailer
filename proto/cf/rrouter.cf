@@ -133,7 +133,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 			domain="@\2"
 			plustail=""
 		fi ;;
-	<@>.(.+)	# This plustail is propably wrong...
+	<@>.(.+)	# This plustail is probably wrong...
 		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# try after route strip
 	(.+)<@>	
 		if [ -z "$domain" ]; then

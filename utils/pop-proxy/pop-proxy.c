@@ -379,7 +379,7 @@ void server(int fd, int issock)
 	for (;;) {
 
 	  /* Do we need timeout monitoring ?
-	     Propably not, but one never knows, thus we rig
+	     Probably not, but one never knows, thus we rig
 	     an alarm of 10 minutes at each select call.
 	     If it expires, we close both sockets, and exit. */
 

@@ -95,7 +95,7 @@ same way as at the ISP side:
 	.client.dom	error!database
 	.		smtp-etrn!mail.isp.dom
 
-Also at the client's  router.cf  you propably want the protocols
+Also at the client's  router.cf  you probably want the protocols
 setting to be purely:
 	protocols='routes'
 specifically *no* 'smtp' in there!
@@ -114,7 +114,7 @@ needs to be triggered to flush the ETRN queue:
 	ETRN mail.isp.dom
 
 Furthermore, in case your client is a dial-on-demand system, you
-propably want to disable dynamic DNS lookups that the client side
+probably want to disable dynamic DNS lookups that the client side
 does, and only use static "/etc/hosts" file,
 so that when the system starts and it does a bunch of DNS lookups
 to figure out some parameters about itself, all those can be

@@ -682,7 +682,7 @@ static void mq2interpret(mq,s)
     return;
   }
 
-  mq2_puts(mq, "-MAILQ2 No such command; VERB='");
+  mq2_puts(mq, "-MAILQ2 Unknown command, or refused by access control; VERB='");
   mq2_puts(mq, s);
   mq2_puts(mq, "' REST='");
   mq2_puts(mq, t);

@@ -1,3 +1,46 @@
+2000-10-05  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* lib/Makefile.in:
+	    "make install" did put zmailer.h into  $prefix/$prefix/include/,
+	    which is "somewhat" wrong...
+
+	* man/smtp.8, transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Implemented LMTP (RCF 2033) at the smtp TA program.
+	    To enable LMTP, use option '-M'.
+
+	* scheduler/mq2.c:
+	    When reporting "unknown" command, do tell things differently:
+	      "Unknown command, or refused by access control;" ...
+
+	* smtpserver/mxverify.c:
+	    Fix the IPv6 nybble-reverse code to do proper in6 type reverser,
+	    although an alternate (binary labels) is defined these days...
+
+	* transports/libta/ctlopen.c:
+	    See if the message to be opened is a ETRN request -- if yes,
+	    just return with failure...  (manual-expirer triggers this.)
+
+	* transports/libta/mimeheaders.c:
+	    While parsing for Content-Type: parameters, allow LWSP in same
+	    lines.  Full specification really calls for RFC 822 tokens along
+	    with CWSP and commend handling.
+
+	* transports/mailbox/mailbox.c:
+	    Separates "From MAILER-DAEMON " from "Return-Path: <>".
+	    Produces "X-Envelope-To: <...>" header.
+
+	* ChangeLog, INSTALL, Overview, README.TCP-WRAPPER,
+	  README.UPGRADING, compat/sendmail/sendmail.c, doc/guides/configure,
+	  doc/guides/smtp-etrn, include/zmsignal.h, lib/hashtest.c,
+	  man/smtpserver.8, proto/smtpserver.conf.in, proto/cf/aliases-new.cf,
+	  proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/standard.cf,
+	  router/prototypes.h, router/rfc822walk.c, scheduler/msgerror.c,
+	  scheduler/scheduler.c, smtpserver/rfc821scn.c, transports/sm/sm.c,
+	  smtpserver/smtprouter.c, transports/libta/diagnostic.c, 
+	  transports/mailbox/mailbox.c, transports/smtp/smtp.c, 
+	  utils/smtpserver-log-parser.pl.in, utils/pop-proxy/pop-proxy.c:
+	    A great speller-bee of "propab*" -> "probab*".
+
 2000-09-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* man/sm.8, transports/sm/sm.c:
@@ -296,7 +339,7 @@
 	    Picked lattest versions out from  GLIBC 2.1.92 source,
 	    and cleaned it up to be simple single-threaded thing
 	    without locks, and without IPv6 support.
-	    STILL PROPABLY LEAKS MEMORY!
+	    STILL PROBABLY LEAKS MEMORY!
 
 2000-08-01  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
@@ -2274,7 +2317,7 @@
 
 	* proto/smtpserver.conf.in:
 	    Place 'ESMTP' at both lines of the 220 message (sigh,
-	    PostFix MTA violates RFC 1869 part 4, and propably isn't
+	    PostFix MTA violates RFC 1869 part 4, and probably isn't
 	    the only one...)
 
 	* smtpserver/smtpserver.c, smtpserver/smtptls.c:
@@ -2730,7 +2773,7 @@
 	    - About all Makefile.in template files did need changes
 	      so that ZMailer's own include paths preceed ALL other
 	    - Changed all include instances of "malloc.h" to "zmalloc.h",
-	      although that propably is unnecessary... (and renamed
+	      although that probably is unnecessary... (and renamed
 	      the file, although CVS will show deletion and adding..)
 	    - Manage to autodetect OpenSSL shared objects, although does
 	      not do full blown shared-library runtime load path define,
@@ -3651,7 +3694,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 
 	* transports/sm/sm.c, transports/smtp/smtp.c,
 	  utils/pop-proxy/pop-proxy.c, scheduler/scheduler.c:
-	    Moving arount the  setvbuf()  calls a bit, propably mostly
+	    Moving arount the  setvbuf()  calls a bit, probably mostly
 	    safe without this, but better be absolutely sure..
 
 	* libc/md5c.c:
@@ -4586,7 +4629,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 
 	* router/libdb/header.c:
 	    Alter the syntax of "Reply-To:" header match that of
-	    RFC-822.  Oops since 2.2.1 (and propably before!)
+	    RFC-822.  Oops since 2.2.1 (and probably before!)
 
 	* router/libdb/bind.c:
 	    Just nice for debugging -- report DNS lookup error codes
@@ -7444,7 +7487,7 @@ Tue Apr  9 11:39:12 1996  Matti Aarnio  <mea@nic.funet.fi>
 
 	* hostenv/Linux:
 	    Added a warning about mmap() being broken in 1.2.x -kernels
-	    (well, propably broken...)
+	    (well, probably broken...)
 
 	* hostenv/OSF1v3.2-Alpha:
 	    Added "STDC_HEADERS=" -- for ANSI-C-headers
@@ -9129,7 +9172,7 @@ Fri Dec 23 08:50:14 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 	  transports/sm/sm.c, transports/smtp/smtp.c,
 	  router/functions.c, compat/sendmail/Makefile.in
 	    Several changes by Byron Rakitzis to suit BSDI
-	    (and propably most of the current BSD 4.4)
+	    (and probably most of the current BSD 4.4)
 
 	    Added also new variable for the  Config:
 		SENDMAILLIB=/usr/lib
@@ -9163,7 +9206,7 @@ Thu Dec 15 23:29:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 	    Added there "-1"
 
 	* transports/mailbox/mailbox.c:
-	    Created   propably_x400()  -function, and altered error
+	    Created   probably_x400()  -function, and altered error
 	    reports on anonymous delivery to a file ("/...") to reflect
 	    possible X.400 addresses, when such is likely.
 	    ("/X=XXXX/Y=YYYY/...")

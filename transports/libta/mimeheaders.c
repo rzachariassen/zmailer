@@ -473,9 +473,20 @@ parse_content_type(ct_linep)
 	  }
 	  /* Picked up a param name, now scan the value */
 	  pv = s;
+
+	  /* Have seen cases where there was:
+	         charset = "foo-bar"
+	     That is, it had whitespaces around the "=" sign. */
+
+	  while (*s == ' ' || *s == '\t') ++s;
+
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++pv;
 	    ++s;
+
+	    /* Skip possible further whitespace */
+	    while (*s == ' ' || *s == '\t') ++s;
+
 	    if (*s == '"') {
 	      /* Scan a quoted string, stop at trailing '"' */
 	      int quoted = 0; /* Quoted with '\' */
@@ -574,7 +585,7 @@ parse_content_type(ct_linep)
 
 struct cte_data *
 parse_content_encoding(cte_linep)
-     char **cte_linep;	/* Propably is not a multiline entry.. */
+     char **cte_linep;	/* Probably is not a multiline entry.. */
 {
 	char *line, *s;
 	struct cte_data *cte = malloc(sizeof(struct cte_data));
@@ -823,7 +834,7 @@ NULL };
 	  if (CT)	/* XX: This CAN be wrong action for
 			       some esoteric SysV mailers.. */
 	    delete_header(rp,CT);
-	  /* These most propably won't happen, but the delete_header()
+	  /* These most probably won't happen, but the delete_header()
 	     does scram the pointers anyway.. */
 	  if (MIME)
 	    delete_header(rp,MIME);
@@ -1017,7 +1028,7 @@ qp_to_8bit(rp)
 	  if (!mime_received_convert(rp," convert rfc822-to-8bit"))
 	    return 0;	/* "Received:" conversion failed! */
 
-	} /* else propably already decoded */
+	} /* else probably already decoded */
 
 	return 1;
 }

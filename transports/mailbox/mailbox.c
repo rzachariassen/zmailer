@@ -339,7 +339,7 @@ extern char *exists __((const char *, const char *, struct passwd *, struct rcpt
 extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
-extern Sfio_t *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file));
+extern Sfio_t *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file, uid_t));
 extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, struct writestate *WS, const char *file, int ismime));
 extern char **environ;
 extern int writebuf __((struct writestate *, const char *buf, int len));
@@ -801,12 +801,12 @@ process(dp)
 }
 
 /*
- * propably_x400() -- some heuristics to see if this is likely
+ * probably_x400() -- some heuristics to see if this is likely
  *		      a mis-written X.400 address
  */
-int propably_x400 __((const char *));
+int probably_x400 __((const char *));
 int
-propably_x400(addr)
+probably_x400(addr)
 	const char *addr;
 {
 	int slashes = 0;
@@ -1121,7 +1121,7 @@ deliver(dp, rp, usernam, timestring)
 	  }
 
 	  if (uid == nobody) {
-	    if (propably_x400(usernam)) {
+	    if (probably_x400(usernam)) {
 
 	      if (verboselog)
 		fprintf(verboselog,
@@ -1234,7 +1234,7 @@ deliver(dp, rp, usernam, timestring)
 			   "getpwnam for user \"%s\" failed; errno=%d",
 			   usernam, err);
 
-	      } else if (propably_x400(usernam)) {
+	      } else if (probably_x400(usernam)) {
 
 		if (verboselog)
 		  fprintf(verboselog,
@@ -1709,7 +1709,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	  nbp->offset = eofindex;
 #endif	/* BIFF || RBIFF */
 
-	fp = putmail(dp, rp, fdmail, "a+", timestring, file);
+	fp = putmail(dp, rp, fdmail, "a+", timestring, file, uid);
 	
 	if (S_ISREG(st->st_mode)) {
 
@@ -1841,11 +1841,12 @@ if (verboselog)
 
 
 Sfio_t *
-putmail(dp, rp, fdmail, fdopmode, timestring, file)
+putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
      struct ctldesc *dp;
      struct rcpt *rp;
      int fdmail;
      const char *fdopmode, *timestring, *file;
+     uid_t uid;
 {
 	int len, rc, mw=0;
 	Sfio_t *fp;
@@ -1924,15 +1925,16 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	    strcmp(rp->addr->link->channel, "error") == 0)
 	  fromuser = "";
 
-	if (*fromuser == 0)
-	  fromuser = "MAILER-DAEMON";
-
 	do {
 	  hdrs = has_header(rp,"Return-Path:");
 	  if (hdrs) delete_header(rp,hdrs);
 	} while (hdrs);
 
 	append_header(rp,"Return-Path: <%.999s>", fromuser);
+
+
+	if (*fromuser == 0)
+	  fromuser = "MAILER-DAEMON";
 
 	hdrs = has_header(rp,"To:");
 	if (!hdrs) {
@@ -1946,6 +1948,11 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	  append_header(rp,"Apparently-To: <%.999s>", rp->addr->link->user);
 	}
+
+	do {
+	  hdrs = has_header(rp,"X-Envelope-To:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
 
 	do {
 	  hdrs = has_header(rp,"X-Orcpt:");
@@ -1968,6 +1975,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	if (sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
 	    || swriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
 	  failed = 1;
+
+	if (!failed)
+	  sfprintf(fp, "X-Envelope-To: <%s> (uid %d)\n", rp->addr->user, uid);
 
 	if (!failed && rp->orcpt) {
 	  sfprintf(fp, "X-Orcpt: ");
@@ -2363,7 +2373,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	  } else {
 
-	    /* Duh, propably something like:
+	    /* Duh, probably something like:
 	       "|IFS=' '&&.... "
 	    */
 
@@ -2408,7 +2418,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	/* write the message */
 	mmdf_mode += 2;
 	eofindex = -1; /* NOT truncatable! */
-	fp = putmail(dp, rp, out[1], "a", timestring, cmdbuf);
+	fp = putmail(dp, rp, out[1], "a", timestring, cmdbuf, uid);
 	/* ``fp'' is dummy marker */
 	mmdf_mode -= 2;
 	if (fp == NULL) {
@@ -2589,13 +2599,13 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	      struct stat st;
 #ifdef	HAVE_UTIME
 	      struct utimbuf tv;
-	      stat(*filep,&st); /* This by all propability will not fail.. */
+	      stat(*filep,&st); /* This by all probability will not fail.. */
 	      tv.actime  = 0;	/* never read */
 	      tv.modtime = st.st_mtime;
 	      utime(*filep, &tv);
 #else
 	      struct timeval tv[2];
-	      stat(*filep,&st); /* This by all propability will not fail.. */
+	      stat(*filep,&st); /* This by all probability will not fail.. */
 	      tv[0].tv_sec = 0; /* never read */
 	      tv[1].tv_sec = st.st_mtime;
 	      tv[0].tv_usec = tv[1].tv_usec = 0;
@@ -2604,7 +2614,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	    }
 	    return 1;
 	  }
-	  if (errno == EEXIST) { /* It exists -- propably a race between
+	  if (errno == EEXIST) { /* It exists -- probably a race between
 				    two file creators caused this */
 	    
 	    return 1;

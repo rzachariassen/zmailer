@@ -114,7 +114,7 @@ case "$(type fullnamemapdb)" in
 *)  # Can be found!
     case "$(type fullnamemap)" in
     *"not found")
-	# The DB is there, but not this function, propably as a part of
+	# The DB is there, but not this function, probably as a part of
 	# aliases() database call entry...
 	fullnamemap() { return 1 }
 	;;

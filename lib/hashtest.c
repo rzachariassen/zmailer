@@ -23,7 +23,7 @@
  *     -XX:  0.592 sec user space
  *     -DD:  0.443 sec user space
  *
- *  from which we can propably safely say that  crc32() and pjwhash32()
+ *  from which we can probably safely say that  crc32() and pjwhash32()
  *  are absolutely equal in execution time, and likely present only
  *  0.150 seconds of the test runtime.  ( Or 790 nanoseconds per user
  *  name -- yeah, Alpha rules ;) Guestimate says each hash took some

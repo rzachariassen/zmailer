@@ -4,7 +4,7 @@
  */
 
 /*
- *	Copyright 1994-1997 by Matti Aarnio
+ *	Copyright 1994-2000 by Matti Aarnio
  *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
@@ -360,6 +360,10 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  if (d.ctlmap != NULL)
 	    munmap((void*)d.ctlmap, d.contentsize);
 #endif	  
+	  /* Is it perhaps just the ETRN request file ?
+	     and manual expirer gave it to us ?  Never mind then.. */
+	  if (contents[0] == _CF_TURNME) return;
+
 	  warning("Truncated or illegal control file \"%s\"!", file);
 	  /* exit(EX_PROTOCOL); */
 	  sleep(60);
@@ -671,7 +675,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	}
 
 	/* Sometimes we bail out before terminating NULLs are added..
-	   propably before anything is added. */
+	   probably before anything is added. */
 	msgheaders   [headers_cnt] = NULL;
 	msgheaderscvt[headers_cnt] = NULL;
 

@@ -15,7 +15,7 @@ TOPDIR=		..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
 AR=		@AR@
-prefix=         @prefix@
+prefix=
 #exec_prefix=   @exec_prefix@
 LIBC_INCL=	@GENINCL@ @INCLRESOLV@
 INCLUDEDIR=	${prefix}@includedir@
@@ -76,10 +76,10 @@ lint:
 
 install:  $(TOPDIR)/libs/libzmailer.a
 	-if [ ! -d $(LIBRARYDIR) ] ; then	\
-		$(MKDIR) $(LIBRARYDIR);	\
+		$(MKDIR) -p $(LIBRARYDIR);	\
 	 fi
 	-if [ ! -d $(INCLUDEDIR) ] ; then	\
-		$(MKDIR) $(INCLUDEDIR);	\
+		$(MKDIR) -p $(INCLUDEDIR);	\
 	 fi
 	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(LIBRARYDIR)/libzmailer.a
 	-$(RANLIB) $(LIBRARYDIR)/libzmailer.a

@@ -722,7 +722,7 @@ main(argc, argv)
 	cehead = readconfig(config);
 	if (cehead == NULL) {
 	  cp = emalloc(strlen(config)+50);
-	  sprintf(cp, "null control file, propably errors in it: %s", config);
+	  sprintf(cp, "null control file, probably errors in it: %s", config);
 	  die(1, cp);
 	  /* NOTREACHED */
 	}
