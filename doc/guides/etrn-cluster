@@ -1,12 +1,17 @@
+[2000-Feb-12/mea: incomplete]
 
 			ETRN CLUSTER
 
 Intro:
 
 	There exist environments, where single machines are not
-	desirable for some services.   Usually in such setups
-	there are some sort of backup/fail-over clusters.
-	Sometimes these are load-balance clusters.
+	desirable for some services.   Usually in such setups there
+	are some sort of backup/fail-over clusters.  Sometimes these
+	are load-balance clusters.
+
+	While most of the thing is possible to do with DNS round-
+	robin, fail-over of failed node will happen quicker with
+	special frontend gadgets.
 
 	Original goal of SMTPSERVER's ETRN-CLUSTER support was
 	geared towards load-balance, however it gives (for free)
@@ -18,9 +23,9 @@ Intro:
 			| The Internet
 			|
 			| Addr[0]
-		+------------------+
-		| FO/LB switch (*) |
-		+------------------+
+		+-----------------------+
+		| L4(-aware) switch (*) |
+		+-----------------------+
 			|
 		  ===============
 		   |           |
@@ -36,14 +41,17 @@ Intro:
 	Customer MX information is supposed to be referring only
 	to  ``smtp.isp.net''  server, *never* at real servers!
 
-	The Fail-Over/Load-Balance switch is transparent TCP level
-	gadget, which picks by some rule the next server for which
-	a connection to  Addr[0]:portXX gets directed to -- usually
-	in form of rewriting destination IP address of each stream
-	datagram packet!  Also, reply packets coming from servers
-	for given streams get their source IP address rewritten into
+	The L4-switch is transparent TCP level gadget, which picks
+	by some rule the next server for which a connection to
+	Addr[0]:portXX gets directed to -- usually in form of
+	rewriting destination IP address of each stream datagram
+	packet!  Also, reply packets coming from servers for
+	given streams get their source IP address rewritten into
 	Addr[0] for the contactee to have successfull TCP connection.
 
+	Some systems/their configurations allow even port rewrites
+	so that virtual server at port A gets mapped to port B
+	at the real servers.
 
 	Those devices won't, of course, rewrite Addr[1] nor Addr[2]
 	to Addr[0] when the connection is not a translated one.
@@ -55,11 +63,11 @@ Intro:
 	being sent to the magic multiplexer address, but outgoing
 	SMTP will be coming from different address(es).
 
-
-	The FO/LB switch might have some ACL mechanisms which can
-	be used to forbid direct external SMTP connection to the
-	node SMTP ports.  (To enforce a rule that no customer shall
-	use those real servers for the service!)
+	The L4-switch might have some ACL mechanisms which can be
+	used to forbid direct external SMTP connection to the node
+	SMTP ports.  (To enforce a rule that no customer shall use
+	those real servers for the service! -- this is default modus
+	operandi of Alteon units.)
 
 	There might even be some fancy footwork at the nodes so that
 	the input service address in between the switch, and the
@@ -84,10 +92,14 @@ Things that  don't/might not  work:
 	- Too tight firewalls at systems/sites who are our cluster's
 	  MX customers -- make sure *all* nodes can make SMTP connection
 	  to the customer's system.
-	- At client a too tight server SSL/TLS certificate analysis;
-	  real node *is* different from what the contacting system
-	  may expect..  (Of course all peers may have same *input*
-	  certificate, which is issued for  Addr[0])
+	- At client a tight enough server SSL/TLS certificate analysis;
+	  real node *is* different from what the contacting system may
+	  expect..     (Of course all peers should have same *input*
+	  certificate, which is issued for  Addr[0] -- session caches
+	  at SSL/TLS are not absolutely necessary, and won't actually
+	  help much unless two consequtive sessions from same source
+	  happen to hit same node.)  (For *output* there is need for
+	  separate individual certificates per node.)
 
 Configuring:
 
@@ -127,4 +139,4 @@ Notes:
 
 	- Commercially available application level fail-over/load-balance
 	  switches exist quite many in 1999/2000; makers include, but are
-	  not limited to:  Alteon, Cisco
+	  not limited to:  Alteon, Arrowpoint, Cisco, Foundry
