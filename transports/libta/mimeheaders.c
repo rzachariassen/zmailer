@@ -1036,10 +1036,12 @@ downgrade_headers(rp, convertmode, verboselog)
 	char **CTE  = NULL;
 	char **MIME = NULL;
 	struct ct_data *ct;
-	int lines = 0;
+	int lines;
 	int i;
 	int is_textplain;
 	int newlen;
+	int outnum;
+	int oldidx, newidx;
 
 	if (*(rp->newmsgheadercvt) != NULL)
 	  return 0; /* Already converted ! */
@@ -1048,6 +1050,7 @@ downgrade_headers(rp, convertmode, verboselog)
 
 	oldmsgheader = rp->newmsgheadercvt;
 
+	lines = 0;
 	if (oldmsgheader) /* Count them! */
 	  while ((*oldmsgheader)[lines]) ++lines;
 
@@ -1065,17 +1068,18 @@ downgrade_headers(rp, convertmode, verboselog)
 \t   the SMTP transport session the receiving system did not announce\n\
 \t   capability of receiving 8-bit SMTP (RFC 1651-1653), and as this\n\
 \t   message does not have MIME headers (RFC 2045-2049) to enable\n\
-\t   encoding change, we had very little choice.",
-"X-Warning: We ASSUME it is less harmful to add the MIME headers, and\n\
+\t   encoding change, we had very little choice.\n\
+X-Warning: We ASSUME it is less harmful to add the MIME headers, and\n\
 \t   convert the text to Quoted-Printable, than not to do so,\n\
-\t   and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
-"X-Warning: We don't know what character set the user used, thus we had to\n\
-\t   write these MIME-headers with our local system default value.",
-"MIME-Version: 1.0",
-"Content-Transfer-Encoding: QUOTED-PRINTABLE",
+\t   and to strip the message to 7-bits.. (RFC 1428 Appendix A)\n\
+X-Warning: We don't know what character set the user used, thus we had to\n\
+\t   write these MIME-headers with our local system default value.\n\
+MIME-Version: 1.0\n",
+"Content-Transfer-Encoding: QUOTED-PRINTABLE\n",
 NULL };
 
-	  char **newmsgheaders = (char**)malloc(sizeof(char**)*(lines+6));
+	  int outspc = lines + 8;
+	  char **newmsgheaders = (char**)malloc(sizeof(char**) * outspc);
 	  char *defcharset = getzenv("DEFCHARSET");
 	  char *newct;
 
@@ -1089,9 +1093,15 @@ NULL };
 
 	  if (!newmsgheaders) return 0; /* XX: Auch! */
 
-	  for (lines = 0; warning_lines[lines]; ++lines)
-	    newmsgheaders[lines] = strdup(warning_lines[lines]);
-	  newmsgheaders[lines++] = newct;
+	  outnum = 0;
+	  oldidx = 0;
+	  if ((*oldmsgheader)[0]) {
+	    newmsgheaders[outnum++] = (*oldmsgheader)[oldidx++];
+	  }
+
+	  for (newidx = 0; warning_lines[newidx]; ++newidx)
+	    newmsgheaders[outnum++] = strdup(warning_lines[newidx]);
+	  newmsgheaders[outnum++] = newct;
 
 	  if (CT)	/* XX: This CAN be wrong action for
 			       some esoteric SysV mailers.. */
@@ -1107,9 +1117,9 @@ NULL };
 	    delete_header(rp,CTE);
 	  }
 
-	  for (i = 0; (*oldmsgheader)[i]; ++i)
-	    newmsgheaders[lines+i] = (*oldmsgheader)[i];
-	  newmsgheaders[lines+i] = NULL;
+	  for (; (*oldmsgheader)[oldidx]; ++oldidx)
+	    newmsgheaders[outidx++] = (*oldmsgheader)[oldidx];
+	  newmsgheaders[outidx] = NULL;
 
 	  free(*oldmsgheader); /* Free the old one.. */
 	  *oldmsgheader = newmsgheaders;

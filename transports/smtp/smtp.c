@@ -24,7 +24,7 @@ int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
 
 const char *defcharset;
-char myhostname[MAXHOSTNAMELEN+1];
+char myhostname[512];
 int myhostnameopt;
 char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
 const char *progname;

@@ -941,6 +941,7 @@ if (verbose)
 		   "reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s ",
 		   fromfd, tofd, (int)proc->pid, proc->reaped,
 		   proc->ch->name, proc->ho->name);
+
 	  if (WIFEXITED(proc->waitstat))
 	    sfprintf(sfstderr,"EXIT=%d\n", WEXITSTATUS(proc->waitstat));
 	  else if (WIFSIGNALED(proc->waitstat))
