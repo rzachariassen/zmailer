@@ -53,7 +53,7 @@ crossbar (from, to) {
 	# Determine which rewrite function (for message header addresses) to use
 
 	case $(channel $to) in
-	smtp|smtpx)
+	smtp*)
 		#case "$(channel $from)" in
 		#smtp|smtpx)	# Address should be forwarded the way the arrive
 		#	rewrite=null ;;
@@ -133,7 +133,7 @@ crossbar (from, to) {
 				;;
 		tfist
 		;;
-	smtp|smtpx|local|bsmtp3*)
+	smtp*|local|bsmtp3*)
 		case "$(channel $from)" in
 		local)
 			# This looks weird, doesn't it ?
