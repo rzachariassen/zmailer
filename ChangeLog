@@ -1,3 +1,8 @@
+2001-10-21  Michael Loftis <mloftis@wgops.com>
+
+	* scheduler/scheduler.c:
+	    In queue injection spotted a test of time which is reversed!
+
 2001-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/mq2.c:

@@ -896,7 +896,7 @@ main(argc, argv)
 	      /* If more things in queue, submit them up to 200 pieces, or
 		 until spent two seconds at it! */
 	      time_t now0 = now + 2;
-	      for (i=0; i < 200 && now > now0; ++i) {
+	      for (i=0; i < 200 && now < now0; ++i) {
 		if (syncweb(dirq) < 0)
 		  break; /* Out of queue! */
 		mytime(&now);
