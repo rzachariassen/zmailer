@@ -59,18 +59,21 @@ typedef struct {
   time_t      mtime;
   int         roflag;
 
-#if defined(HAVE_DB3) || defined(HAVE_DB4)
 
   /* This does not exist at DB1, I recall..
      .. and is different at DB2 ... */
 
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
   DB_ENV     *env;
+#endif
 
   const char *envhome;
   long        envflags;
   int	      envmode;
 
-#endif
+  const char *tmpdir;
+
+  int	      readonly;
 
 } ZSleepyPrivate;
 

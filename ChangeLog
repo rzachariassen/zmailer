@@ -1,3 +1,12 @@
+2002-06-20  Matti Aarnio  <mea@zmailer.org>
+
+	* include/sleepycatdb.h, lib/sleepycatdb.c, proto/newdbprocessor.in:
+	    More of  SleepyCat DB support stuff.
+
+	* smtpserver/smtpauth.c:
+	    Stole code (yet incomplete, and not integrated) from sendmail
+	    8.12.*  for using SASL code in SMTP server authentication.
+
 2002-06-18  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, acconfig.h:

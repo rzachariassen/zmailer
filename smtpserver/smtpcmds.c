@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2000.
+ *      Copyright 1991-2002.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -134,6 +134,7 @@ SmtpState *SS;
 const char *buf, *cp;
 {
     const char *msg = NULL;
+
     if (SS->state != Hello && SS->state != MailOrHello) {
 	switch (SS->state) {
 	case Mail:

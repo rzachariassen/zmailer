@@ -11,7 +11,7 @@
 #|     relation-name
 #|         dbtype(,subtype)
 #|              dbpriv control data (or "-")
-#|                  newdb_compile_options (-a for aliases!)
+#|                  newdb_compile_options (-a for aliases! -r = read-only)
 #|                     dbfile (or "-")
 #|                         dbflags (or "-") ... (until end of line)
 #|
@@ -144,7 +144,9 @@ foreach $rel (keys %rels) {
 		$rdbexttst = '$DBEXTtest';
 		$rdbext    = '$DBEXT';
 		$rdbtype   = '$DBTYPE';
-		system("newdb -s $rndbopt -t $DBTYPE $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t $DBTYPE $fn");
+		}
 		printf ":NEW";
 		if ($DBTYPE eq 'ndbm') {
 			@dbfiles = ($fn.".pag", $fn.".dir");
@@ -165,41 +167,53 @@ foreach $rel (keys %rels) {
 	} elsif ($rtype eq 'ndbm') {
 		$rdbexttst = '.pag';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t ndbm $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t ndbm $fn");
+		}
 		printf ":NEW";
 		@dbfiles = ($fn.".pag", $fn.".dir");
 	} elsif ($rtype eq 'dbm') {
 		$rdbexttst = '.pag';
 		$rdbext    = '';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t  dbm $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t  dbm $fn");
+		}
 		printf ":NEW";
 		@dbfiles = ($fn.".pag", $fn.".dir");
 	} elsif ($rtype eq 'sdbm') {
 		$rdbexttst = '.pag';
 		$rdbext    = '';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t sdbm $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t sdbm $fn");
+		}
 		printf ":NEW";
 	} elsif ($rtype eq 'gdbm') {
 		$rdbexttst = '.gdbm';
 		$rdbext    = '.gdbm';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t gdbm $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t gdbm $fn");
+		}
 		printf ":NEW";
 		@dbfiles = ($fn.".sdbm");
 	} elsif ($rtype eq 'btree') {
 		$rdbexttst = '.db';
 		$rdbext    = '.db';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t btree $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t btree $fn");
+		}
 		printf ":NEW";
 		@dbfiles = ($fn.".db");
 	} elsif ($rtype eq 'bhash') {
 		$rdbexttst = '.dbh';
 		$rdbext    = '.dbh';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t bhash $fn");
+		if ($rndbopt ne '-r') {
+		    system("newdb -s $rndbopt -t bhash $fn");
+		}
 		printf ":NEW";
 		@dbfiles = ($fn.".dbh");
 	} elsif ($rtype eq 'ldap') {
