@@ -819,6 +819,7 @@ struct thread *thr;
 	  thr->proc     = proc;
 	  *ipp          = proc->next;
 	  proc->next    = NULL;
+	  proc->overfed = 0;
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
