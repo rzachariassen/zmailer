@@ -1217,13 +1217,15 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	int semicindex, receivedlen;
 	char *newreceived;
 
-	char forclause[1024], *s = forclause;
-	int clauselen = 0; /* Dual-use variable! */
+	char forclause[1024], *s;
+	int clauselen; /* Dual-use variable! */
+	int lfprevsc_idx = 0;
 
 	char **inhdr, *sc;
 
 
 	/* Begin at the indented line start.. */
+	s = forclause;
 	strcpy(s, " \n\t"); s += 3;
 
 	if (rp->orcpt) {
@@ -1232,21 +1234,31 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	  clauselen = 1; /* Will need ending ')'! */
 	} else {
 	  sprintf(s, "for <%.800s>", rp->addr->user);
+	  clauselen = 0;
 	}
 
 	s += strlen(s);
 
-	if (rcptcnt > 2)
-	  sprintf(s, "(+ %d others)", rcptcnt-1);
-	else if (rcptcnt > 1)
-	  strcpy(s, "(+ 1 other)");
+	if (!clauselen) {
+	  if (rcptcnt > 2)
+	    sprintf(s, " (+ %d others)", rcptcnt-1);
+	  else if (rcptcnt > 1)
+	    strcpy(s, " (+ 1 other)");
+	} else {
+	  if (rcptcnt > 2)
+	    sprintf(s, " + %d others", rcptcnt-1);
+	  else if (rcptcnt > 1)
+	    strcpy(s, " + 1 other");
+	}
 
 	s += strlen(s);
 
-	if (clauselen) { *s++ = ')'; }
+	if (clauselen) {
+	  *s++ = ')';
+	  *s = 0;
+	}
 
 	clauselen = s - forclause;
-
 
 
 	if (*(rp->newmsgheadercvt) == NULL)
@@ -1273,6 +1285,27 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	  sc = *inhdr + semicindex;
 	}
 
+	{
+	  const char *p = *inhdr;
+	  for ( ; *p ; ++p) {
+	    if (('\n' == *p) || ('\r' == *p))
+	      lfprevsc_idx = (p - *inhdr);
+	  }
+	}
+
+
+	/* the clause can fit in preceding line without
+	   doing any pre-folding.. */
+	if ( ((semicindex - lfprevsc_idx) + clauselen) 
+	     < (70 + (lfprevsc_idx ? 0 : 7))) {
+	  clauselen -= 2;
+	  memmove( forclause+1, forclause+3, clauselen );
+	  lfprevsc_idx = semicindex - lfprevsc_idx; /* LEN of last segment
+						     since LF */
+	} else {
+	  lfprevsc_idx = 0;
+	}
+
 	receivedlen = strlen(*inhdr);
 	newreceived = malloc(receivedlen + clauselen + 1);
 
@@ -1287,7 +1320,6 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	/* Tail */
 	s = newreceived + semicindex + clauselen;
 
-
 #if 0
 	if (verboselog) {
 	  fprintf(verboselog,"receivedlen=%d, clauselen=%d, taillen=%d\n", receivedlen, clauselen, receivedlen-semicindex);
@@ -1295,7 +1327,8 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	}
 #endif
 
-	if ( ((clauselen + (receivedlen-semicindex)) < 78)) {
+	if ( (lfprevsc_idx + clauselen + (receivedlen - semicindex))
+	     < 70) {
 	  /* Shrink the tail a bit, unnecessary folding away. */
 	  *s++ = ';';
 	  *s++ = ' ';

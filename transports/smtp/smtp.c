@@ -1531,7 +1531,6 @@ deliver(SS, dp, startrp, endrp)
 
 	    s += strlen(s);
 
-
 	    if (rp->orcpt != NULL) {
 	      sprintf(s, " ORCPT=%.800s", rp->orcpt);
 	    } else {

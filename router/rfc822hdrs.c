@@ -573,7 +573,7 @@ hdr_print(h, fp)
 		    hadspc = 0;
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
-			cl = printAddress(NULL, ap->a_tokens, col+4);
+			cl = printAddress(NULL, ap->a_tokens, col+3);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
@@ -583,7 +583,7 @@ hdr_print(h, fp)
 			col = printLAddress(fp, ap->a_tokens, col+3, 8, 0);
 		}
 		if ((t = h->h_contents.r->r_via) != NULL) {
-			cl = fprintToken(NULL, t, col+5);
+			cl = fprintToken(NULL, t, col+4);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
@@ -593,7 +593,7 @@ hdr_print(h, fp)
 			col = fprintToken(fp, t, col+4);
 		}
 		for (t = h->h_contents.r->r_with; t != NULL; t = t->t_next) {
-			cl = fprintToken(NULL, t, col+6);
+			cl = fprintToken(NULL, t, col+5);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
@@ -603,7 +603,7 @@ hdr_print(h, fp)
 			col = fprintToken(fp, t, col+5);
 		}
 		if ((ap = h->h_contents.r->r_id) != NULL) {
-			cl = printAddress(NULL, ap->a_tokens, col+6);
+			cl = printAddress(NULL, ap->a_tokens, col+3);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
@@ -613,7 +613,7 @@ hdr_print(h, fp)
 			col = printLAddress(fp, ap->a_tokens, col+5, 8, 0);
 		}
 		if ((ap = h->h_contents.r->r_for) != NULL) {
-			cl = printAddress(NULL, ap->a_tokens, col+5);
+			cl = printAddress(NULL, ap->a_tokens, col+4);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
@@ -707,12 +707,12 @@ hdr_print(h, fp)
 	case DateTime:
 		/* Use this ONLY if no original lines are available! */
 		if (h->h_contents.d > 0L && h->h_lines == NULL) {
-			char *cp, *s;
-			cp = rfc822date(&(h->h_contents.d));
-			s = cp + strlen(cp) -1;
-			if (*cp != 0 && *s == '\n') *s = 0;
-			fputs(cp, fp);
-			break;
+		  char *cp, *s;
+		  cp = rfc822date(&(h->h_contents.d));
+		  s = cp + strlen(cp) -1;
+		  if (*cp != 0 && *s == '\n') *s = 0;
+		  fputs(cp, fp);
+		  break;
 		} /* else we have the original line ... */
 		/* Fall thru ... */
 
