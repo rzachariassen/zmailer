@@ -1,5 +1,11 @@
-#a Routing Configuration File
-#b This *entire* file must be kept sorted (comments included!)
-#c entries in this file are checked first by router.cf. they have the form
-#d	name	channel!next_destination
-#e A leading . on the name indicates that all subdomains match as well
+# Routing Configuration File
+#
+# Entries in this file are checked first by router.cf. they have the form
+#	name	channel!next_destination
+# A leading . on the name indicates that all subdomains match as well
+#
+# To generate runtime BINARY database of this source, issue command:
+#   $MAILBIN/newdb $MAILSHARE/db/routes
+# or in this directory with usual configuration:
+#   ../bin/newdb routes
+#
