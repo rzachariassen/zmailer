@@ -27,9 +27,9 @@ doagenda()
 	  sfprintf(sfstdout,"curitem %p curitem->wakeup %lu now %d\n",
 		   thr, thr ? thr->wakeup : 0, (int)now);
 
-	/* thread_head -chain should be in time order, thus the while-loop
-	   should be traversed only once, because  thread_start kicks
-	   right away (or reschedules) */
+	/* thread_head -chain should be in time order, thus
+	   the while-loop should be traversed only once, because
+	   thread_start kicks  right away (or reschedules) */
 
 	for ( ; thr  && thr->wakeup <= now ; thr = nthr ) {
 	  /* Object pointed by  thr  may disappear due to
@@ -75,9 +75,9 @@ doexpiry2()
 	  sfprintf(sfstdout,"curitem %p curitem->wakeup %lu now %d\n",
 		   thr, thr ? thr->wakeup : 0, (int)now);
 
-	/* thread_head -chain should be in time order, thus the while-loop
-	   should be traversed only once, because  thread_start kicks
-	   right away (or reschedules) */
+	/* thread_head -chain should be in time order, thus
+	   the while-loop should be traversed only once, because
+	   thread_start kicks right away (or reschedules) */
 
 	for ( ; thr  && thr->wakeup <= now ; thr = nthr ) {
 	  /* Object pointed by  thr  may disappear due to

@@ -1074,7 +1074,8 @@ pick_next_vertex(proc)
  *
  *  Return the kill-count.
  *
- *  Side-effect warning:  Afterwards the THR may point to nonexistent object!
+ *  Side-effect warning: 
+ *         Afterwards the THR may point to nonexistent object!
  */
 
 
