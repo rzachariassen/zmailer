@@ -3524,6 +3524,9 @@ int bdat_flush(SS, lastflg)
 	      r = smtp_sync(SS, r, 1); /* non-blocking */
 	  } else {
 	    r = EX_TEMPFAIL;
+	    notaryreport(NULL,NULL,
+			 "5.4.2 (BDAT message write failed)",
+			 "smtp; 566 (BDAT message write failed)");
 	  }
 	} else {
 	  /* Arrival of alarm is caught... */
