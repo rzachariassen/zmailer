@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "2 Mar 2000"
+.TH SMTPSERVER 8 "22 Mar 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -49,6 +49,9 @@ smtpserver \- zmailer SMTP server
 [
 .B \-C
 .I cfgfile
+]
+[
+.B \-T\ '[1.2.3.4]'
 ]
 .SH DESCRIPTION
 This program implements the server side of the SMTP protocol as described
@@ -158,6 +161,25 @@ S	allow sloppy input for systems incapable to
 .sp
 The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
+.IP \-T\ '[1.2.3.4]'
+.IP \-T\ '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'
+Supply (in interactive mode) test address for policy dataset address testing.
+The optionset recommended for that case is:
+
+.nf
+    -i -d 1 -T '[1.2.3.4]'
+.fi
+
+A notable detail is that to see what really is going on in the policy analysis,
+one must usei the ``-d\ 1'' option to turn on the debugging early enough to
+see its initial verdict at the time the ``220..'' greeting banner is produced..
+
+Also notable is that
+.B brackets
+in the supplied IP address
+.B must
+be present, otherwise illegal syntax will be reported.
+(Using RFC 821 address literal parser here.)
 .IP \-V
 prints a version message and exits.
 .SH CONFIGURATION

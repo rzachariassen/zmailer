@@ -280,9 +280,10 @@ extern int configuration_ok;
 extern int unknown_cmd_limit;
 extern int sum_sizeoption_value;
 
-extern int bindaddr_set, bindport_set;
+extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;
 extern Usockaddr bindaddr;
+extern Usockaddr testaddr;
 
 extern const char *progname;
 extern int debug, skeptical, checkhelo, ident_flag, verbose;

@@ -15,7 +15,7 @@
 
 const char *VerbID = "ZMailer SMTP server %s";
 const char *Copyright = "Copyright 1990 Rayan S. Zachariassen";
-const char *Copyright2 = "Copyright 1991-1999 Matti Aarnio";
+const char *Copyright2 = "Copyright 1991-2000 Matti Aarnio";
 
 /* Timing parameters -- when expired, session is killed ... */
 
@@ -237,7 +237,9 @@ int log_rcvd_tls_peer = 0;
 int auth_login_without_tls = 0;
 char *smtpauth_via_pipe = NULL;
 Usockaddr bindaddr;
+Usockaddr testaddr;
 int bindaddr_set    = 0;
+int testaddr_set    = 0;
 u_short bindport = 0;
 int bindport_set = 0;
 int use_tcpwrapper = 0;
@@ -397,15 +399,15 @@ char **argv;
 #ifndef __STDC__
 #if defined(AF_INET6) && defined(INET6)
 #ifdef USE_TRANSLATION
-		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:VvwX8"
+		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:T:VvwX8"
 #else /* xlate */
-		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:Vvw"
+		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:T:Vvw"
 #endif /* xlate */
 #else /* INET6 */
 #ifdef USE_TRANSLATION
-		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:VvwX8"
+		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:T:VvwX8"
 #else
-		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:Vvw"
+		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:T:Vvw"
 #endif /* xlate */
 #endif /* INET6 */
 #else /* __STDC__ */
@@ -416,7 +418,7 @@ char **argv;
 #endif
 		       "aBC:d:ighl:n"
 		       "p:"
-		       "I:L:M:P:R:s:S:Vvw"
+		       "I:L:M:P:R:s:S:T:Vvw"
 #ifdef USE_TRANSLATION
 		       "X8"
 #endif /* USE_TRANSLATION */
@@ -449,22 +451,18 @@ char **argv;
 	case 'd':
 	    debug = atoi(optarg);
 	    break;
-	case 'M':
-	    maxsize = atol(optarg);
-	    if (maxsize < 0)
-		maxsize = 0;
-	    break;
-	case 'i':		/* interactive */
-	    daemon_flg = 0;
-	    break;
-	case 'v':
-	    verbose = 1;	/* in conjunction with -i */
-	    break;
 	case 'g':		/* gullible */
 	    skeptical = 0;
 	    break;
 	case 'h':		/* checkhelo */
 	    checkhelo = 1;
+	    break;
+	case 'i':		/* interactive */
+	    daemon_flg = 0;
+	    break;
+	case 'I':		/* PID file */
+	    pidfile = optarg;
+	    pidfile_set = 1;
 	    break;
 	case 'l':		/* log file(prefix) */
 
@@ -476,15 +474,28 @@ char **argv;
 	    logfile = optarg;
 
 	    break;
-	case 'S':		/* Log-suffix style */
-	    logstyle = 0;
-	    if (cistrcmp(optarg, "remote") == 0)
-		logstyle = 2;
-	    else if (cistrcmp(optarg, "local") == 0)
-		logstyle = 1;
+	case 'L':		/* Max LoadAverage */
+	    maxloadavg = atoi(optarg);
+	    if (maxloadavg < 1)
+		maxloadavg = 10;	/* Humph.. */
+	    break;
+	case 'M':
+	    maxsize = atol(optarg);
+	    if (maxsize < 0)
+		maxsize = 0;
 	    break;
 	case 'n':		/* running under inetd */
 	    inetd = 1;
+	    break;
+	case 'p':
+	    bindport = htons(atoi(optarg));
+	    bindport_set = 1;
+	    break;
+	case 'P':
+	    postoffice = strdup(optarg);
+	    break;
+	case 'R':		/* router binary used for verification */
+	    routerprog = strdup(optarg);
 	    break;
 	case 's':		/* checking style */
 	    if (strcmp(optarg,"strict")==0)
@@ -492,24 +503,55 @@ char **argv;
 	    else
 	      style = strdup(optarg);
 	    break;
-	case 'I':		/* PID file */
-	    pidfile = optarg;
-	    pidfile_set = 1;
+	case 'S':		/* Log-suffix style */
+	    logstyle = 0;
+	    if (cistrcmp(optarg, "remote") == 0)
+		logstyle = 2;
+	    else if (cistrcmp(optarg, "local") == 0)
+		logstyle = 1;
 	    break;
-	case 'L':		/* Max LoadAverage */
-	    maxloadavg = atoi(optarg);
-	    if (maxloadavg < 1)
-		maxloadavg = 10;	/* Humph.. */
+	case 'T':
+	  /* FIXME: FIXME! Enter in interactive mode claimed foreign
+	     source IPv4/IPv6 address, and then proceed to handle
+	     policy analysis as in normal operational case. */
+
+	    memset(&testaddr, 0, sizeof(testaddr));
+	    testaddr_set = 1;
+#if defined(AF_INET6) && defined(INET6)
+	    if (cistrncmp(optarg,"[ipv6 ",6) == 0 ||
+		cistrncmp(optarg,"[ipv6:",6) == 0 ||
+		cistrncmp(optarg,"[ipv6.",6) == 0) {
+	      char *s = strchr(optarg,']');
+	      if (s) *s = 0;
+	      if (inet_pton(AF_INET6, optarg+6, &testaddr.v6.sin6_addr) < 1) {
+		/* False IPv6 number literal */
+		/* ... then we don't set the IP address... */
+		testaddr_set = 0;
+		fprintf(stderr,"smtpserver: -T option argument is not valid IPv6 address: [ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]\n");
+		++errflg;
+	      }
+	      testaddr.v6.sin6_family = AF_INET6;
+	    } else
+#endif
+	      if (*optarg == '[') {
+		char *s = strchr(optarg,']');
+		if (s) *s = 0;
+		if (inet_pton(AF_INET, optarg+1, &testaddr.v4.sin_addr) < 1) {
+		  /* False IP(v4) number literal */
+		  /* ... then we don't set the IP address... */
+		  testaddr_set = 0;
+		  fprintf(stderr,"smtpserver: -T option argument is not valid IPv4 address: [1.2.3.4]\n");
+		  ++errflg;
+		}
+		testaddr.v4.sin_family = AF_INET;
+	      } else {
+		testaddr_set = 0;
+		fprintf(stderr,"smtpserver: -T option argument must be wrapped inside brackets: [1.2.3.4]\n");
+		++errflg;
+	      }
 	    break;
-	case 'p':
-	    bindport = htons(atoi(optarg));
-	    bindport_set = 1;
-	    break;
-	case 'R':		/* router binary used for verification */
-	    routerprog = strdup(optarg);
-	    break;
-	case 'P':
-	    postoffice = strdup(optarg);
+	case 'v':
+	    verbose = 1;	/* in conjunction with -i */
 	    break;
 	case 'V':
 	    prversion("smtpserver");
@@ -552,7 +594,7 @@ char **argv;
  [-C cfgfile] [-s xx] [-L maxLoadAvg]\
  [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
  [-P postoffice] [-l SYSLOG] [-l logfile] [-S 'local'|'remote']\
- [-I pidfile]\n"
+ [-I pidfile] [-T test-net-addr]\n"
 #else /* __STDC__ */
 		"Usage: %s [-4"
 #if defined(AF_INET6) && defined(INET6)
@@ -565,7 +607,7 @@ char **argv;
 		"] [-C cfgfile] [-s xx] [-L maxLoadAvg]"
 		" [-M SMTPmaxsize] [-R rtrprog] [-p port#]"
 		" [-P postoffice] [-l logfile] [-S 'local'|'remote']"
-		" [-I pidfile]\n"
+		" [-I pidfile] [-T test-net-addr]\n"
 #endif /* __STDC__ */
 		, progname);
 	exit(1);
@@ -601,19 +643,33 @@ char **argv;
 
       raddrlen = sizeof(SS.raddr);
       memset(&SS.raddr, 0, raddrlen);
-      if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
-	netconnected_flg = 0;
-      else {
+      if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
+	if (testaddr_set) {
+	  netconnected_flg = 1;
+	  memcpy(&SS.raddr, &testaddr, sizeof(testaddr));
+	}
+      } else {
 	/* Got a peer name (it is a socket) */
 	netconnected_flg = 1;
 	if (SS.raddr.v4.sin_family != AF_INET
 #ifdef AF_INET6
 	    && SS.raddr.v4.sin_family != AF_INET6
 #endif
-	    )
+	    ) {
 	  /* well, but somebody uses socketpair(2)  which is
 	     an AF_UNIX thing and sort of full-duplex pipe(2)... */
 	  netconnected_flg = 0;
+	}
+	if (netconnected_flg) {
+	  /* Lets figure-out who we are this time around -- we may be on
+	     a machine with multiple identities per multiple interfaces,
+	     or via virtual IP-numbers, or ... */
+	  localsocksize = sizeof(SS.localsock);
+	  if (getsockname(FILENO(stdin), (struct sockaddr *) &SS.localsock,
+			  &localsocksize) != 0) {
+	    /* XX: ERROR! */
+	  }
+	}
       }
 
       strcpy(SS.rhostname, "stdin");
@@ -1070,7 +1126,7 @@ char **argv;
 	      strcpy(msg, "450 Come again latter\r\n");
 	      len = strlen(msg);
 	      write(msgfd, msg, len);
-	      close(0); close(1);
+	      close(0); close(1); close(2);
 #if 1
 	      sleep(2);	/* Not so fast!  We need to do this to
 			   avoid (as much as possible) the child
@@ -1092,7 +1148,7 @@ char **argv;
 	      strcpy(msg, "450 Come again latter\r\n");
 	      len = strlen(msg);
 	      write(msgfd, msg, len);
-	      close(0); close(1);
+	      close(0); close(1); close(2);
 #if 1
 	      sleep(2);	/* Not so fast!  We need to do this to
 			   avoid (as much as possible) the child
@@ -1105,7 +1161,7 @@ char **argv;
 	    smtpserver(&SS, 1);
 	    /* Expediated filehandle closes before
 	       the mandatory sleep(2) below. */
-	    close(0); close(1);
+	    close(0); close(1); close(2);
 
 	    if (routerpid > 0)
 	      killr(&SS, routerpid);

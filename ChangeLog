@@ -1,7 +1,14 @@
+2000-03-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    Implemented  -T  option for a local interactive policy testing
+	    without having connectivity all around the world.
+	    See the man-page.
+
 2000-03-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/daemonsub.c, router/conf.c:
-	    Spotted self-healing misbehaviour in the child process feeder,
+	    Spotted a self-healing misbehaviour in the child process feeder,
 	    which skipped messages from queue quite *often*.  Cured that
 	    by waiting in proper place for successfull delivery.
 	    Also changed some default values for "stability" processing.
