@@ -23,6 +23,8 @@ $passallrcpts='hks[+@]|harri\.salminen[+@]|tv[+@]|funet-tv[+@]|postmaster[@]|vin
 
 select(STDOUT); $| = 1;
 
+print "#hungry\n";
+
 while (<>) {
 	chomp;
 	$fname = $_;
@@ -31,6 +33,8 @@ while (<>) {
 
 	$rc = & filter( $fname );
 	printf "%s\n", $rc;
+
+	print "#hungry\n";
 }
 exit 0;
 
