@@ -1293,6 +1293,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	    timeout = timeout_cmd;
 	    r = smtpwrite(SS, 0, "RSET", 0, NULL);
+	    smtp_flush(SS); /* Flush in every case */
 
 	    if (statusreport)
 	      report(SS,"RSET rc=%d",r);
@@ -1302,6 +1303,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      r = EX_TEMPFAIL;
 	      goto re_open;
 	    }
+	    r = EX_TEMPFAIL;
 	    
 	  } else {
 	    goto re_open;
