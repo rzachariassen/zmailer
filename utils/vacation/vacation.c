@@ -135,7 +135,7 @@ char from[MAXLINE];
 char *subject_str = NULL;	/* Glob subject from input */
 int dblog = 1;
 
-extern void purge_input __((void));
+extern void purge_input __((const char *));
 extern int optind, opterr;
 extern char *optarg;
 extern FILE *freopen(), *tmpfile();
@@ -143,9 +143,9 @@ extern char *getenv();
 #ifndef HAVE_STDLIB_H
 extern char *malloc();
 #endif
-extern void usrerr __((char *));
-extern void syserr __((char *));
-extern void readheaders __((void));
+extern void usrerr __((const char *));
+extern void syserr __((const char *));
+extern void readheaders __((const char *));
 extern char *strerror __((int));
 static int recent __((void));
 static int junkmail __((void));
@@ -340,9 +340,6 @@ main(argc, argv)
 	    cur->next = names;
 	    names = cur;
 
-	    /* read message from standard input (just from line) */
-	    readheaders();
-	    purge_input();
 	    {
 	      const char *myname = pw->pw_name;
 	      if (orcpt) {
@@ -359,6 +356,11 @@ main(argc, argv)
 		else
 		  myname = inrcpt;
 	      }
+
+	      /* read message from standard input (just from line) */
+	      readheaders(myname);
+	      purge_input(myname);
+
 	      if (!recent()) {
 		setreply();
 		sendmessage(msgfile,myname);
@@ -455,7 +457,7 @@ sendmessage(msgf, myname)
 
 void
 usrerr(msg)
-	char *msg;
+	const char *msg;
 {
 	fprintf(stderr, "vacation: usrerr: %s\n",msg);
 	zsyslog((LOG_NOTICE, "vacation: %s", msg));
@@ -477,7 +479,7 @@ usrerr(msg)
 /* VARARGS 1 */
 void
 syserr(msg)
-	char *msg;
+	const char *msg;
 {
 	fprintf(stderr, "vacation: %s\n", msg);
 	zsyslog((LOG_NOTICE, "vacation: syserr: %s", msg));
@@ -516,7 +518,8 @@ newstr(s)
  *	read mail headers
  */
 void
-readheaders()
+readheaders(myname)
+     const char *myname;
 {
 	register ALIAS *cur;
 	register char *p;
@@ -539,7 +542,9 @@ readheaders()
 		strcpy(from,buf);
 		has_from = 1;
 		if (junkmail()) {
-			purge_input();
+			purge_input(myname);
+zsyslog((LOG_NOTICE, "vacation: considering this message to '%s' to be JUNK", myname));
+
 			exit(EX_OK);
 		}
 	}
@@ -558,7 +563,8 @@ readheaders()
 				if (p != NULL)
 					*p = '\0';
 				if (junkmail()) {
-					purge_input();
+					purge_input(myname);
+zsyslog((LOG_NOTICE, "vacation: considering this message to '%s' to be JUNK", myname));
 					exit(EX_OK);
 				}
 			}
@@ -575,7 +581,7 @@ readheaders()
 				break;
 			if (!strncasecmp(p, "junk", 4) ||
 			    !strncasecmp(p, "bulk", 4)) {
-				purge_input();
+				purge_input(myname);
 				exit(EX_OK);
 			}
 			break;
@@ -606,7 +612,7 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
 				tome += nsearch(cur->name, buf);
 		} /* switch() */
 	if (!tome) {
-		purge_input();
+		purge_input(myname);
 		exit(EX_OK);
 	}
 	if (!*from) {
@@ -689,7 +695,8 @@ junkmail()
  *
  */
 void
-purge_input()
+purge_input(myname)
+     const char *myname;
 {
 	char buf[256];
 	int read_rc;
