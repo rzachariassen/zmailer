@@ -3042,36 +3042,37 @@ makeconn(SS, hostname, ai, ismx)
 
 	MIBMtaEntry->tasmtp.SmtpStarts += 1;
 
-
 #ifdef	BIND
 #ifdef	RFC974
-	char	hostbuf[MAXHOSTNAMELEN+1];
-	int	ttl;
+	{
+	  char	hostbuf[MAXHOSTNAMELEN+1];
+	  int	ttl;
 	
-	if (ai->ai_canonname)
-	  strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
-	else if (hostname)
-	  strncpy(hostbuf, hostname, sizeof(hostbuf));
-	else
-	  *hostbuf = 0;
-	hostbuf[sizeof(hostbuf)-1] = 0;
+	  if (ai->ai_canonname)
+	    strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
+	  else if (hostname)
+	    strncpy(hostbuf, hostname, sizeof(hostbuf));
+	  else
+	    *hostbuf = 0;
+	  hostbuf[sizeof(hostbuf)-1] = 0;
 	
-	if (checkwks && SS->verboselog)
-	  fprintf(SS->verboselog,"  makeconn(): checkwks of host %.200s\n",
-		  hostbuf);
+	  if (checkwks && SS->verboselog)
+	    fprintf(SS->verboselog,"  makeconn(): checkwks of host %.200s\n",
+		    hostbuf);
 	
-	if (checkwks &&
-	    getrr(hostbuf, &ttl, sizeof hostbuf, (u_short)T_WKS, 2, SS->verboselog) != 1) {
-	  sprintf(SS->remotemsg,"smtp; 550 (WKS checks: no SMTP reception capability registered for host %.200s)",
-		  hostbuf);
-	  time(&endtime);
-	  notary_setwttip(NULL);
-	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(NULL,FAILED,"5.4.4 (WKS Checks: no SMTP reception capability registered)", SS->remotemsg);
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"%s\n",SS->remotemsg+6);
-	  return EX_UNAVAILABLE;
+	  if (checkwks &&
+	      getrr(hostbuf, &ttl, sizeof hostbuf, (u_short)T_WKS, 2, SS->verboselog) != 1) {
+	    sprintf(SS->remotemsg,"smtp; 550 (WKS checks: no SMTP reception capability registered for host %.200s)",
+		    hostbuf);
+	    time(&endtime);
+	    notary_setwttip(NULL);
+	    notary_setxdelay((int)(endtime-starttime));
+	    notaryreport(NULL,FAILED,"5.4.4 (WKS Checks: no SMTP reception capability registered)", SS->remotemsg);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"%s\n",SS->remotemsg+6);
+	    return EX_UNAVAILABLE;
 	  }
+	}
 #endif	/* RFC974 */
 #endif	/* BIND */
 
