@@ -1,3 +1,11 @@
+2001-07-05  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* include/libc.h, include/mail.h.in, libc/mail.c, libc/sfmail.c,
+	  scheduler/msgerror.c, smtpserver/smtpdata.c, 
+	  transports/errormail/errormail.c, transports/smtp/getmxrr.c:
+	    Changed (properly) the _*mail_close_() inode parameter to
+	    be 'long'.
+
 2001-07-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/errormail/errormail.c:

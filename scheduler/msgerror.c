@@ -445,14 +445,16 @@ reporterrs(cfpi, delayreports)
 	int no_error_report = 0;
 	int has_errors = 0;
 	int lastoffset;
-	char path[MAXPATHLEN], mpath[MAXPATHLEN];
 	int mypid;
 	long format;
 	char boundarystr[400];
 	char spoolid[30];
+	time_t mtime;
+	long ino;
 	int actionsets[5]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED,
 			      4:EXPANDED */
 	ACTSETENUM thisaction;
+	char path[MAXPATHLEN], mpath[MAXPATHLEN];
 
 	if (cfpi->haderror == 0) {
 	  if (verbose > 1)
@@ -979,12 +981,14 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	/* And cap the tail with paired MIME boundary.. */
 	sfprintf(errfp, "--%s--\n", boundarystr);
 
+	ino = 0; mtime = 0;
 	if (no_error_report > 0)
 	  sfmail_close_alternate(errfp,POSTMANDIR,":error-on-error");
 	else
-	  sfmail_close(errfp);	/* XX: check for error */
+	  _sfmail_close_(errfp, &ino, &mtime);	/* XX: check for error */
 	close(cfp->fd);
 	free_cfp_memory(cfp);
+	taspoolid(spoolid, cfpi->mtime, cfpi->id);
 }
 
 

@@ -238,6 +238,8 @@ process(dp)
 	char lastchar;
 	int reportcnt = 0;
 	struct stat stbuf;
+	long inum;
+	time_t mtime;
 
 	if (fstat(dp->msgfd, &stbuf) != 0)
 	  abort(); /* This is a "CAN'T FAIL" case.. */
@@ -447,7 +449,7 @@ process(dp)
 	if (sferror(mfp)) {
 	  sfmail_abort(mfp);
 	  n = EX_IOERR;
-	} else if (_sfmail_close_(mfp, &ino, &mtime) == EOF)
+	} else if (_sfmail_close_(mfp, &inum, &mtime) == EOF)
 	  n = EX_IOERR;
 	else
 	  n = EX_OK;

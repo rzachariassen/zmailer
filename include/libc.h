@@ -33,7 +33,7 @@ extern FILE *_mail_fopen  __((char **filenamep));
 extern int    mail_link   __((const char *from, char **tonamep));
 extern FILE * mail_open   __((const char *type));
 extern int    mail_abort  __((FILE *fp));
-extern int   _mail_close_ __((FILE *fp, int *, time_t *));
+extern int   _mail_close_ __((FILE *fp, long *, time_t *));
 extern int    mail_close  __((FILE *fp));
 extern int    mail_close_alternate __((FILE *fp, const char *where, const char *suffix));
 
@@ -64,7 +64,7 @@ extern       int   inet_pton __((int, const char *, void *));
 #endif
 /* Must have included <netdb.h> and possibly <netdb6.h> before this .. */
 #ifdef AI_PASSIVE
-#ifndef HAVE_GETADDRINFO
+#ifdef HAVE__GETADDRINFO_
 extern       int   _getaddrinfo_ __((const char *, const char *, const struct addrinfo *, struct addrinfo **, FILE *));
 extern       int   getaddrinfo __((const char *, const char *, const struct addrinfo *, struct addrinfo **));
 #endif

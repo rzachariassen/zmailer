@@ -301,8 +301,8 @@ const char *buf, *cp;
 	  } else {
 	    /* Ok, build response with proper "spoolid" */
 	    char fnam[20], taspid[30];
-	    sprintf(fnam, "%d", ino);
-	    taspoolid(taspid, mtime, (long)ino);
+	    sprintf(fnam, "%ld", ino);
+	    taspoolid(taspid, mtime, ino);
 
 	    SS->mfp = NULL;
 	    if (!ss || *ss == 0) {
@@ -482,7 +482,7 @@ const char *buf, *cp;
 	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
     } else if (bdata_last) {
 	time_t mtime;
-	int inum;
+	long inum;
 
 	/* Things have been good thus far, now we store
 	   the resulting file into router spool area;

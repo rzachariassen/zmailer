@@ -395,10 +395,7 @@ sfmail_abort(fp)
 int sfmail_close(fp)
 	Sfio_t *fp;
 {
-	int ino;
-	time_t mtime;
-
-	return _sfmail_close_(fp, &ino, &mtime);
+	return _sfmail_close_(fp, NULL, NULL);
 }
 
 
@@ -407,7 +404,7 @@ static int routersubdirhash = -1;
 int
 _sfmail_close_(fp,inop, mtimep)
 	Sfio_t *fp;
-	int *inop;
+	long *inop;
 	time_t *mtimep;
 {
 	char *message, *nmessage, *type, *ftype;
@@ -579,7 +576,7 @@ _sfmail_close_(fp,inop, mtimep)
 	if (ftype) mail_free(ftype);
 
 	if (inop != NULL)
-	  *inop   = (int)    stb.st_ino;
+	  *inop   = (long) stb.st_ino;
 	if (mtimep != NULL)
 	  *mtimep = (time_t) stb.st_mtime;
 

@@ -99,7 +99,7 @@ extern FILE * mail_open __((const char *type));
 extern char * mail_fname __((FILE *fp));
 extern int    mail_abort __((FILE *fp));
 extern int    mail_close_alternate __((FILE *fp, const char *where, const char *suffix));
-extern int   _mail_close_ __((FILE *fp, int *inop, time_t *mtimep));
+extern int   _mail_close_ __((FILE *fp, long *inop, time_t *mtimep));
 extern int    mail_close __((FILE *fp));
 
 /* smail.c */

@@ -389,10 +389,7 @@ mail_abort(fp)
 int mail_close(fp)
 	FILE *fp;
 {
-	int ino;
-	time_t mtime;
-
-	return _mail_close_(fp, &ino, &mtime);
+	return _mail_close_(fp, NULL, NULL);
 }
 
 
@@ -401,7 +398,7 @@ static int routersubdirhash = -1;
 int
 _mail_close_(fp,inop, mtimep)
 	FILE *fp;
-	int *inop;
+	long *inop;
 	time_t *mtimep;
 {
 	char *message, *nmessage, *type, *ftype;
@@ -572,7 +569,7 @@ _mail_close_(fp,inop, mtimep)
 	if (ftype) mail_free(ftype);
 
 	if (inop != NULL)
-	  *inop   = (int)    stb.st_ino;
+	  *inop   = (long)   stb.st_ino;
 	if (mtimep != NULL)
 	  *mtimep = (time_t) stb.st_mtime;
 
