@@ -957,7 +957,7 @@ pick_next_vertex(proc)
 	  proc->pvertex = proc->pvertex->nextitem;
 
 	if (proc->pvertex)
-	  proc->pvertex->proc = NULL; /* Next in line for feeding */
+	  proc->pvertex->proc = proc; /* Next in line for feeding */
 
 	return (proc->pvertex != NULL);
 }
