@@ -1,0 +1,20 @@
+#
+#  pop(3)-proxy for Sonera Corporation (Finland) internet services
+#
+#  THIS IS NOT FULLY INTEGRATED WITH ZMAILER AUTOCONFIG SYSTEM!
+#
+
+CC     = gcc
+LIBS   = -L/aa/lib -larb
+CDEFS  = -I/aa/include -DUSE_ARB -DLOGFAC=LOG_LOCAL7
+CFLAGS = -g -O -Wall $(CDEFS)
+
+all: pop-proxy
+
+pop-proxy: pop-proxy.o
+	$(CC) $(CFLAGS) -o pop-proxy pop-proxy.o $(LIBS)
+
+pop-proxy.o: pop-proxy.c
+
+clean:
+	rm -f *~ *.o pop-proxy

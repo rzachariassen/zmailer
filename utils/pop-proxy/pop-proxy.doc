@@ -1,0 +1,133 @@
+		Sonera Corporation  Internet services
+			POP3 protocol proxy server
+
+
+1.	GENERAL
+
+	This proxy is to ease user problems with N backend servers
+	of which only one contains their mailbox.
+
+	The intention of this proxy is to be listening on POP3 port
+	(TCP protocol port number 110), and after getting username,
+	to connect him/her to the real mailbox server.
+
+	It is envisionable that this proxy runs on all of the mailboxes,
+	and the real POP3 server is located at some other port at those
+	machines.  To same port at each machine, of course:
+
+		USER --> proxy@port-110 --> pop3@port-10110
+
+	The proxy server needs privileges to access AA0 or ARB
+	(depending on version) configuration data, but nothing
+	it does itself needs super-user privileges.
+
+2.	INSTALLATION
+
+	Run the proxy from  inetd  by writing a line like following
+	into  /etc/inetd.conf  file, and signaling inetd to reload
+	the configuration (see "inetd" documentation):
+
+pop-3 stream tcp nowait nobody /opt/sbin/pop-proxy pop-proxy -p 10110
+
+	This presumes two things:
+
+	- The real POP3 service is at port 10110 at each of the servers
+	  participating to the user distribution
+	- /etc/services lists POP3 protocol with name "pop-3", while
+	  other common alternates are: "pop" and "pop3". Port 110/tcp!
+	  Don't be fooled to think this to be the same as "pop-2"
+	  protocol at port 109!
+	
+	Depending on your environment, you will also need local ARB
+	server, or access to local or remote AA0 database.
+	Details depend on which version you are using, and are best
+	looked up from respective documents.
+
+3.	MAINTANCE
+
+	The POP-PROXY is intended to be care-free server.
+
+	If it does not operate properly, the possible reasons are:
+		- proxy host has run out of resources
+		- inetd at the proxy host is failing
+		- the AA0 or ARB lookup fails for some reason
+		- the backend servers are not operational
+
+	Due to security consideration the proxy DOES NOT tell
+	to the contactee, what is the reason for the connection
+	failure -- perhaps at the "PASS xxx" -> "-ERR nnn" it
+	COULD tell to valid username that the remote server is
+	not reachable, but it will NOT tell that the username
+	is unknown.
+
+	To diagnose problems, try following:
+
+	o	Telnet to proxy servers port 110
+		Any answers ?
+		No ?  Servers up ?  inetd up and about ?
+		(syn-queue overflow DoS is possible)
+
+	o	Issue "USER yourownhere", and watch for
+		how long it takes to come back.
+		Long ?  AA0/ARB failure is likely, or the
+			backend server is completely off
+			the network, and thus unable to answer.
+			Or the user's data is corrupt.
+		Short?	The backend server refused the connection ?
+			Is the configuration ok ?
+
+	o	See if the backends are online
+
+
+4.	SYSLOG
+
+	Syslogging is done with facility LOG_MAIL, unless the
+	compilation environment tells otherwise.  At Sonera
+	Corporation ISP operations we have set it to be LOC_LOCAL7
+	and we log that to a file.
+
+	Log format is following:  (numeric values explained below)
+
+	from=1 fromport=2 user=3 host=4 duration=5 \
+		char-in=6 char-out=7 rc=8
+
+	Fields:
+	1:	user's IP address in dotted-quad form
+	2:	user's side TCP port (not really usefull)
+	3:	what user gave at authentication phase for "USER" command
+	4:	user's real mailbox server name
+	5:	time-difference in seconds from start to logging at end of
+		the proxy lifetime.  This is granular by seconds, and a
+		process starting at XX:XX:AA.100 and ending at XX:XX:AA.999
+		will report 0 seconds...
+	6:	Bytes copied towards the real pop3 server
+	7:	Bytes copied from the real pop3 server
+	8:	Value describing where the pop-proxy decided to
+		end the processing
+
+	RC codes:
+
+	 0	All fine and nice, ordely shutdown
+	20	EOF from user while copying inputs from user in
+		command emulation phase
+	22	EOF from user while waiting initial reply from the
+		real POP3 server
+	33	Got EPIPE (= remote closed the socket) while trying to
+		write username to the real POP3 server
+	40	Timeout on select() (10 minutes !)
+	55	Got EPIPE (= remote closed the socket) while writing
+		prompts to the user
+	60	EOF from user side socket in data copying phase. User has
+		closed the socket. (Common case, especially after server
+		reported errors.)
+	61	EOF from server side socket in data copying phase. Server
+		has closed the socket. (Common case; likely result from
+		user originated 'QUIT'.)
+	62	Got EPIPE while writing to user side socket in data copying
+		phase -- user has closed the socket while there was data
+		to write to there
+	64	Got EPIPE while writing to server side socket in data copying
+		phase -- server has closed the socket while there was data
+		to write to there
+	90	SIGALRM hit!  Can happen while getting "USER" command
+		from the user. (10 minutes for each command..)
