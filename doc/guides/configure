@@ -228,3 +228,9 @@ Options:
 	--with-privatembox
 		Use "private/" in a part of mailbox program module
 		compilarions. (Specifically: sieve.c)
+
+	--with-perl-installdirs="/prefix/path"
+		Say your system PERL is under /usr (/usr/bin/perl,
+		/usr/lib/perl/ ... etc), but you want to use alternate,
+		e.g.   /opt/perl/bin/perl,  you use this option to
+		set  "/opt/perl"  for perl prefix..

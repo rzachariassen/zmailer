@@ -236,6 +236,14 @@ extern void pipes_close_parent   __((int *tochild, int *fromchild));
 extern void pipes_to_child_fds   __((int *tochild, int *fromchild));
 extern void pipes_shutdown_child __((int fd)); /* At parent, shutdown channel towards child */
 
+/* fdpassing.c */
+extern int  fdpass_create         __((int *tochild, int *fromchild));
+extern void fdpass_close_parent   __((int *tochild, int *fromchild));
+extern void fdpass_to_child_fds   __((int *tochild, int *fromchild));
+extern void fdpass_shutdown_child __((int fd)); /* At parent, shutdown channel towards child */
+extern int  fdpass_receivefd      __((int fd, int *receivedfdp));
+extern int  fdpass_sendfd         __((int fd, int passfd));
+
 /* resources.c */
 extern int  resources_query_nofiles  __((void));
 extern void resources_maximize_nofiles __((void));

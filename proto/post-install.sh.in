@@ -175,34 +175,39 @@ sub mkpostofficedir {
     $MOD = 02000 + oct($MOD);
 
     chdir($POSTOFFICE);
+
+    printf(STDERR "Constructing dir: %s hash=%s\n",$DIR,$HASH);
+    return if ($DRYRUN);
+
+
     if ( ! -d "${DIR}/." ) {
-
-	printf(STDERR "Constructing dir: %s hash=%s\n",$DIR,$HASH);
-	return if ($DRYRUN);
-
-
 	mkdir $DIR, $MOD || die "mkdir ${DIR} failed!";
 	chmod $MOD, $DIR || die "chmod ${DIR} failed!";
 	& dirprealloc($DIR, $DSIZE, $DFILES);
-	local($xx,$yy);
-	if ($HASH eq 'HASH') {
+    }
+
+    local($xx,$yy);
+    if ($HASH eq 'HASH') {
 	    printf(STDERR " HASH: ");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		printf(STDERR " %s", $xx);
-		mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
-		chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
-		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
+		if (! -d "$DIR/$xx") {
+		    mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
+		    chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
+		    & dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
+		}
 	    }
 	    printf(STDERR "\n");
-	}
-	if ($HASH eq 'HASH2') {
+    }
+    if ($HASH eq 'HASH2') {
 	    printf(STDERR " HASH2: ");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		printf(STDERR " %s", $xx);
-		mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
-		chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
-		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
-
+		if (! -d "$DIR/$xx") {
+		    mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
+		    chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
+		    & dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
+		}
 	    }
 	    printf(STDERR "\n");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
@@ -210,13 +215,14 @@ sub mkpostofficedir {
 		printf(STDERR " HASH2/%s: ",$xx);
 		foreach $yy ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		    printf(STDERR " %s", $yy);
-		    mkdir "$DIR/$xx/$yy", $MOD || die "mkdir ${DIR}/$xx/$yy failed!";
-		    chmod $MOD, "$DIR/$xx/$yy" || die "chmod ${DIR}/$xx/$yy failed!";
-		    & dirprealloc("$DIR/$xx/$yy", $DSIZE, $DFILES);
+		    if (! -d "$DIR/$xx/$yy") {
+			mkdir "$DIR/$xx/$yy", $MOD || die "mkdir ${DIR}/$xx/$yy failed!";
+			chmod $MOD, "$DIR/$xx/$yy" || die "chmod ${DIR}/$xx/$yy failed!";
+			& dirprealloc("$DIR/$xx/$yy", $DSIZE, $DFILES);
+		    }
 		}
 		printf(STDERR "\n");
 	    }
-	}
     }
 }
 

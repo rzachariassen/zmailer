@@ -35,9 +35,16 @@ Installation procedure:
 		Software binaries, and databases; MAILVAR MAILSHARE MAILBIN..
 		The mailbox spool: MAILBOX ( /var/mail )
 		The postoffice spool: POSTOFFICE ( /var/spool/postoffice )
+		The postoffice transport-specifier area: POSTOFFICE/transport
+                       (  /var/spool/postoffice/transport )
 		The log directory: LOGDIR ( /var/log/mail )
 
-	PREFERRABLY those should be on SEPARATE DISKS!
+	PREFERRABLY those should be on SEPARATE DISK SETS!
+	(RAID 1+0 spanned mirror sets.)
+
+	The postoffice needs as much space as you can afford, both slices
+	need about the same, and they can be run in same single tree.
+	You should be prepared to have millions of 1 kB sized files.
 
 
 	We use GNU-autoconfig mechanism, however you may still need to
@@ -698,4 +705,4 @@ Often if the mail-folder directory is shared, also (depending upon the system):
 	/var/spool/mail
 
 
-(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1998,2003)
+(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1998,2003-2004)
