@@ -52,13 +52,13 @@ An auxiliary output stream for error diagnostics is also provided.
 An  S/SL identifier may consist of any string of up to 50
 letters, digits and underscores (_) beginning with a letter.
 Upper  and  lower  case  letters are considered identical in
-S/SL, hence {\tt aa}, {\tt aA}, {\tt Aa} and {\tt AA} 
-all represent the same identifier.  {\tt INPUT}, {\tt OUTPUT}, 
-{\tt ERROR}, {\tt TYPE}, {\tt MECHANISM}, {\tt RULES}, 
-{\tt DO}, {\tt OD}, {\tt IF}, {\tt FI}, {\tt END} 
-and their various lower case forms are  keywords
-of  S/SL and must not be used as identifiers in an S/SL 
-program.
+S/SL, hence ``aa'', ``aA'', ``Aa'' and ``AA'' all represent
+the same identifier.
+<CONSTANT>INPUT</>, <CONSTANT>OUTPUT</>,  <CONSTANT>ERROR</>,
+<CONSTANT>TYPE</>, <CONSTANT>MECHANISM</>, <CONSTANT>RULES</>,
+<CONSTANT>DO</>, <CONSTANT>OD</>, <CONSTANT>IF</>, <CONSTANT>FI</>,
+<CONSTANT>END</> and their various lower case forms are keywords
+of S/SL and must not be used as identifiers in an S/SL program.
 </PARA>
 
 <PARA>
@@ -94,15 +94,24 @@ and the characters to the right of it on a source line.
 Since  not all of the special characters used in S/SL are
 available on all machines,  the  following  alternatives  to
 special characters are allowed.
-<SCREEN>
-\begin{itemize}
-\item {\tt !} for {\tt $\|$}
-\item {\tt DO} for {\tt \{}
-\item {\tt OD} for {\tt \}}
-\item {\tt IF} for {\tt [}
-\item {\tt FI} for {\tt ]}
-\end{itemize}
-</SCREEN></PARA>
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ ! for |
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ DO for {
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ OD for }
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ IF for [
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ FI for ]
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
 </SECT1>
 
@@ -136,71 +145,77 @@ by a set of rules.
 <PARA>
 A program is:
 <SCREEN>
-        [inputDefinition]               [outputDefinition]
-        [inputOutputDefinition]
-        [errorDefinition]               {typeOrMechanismDefinition}
-        RULES                           {rule}             
-        END
+    [inputDefinition]       [outputDefinition]
+    [inputOutputDefinition]
+    [errorDefinition]       {typeOrMechanismDefinition}
+    RULES                   {rule}             
+    END
 </SCREEN></PARA>
 </SECT2>
 
 <SECT2><TITLE>S/SL: Input and Output Definitions</TITLE>
 
-<SCREEN>
-An {\tt inputDefinition} is:
-\begin{verbatim}
-        INPUT   ":"                      {tokenDefinition} ";"
-\end{verbatim}
-
-An {\tt outputDefinition} is:
-\begin{verbatim}
-        OUTPUT  ":"                      {tokenDefinition} ";"
-\end{verbatim}
-
-
-An {\tt inputOutputDefinition} is:
-\begin{verbatim}
-         INPUT OUTPUT ":"        {tokenDefinition} ";"
-\end{verbatim}
-
-
-A {\tt tokenDefinition} is:
-\begin{verbatim}
-         id [string] ["=" tokenValue]
-\end{verbatim}
-</SCREEN>
-
 <PARA>
-The {\tt inputDefinition} section defines the input  tokens  to
-the  S/SL program.  The {\tt outputDefinition} section defines the
-output tokens of  the  program.   The  {\tt inputOutputDefinition}
-section defines those tokens which are both input tokens and
-output tokens of the program.  Tokens already defined in the
-{\tt inputDefinition} or  {\tt outputDefinition} sections
-must not be redefined in the {\tt inputOutputDefinition section.}
+An <EMPHASIS>inputDefinition</> is:
+<SCREEN>
+  INPUT  ":"        {tokenDefinition} ";"
+</SCREEN>
 </PARA>
 
 <PARA>
-The optional string which may be given in a {\tt tokenDefinition}
-is  a synonym for the token identifier and can be used
-in place of the identifier anywhere in the S/SL program.
+An <EMPHASIS>outputDefinition</> is:
+<SCREEN>
+  OUTPUT ":"        {tokenDefinition} ";"
+</SCREEN>
+</PARA>
+
+<PARA>
+An <EMPHASIS>inputOutputDefinition</> is:
+<SCREEN>
+  INPUT OUTPUT ":"  {tokenDefinition} ";"
+</SCREEN>
+</PARA>
+
+<PARA>
+A <EMPHASIS>tokenDefinition</> is:
+<SCREEN>
+  [string] ["=" tokenValue]
+</SCREEN>
+</PARA>
+
+<PARA>
+The <EMPHASIS>inputDefinition</> section defines the input tokens to
+the S/SL program.
+The <EMPHASIS>outputDefinition</> section defines the output tokens of
+the program.
+The <EMPHASIS>inputOutputDefinition</> section defines those tokens which
+are both input tokens and output tokens of the program.
+Tokens already defined in the <EMPHASIS>inputDefinition</> or
+<EMPHASIS>outputDefinition</> sections must not be redefined in
+the <EMPHASIS>inputOutputDefinition</> section.
+</PARA>
+
+<PARA>
+The optional string which may be given in a <EMPHASIS>tokenDefinition</>
+is a synonym for the token identifier and can be used in place of
+the identifier anywhere in the S/SL program.
 </PARA>
 
 <PARA>
 Each input and output token is assigned an integer value for use in
 the implementation of the S/SL program.
-This value may be optionally specified in each {\tt tokenDefinition}.
-The {\tt tokenValue} may  be  specified  as an integer or as the
-value of any previously defined identifier  or  string.   If
-omitted,  the value assigned to the token is the value associated with 
-the previous token in the class plus one. The
-default  value associated with the first input token and the
-first output token is zero.  The  default  value  associated
-with the first input-output token is the maximum of the last
-token defined in the {\tt inputDefinition} section  and  the    last
-token  defined in the {\tt outputDefinition} section.    In this way
-the  default  input-output  token  values  are  unique  with
-respect to both input tokens and output tokens.
+This value may be optionally specified in each <EMPHASIS>tokenDefinition</>.
+The <EMPHASIS>tokenValue</> may be specified as an integer or as the value
+of any previously defined identifier or string.
+If omitted, the value assigned to the token is the value associated with
+the previous token in the class plus one.
+The default value associated with the first input token and the first output
+token is zero.
+The default value associated with the first input-output token is the maximum
+of the last token defined in the <EMPHASIS>inputDefinition</> section and
+the last token defined in the <EMPHASIS>outputDefinition</> section.
+In this way the default input-output token values are unique with respect
+to both input tokens and output tokens.
 </PARA>
 
 </SECT2>
@@ -208,29 +223,33 @@ respect to both input tokens and output tokens.
 
 <SECT2><TITLE>S/SL: Error Signals</TITLE>
 
+<PARA>
+An <EMPHASIS>errorDefinition</> is:
 <SCREEN>
-An {\tt errorDefinition} is:
-\begin{verbatim}
-         ERROR  ":"                       {errorSignalDefinition} ";"
-\end{verbatim}
-
-An {\tt errorSignalDefinition} is:
-\begin{verbatim}
-         id ["=" errorValue]
-\end{verbatim}
+  ERROR ":"         {errorSignalDefinition} ";"
 </SCREEN>
+</PARA>
 
 <PARA>
-Each {\tt errorSignalDefinition} defines an error signal  which
-can be signalled by the S/SL program.  An integer error code
-value is associated with each errorId for use in the  
-implementation of the S/SL program.     This value may be optionally
-specified in each {\tt errorSignalDefinition}.  The {\tt errorValue} may
-be specified as an integer or as the value of any previously
-defined identifier or string.  The default value  associated
-with an error signal is the value associated with the 
-previous error signal plus one.  The default value for the  first
-error signal is 10 (errors 0 to 9 are reserved for S/SL system use).
+An <EMPHASIS>errorSignalDefinition</> is:
+<SCREEN>
+  id ["=" errorValue]
+</SCREEN>
+</PARA>
+
+<PARA>
+Each <EMPHASIS>errorSignalDefinition</> defines an error signal which
+can be signalled by the S/SL program.
+An integer error code value is associated with each <EMPHASIS>errorId</>
+for use in the implementation of the S/SL program.
+This value may be optionally specified in each
+<EMPHASIS>errorSignalDefinition</>.
+The <EMPHASIS>errorValue</> may be specified as an integer or as
+the value of any previously defined identifier or string.
+The default value associated with an error signal is the
+value associated with the previous error signal plus one.
+The default value for the first error signal is 10
+(errors 0 to 9 are reserved for S/SL system use).
 </PARA>
 
 </SECT2>
@@ -238,51 +257,57 @@ error signal is 10 (errors 0 to 9 are reserved for S/SL system use).
 <SECT2><TITLE>S/SL: Type and Mechanism Definitions</TITLE>
 
 <PARA>
-Type and mechanism definitions may be grouped and inter-mixed
-to reflect the association of types and the operation definitions
-which use them.
+Type and mechanism definitions may be grouped and inter-mixed to reflect
+the association of types and the operation definitions which use them.
 </PARA>
 
 <PARA>
-A {\tt typeOrMechanismDefinition} is one of:
-\begin{itemize}
-\item {\tt typeDefinition}
-\item {\tt mechanismDefinition}
-\end{itemize}
+A <EMPHASIS>typeOrMechanismDefinition</> is one of:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+typeDefinition
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+mechanismDefinition
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 </PARA>
 
 </SECT2>
 
 <SECT2><TITLE>S/SL: Types.</TITLE>
 
-<SCREEN>
-A {\tt typeDefinition} is:
-\begin{verbatim}
-         TYPE id ":"                      {valueDefinition} ";"
-\end{verbatim}
-
-A {\tt valueDefinition} is:
-\begin{verbatim}
-         id ["=" value]
-\end{verbatim}
-</SCREEN>
-
 <PARA>
-Each {\tt typeDefinition} defines a type of values for  use  as
-the  parameter  or result type of a semantic operation or as
-the result type of a rule.
+A <EMPHASIS>typeDefinition</> is:
+<SCREEN>
+  TYPE id ":"   {valueDefinition} ";"
+</SCREEN>
 </PARA>
 
 <PARA>
-Each {\tt valueDefinition} defines a {\tt valueId} in the  type. An
-integer value is associated with each {\tt valueId} for use in the
-implementation of the  S/SL  program.   This  value  may  be
-optionally specified in each {\tt valueDefinition}.  The value may
-be specified as an integer or as the value of any previously
-defined identifier or string.  The default value assigned to
-a value identifier is the value associated with the previous
-value  identifier  plus  one.   The default value associated
-with the first {\tt valueDefinition} in a type is zero.
+A <EMPHASIS>valueDefinition</> is:
+<SCREEN>
+  id ["=" value]
+</SCREEN>
+</PARA>
+
+<PARA>
+Each <EMPHASIS>typeDefinition</> defines a type of values for use as
+the parameter or result type of a semantic operation or as the result
+type of a rule.
+</PARA>
+
+<PARA>
+Each <EMPHASIS>valueDefinition</> defines a <EMPHASIS>valueId</> in the type.
+An integer value is associated with each <EMPHASIS>valueId</> for use in the
+implementation of the S/SL program.
+This value may be optionally specified in each <EMPHASIS>valueDefinition</>.
+The value may be specified as an integer or as the value of any previously
+defined identifier or string.
+The default value assigned to a value identifier is the value associated
+with the previous value identifier plus one.
+The default value associated with the first <EMPHASIS>valueDefinition</>
+in a type is zero.
 </PARA>
 
 </SECT2>
@@ -290,51 +315,68 @@ with the first {\tt valueDefinition} in a type is zero.
 
 <SECT2><TITLE>S/SL: Mechanisms.</TITLE>
 
+<PARA>
+A <EMPHASIS>mechanismDefinition</> is:
 <SCREEN>
-A {\tt mechanismDefinition} is:
-\begin{verbatim}
-         MECHANISM    id    ":"         {operationDefinition} ";"
-\end{verbatim}
+  MECHANISM id ":"     {operationDefinition} ";"
 </SCREEN>
+</PARA>
 
 <PARA>
-Each {\tt mechanismDefinition}  defines the set of semantic
+Each <EMPHASIS>mechanismDefinition</> defines the set of semantic
 operations associated with a semantic mechanism.
-The  {\tt mechanismId} itself is unused in the S/SL program.
+The <EMPHASIS>mechanismId</> itself is unused in the S/SL program.
 However, operation identifiers associated with a mechanism are by 
 convention expected to begin with the mechanism identifier.
 </PARA>
 
-<SCREEN>
-An {\tt operationDefinition} is one of:
-\begin{enumerate}
-\item {\tt id}
-\item {\tt id "(" typeId")"}
-\item {\tt id ">>" typeId}
-\item {\tt id "(" typeId ")" ">>" typeId}
-\end{enumerate}
-</SCREEN>
+<PARA>
+An <EMPHASIS>operationDefinition</> is one of:
+<ORDEREDLIST>
+<LISTITEM><PARA>
+id
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+id "(" typeId")"
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+id "&gt;&gt;" typeId
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+id "(" typeId ")" "&gt;&gt;" typeId
+</PARA></LISTITEM>
+</ORDEREDLIST>
+</PARA>
 
-<SCREEN>
-Each {\tt operationDefinition} defines  a  semantic operation
+<PARA>
+Each <EMPHASIS>operationDefinition</> defines a semantic operation
 associated with the mechanism.
-\begin{itemize}
-\item Form 1 defines  an         update  semantic  operation,  which
-causes an update to the semantic data structure.
-\item Form 2 defines a parameterized update operation, which
-uses the parameter value to update the semantic data  
-structure.  The {\tt typeId} gives the type of the parameter and can be
-any previously defined type.
-\item Form 3  defines  a         choice  semantic  operation,  which
-returns  a  result  value obtained from the current state of
-the semantic mechanism, which is used as the selector  in  a
-semantic  choice.   The  {\tt typeId} gives the type of the result
-and can be any previously defined type.
-\item Form 4 defines a parameterized choice  operation. The
-first {\tt typeId} gives the parameter type, the second the result
-type.  Each can be any previously defined type.
-\end{itemize}
-</SCREEN>
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ Form 1 defines an update semantic operation, which causes an update
+ to the semantic data structure.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ Form 2 defines a parameterized update operation, which uses the parameter
+ value to update the semantic data structure.
+ The <EMPHASIS>typeId</> gives the type of the parameter and can be
+  any previously defined type.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ Form 3  defines a choice semantic operation, which returns a result value
+ obtained from the current state of the semantic mechanism, which is used
+ as the selector in a semantic choice.
+ The <EMPHASIS>typeId</> gives the type of the result and can be any
+ previously defined type.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ Form 4 defines a parameterized choice  operation.
+ The first <EMPHASIS>typeId</> gives the parameter type,
+ the second the result type.
+ Each can be any previously defined type.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
 <PARA>
 Choice operations  (forms 3 and 4 above)  may  be
@@ -345,131 +387,159 @@ invoked only as the selector in a semantic choice.
 
 <SECT2><TITLE>S/SL: Rules</TITLE>
 
-<SCREEN>
+<PARA>
 A rule is one of:
-\begin{enumerate}
-\item {\tt id     ":"           \{action\} ";"}
-\item {\tt id ">>"  typeId  ":" \{action\} ";"}
-\end{enumerate}
-</SCREEN>
-
+<ORDEREDLIST>
+<LISTITEM><PARA>
 <SCREEN>
-The     rules  define  the  subroutines and functions of the
-S/SL program.  Rules may call one  another  recursively.   A
-rule  need  not  be defined before it is used.  Execution of
-the program begins with the first rule.
-\begin{itemize}
-\item Form 1 defines a procedure rule which  can         be  invoked
+ id ":"        {action} ";"
+</SCREEN>
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+<SCREEN>
+ id ">>" typeId ":" {action} ";"
+</SCREEN>
+</PARA></LISTITEM>
+</ORDEREDLIST>
+</PARA>
+
+<PARA>
+The rules define the subroutines and functions of the S/SL program.
+Rules may call one another recursively.
+A rule need not be defined before it is used.
+Execution of the program begins with the first rule.
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ Form 1 defines a procedure rule which  can         be  invoked
 using a call action.
-\item Form 2 defines  a  choice rule which returns a result
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 2 defines  a  choice rule which returns a result
 value  of  the  specified  type.   The  {\tt typeId}    can  be  any
 previously  defined  type.  Choice rules may only be invoked
 as the selector in a rule choice.
-\end{itemize}
-</SCREEN>
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
 </SECT2>
 
 <SECT2><TITLE>S/SL: Actions</TITLE>
 
-<SCREEN>
+<PARA>
 An action is one of the following:
-\begin{enumerate}
-\item 
-\begin{verbatim}
+<ORDEREDLIST>
+<LISTITEM><SCREEN>
 inputToken
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "." outputToken
-\end{verbatim}
-           
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "#" errorId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "{" {action} "}"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 ">"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "[" { "|" inputToken {","    inputToken} ":" {action} }
                 [ "|" "*" ":" {action} ] "]"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "@" procedureRuleId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 ">>"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "[" "@" choiceRuleId {"|" valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]"
-\end{verbatim}
-                  
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 ">>" valueId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 updateOpId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 parameterizedUpdateOpId "(" valueId ")"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "[" choiceOpId {"|"     valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "["     parameterizedChoiceOpId "(" valueId ")"
                 "|" valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]"
-\end{verbatim}
-\end{enumerate}
+</SCREEN></LISTITEM>
+</ORDEREDLIST>
+</PARA>
 
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ Form 1 is an input action.
+The next input token is to be accepted from the input stream.
+If it is not the one specified, a syntax error is flagged.
+The <EMPHASIS>inputToken</> may be an <EMPHASIS>inputTokenId</>,
+an <EMPHASIS>inputOutputTokenId</>, an <EMPHASIS>inputTokenString</>,
+an <EMPHASIS>inputOutputTokenString</>, or a question mark (``?'').
+The question  mark is a special token which matches any input token.
+</PARA></LISTITEM>
 
-\begin{itemize}
-\item Form 1 is an input action.         The next input token is  to
-be  accepted  from  the  input stream.  If it is not the one
-specified, a syntax error is flagged.  The {\tt inputToken} may be
-an {\tt inputTokenId}, an {\tt inputOutputTokenId}, an {\tt inputTokenString},
-an {\tt inputOutputTokenString}, or  a  question  mark  ({\tt ?}).
-The question  mark      is  a  special token which matches any input
-token.
-\item Form 2 denotes emission of an output token to the output  stream.   
-The {\tt outputToken} may be an {\tt outputTokenId}, an
-{\tt inputOutputTokenId}, an {\tt outputTokenString} or an
-{\tt inputOutputTokenString}.
-\item Form 3 denotes the emission of the specified error signal to the error stream.
-\item Form 4 is a cycle or loop.         Execution  of  the  actions
-inside  the  cycle  is repeated until one of its cycle exits
-(form 5) or a return (forms 8 and 10)  is       encountered.
-A  cycle  exit  causes  execution  to continue following the
-nearest enclosing cycle.   The  cycle  exit  action  is  not
-allowed outside of a cycle.
-\item Form 6 is an input token choice.  The next token in the
-input stream is examined and execution  continues  with  the
-first  action  in  the  alternative labelled with that input
-token.  The matched input token is accepted from  the  input
-stream.
+<LISTITEM><PARA>
+ Form 2 denotes emission of an output token to the output  stream.   
+The <EMPHASIS>outputToken</> may be an <EMPHASIS>outputTokenId</>,
+an <EMPHASIS>inputOutputTokenId</>, an <EMPHASIS>outputTokenString</>
+or an <EMPHASIS>inputOutputTokenString</>.
+</PARA></LISTITEM>
 
-Each {\tt inputToken} label  can  be  an {\tt inputTokenId},  an
-{\tt inputOutputTokenId}, an {\tt inputTokenString} or an 
-{\tt inputOutputTokenString}.  A label can not be repeated nor appear 
-on more than one alternative.
+<LISTITEM><PARA>
+ Form 3 denotes the emission of the specified error signal to the error stream.
+</PARA></LISTITEM>
 
+<LISTITEM><PARA>
+ Form 4 is a cycle or loop.
+Execution of the actions inside the cycle is repeated until one of
+its cycle exits (form 5) or a return (forms 8 and 10) is encountered.
+A cycle exit causes execution to continue following the nearest enclosing
+cycle.
+The cycle exit action is not allowed outside of a cycle.
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 6 is an input token choice.
+The next token in the input stream is examined and execution continues
+with the first action in the alternative labelled with that input token.
+The matched input token is accepted from the input stream.
+</PARA>
+
+<PARA>
+Each <EMPHASIS>inputToken</> label can be an <EMPHASIS>inputTokenId</>,
+an <EMPHASIS>inputOutputTokenId</>, an <EMPHASIS>inputTokenString</> or
+an  <EMPHASIS>inputOutputTokenString</>.
+A label can not be repeated nor appear on more than one alternative.
+</PARA>
+
+<PARA>
 The alternative labelled with an  {\tt *}  is  the  otherwise
 alternative.   If the next input token does not match any of
 the alternative labels of the  choice,  execution  continues
@@ -479,52 +549,77 @@ accepted  from  the  input  stream,  but remains as the next
 input token.  After execution  of  the  last  action  in  an
 alternative of the choice, execution continues following the
 choice.
+</PARA>
 
-If the next input token does not match any of the  
-alternative     labels  and  no  otherwise alternative is present, a
-syntax error is flagged.  For parsers written in  S/SL,  the
-default  error  handling  strategy  is  to repeat the choice
-after modifying the input stream such that  the  next  input
-token  matches  the  first alternative.  For compiler phases
-other than parsers, continued execution  is  undefined  (the
-implementation aborts).
-\item Form 7 is a call to a procedure rule.  Execution 
-continues at the first action in the specified rule.  When 
-execution       of the called rule is completed, either by executing
-the last action in the rule  or  by  encountering  a  return
-action  (form 8), execution is resumed following the call.
-\item Form 8 is a return action.         It causes a return from the
-procedure  rule  in  which it appears.  A procedure rule may
-return explicitly by executing a return action or implicitly
-by  reaching the end of the rule.  A procedure rule must not
-contain a valued return (form 10).
-\item Form 9 is a rule choice.  The specified choice rule  is
-called  and  returns  a  value  by executing a valued return
-action (form 10).  The returned value is  used   to  make  a
-choice  similar  to  an input token choice (form 6 above).
-Execution continues with the first action of the alternative
-whose  label  matches  the  returned  value.  If none of the
-alternative labels matches the value, the otherwise 
-alternative  is  taken.   Following execution of the last action in
-the chosen alternative, execution  continues  following  the
-choice.
+<PARA>
+If the next input token does not match any of the alternative labels
+and no otherwise alternative is present, a syntax error is flagged.
+For parsers written in  S/SL,  the default error handling strategy is to
+repeat the choice after modifying the input stream such that the next input
+token matches the first alternative.
+For compiler phases other than parsers, continued execution is undefined
+(the implementation aborts).
+</PARA></LISTITEM>
 
-Each     alternative  label in a rule choice must be a value
-of the result type of the choice rule.  A label can  not  be
-repeated nor appear on more than one alternative.
-\item Form 10 is a valued return action.         The specified value
+<LISTITEM><PARA>
+ Form 7 is a call to a procedure rule.
+Execution continues at the first action in the specified rule.
+When execution of the called rule is completed, either by executing
+the last action in the rule or by encountering a return action (form 8),
+execution is resumed following the call.
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 8 is a return action.
+It causes a return from the procedure rule in which it appears.
+A procedure rule may return explicitly by executing a return action
+or implicitly by reaching the end of the rule.
+A procedure rule must not contain a valued return (form 10).
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 9 is a rule choice.
+The specified choice rule is called and returns a value by executing
+a valued return action (form 10).
+The returned value is used to make a choice similar to an input token choice
+(form 6 above).
+</PARA>
+
+<PARA>
+Execution continues with the first action of the alternative whose label
+matches the returned value.
+If none of the alternative labels matches the value, the otherwise alternative
+is taken.
+Following execution of the last action in the chosen alternative, execution 
+continues following the choice.
+</PARA>
+
+<PARA>
+Each alternative label in a rule choice must be a value of the result type
+of the choice rule.
+A label can not be repeated nor appear on more than one alternative.
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 10 is a valued return action.         The specified value
 is returned as the result of the choice rule  in  which  the
 action appears.  The value must be of the result type of the
 choice rule.  A choice rule may return only by  executing  a
 valued return action.  A choice rule must not return 
 implicitly by reaching the end of the rule.  It must not contain a
 non-valued return (form 8).
-\item Form 11 is the invocation of an update semantic 
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 11 is the invocation of an update semantic 
 operation.  Similarly, form 12 is the invocation of a 
 parameterized  update  operation.  The parameter value, which must be
 of the operation's parameter type, is supplied to the  
 invocation of the operation.
-\item Form 13 is  a  semantic  choice.  The specified choice
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ Form 13 is  a  semantic  choice.  The specified choice
 semantic operation is invoked and the returned value used to
 make  a  choice  similar  to an input token choice (form 6
 above).  Execution continues with the first  action  of  the
@@ -536,169 +631,183 @@ following       the  choice.  Similarly, form 14 is a parameterized
 semantic choice.  The parameter value, which must be of  the
 operation's parameter type, is provided to the invocation of
 the choice operation.
-\end{itemize}
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 
+<PARA>
 Each alternative label in a semantic     choice  must  be  a
 value  of  the result type of the choice operation.  A label
 can not be repeated nor appear on more than one alternative.
+</PARA>
 
+<PARA>
 If the returned value in a rule choice or semantic choice
 does not match any of the alternative labels and  no  
 otherwise  alternative  is  present, continued execution is 
 undefined (the implementation aborts).
-</SCREEN>
+</PARA>
+
 </SECT2>
 </SECT1>
 
 <SECT1><TITLE>The Syntax of S/SL</TITLE>
 
-<SCREEN>
+<PARA>>
 A program is:
-\begin{verbatim}
-     [inputDefinition]     [outputDefinition]
-     [inputOutputDefinition]
-     [errorDefinition]     {typeOrMechanismDefinition}
-     RULES                 {rule}                  
-     END
-\end{verbatim}
+<SCREEN>
+  [inputDefinition]     [outputDefinition]
+  [inputOutputDefinition]
+  [errorDefinition]     {typeOrMechanismDefinition}
+  RULES                 {rule}                  
+  END
+</SCREEN>
+</PARA>
 
+<PARA>
+An <EMPHASIS>inputDefinition</> is:
+<SCREEN>
+  INPUT ":"              {tokenDefinition} ";"
+</SCREEN></PARA>
 
-An {\tt inputDefinition} is:
-\begin{verbatim}
-     INPUT ":"                   {tokenDefinition} ";"
-\end{verbatim}
+<PARA>
+An <EMPHASIS>outputDefinition</> is:
+<SCREEN>
+  OUTPUT ":"             {tokenDefinition} ";"
+</SCREEN></PARA>
 
+<PARA>
+An <EMPHASIS>inputOutputDefinition</> is:
+<SCREEN>
+  INPUT OUTPUT ":"       {tokenDefinition} ";"
+</SCREEN></PARA>
 
-An {\tt outputDefinition} is:
-\begin{verbatim}
-     OUTPUT ":"                  {tokenDefinition} ";"
-\end{verbatim}
+<PARA>
+A <EMPHASIS>tokenDefinition</> is:
+<SCREEN>
+  id [string] ["=" tokenValue]
+</SCREEN></PARA>
 
+<PARA>
+An <EMPHASIS>errorDefinition</> is:
+<SCREEN>
+  ERROR ":"              {errorSignalDefinition} ";"
+</SCREEN></PARA>
 
-An {\tt inputOutputDefinition} is:
-\begin{verbatim}
-     INPUT OUTPUT ":"            {tokenDefinition} ";"
-\end{verbatim}
+<PARA>
+An <EMPHASIS>errorSignalDefinition</> is:
+<SCREEN>
+  id ["=" errorValue]
+</SCREEN></PARA>
 
+<PARA>
+A <EMPHASIS>typeOrMechanismDefinition</> is one of:
+<ORDEREDLIST>
+<LISTITEM><PARA>
+typeDefinition
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+mechanismDefinition
+</PARA></LISTITEM>
+</ORDEREDLIST>
+</PARA>
 
-A {\tt tokenDefinition} is:
-\begin{verbatim}
-     id [string] ["=" tokenValue]
-\end{verbatim}
+<PARA>
+A <EMPHASIS>typeDefinition</> is:
+<SCREEN>
+  TYPE id ":"           {valueDefinition} ";"
+</SCREEN></PARA>
 
-An {\tt errorDefinition} is:
-\begin{verbatim}
-     ERROR      ":"       {errorSignalDefinition} ";"
-\end{verbatim}
+<PARA>
+A <EMPHASIS>valueDefinition</> is:
+<SCREEN>
+  id ["=" value]
+</SCREEN></PARA>
 
-An {\tt errorSignalDefinition} is:
-\begin{verbatim}
-     id ["=" errorValue]
-\end{verbatim}
+<PARA>
+A <EMPHASIS>mechanismDefinition</> is:
+<SCREEN>
+  MECHANISM id ":" {operationDefinition} ";"
+</SCREEN></PARA>
 
-A {\tt typeOrMechanismDefinition} is one of:
-\begin{enumerate}
-\item {\tt typeDefinition}
-\item {\tt mechanismDefinition}
-\end{enumerate}
-
-
-A {\tt typeDefinition} is:
-\begin{verbatim}
-     TYPE id ":"                  {valueDefinition} ";"
-\end{verbatim}
-
-A {\tt valueDefinition} is:
-\begin{verbatim}
-     id ["=" value]
-\end{verbatim}
-
-
-A {\tt mechanismDefinition} is:
-\begin{verbatim}
-     MECHANISM    id    ":" {operationDefinition} ";"
-\end{verbatim}
-
-
+<PARA>
 A rule is one of:
-\begin{enumerate}
-\item 
-\begin{verbatim}
+<ORDEREDLIST>
+<LISTITEM><SCREEN>
 id ":" {action} ";"
-\end{verbatim}
-\item 
-\begin{verbatim}
-id ">>" typeId  ":" {action} ";"
-\end{verbatim}
-\end{enumerate}
+</SCREEN></LISTITEM>
 
+<LISTITEM><SCREEN>
+id "&gt;&gt;" typeId  ":" {action} ";"
+</SCREEN></LISTITEM>
+</ORDEREDLIST>
+</PARA>
 
+<PARA>
 An action is one of the following:
-\begin{enumerate}
-\item 
-\begin{verbatim}
+<ORDEREDLIST>
+<LISTITEM><SCREEN>
 inputToken
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "." outputToken
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "#" errorId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "{" {action} "}"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 ">"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "["     {"|" inputToken {"," inputToken} ":" {action} }
                 ["|" "*" ":" {action} ] "]" 
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "@" procedureRuleId
-\end{verbatim}
-\item 
-\begin{verbatim}
-">>"
-\end{verbatim}
-             
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
+"&gt;&gt;"
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "[" "@" choiceRuleId {"|" valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]" 
-\end{verbatim}
-\item 
-\begin{verbatim}
-">>" valueId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
+"&gt;&gt;" valueId
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 updateOpId
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 parameterizedUpdateOpId "(" valueId ")"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "[" choiceOpId {"|" valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]"
-\end{verbatim}
-\item 
-\begin{verbatim}
+</SCREEN></LISTITEM>
+
+<LISTITEM><SCREEN>
 "["     parameterizedChoiceOpId  "(" valueId ")"
                 {"|" valueId {"," valueId} ":" {action} }
                 ["|" "*" ":" {action} ] "]"
-\end{verbatim}
-\end{enumerate}
-</SCREEN>
+</SCREEN></LISTITEM>
+</ORDEREDLIST>
+</PARA>
+
 </SECT1>
 
 </APPENDIX>

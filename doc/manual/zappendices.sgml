@@ -13,4 +13,7 @@
 <!-- \segment{zapp-ssl-lang}{chapter}{S/SL Language}			-->
 &ZAPP-SSL-LANG;
 
+&ZAPP-RFC821;
+&ZAPP-RFC822;
+
 </PART>

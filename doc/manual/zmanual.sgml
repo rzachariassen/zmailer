@@ -39,6 +39,8 @@
 <!ENTITY ZAPP-TR-AGENTS  SYSTEM "zapp-tragents.sgml">
 <!ENTITY ZAPP-FILEFMTS   SYSTEM "zapp-filefmts.sgml">
 <!ENTITY ZAPP-SSL-LANG   SYSTEM "zapp-ssl-lang.sgml">
+<!ENTITY ZAPP-RFC821     SYSTEM "zapp-rfc821.sgml">
+<!ENTITY ZAPP-RFC822     SYSTEM "zapp-rfc822.sgml">
 
 ]>
 <BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">

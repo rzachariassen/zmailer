@@ -1,0 +1,8 @@
+<APPENDIX ID="ZAPP-RFC822"><?dbhtml filename="zapp-rfc822.html">
+<TITLE>RFC822</TITLE>
+
+<PARA>
+This will contain juicy bits regarding RFC 822, the message
+<EMPHASIS>visible</> header specification.
+</PARA>
+</APPENDIX>

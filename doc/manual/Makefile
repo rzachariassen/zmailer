@@ -20,6 +20,7 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zadm-sm.sgml		zadm-logging.sgml		\
 	zadm-scheduler.sgml	zadm-smtpserver.sgml		\
 	zadm-queues.sgml	zadm-security.sgml		\
+	zapp-rfc821.sgml	zapp-rfc821.sgml		\
 	zmanual.dsl
 
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
