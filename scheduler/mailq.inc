@@ -230,9 +230,9 @@ Number of times, when there have been more connections from any given
 single IP address, than what "PARAM MaxSameIpSource" has been configured
 to allow.
 </DESC></VAR>*/
-  sfprintf(fp,"SS.MaxParallelConnections       %10u\n",
+  sfprintf(fp,"SS.MaxParallelConnectionCloses  %10u\n",
 	   M.ss.MaxParallelConnections);
-/*<VAR><NAME>SS.MaxParallelConnections</NAME><DESC>
+/*<VAR><NAME>SS.MaxParallelConnectionCloses</NAME><DESC>
 Number of times, when there have been more connections into smtpserver,
 than the global "PARAM MaxParallelConnections" parameter as been configured
 to allow.
