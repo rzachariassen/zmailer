@@ -30,6 +30,8 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(router/router.c)
 
+AC_CONFIG_HEADER(config.h)
+
 AC_LANG_C
 #----------------------------------------------------------------------------
 #       Check if we should use gcc if available on this machine.
@@ -824,7 +826,8 @@ fi
 AC_FUNC_SVR4_MAILLOCK
 
 AC_CHECK_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
-		strchr strrchr setvbuf strerror strsignal setreuid)
+		strchr strrchr setvbuf strerror strsignal setreuid \
+		sigprocmask sigpending sigsuspend)
 # If the system does not have the following (library) calls,
 # we use emulations (replacements):
 AC_REPLACE_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
