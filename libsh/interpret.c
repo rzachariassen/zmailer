@@ -455,10 +455,14 @@ insertio(ioopp, command, name, cmd, ioflags, fd, fd2, opflags)
 	else
 		iotmp = (struct IOop *)tmalloc(sizeof (struct IOop));
 	iotmp->command = command;
+#if 1
+	iotmp->name = name;
+#else
 	if (name == NULL)
 		iotmp->name = NULL;
 	else
 		iotmp->name = strsave(name);
+#endif
 	iotmp->cmd = cmd;
 	iotmp->ioflags = ioflags;
 	iotmp->opflags = opflags;

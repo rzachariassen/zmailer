@@ -612,18 +612,18 @@ expand(d)
 		slen = d->slen;
 		if (head == d) {
 			/* skip leading whitespace */
-			char *p;
 			while (slen > 0 && WHITESPACE(*cp)) ++cp, --slen;
-			p    = dupnstr(cp,slen);
-			/* UGLY replace-in-place code;
-			   this 'freestr()' should not be
-			   used outside  listmalloc.c! */
-			if (ISNEW(d))
-			  freestr(d->string,d->slen);
-			d->string = p;
+			/* This is WRITABLE string, s_copy_tree() took
+			   care of that above! */
+			/* XX: IF THE FUNCTIONALITY OF  s_copy_tree() IS
+			   CHANGED FROM CURRENT 'copy all strings a fresh'
+			   TO E.G. 'share strings among cells', THEN THIS
+			   CODE MUST BE MODIFIED! */
+			if (cp > d->string)
+			  memcpy(d->string, cp, slen);
+			d->string[slen] = 0;
 			d->slen   = slen;
-			d->flags  = NEWSTRING;
-			cp = p;
+			cp = d->string;
 		}
 		slen0 = slen;
 		while (slen > 0) {

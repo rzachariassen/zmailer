@@ -1,3 +1,16 @@
+1999-05-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/expand.c:
+	    Remove  dupnstr() + freestr() calls by changeing code
+	    slightly..
+
+	* libsh/interpret.c:
+	    Removed unnecessary strsave() calls from within debugging.
+
+	* router/router.c:
+	    With received SIGEXIT/SIGTERM, DON'T die(); this is about
+	    getting the profiling data out...
+
 1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.h, smtpserver/policytest.c,

@@ -342,8 +342,8 @@ write(30, "\n", 1);
 	dbfree();
 	zshfree();
 #endif	/* MALLOC_TRACE */
-	if (mustexit)
-	  die(0, "signal");
+	/* if (mustexit)
+	   die(0, "signal"); */
 #ifdef	MALLOC_TRACE
 	die(0, "malloc trace");
 #endif	/* MALLOC_TRACE */
