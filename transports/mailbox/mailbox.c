@@ -1998,9 +1998,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  /* [haa@cs.hut.fi] added more info here to catch errors
 	     in delivery  */
 	  fprintf(logfp,
-		  "%s: %ld + %ld : %s (pid %d user %s)\n",
-		  dp->logident, eofindex,
-		  (fp ? sftell(fp): 0) - eofindex, file,
+		  "%s: %d + %d : %s (pid %d user %s)\n",
+		  dp->logident, (int)eofindex,
+		  (int)((fp ? sftell(fp): 0) - eofindex), file,
 		  (int)getpid(), rp->addr->user);
 #if 0
 	  fprintf(logfp, "%s: %ld + %ld : %s\n",
@@ -3061,7 +3061,7 @@ writebuf(WS, buf, len)
 		{ tlen = -1; break; }
 	      WS->frombuf[0] = 0;
 	      fromp = WS->frombuf;
-	      if (sfprintf(WS->fp, "%s", WS->frombuf) < 0)
+	      if (sfputc(WS->fp, c) < 0)
 		{ tlen = -1; break; }
 	    }
 	  } else { /* expect == '\0'; */
