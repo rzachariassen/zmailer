@@ -2124,18 +2124,19 @@ smtpconn(SS, host, noMX)
 
 	  if (SS->mxcount == 0 || SS->mxh[0].host == NULL) {
 
-	    struct addrinfo req, *ai;
+	    struct addrinfo req, *ai, **aip;
 
 	    memset(&req, 0, sizeof(req));
 	    req.ai_socktype = SOCK_STREAM;
 	    req.ai_protocol = IPPROTO_TCP;
 	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = PF_INET;
+
 	    ai = NULL;
 
 	    errno = 0;
 	    /* Either forbidden MX usage, or does not have MX entries! */
 
-	    req.ai_family   = PF_INET;
 #if !GETADDRINFODEBUG
 	    r = getaddrinfo(host, "smtp", &req, &ai);
 #else
@@ -2174,9 +2175,9 @@ smtpconn(SS, host, noMX)
 	      }
 	      if (ai2 && ai) {
 		/* BOTH ?!  Catenate them! */
-		a = ai;
-		while (a && a->ai_next) a = a->ai_next;
-		if (a) a->ai_next = ai2;
+		aip = &(ai->ai_next);
+		while (*aip) aip = &((*aip)->ai_next);
+		*aip = ai2;
 	      }
 	    }
 #endif

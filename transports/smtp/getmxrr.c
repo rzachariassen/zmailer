@@ -789,6 +789,7 @@ int main(argc, argv)
 	if (SS.mxcount == 0 || SS.mxh[0].host == NULL) {
 
 	  struct addrinfo req, *ai, **aip;
+	  int r;
 
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
@@ -845,9 +846,8 @@ int main(argc, argv)
 	    }
 	  }
 #endif
-
-
-	  return 0;
 	}
 
+	return 0;
+}
 #endif
