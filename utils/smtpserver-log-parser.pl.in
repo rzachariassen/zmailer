@@ -1,4 +1,4 @@
-#! /usr/bin/perl -T
+#! @PERL@
 #
 # A parser to glob in smtpserver's log (via 'tail -f', for example)
 # and to print out those sessions which have errors logged in them.

@@ -1,5 +1,26 @@
 1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* utils/Makefile.in, utils/smtpserver-log-parser.pl:
+	    Autoconfigure the perl for that script, and install
+	    it during normal system install (and install-bin).
+
+	* transports/smtp/smtp.c:
+	    - Some remote servers misbehave by issueing an error
+	      to MAIL FROM just because receiver doesn't do proper
+	      state clearance at end of DATA phase, but claims
+	      that "MAIL FROM already given" :-(  Issue an RSET,
+	      and try feeding the thing again.
+	    - Subtle dangling pointers seen related to reconnect
+	      processing, fixed them now.
+
+	* scheduler/threads.c:
+	    Print "mailq -Q" always as is threads are running in
+	    multi-TA mode (instead of the default of maxthr=1)
+
+	* scheduler/update.c:
+	    An oddball ETRN caused SEGV - not quite sure this fix
+	    was right in the long run...
+
 	* libmalloc/botch.c, libmalloc/defs.h, libmalloc/dumpheap.c,
 	  libmalloc/malloc.c, include/zmalloc.h, libmalloc/_strdup.c,
 	  libmalloc/align.h, libmalloc/globals.c, libmalloc/emalloc.c,

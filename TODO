@@ -1,5 +1,10 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- mailbox TA: write to pipe should not complain of incomplete writes
+  if subprogram exit code is zero.
+
+- smtp TA: makereconn() fails with ai->ai_addr == NULL
+
 - smtp TA (all TAs ??) leak memory in MIME header processing,
   and (what is worse) they seem to refer thru pointers located
   within FREED memory blocks..

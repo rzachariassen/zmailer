@@ -2102,17 +2102,20 @@ makeconn(SS, ai, ismx)
 {
 	int retval;
 	int mfd;
+	int isreconnect = (ai == &SS->ai);
 
 #ifdef	BIND
 #ifdef	RFC974
 	char	hostbuf[MAXHOSTNAMELEN+1];
 	int	ttl;
 
-	if (ai->ai_canonname)
-	  strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
-	else
-	  *hostbuf = 0;
-	hostbuf[sizeof(hostbuf)-1] = 0;
+	if (! isreconnect) {
+	  if (ai->ai_canonname)
+	    strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
+	  else
+	    *hostbuf = 0;
+	  hostbuf[sizeof(hostbuf)-1] = 0;
+	}
 
 	if (checkwks && SS->verboselog)
 	  fprintf(SS->verboselog,"  makeconn(): checkwks of host %.200s\n",
@@ -2155,15 +2158,25 @@ makeconn(SS, ai, ismx)
 	  struct sockaddr_in6 *si6;
 #endif
 
-	  if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
+	  if (! isreconnect) {
 
-	  /* For possible reconnect */
-	  SS->ai   = *ai;
-	  memcpy(&SS->ai_addr, ai->ai_addr, sizeof(SS->ai_addr));
-	  SS->ai.ai_addr = (struct sockaddr *) & SS->ai_addr;
-	  if (ai->ai_canonname)
-	    SS->ai.ai_canonname = strdup(ai->ai_canonname);
-	  SS->ismx = ismx;
+	    /* For possible reconnect */
+	    memcpy(&SS->ai, ai, sizeof(*ai));
+	    memset(&SS->ai_addr, 0, sizeof(SS->ai_addr));
+	    if (ai->ai_family == AF_INET)
+	      memcpy(&SS->ai_addr.v4, ai->ai_addr, sizeof(SS->ai_addr.v4));
+#if defined(AF_INET6) && defined(INET6)
+	    else
+	      memcpy(&SS->ai_addr.v6, ai->ai_addr, sizeof(SS->ai_addr.v6));
+#endif
+	    SS->ai.ai_addr = (struct sockaddr *) & SS->ai_addr;
+	    if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
+	    SS->ai.ai_canonname = NULL;
+	    if (ai->ai_canonname)
+	      SS->ai.ai_canonname = strdup(ai->ai_canonname);
+	    SS->ai.ai_next = NULL;
+	    SS->ismx = ismx;
+	  }
 
 	  if (ai->ai_family == AF_INET) {
 	    si = (struct sockaddr_in *)ai->ai_addr;

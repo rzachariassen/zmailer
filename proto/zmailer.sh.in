@@ -2,11 +2,11 @@
 #
 # ZMailer startup and maintenance commands
 #
-#	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
-#	This will be free software, but only when it is finished.
+#       Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
+#       This will be free software, but only when it is finished.
 #
-#	Some hacking by Matti Aarnio, Copyright 1990-1998
-#	Modified for Debian by Christoph Lameter 1997
+#       Some hacking by Matti Aarnio, Copyright 1990-1998
+#       Modified for Debian by Christoph Lameter 1997
 #
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
@@ -33,29 +33,29 @@ esac
 PATH=$MAILBIN:$PATH
 
 case $POSTOFFICE in
-    /*)	;;
-    *)	echo "$0: panic!! can't initialize from $ZCONFIG"
-	    exit 1
-	    ;;
+    /*) ;;
+    *)  echo "$0: panic!! can't initialize from $ZCONFIG"
+            exit 1
+            ;;
 esac
 
-cd $POSTOFFICE	# So that possible cores are there..
+cd $POSTOFFICE  # So that possible cores are there..
 
 case "$MAILBOX" in
 *%*)
     ;; # Format-rule, don't check it being a dir...
 *)
     if [ ! -d $MAILBOX ]; then
-	echo "$0: panic!!  MAILBOX-variable does not point to a directory!  Verify $ZCONFIG!"
-	exit 1
+        echo "$0: panic!!  MAILBOX-variable does not point to a directory!  Verify $ZCONFIG!"
+        exit 1
     fi
     ;;
 esac
 
 # set up the default arguments
 if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then
-	set -$- router scheduler smtpserver
-	echo $eopt "Starting Zmailer mail server: $eeol"
+        set -$- router scheduler smtpserver
+        echo $eopt "Starting Zmailer mail server: $eeol"
 fi
 
 umask 022
@@ -67,190 +67,197 @@ do
     shift
 
     case "$op" in
-	stop|kill|nuke|kills|killr)	# print nothing
-	    ;;
-	*)
-	    echo $eopt "${op} $eeol"
-	    ;;
+        stop|kill|nuke|kills|killr)     # print nothing
+            ;;
+        *)
+            echo $eopt "${op} $eeol"
+            ;;
     esac
     case "$op" in
-	router|outer)
-	    case $KILL in
-		-*)
-		    if [ -f $POSTOFFICE/.pid.router ]; then
-			router -k > /dev/null
-	#	    else
-	#		echo $eopt "(warning: no .pid.router file) $eeol"
-		    fi
-		    ;;
-		*)
-		    if [ -f $POSTOFFICE/.freeze ]; then
-			echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-			exit 0
-		    fi
-		    router $ROUTEROPTIONS
-		    ;;
-	    esac
-	    ;;
-	sched*|ched*)
-	    case $KILL in
-		-*)	kill $KILL -`cat $POSTOFFICE/.pid.scheduler` 2>/dev/null ;;
-		*)
-			if [ -f $POSTOFFICE/.freeze ]; then
-			    echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-			    exit 0
-			fi
-			cd $POSTOFFICE/transport
-			# must send signal to scheduler to make it
-			# stop reading the directory for new files
-			PIDFILE=.pid.scheduler
-			if [ -f ../$PIDFILE ]; then
-			    PID=`cat ../$PIDFILE`
-			    kill -TERM -$PID 2>/dev/null
-	#		else
-	#		    echo $eopt "(warning: no $PIDFILE file) $eeol"
-			fi
-			scheduler $SCHEDULEROPTIONS
-			;;
-	    esac
-	    ;;
-	smtp*|mtp*)
-	    case $KILL in
-		-*)	if [ -f $POSTOFFICE/.pid.smtpserver ]; then
-			    kill $KILL `cat $POSTOFFICE/.pid.smtpserver` 2>/dev/null
-			elif [ -d $POSTOFFICE/.pid.smtpserver ]; then
-			    kill $KILL `cat $POSTOFFICE/.pid.smtpserver/* 2>/dev/null` 2>/dev/null
-	#		else
-	#		    echo $eopt "(warning: no .pid.smtpserver file) $eeol"
-			fi
-			;;
-		*)
-			if [ -f $POSTOFFICE/.freeze ]; then
-			    echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-			    exit 0
-			fi
-			cd /
-			if [ -f $MAILSHARE/smtpserver.conf ]; then
-			    cd /; smtpserver $SMTPOPTIONS
-			elif [ -d $MAILSHARE/smtpserver.conf ]; then
-			    if [ -e $POSTOFFICE/.pid.smtpserver ]; then
-				if [ ! -d $POSTOFFICE/.pid.smtpserver ]; then
-				    echo "CONFIGURATION ERROR!"
-				    echo "Cannot start multiple instances of the smtpserver -"
-				    echo "$POSTOFFICE/.pid.smtpserver is not a directory!"
-				    exit 0
-				fi
-			    else
-				mkdir $POSTOFFICE/.pid.smtpserver
-			    fi
-			    cd $MAILSHARE/smtpserver.conf
-			    for serv in *; do
-				SMTPOPTIONS_SAVE=$SMTPOPTIONS
-				if [ -f .$serv ]; then
-				    SMTPOPTIONS=`eval echo \`cat .$serv\``
-				fi
-				smtpserver $SMTPOPTIONS -C $serv -I .pid.smtpserver/$serv
-				SMTPOPTIONS=$SMTPOPTIONS_SAVE
-			    done
-			fi
-			;;
-	    esac
-	    ;;
-	newdb)
-	    #
-	    #  Translate all common flatfile databases to binary db's
-	    #
-	    echo $eopt "( $eeol"
-	    if [   -f $MAILVAR/db/routes -a  \
-		 ! -f $MAILVAR/db/routes.zmsh ] ; then
-		echo $eopt "routes $eeol"
-		newdb -l $MAILVAR/db/routes
-	    fi
-	    if [   -f $MAILVAR/db/localnames -a \
-		 ! -f $MAILVAR/db/localnames.zmsh ] ; then
-		echo $eopt "localnames $eeol"
-		newdb -l $MAILVAR/db/localnames
-	    fi
-	    if [ -f $MAILVAR/db/aliases ] ; then
-		echo $eopt "aliases $eeol"
-		newaliases -s
-	    fi
-	    if [ -f $MAILVAR/db/fqdnaliases ] ; then
-		echo $eopt "fqdnaliases $eeol"
-		newfqdnaliases -s
-	    fi
-	    echo $eopt ") $eeol"
-	    ;;
-	newf*)
-	    newfqdnaliases
-	    ;;
-	newal*)
-	    newaliases
-	    ;;
-	new-route*)
-	    newdb -l $MAILVAR/db/routes
-	    ;;
-	new-local*)
-	    newdb -l $MAILVAR/db/localnames
-	    ;;
-	logsync)
-	    if [ -f $POSTOFFICE/.pid.router ]; then
-		pid=`cat $POSTOFFICE/.pid.router`
-		kill -1 -$pid # SIGHUP the router GROUP
-	    fi
-	    if [ -f $POSTOFFICE/.pid.scheduler ]; then
-		pid=`cat $POSTOFFICE/.pid.scheduler`
-		kill -1 $pid # SIGHUP the scheduler PROCESS
-	    fi
-	    ;;
-	logrotate)
-	    rotate-logs.sh
-	    ;;
-	stop|kill|nuke|kills|killr)
-	    case $# in
-		0)	exec zmailer $op router scheduler smtpserver ;;
-	    esac
-	    case $op in
-		kill|stop|kills|killr)
-		    KILL="-TERM"
-		    echo $eopt "Stopping Zmailer services: $eeol"
-		    ;;
-		nuke)
-		    KILL="-KILL"
-		    echo $eopt "Aborting Zmailer services: $eeol"
-		    ;;
-	    esac
-	    ;;
-	resubmit)
-	    (cd $POSTOFFICE/deferred && mv -i [0-9]* ../router) 2> /dev/null
-	    ;;
-	bootclean)
-	    rm -f $POSTOFFICE/.pid.* 2> /dev/null
-	    ;;
-	cleanup)
-	    (cd $POSTOFFICE ;
-	     find public -type f -mtime +2 -print | xargs rm -f
-	     find postman -type f -mtime +7 -name '[0-9]*' -print | xargs rm -f
-	    )
-	    ;;
-	freeze)
-	    touch $POSTOFFICE/.freeze
-	    ;;
-	unfr*|thaw)
-	    rm -f $POSTOFFICE/.freeze
-	    ;;
-	*)
-	    echo "$0: unknown option: $op"
-	    errflg=1
-	    ;;
+        router|outer)
+            case $KILL in
+                -*)
+                    if [ -f $POSTOFFICE/.pid.router ]; then
+                        router -k > /dev/null
+        #           else
+        #               echo $eopt "(warning: no .pid.router file) $eeol"
+                    fi
+                    ;;
+                *)
+                    if [ -f $POSTOFFICE/.freeze ]; then
+                        echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
+                        exit 0
+                    fi
+                    router $ROUTEROPTIONS
+                    ;;
+            esac
+            ;;
+        sched*|ched*)
+            case $KILL in
+                -*)     kill $KILL -`cat $POSTOFFICE/.pid.scheduler` 2>/dev/null ;;
+                *)
+                        if [ -f $POSTOFFICE/.freeze ]; then
+                            echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
+                            exit 0
+                        fi
+                        cd $POSTOFFICE/transport
+                        # must send signal to scheduler to make it
+                        # stop reading the directory for new files
+                        PIDFILE=.pid.scheduler
+                        if [ -f ../$PIDFILE ]; then
+                            PID=`cat ../$PIDFILE`
+                            kill -TERM -$PID 2>/dev/null
+        #               else
+        #                   echo $eopt "(warning: no $PIDFILE file) $eeol"
+                        fi
+                        scheduler $SCHEDULEROPTIONS
+                        ;;
+            esac
+            ;;
+        smtp*|mtp*)
+            case $KILL in
+                -*)     if [ -f $POSTOFFICE/.pid.smtpserver ]; then
+                            kill $KILL `cat $POSTOFFICE/.pid.smtpserver` 2>/dev/null
+                        elif [ -d $POSTOFFICE/.pid.smtpserver ]; then
+                            kill $KILL `cat $POSTOFFICE/.pid.smtpserver/* 2>/dev/null` 2>/dev/null
+        #               else
+        #                   echo $eopt "(warning: no .pid.smtpserver file) $eeol"
+                        fi
+                        ;;
+                *)
+                        if [ -f $POSTOFFICE/.freeze ]; then
+                            echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
+                            exit 0
+                        fi
+                        cd /
+                        if [ -f $MAILSHARE/smtpserver.conf ]; then
+                            cd /; smtpserver $SMTPOPTIONS
+                        elif [ -d $MAILSHARE/smtpserver.conf ]; then
+                            if [ -e $POSTOFFICE/.pid.smtpserver ]; then
+                                if [ ! -d $POSTOFFICE/.pid.smtpserver ]; then
+                                    echo "CONFIGURATION ERROR!"
+                                    echo "Cannot start multiple instances of the smtpserver -"
+                                    echo "$POSTOFFICE/.pid.smtpserver is not a directory!"
+                                    exit 0
+                                fi
+                            else
+                                mkdir $POSTOFFICE/.pid.smtpserver
+                            fi
+                            cd $MAILSHARE/smtpserver.conf
+                            for serv in *; do
+                                SMTPOPTIONS_SAVE=$SMTPOPTIONS
+                                if [ -f .$serv ]; then
+                                    SMTPOPTIONS=`eval echo \`cat .$serv\``
+                                fi
+                                smtpserver $SMTPOPTIONS -C $serv -I .pid.smtpserver/$serv
+                                SMTPOPTIONS=$SMTPOPTIONS_SAVE
+                            done
+                        fi
+                        ;;
+            esac
+            ;;
+        newdb)
+            #
+            #  Translate all common flatfile databases to binary db's
+            #
+            echo $eopt "( $eeol"
+            if [   -f $MAILVAR/db/routes -a  \
+                 ! -f $MAILVAR/db/routes.zmsh ] ; then
+                echo $eopt "routes $eeol"
+                newdb -l $MAILVAR/db/routes
+            fi
+            if [   -f $MAILVAR/db/localnames -a \
+                 ! -f $MAILVAR/db/localnames.zmsh ] ; then
+                echo $eopt "localnames $eeol"
+                newdb -l $MAILVAR/db/localnames
+            fi
+            if [ -f $MAILVAR/db/aliases ] ; then
+                echo $eopt "aliases $eeol"
+                newaliases -s
+            fi
+            if [ -f $MAILVAR/db/fqdnaliases ] ; then
+                echo $eopt "fqdnaliases $eeol"
+                newfqdnaliases -s
+            fi
+            echo $eopt ") $eeol"
+            ;;
+        newf*)
+            newfqdnaliases
+            ;;
+        newal*)
+            newaliases
+            ;;
+        new-route*)
+            newdb -l $MAILVAR/db/routes
+            ;;
+        new-local*)
+            newdb -l $MAILVAR/db/localnames
+            ;;
+        logsync)
+            # Over the years less and less of ZMailer subsystems
+            # need poking for logfile restarts.  Initially about
+            # all needed them, then smtpserver changed to have the
+            # log opened separately for each session, and now [Dec 1999]
+            # the router has learned better ways.
+            # Still the scheduler is resistant...
+
+            # if [ -f $POSTOFFICE/.pid.router ]; then
+            #   pid=`cat $POSTOFFICE/.pid.router`
+            #   kill -1 -$pid # SIGHUP the router GROUP
+            # fi
+            if [ -f $POSTOFFICE/.pid.scheduler ]; then
+                pid=`cat $POSTOFFICE/.pid.scheduler`
+                kill -1 $pid # SIGHUP the scheduler PROCESS
+            fi
+            ;;
+        logrotate)
+            rotate-logs.sh
+            ;;
+        stop|kill|nuke|kills|killr)
+            case $# in
+                0)      exec zmailer $op router scheduler smtpserver ;;
+            esac
+            case $op in
+                kill|stop|kills|killr)
+                    KILL="-TERM"
+                    echo $eopt "Stopping Zmailer services: $eeol"
+                    ;;
+                nuke)
+                    KILL="-KILL"
+                    echo $eopt "Aborting Zmailer services: $eeol"
+                    ;;
+            esac
+            ;;
+        resubmit)
+            (cd $POSTOFFICE/deferred && mv -i [0-9]* ../router) 2> /dev/null
+            ;;
+        bootclean)
+            rm -f $POSTOFFICE/.pid.* 2> /dev/null
+            ;;
+        cleanup)
+            (cd $POSTOFFICE ;
+             find public -type f -mtime +2 -print | xargs rm -f
+             find postman -type f -mtime +7 -name '[0-9]*' -print | xargs rm -f
+            )
+            ;;
+        freeze)
+            touch $POSTOFFICE/.freeze
+            ;;
+        unfr*|thaw)
+            rm -f $POSTOFFICE/.freeze
+            ;;
+        *)
+            echo "$0: unknown option: $op"
+            errflg=1
+            ;;
     esac
 done
 
 echo
 
 case $errflg in
-    1)	echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | newdb | logsync | freeze | thaw ]"
-	exit 1
-	;;
+    1)  echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | newdb | logrotate | logsync | freeze | thaw ]"
+        exit 1
+        ;;
 esac
 exit 0

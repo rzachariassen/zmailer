@@ -26,7 +26,8 @@ LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC
 LIBDEB=		$(TOPDIR)/libs/libtag
 
 BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
-	$(srcdir)/make-incore.sh $(srcdir)/bitbucket md5sum
+	$(srcdir)/make-incore.sh $(srcdir)/bitbucket md5sum	\
+	smtpserver-log-parser.pl
 
 all:	listexpand md5sum
 	cd makedb ; $(MAKE) $(MFLAGS)

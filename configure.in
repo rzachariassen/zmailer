@@ -1822,7 +1822,7 @@ AC_OUTPUT(Makefile
 	utils/zmailer.init.sh		utils/autoanswer.pl		\
 	utils/vacation/Makefile		man/vacation.1			\
 	utils/vacation/vacation.sh	utils/makedb/Makefile		\
-	utils/rotate-logs.sh						\
+	utils/rotate-logs.sh		utils/smtpserver-log-parser.pl	\
 	proto/Makefile			proto/zmailer.sh		\
 	proto/newaliases		proto/newfqdnaliases		\
 	proto/newdb			proto/scheduler.conf		\
