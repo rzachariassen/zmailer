@@ -43,6 +43,12 @@ Installation procedure:
 	variable values are derived from the  --prefix=, which can cause
 	surprises if you do 'make install' with GNU autoconfig defaults...
 
+	When choosing your prefix, do try to keep is fairly short, as
+	there are a few scripts which catenate string-components of:
+		"#! "+prefix+"/bin/router -f"
+	and usually systems have a limit of 32 characters for that,
+	which gives at most 15 characters for your prefix!
+
 	Also, if the   /etc/zmailer.conf   -file exists, it is read
 	to initialize several different environment paths (including
 	MAILBIN, et.al.!)

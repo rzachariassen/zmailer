@@ -1,3 +1,67 @@
+1998-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* INSTALL:
+	    Warn about configuration phase --prefix="parameter" string
+	    size limitations due to usual shell-script execution rules
+	    on UNIXes.
+
+	* router/libdb/header.c:
+	    Alter the syntax of "Reply-To:" header match that of
+	    RFC-822.  Oops since 2.2.1 (and propably before!)
+
+	* router/libdb/bind.c:
+	    Just nice for debugging -- report DNS lookup error codes
+	    in text instead of "magic" numbers -- "NXDOMAIN" instead
+	    of "3", for example.
+	
+1998-03-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    A quota-check hook from Eugene Crosser <crosser@average.org>
+
+1998-03-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
+	    Limit a bit about how much meta-lines are logged.
+	    If policyresult status is zero, don't report it.
+
+	* libident/identuser.c:
+	    When connect() yields "ECONNREFUSED", present report
+	    "NO-IDENT-SERVICE" instead of "SOCKFAULT1".
+	    (Local users at a large SPARC server running 2.6 and
+	     sending email with PINE thru SMTP.)
+
+1998-03-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/builtin.c:
+	    Function sh_echo() got slight alteration.
+	    Now it detects options: [-n] [--] [rest of args]
+	    in this order.
+
+	    This in order to be able to write script statements of
+	    style:  echo -- "$@"    where the arguments MAY start
+	    with first component of "-n" ...
+
+	* proto/cf/canon.cf:
+	    Rearrangeing the script a bit, do  $(canon ..) calls
+	    in  canonical ()  in case the hostname has at least one
+	    dot in it, and the top-level part is not know one.
+
+	* router/db.c:
+	    Somebody asked for a method for querying available
+	    databases in the router scripts.  Method is:
+		relation -T -t dbtype dummyname
+	    Return-code 0 means the 'dbtype' is known, and non-zero
+	    means it is unknown.
+
+	* lib/selfaddrs.c, transports/smtp/smtp.c:
+	    Modify function  matchmyaddress()  to return value 3 for
+	    such destination addresses which are of invalid network
+	    (Valid range being: 1..223; out of which 127 yields value 2)
+	    This was prompted by noticing appearance of faulty DNS
+	    data in larger amounts in the network.  Lots of A 0.0.0.0
+	    entries especially.
+
 1998-03-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* INSTALL, doc/guides/configure, doc/guides/smtp-policy:
