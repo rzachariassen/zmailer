@@ -982,12 +982,12 @@ functype(fname, shcmdpp, sfdpp)
 	/* behaviour in execute() requires we continue, not return */
 
 	/* is it a builtin command? */
+	if (shcmdpp)
+	  *shcmdpp = NULL;
 	if (shcmdpp != NULL && symid) {
 	  spl = sp_lookup(symid, spt_builtins);
 	  if (spl != NULL)
 	    *shcmdpp = (struct shCmd *)spl->data;
-	  else
-	    *shcmdpp = NULL;
 	}
 	/* it must be a unix program */
 }
