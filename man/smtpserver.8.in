@@ -1002,10 +1002,10 @@ MAILVAR/db/smtp\-policy.spam	('= _bulk_mail')
 .PP
 .B "If you want, you can modify your boiler plate,"
 .I "as well as your installed"
-.I policy-builder.sh
+.I policy\-builder.sh
 .B script.
 (Doing 'make install' will overwrite
-.IR policy-builder.sh ,
+.IR policy\-builder.sh ,
 but not
 .IR smtp\-policy.src )
 .PP

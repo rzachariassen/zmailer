@@ -2236,7 +2236,9 @@ const char *buf;
 	  SS->ehlo_capabilities |= ESMTP_PIPELINING;
 	  MIBMtaEntry->tasmtp.EHLOcapabilityPIPELINING ++;
 	} else if (STREQ(buf,"STARTTLS")) {
+#ifdef HAVE_OPENSSL
 	  SS->ehlo_capabilities |= ESMTP_STARTTLS;
+#endif /* - HAVE_OPENSSL */
 	  MIBMtaEntry->tasmtp.EHLOcapabilitySTARTTLS ++;
 	} else if (STREQN(buf,"SIZE ",5) ||
 		   STREQ (buf,"SIZE")   ) {

@@ -361,7 +361,7 @@ struct policystate *state;
 const char *key;
 int init;
 {
-    char *str, *str_base, pbuf[256];
+    char *str, *str_base;
     int rlen, result, interest;
     char *msgstr = NULL;
 
@@ -415,10 +415,14 @@ int init;
 	      if (debug)
 		type(NULL,0,NULL," Max recursions reached.");
 	    } else {
+	      char pbuf[256];
+
 	      if (debug)
 		type(NULL,0,NULL," Alias-recursion: %d", recursions);
 
-	      strcpy(pbuf+2,str+2);
+	      strncpy(pbuf+2,str+2, sizeof(pbuf)-3);
+	      pbuf[ sizeof(pbuf)-1 ] = 0;
+
 	      strlower(pbuf+2);
 	      pbuf[0] = strlen(str+2) + 3;
 	      pbuf[1] = P_K_TAG;

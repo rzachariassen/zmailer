@@ -400,6 +400,7 @@ _bulk_mail	message "Your address is not liked source for email" rejectsource + m
 #|     make decisions.  Attribute names, and understood value tokens are:
 #|
 #|	'='		'_any_token_with_starting_underscore' (aliasing)
+#|				Recursion up to 3 levels is supported
 #|	'rejectnet'	{ '+', '-' }
 #|	'freezenet'	{ '+', '-' }
 #|	'rejectsource'	{ '+', '-' }
