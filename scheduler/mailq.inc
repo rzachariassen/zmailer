@@ -197,32 +197,74 @@
 
   sfprintf(fp,"\n");
 
+  sfprintf(fp,"TA.OutgoingSmtpStarts           %10u\n",
+	   M.tas.OutgoingSmtpStarts);
+  sfprintf(fp,"TA.OutgoingLmtpConnects         %10u\n",
+	   M.tas.OutgoingLmtpConnects);
   sfprintf(fp,"TA.OutgoingSmtpConnects         %10u\n",
 	   M.tas.OutgoingSmtpConnects);
   sfprintf(fp,"TA.OutgoingSmtpConnectFails     %10u\n",
 	   M.tas.OutgoingSmtpConnectFails);
+  sfprintf(fp,"TA.OutgoingSmtpConnectsCnt-G     %9d\n",
+	   M.tas.OutgoingSmtpConnectsCnt);
   sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n",
 	   M.tas.OutgoingSmtpSTARTTLS);
+  sfprintf(fp,"TA.OutgoingSmtpSTARTTLSok       %10u\n",
+	   M.tas.OutgoingSmtpSTARTTLSok);
+  sfprintf(fp,"TA.OutgoingSmtpSTARTTLSfail     %10u\n",
+	   M.tas.OutgoingSmtpSTARTTLSfail);
+
+  sfprintf(fp,"TA.OutgoingSmtpEHLO             %10u\n",
+	   M.tas.OutgoingSmtpEHLO);
+  sfprintf(fp,"TA.OutgoingSmtpEHLOok           %10u\n",
+	   M.tas.OutgoingSmtpEHLOok);
+  sfprintf(fp,"TA.OutgoingSmtpEHLOfail         %10u\n",
+	   M.tas.OutgoingSmtpEHLOfail);
+  sfprintf(fp,"TA.OutgoingSmtpHELO             %10u\n",
+	   M.tas.OutgoingSmtpHELO);
+  sfprintf(fp,"TA.OutgoingSmtpHELOok           %10u\n",
+	   M.tas.OutgoingSmtpHELOok);
+  sfprintf(fp,"TA.OutgoingSmtpHELOfail         %10u\n",
+	   M.tas.OutgoingSmtpHELOfail);
+  sfprintf(fp,"TA.OutgoingSmtpLHLO             %10u\n",
+	   M.tas.OutgoingSmtpLHLO);
+  sfprintf(fp,"TA.OutgoingSmtpLHLOok           %10u\n",
+	   M.tas.OutgoingSmtpLHLOok);
+  sfprintf(fp,"TA.OutgoingSmtpLHLOfail         %10u\n",
+	   M.tas.OutgoingSmtpLHLOfail);
+
   sfprintf(fp,"TA.OutgoingSmtpMAIL             %10u\n",
 	   M.tas.OutgoingSmtpMAIL);
+  sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n",
+	   M.tas.OutgoingSmtpMAILok);
+
   sfprintf(fp,"TA.OutgoingSmtpRCPT             %10u\n",
 	   M.tas.OutgoingSmtpRCPT);
+  sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n",
+	   M.tas.OutgoingSmtpRCPTok);
+
   sfprintf(fp,"TA.OutgoingSmtpDATA             %10u\n",
 	   M.tas.OutgoingSmtpDATA);
+  sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n",
+	   M.tas.OutgoingSmtpDATAok);
+
   sfprintf(fp,"TA.OutgoingSmtpBDAT             %10u\n",
 	   M.tas.OutgoingSmtpBDAT);
+  sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n",
+	   M.tas.OutgoingSmtpBDATok);
+
   sfprintf(fp,"TA.OutgoingSmtpDATAvolume-kB    %10u\n",
 	   M.tas.OutgoingSmtpDATAvolume);
   sfprintf(fp,"TA.OutgoingSmtpBDATvolume-kB    %10u\n",
 	   M.tas.OutgoingSmtpBDATvolume);
-  sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n",
-	   M.tas.OutgoingSmtpMAILok);
-  sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n",
-	   M.tas.OutgoingSmtpRCPTok);
-  sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n",
-	   M.tas.OutgoingSmtpDATAok);
-  sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n",
-	   M.tas.OutgoingSmtpBDATok);
+
+  sfprintf(fp,"TA.OutgoingSmtpRcptsOk          %10u\n",
+	   M.tas.OutgoingSmtpRcptsOk);
+  sfprintf(fp,"TA.OutgoingSmtpRcptsRetry       %10u\n",
+	   M.tas.OutgoingSmtpRcptsRetry);
+  sfprintf(fp,"TA.OutgoingSmtpRcptsFail        %10u\n",
+	   M.tas.OutgoingSmtpRcptsFail);
+
 
 #if 0
   sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n",
