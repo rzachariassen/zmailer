@@ -10,19 +10,109 @@
 
 # - MAILSHARE/forms/proto       --> MAILSHARE/forms (conditionally)
 # - MAILSHARE/proto/*.{conf,cf} --> MAILSHARE/      (conditionally)
+# - MAILSHARE/cf/proto/*.cf     --> MAILSHARE/cf/   (conditionally)
 # - MAILVAR/db/proto/*          --> MAILVAR/db/     (conditionally)
 
+
+
+# ------------------------------------------
+# Common file comparison sub-program
+# Args: - base directory 
+#
+compare_files()
+{
+    DIR=$1
+
+    cd $DIR/proto || exit 1
+
+    for x in *
+    do
+	case "$x" in
+	*.md5)
+	    ;;
+	*)    compare_file $x
+	    ;;
+	esac
+    done
+}
+
+
+compare_file()
+{
+    x="$1"
+    if [ ! -f "$x.md5" ] ; then
+	if [ ! -f "../$x" ] ; then
+	    # A new file, easy to know that we can recalc the MD5SUM.
+	    mv "$x" ../
+	    $MD5SUM -b "../$x" > "$x.md5"
+	else
+	    # Don't overwrite!
+	    if [ $STYLE = OLD ]; then
+		if cmp -s "$x" "../$x" ; then
+		    # MATCH of the files
+		    $MD5SUM -b "../$x" > "$x.md5"
+		else
+		    # Non-match of the files, sum the NEW file!
+		    $MD5SUM -b "$x" > "$x.md5"
+		fi
+	    else
+		echo "File exists, but no MD5 sum?? $DIR/$x"
+		# Sum the NEW file
+		$MD5SUM -b "$x" > "$x.md5"
+	    fi
+	fi
+    fi
+    if [ -f "$x" -a -f "$x.md5" ] ; then
+	# Still file exists, destination has this file ??
+	# Lets compare MD5 sums
+	# Destination file
+	read md1 junk <<EOF
+`$MD5SUM -b "../$x"`
+EOF
+	# And its associated MD5 signature file
+	read md2 junk <<EOF
+`cat "$x.md5"`
+EOF
+	if [ "$md1" = "$md2" ]; then
+	    # They do match! We overwrite old file with new
+	   : mv "$x" ../
+	   : $MD5SUM -b "../$x" > "$x.md5"
+	fi
+    fi
+    if [ -f "$x" ]; then
+	y="`echo "$x"|sed -e 's!/proto/!/!'`"
+	echo "File $DIR/$y has mismatching MD5 sum."
+	echo "    won't overwrite it with $DIR/$x."
+    fi
+}
+
+
+# ------------------  MAIN PROGRAM --------------------
 
 ZCONFIG=@ZMAILERCFGFILE@
 MKDIR="@MKDIR@"
 
 . $ZCONFIG
 
-while [ "$1" != "" ]
-do
-	echo "post-install.sh: param: $1"
-	shift
-done
+MD5SUM="@MD5SUM@"
+
+if [ "$1" = "-MD5" ] ; then
+    STYLE=MD5
+elif [ "$1" = "-OLDSTYLE" ] ; then
+    STYLE=OLD
+else
+    echo "post-install.sh [-MD5|-OLDSTYLE]"
+    exit
+fi
+
+if [ "$1" = "" ] ; then
+    echo "post-install.sh [-MD5|-OLDSTYLE]"
+    echo " On first time around, it is SUGGESTED that you use"
+    echo " the  -OLDSTYLE   option...."
+    exit
+fi
+
+trap 'echo "Directory access failure; DIR=$DIR/proto"' 0
 
 # exit 99 # Sorry, not yet!
 
@@ -30,43 +120,9 @@ pwd=`pwd`
 
 if [ ! -d $MAILSHARE/bak ]; then $MKDIR $MAILSHARE/bak ; fi
 
-# ----------------------------
-#    MAILSHARE/forms/
-
-cd $MAILSHARE/forms/proto
-for x in *
+for xx in $MAILSHARE $MAILSHARE/forms $MAILSHARE/cf $MAILVAR/db
 do
-    if [ ! -f ../$x ] ; then
-	mv $x ..
-    else
-	echo "=== $MAILSHARE/forms/$x  exists, not overwritten!"
-    fi
-done
-
-# ----------------------------
-#    MAILSHARE/
-
-cd $MAILSHARE/proto
-for x in *
-do
-    if [ ! -f ../$x ] ; then
-	mv $x ..
-    else
-	echo "=== $MAILSHARE/$x  exists, not overwritten!"
-    fi
-done
-
-# ----------------------------
-#    MAILVAR/db/
-
-cd $MAILVAR/db/proto
-for x in *
-do
-    if [ ! -f ../$x ] ; then
-	mv $x ..
-    else
-	echo "=== $MAILVAR/db/$x  exists, not overwritten!"
-    fi
+    compare_files $xx
 done
 
 # ----------------------------
@@ -79,9 +135,9 @@ for x in $MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf \
 	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx \
 	 $MAILVAR/db/proto/smtp-policy.relay
 do
-    y=`echo $x | sed -e 's!/proto/!/!'`
-    if [ -f $x ] ; then
-	cmp -s $x $y && echo "*** Verify  $y  file!"
+    y="`echo "$"x | sed -e 's!/proto/!/!'`"
+    if [ -f "$"x ] ; then
+	cmp -s "$x" "$y" && echo "*** Verify  $y  file!"
     fi
 done
 
@@ -96,3 +152,7 @@ cat <<EOF
 ***    $MAILBIN/policy-builder.sh (-n)
 ***
 EOF
+
+trap "" 0
+exit 0
+

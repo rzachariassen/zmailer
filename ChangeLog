@@ -1,5 +1,20 @@
 1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    version 2.99.52-pre4
+
+	* configure.in:
+	    Autodetect when PAM-support (for SMTP authentication) needs
+	    also "-ldl" library, and when not.
+
+	* configure.in:
+	    Fix on fix on fix of autodetecting MD5SUM program location.
+
+	* proto/Makefile.in, Makefile.in, proto/post-install.sh.in:
+	    An attempt at writing a   post-install  script, which
+	    conditionally moves files from respective "proto" subdirs
+	    to their proper places.
+
 	* scheduler/mailq.pl:
 	    A simple demo core for PERL version of the MAILQv2 query
 	    utility..

@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	52-pre3
+PATCHLEVEL =	52-pre4
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -13,6 +13,7 @@ ZCONF   = ./zmailer.Config
 #ZDEPEND = Dependencies
 CPPDEP  =  @CPPDEP@
 MKDIR   =  @MKDIR@
+MAILBIN =  $(prefix)@MAILBIN@
 
 SHELL = /bin/sh
 
@@ -92,6 +93,9 @@ install-bin:	# all
 	else						\
 		cp $(ZCONF) $(prefix)$$ZCONFIG; chmod 644 $(prefix)$$ZCONFIG; \
 	fi
+	@echo ">>>> "
+	@echo ">>>> Please do run $(MAILBIN)/post-install.sh"
+	@echo ">>>> "
 
 dirs:
 	@cd proto ; $(MAKE) $(MFLAGS) dirs PZCONFIG="../$(ZCONF)"
@@ -107,6 +111,9 @@ install:	dirs # all
 	@cd transports ; $(MAKE) $(MFLAGS) install
 	@cd libc  ;      $(MAKE) $(MFLAGS) install
 	@cd utils ;      $(MAKE) $(MFLAGS) install
+	@echo ">>>> "
+	@echo ">>>> Please do run $(MAILBIN)/post-install.sh"
+	@echo ">>>> "
 
 router/router:
 	cd router ; $(MAKE) $(MFLAGS) router-a

@@ -229,7 +229,7 @@ SYSLOGFLG=RT
 # (A "bug" is that this isn't automatically substituted, but non-void
 #  content gives behaviour that has been around for quite a while...)
 #
-ROUTEUSER_IN_ABNORMAL_UNIX=@ROUTEUSER_IN_ABNORMAL_UNIX@
+ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 
 # Some sites (well, one FUNET site), has LISTSERV, this is for
 # configuring that subpart of the  aliases.cf  scripts:

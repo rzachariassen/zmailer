@@ -127,8 +127,6 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROG(AR, ar, ar)dnl
 AC_PATH_PROG(LD, ld, ld)dnl
-AC_PATH_PROG(PROCMAIL, procmail, procmail)dnl
-AC_PATH_PROG(MD5SUM, md5sum, md5sum)dnl
 AC_PROG_YACC
 AC_PROG_LN_S
 AC_HEADER_MAJOR
@@ -995,7 +993,13 @@ AC_CHECK_HEADERS(sys/utsname.h maillock.h arpa/inet.h)
 AC_SUBST(AUTHLIB)
 AC_CHECK_HEADERS(security/pam_appl.h shadow.h)
 if test "$ac_cv_header_security_pam_appl_h" = "yes"; then
-    AUTHLIB="-lpam -ldl"
+    # Some systems need only "-lpam", others need also "-ldl"
+    t_oldLibs="$LIBS"
+    LIBS="$LIBS -lpam"
+    AC_TRY_LINK([#include <stdio.h>], [pam_end(NULL,0);],
+		AUTHLIB="-lpam" ,
+		AUTHLIB="-lpam -ldl");
+    LIBS="$t_oldLibs"
 else
     if test "$ac_cv_header_shadow_h" = "yes"; then
 	AC_TRY_LINK([], [getspnam("foo");],
@@ -1781,6 +1785,9 @@ eval MANDIR=${mandir}
 if test "$ac_cv_c_const" = no ; then
   CFLAGS="$CFLAGS -Dconst=''"
 fi
+
+AC_PATH_PROG(PROCMAIL, procmail, procmail)dnl
+AC_PATH_PROG(MD5SUM, md5sum, $MAILBIN/md5sum)dnl
 
 AC_OUTPUT(Makefile
 	router/Makefile			router/libdb/Makefile		\

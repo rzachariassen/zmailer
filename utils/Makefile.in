@@ -26,7 +26,7 @@ LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC
 LIBDEB=		$(TOPDIR)/libs/libtag
 
 BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
-	$(srcdir)/make-incore.sh $(srcdir)/bitbucket
+	$(srcdir)/make-incore.sh $(srcdir)/bitbucket md5sum
 
 all:	listexpand md5sum
 	cd makedb ; $(MAKE) $(MFLAGS)
@@ -38,6 +38,7 @@ install:
 			$(INSTALL) -m 755 $$BIN  $(MAILBIN) ;	\
 		else						\
 			echo "*** No overwrite of $$BIN, already exists!" ; \
+			$(INSTALL) -m 755 $$BIN  $(MAILBIN)/$$BIN.new ;	\
 		fi ;						\
 	done
 	@$(INSTALL) -m 755 $(srcdir)/bitbucket $(MAILBIN)/ta
