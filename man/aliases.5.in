@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 5 "3 Jan 2000"
+.TH ZMAILER 5 "2003-May-05"
 .SH NAME
 .B aliases
 \- aliases file for ZMailer
@@ -31,6 +32,14 @@ Content of the file is formatted as a series of lines of form:
 Each "name:" label must be valid RFC-822 header type object, and the
 colon must not have white-space in between 'name', and itself.
 .PP
+The labels may actually be quoted-strings in RFC-822 style:
+.PP
+.RS
+.nf
+"with space":
+.fi
+.RE
+.PP
 The targets must be valid RFC-822 address type objects; specifically
 following BSD-Sendmail type things do not work, and must be converted
 to RFC-822 format:
@@ -60,7 +69,7 @@ however it is against RFC-822 rules.
 .IR zmailer (1),
 .IR sendmail (8).
 .br
-RFC822
+RFC 822
 .SH HISTORY
 The
 .B aliases

@@ -3646,7 +3646,7 @@ More specific versions:
 Note:  "<COMMAND>zmailer newdb</>" does not support "<OPTION>-i</>"
 option use! (FIXME! FIXME! 2001-Mar-8)
 </PARA><PARA>
-Special support for testing of presense of support for given
+Special support for testing of presence of support for given
 <REPLACEABLE>dbtype</>:
 <CMDSYNOPSIS>
 
@@ -4147,7 +4147,7 @@ on database lookup result data. [XREF??]
 
 </PARA><PARA>
 The <COMMAND>zmailer newdb</> configuration file
-<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
+<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presence of
 "%" to signal this aspect of relation wrapper generation.
  [XREF??]
 
@@ -4155,7 +4155,7 @@ The <COMMAND>zmailer newdb</> configuration file
 <VARLISTENTRY><TERM><OPTION>-:</></TERM><LISTITEM><PARA>
 Actually this is <EMPHASIS>ignored</> if present, the
 <COMMAND>zmailer newdb</> configuration file
-<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
+<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presence of
 ":" to signal certain aspects of relation wrapper generation.
  [XREF??]
 

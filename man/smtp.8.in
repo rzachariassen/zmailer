@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "2 Sep 2002"
+.TH SMTP 8 "2003-May-05"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -269,11 +269,11 @@ facility.
 Possible example of the smtp\-tls.conf  file is given below:
 .PP
 .nf
-\fC
-#|
+\fC#|
 #| This is example configuration file for TLS support at the SMTP TA
 #| programs, e.g. SMTP Client.
 #|
+#| NO "$ZENV" SUBSTITUTIONS ARE SUPPORTED IN THIS FILE!
 
 tls-cert-file   @MAILVAR@/db/smtpserver-cert.pem
 tls-key-file    @MAILVAR@/db/smtpserver-key.pem
@@ -292,12 +292,29 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 #demand-tls-mode
 .fi
 .PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+TBW: many variables!
+.PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/spool/postoffice (POSTOFFICE)
-.fi
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
+.PP
 .SH SEE ALSO
+.PP
 .IR router (8),
 .IR scheduler (8).
 .PP

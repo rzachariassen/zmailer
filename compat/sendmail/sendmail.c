@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-2002
+ *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-2003
  *
  */
 
@@ -165,6 +165,9 @@ main(argc, argv)
 	else
 		progname = argv[0];
 	umask(022);
+
+
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 	mailpriority = getenv("MAILPRIORITY");
 

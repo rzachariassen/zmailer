@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH HOLD 8 "10 Dec 2001"
+.TH HOLD 8 "2003-May-05"
 .SH NAME
 hold \- zmailer deferred processing transport agent
 .SH SYNOPSIS
@@ -108,17 +109,29 @@ log.
 The exit status is a code from
 .BR <sysexits.h> .
 .PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
 .SH Z\-ENVIRONMENT VARIABLES
 .PP
-Following \fIZENV-variables\fR are used by the \fBmailbox\fR program:
+Following \fIZENV-variables\fR are used by the \fBhold\fR program:
 .PP
 .IP "PATH, ZCONFIG, MAILBIN, MAILSHARE"
 These four are passed onwards to script execution environment.
 .PP
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
+.PP
 .SH SEE ALSO
 .IR scheduler (8).
 .SH AUTHOR

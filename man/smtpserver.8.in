@@ -1103,7 +1103,7 @@ react on that properly, and will just keep repeating the delivery
 attempts. 
 .RE
 .IP 2.  4em
-:RS 4em
+.RS 4em
 You can delay the rejections until RCPT addresses are given. 
 .RE
 .PP

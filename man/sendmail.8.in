@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SENDMAIL 8 "10 Dec 2001"
+.TH SENDMAIL 8 "2003-May-05"
 .SH NAME
 sendmail \- zmailer sendmail emulation and mail submission interface
 .SH SYNOPSIS
@@ -69,7 +70,10 @@ in interactive mode for testing.
 .IP \-bi
 runs
 .IR newaliases (1)
-to rebuild the alias file database.
+to rebuild the alias file database;
+This is \fBnot\fR a recommended method
+to start these programs, instead use
+.I "zmailer newdb"
 .IP \-bp
 runs
 .IR mailq (1)
@@ -79,20 +83,23 @@ specify the
 .IR router (8)
 configuration file.
 .IP \-E
-indicates the origin of this message is an insecure channel.  This should
-be used when
+indicates the origin of this message is an insecure channel.
+This should be used when
 .I sendmail
 is used to submit messages coming in from outside the local machine, to avoid
-security problems during message processing.  This flag ensures the message
-will have no privileges even if the current userid is "trusted".
+security problems during message processing.
+This flag ensures the message will have no privileges even if the current
+userid is "trusted".
 .IP \-f\ \fIaddress\fR
-specify the sender address.  This is the default originator address if
-there is no
+specify the sender address.
+This is the default originator address if there is no
 .B From:
-header in the message.  It becomes the
+header in the message.
+It becomes the
 .B Sender:
-address otherwise.  In either case if the current userid is not "trusted"
-by the mailer, it is free to ignore both this option and any header information
+address otherwise.
+In either case if the current userid is not "trusted" by the mailer,
+it is free to ignore both this option and any header information
 to ensure properly authenticated originator information.
 .IP \-F\ \fIfullname\fR
 specify the full name of the (local) sender.
@@ -102,8 +109,8 @@ tells
 to not use a period ('.') on a line by itself as a message terminator, only
 the end of file will terminate the message.
 .IP \-m
-asks the mailer not to ignore the originator in the addressee list.  This is
-default behaviour, so this option has no effect.
+asks the mailer not to ignore the originator in the addressee list.
+This is default behaviour, so this option has no effect.
 .IP \-oi
 is like \-i.
 .IP \-oQ\ \fIpostoffice\fR
@@ -116,14 +123,15 @@ asks for queue processing.  This option has no effect.
 is like \-f.
 .IP \-t
 scan the RFC-822 headers for recipient addresses in "To:", "Cc:",
-and "Bcc:" headers.  The "Bcc:" header will be deleted before
-processing continues.   Any addresses in the argument list will be
-ignored.
+and "Bcc:" headers.
+The "Bcc:" header will be deleted before processing continues.
+Any addresses in the argument list will be ignored.
 
 In case no addresses are given in the argument list, this is the
 default operation mode.
 .IP \-v
-will report the progress of the message after it has been submitted.  The
+will report the progress of the message after it has been submitted.
+The
 .I sendmail
 process will write verbose log information to the stderr stream until
 the
@@ -142,14 +150,69 @@ or any combination of:
 sets Delivery-Status-Notification parameter to be either of:
 .I FULL, HDRS.
 .PP
+.SH ENVIRONMENT VARIABLES
+.PP
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from
+caller, and it tells where callers idea of
+.IR ZENV -variables
+are located at.
+.PP
+If it isn't present, system compiled defaults will be used.
+.PP
+If this is present, but bad, you are screwed...
+.RE
+.PP
+Those that
+.IR zmailer (3)
+library uses:
+.RS
+.IP FULLNAME
+variable defines textual fullname, for example: "Sample User"
+.IP PRETTYLOGIN
+variable defines \fBuser@node\fR format of what user wants to claim as his/her
+own address (it must match those of mail router accepts.)
+.RE
+.PP
+One of its own:
+.RS
+.IP MAILPRIORITY
+This is used to set
+.IR zmailer (3)
+library variable
+.IR mail_priority .
+.RE
+.PP
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+.IP POSTOFFICE
+Used by
+.IR zmailer (3)
+library.
+.IP SMTPOPTIONS
+.IP MAILBIN
+.RS
+For compability's sake: When being invoked as:
+.RS
+\fCsendmail -bs\fR
+.RE
+do start the smtp-server in the system.
+.PP
+.B "NOT A RECOMMENDED START METHOD!"
+.RE
+.PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/spool/postoffice (POSTOFFICE)
-.fi
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
 .PP
 .SH SEE ALSO
 .IR zmailer (1),
+.IR zmailer (3),
 .IR router (8),
 .IR scheduler (8),
 .IR mailq (1),

@@ -1,0 +1,158 @@
+.\" t
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH zDBASES.CONF 5 "2003-May-05"
+.SH NAME
+.B TBW:
+.B dbases.conf
+\- Centralized database setup for the ZMailer's
+.IR router (8).
+.SH SYNOPSIS
+The file is usually located into ZMailer's
+.I MAILSHARE/db/
+directory, and has name:
+.I dbases.conf
+.PP
+This file is intended to be processed with command:
+.RS
+\fCzmailer newdb\fR
+.RE
+.SH DESCRIPTION
+.PP
+Some ideas about functionality can be had from this sample file:
+.PP
+.nf
+\fC
+#|
+#|  This configuration file is used to translate a semi-vague idea
+#|  about what database sources (in what forms) are mapped together
+#|  under which lookup names, and what format they are, etc..
+#|
+#|  This is used by  'zmailer newdb'  command to generate all databases
+#|  described here, and to produce relevant  .zmsh  scripts for the
+#|  router to use things.  The  'zmailer newdb' invocation does not mandate
+#|  router restart in case the database definitions have not changed,
+#|  mere database recompilation is handled without restarts.
+#|  (reverse is true:  If definitions are added/modified/removed, the router
+#|                     MUST be restarted)
+#|
+
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv control data (or "-")
+#|                  newdb_compile_options (-a for aliases! -r = read-only)
+#|                     dbfile (or "-")
+#|                         dbflags (or "-") ... (until end of line)
+#|
+#| The 'relation-name' are a set of magic tokens (listed below), which
+#| system scripts support.  There can be any number of databases for
+#| any given 'relation-name'.  Those are scanned in order, first match
+#| wins.  (E.g. you can have multiple 'aliases' relations.)
+#|
+#| The  dbtype  can be "magic" '$DBTYPE', or any other valid database
+#| type for the Router.  Somewhat magic treatment (newdb runs) are
+#| done when the dbtype is any of: *DBTYPE/dbm/gdbm/ndbm/btree
+#|
+#| The  newdb_compile_options  are used when recompiling the database
+#| with 'newdb' command.
+#|
+#| The "dbfile" need not be located underneath of $MAILVAR, as long as
+#| it is in system local filesystem (for performance reasons.)  E.g.
+#| one can place one of e.g. aliases files to some persons directory.
+#| Implicite assumption is, that the 'newdb' produces the database
+#| with same name, as what the "dbfile" fields says -- appending only
+#| database type specific magic tail(s).
+#|
+#| At  dbflags  (until end of the line), characters ':' and '%' have special
+#| meaning as their existence generates lookup routines which pass user's
+#| optional parameters.  See documentation about 'dblookup'.
+#|
+
+#|Example:
+#|
+#|Security sensitive ones ("dbpriv" must be defined!)
+#| aliases         $DBTYPE  0:0:644    -la $MAILVAR/db/aliases        -lm
+#| aliases         $DBTYPE  root:0:644 -la $MAILVAR/db/aliases-2      -lm
+#| fqdnaliases     $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnaliases    -lm
+#| fqdnroutes      $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnroutes     -lm%:
+#| userdb          $DBTYPE  root:0:644 -l  $MAILVAR/db/userdb         -lm
+#|
+#|Security insensitive ones ("dbpriv" need not be defined!)
+#| fqdnaliasesldap ldap   -  -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
+#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames    -lm
+#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap    -lm
+#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts -lm
+#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes     -lmd longestmatch
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes       -lm%:d pathalias
+#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames   -lm%d  pathalias
+#| thishost        unordered -   -   $MAILVAR/db/localnames   -ld    pathalias
+#| thishost        bind,mxlocal - -  -                        -ld    pathalias
+#| otherservers    unordered -   -   $MAILVAR/db/otherservers -lmd   pathalias
+#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active       -lm
+
+
+aliases         $DBTYPE 0:0:644    -la $MAILVAR/db/aliases      -lm
+fqdnaliases     $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases  -lm%
+userdb          $DBTYPE root:0:644 -l  $MAILVAR/db/userdb       -lm
+
+routesdb        $DBTYPE -   -l  $MAILVAR/db/routes      -lm%:d pathalias
+thishost        $DBTYPE -   -l  $MAILVAR/db/localnames  -lm%d  pathalias
+
+#| =================================================================
+#|    Set of boilerplate tail-keepers, these lookups fail ALWAYS.
+#| These are given because if user ever removes any of the relations
+#| mentioned above, the generated "RELATIONNAME.zmsh" script won't
+#| just magically disappear!
+#| =================================================================
+
+aliases         NONE - - - -
+expired         NONE - - - -
+fqdnaliasesldap NONE - - - -
+fqdnaliases     NONE - - - -
+fqdnroutes      NONE - - - -
+fullnamemap     NONE - - - -
+iproutesdb      NONE - - - -
+newsgroup       NONE - - - -
+otherservers    NONE - - - -
+routesdb        NONE - - - -
+thishost        NONE - - - -
+userdb          NONE - - - -
+
+#| NOTE:  mboxmap  MUST NOT exist at all if its secondary-effects
+#|        are to be avoided!
+
+.fi
+.SH HISTORY
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+TBW: many variables!
+.PP
+.SH FILES
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
+.PP
+.SH SEE ALSO
+.PP
+.IR router (8),
+.IR scheduler (8).
+.PP
+.TE
+.SH AUTHOR
+This software authored and copyright by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
+.RE

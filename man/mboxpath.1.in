@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1 "10 Dec 2001"
+.TH MBOXPATH 1 "2003-May-05"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
@@ -62,10 +63,22 @@ This program outputs the
 .I likely
 mailbox location to the stdout, it does not go and see if there is anything.
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/mail (MAILBOX)
-.fi
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/mail\fR	(MAILBOX)
+.TE
+.PP
+While this utility does read
+.IR ZENV -variable
+.BR ZCONFIG ,
+the read
+.RB ' MAILBOX '
+variable can be overridden with the
+.I '\-d'
+option.
+.PP
 .SH SEE ALSO
 .IR mailbox (8),
 .IR scheduler (8),

@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH REROUTE 8 "17 Apr 2003"
+.TH REROUTE 8 "2003-May-05"
 .SH NAME
 reroute \- zmailer's utility to move queued message back to router
 .SH SYNOPSIS
@@ -9,15 +10,19 @@ reroute \- zmailer's utility to move queued message back to router
 [\fB\-h\fR\ \fI"hostname"\fR]
 [\fB\-V\fR]
 .SH DESCRIPTION
-.I reroute
+.PP
+The
+.IR reroute (8)
 is a ZMailer transport agent which sends message from scheduler queue
 back to router.
+.PP
 The
 .IR reroute (8)
 program must be run with root privileges and invoked with the same
 current directory as the
 .IR scheduler ,
 namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
 .SH OPTIONS
 .IP \-c\ \fIchannel\fR
 Message recipient selector "channel" (optional)
@@ -25,8 +30,9 @@ Message recipient selector "channel" (optional)
 Message recipient selector "host" (optional)
 .IP \-V
 prints a version message and exits.
-
+.PP
 .SH INTERFACE
+.PP
 This program reads in processable file names relative to the current
 working directory of the
 .IR scheduler (8)
@@ -69,12 +75,15 @@ log.
 The exit status is a code from
 .BR <sysexits.h> .
 .PP
-.SH Z-ENVIRONMENT VARIABLES
+.SH Z\-ENVIRONMENT VARIABLES
 This program uses no \fBZMailer\fR environment variables.
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
 .PP
 .SH SEE ALSO
 .IR scheduler (8),

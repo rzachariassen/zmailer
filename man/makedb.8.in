@@ -1,23 +1,89 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.0
-.TH MAKEDB 1 "10 Dec 2001"
+.TH MAKEDB 1 "2003-May-05"
 .SH NAME
 makedb \- zmailer database builder
 .SH SYNOPSIS
-.B makedb
+.IP "\fBmakedb\fR" 8em
+[[\fB\-l\fR|\fB\-u\fR]
+[\fB\-A\fR]
+[\fB\-a\fR|\fB\-u\fR]
+[\fB\-s\fR|\fI\-v\fR]]
+.I dbtype
+.I dbfilenamebase
+[\fIinputfile\fR|\fI\-\fR]
 .SH DESCRIPTION
 .PP
-TO BE WRITTEN - 10 Dec 2001
+This is underlying binary tool to actually compile the system
+specific text sources into binary database in currently supported forms.
+.PP
+This is intended to be run under some other wrappers, which supply defaults
+for the parameters and options per each usage case.
+.PP
+Options:
+.PP
+.IP "\fI\-A\fR"
+.RS 3em
+Append new data at the end of the previous data with same label.
+.PP
+This will insert ", " (comma-space) or nothing in between old
+and new data, depending upon operational mode.
+.RE
+.IP "\fI\-a\fR"
+.RS 3em
+Use
+.IR aliases (5)
+rules about labels, and line continuation in the source.
+.RE
+.IP "\fI\-p\fR"
+.RS 3em
+Compiles
+.IR smtpserver (8)
+policy configuration database into its binary representation.
+.RE
+.IP "\fI\-l\fR | \fI\-u\fR"
+.RS 3em
+Per default the labels are stored into the binary databases
+as is, but user can decide to pre-translate them either
+to all lowercase, or all uppercase by obvious choise of switch.
+.RE
+.IP "\fI\-s\fR"
+.RS 3em
+Do the work silently, report success/failure only by the
+.IR exit (2)
+codes.
+.RE
+.IP "\fI\-v\fR"
+.RS 3em
+Jabber about the progress of the work.
+.RE
+.PP
+The rest of the parameters (mandatory and optional) are:
+.PP
+.IP "\fIdbtype\fR"
+.RS 3em
+Whatever has been compiled in the system at the moment.
+.PP
+The tool will report supported embedded databases in
+its "usage" error report.
+.RE
+.IP "[\fIinputfile\fR|\fI-\fR]"
+.RS 3em
+When nothing is defined, 
+.RE
 .PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I $MAILSHARE/db/dbases.conf
-.fi
+.PP
+Command line inputs do fully control the behaviour of this tool.
+There are no e.g.
+.IR ZENV -variables,
+nor any files this reads besides of given inputs.
+.PP
 .SH SEE ALSO
 .IR newdb (8),
-.IR zmailer (1)
-.I newdb.
+.IR zmailer (1),
+.IR $MAILBIN/policy-builder.sh
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

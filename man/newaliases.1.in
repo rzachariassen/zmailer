@@ -1,12 +1,15 @@
+.\" t
 .\" $Header$
-.ds ]W ZMailer 2.0
-.TH NEWALIASES 1 "2 June 1990"
+.ds ]W ZMailer 2.99
+.TH NEWALIASES 1 "2003-May-05"
 .SH NAME
 newaliases \- zmailer aliases database rebuilder
 .SH SYNOPSIS
 .B newaliases
 .SH DESCRIPTION
-\fBThis document is way out of date in data formats.\fR
+.B "This utility has been superceded by"
+.I "zmailer newdb"
+.B mechanism.
 .PP
 The
 .IR newaliases (1)
@@ -28,20 +31,38 @@ a limit of 1 kilobyte of key + data!\fR
 The
 .IR router (8)
 must be available to interpret this script, as it provides the address
-digestification functionality.  By convention, signal 16 is sent to
-the
-.I router
-when it should flush and reopen the aliases database.
+digestification functionality.
+.PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+user's environment, and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+Following \fIZENV-variables\fR are used by the
+.IR newaliases (1)
+program:
+.PP
+.IP MAILVAR
+Tells where the ZMailer's runtime databases, etc. are.
+.PP
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /local/share/mail/db/aliases (MAILSHARE/db/aliases)
-.br
-.I /var/spool/postoffice/.pid.router (POSTOFFICE/.pid.router)
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/zmailer/db/aliases\fR	(MAILVAR/db/aliases)
+.TE
+.PP
 .SH SEE ALSO
 .IR router (8),
 .IR zmailer (1)
 .I newdb.
+.PP
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

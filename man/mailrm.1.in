@@ -1,3 +1,4 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.0
 .TH MAILRM 1 "2 June 1990"
@@ -19,11 +20,13 @@ The
 .I router
 turns it into a message control file directive that the
 .I scheduler
-implements.  The
+implements.
+The
 .I scheduler
 will of course do its best to ensure only the owner of a message can cancel it.
 Therefore this program is only useful to whomever originally sent the message
-to be cancelled.  The super user is not treated specially.
+to be cancelled.
+The super user is not treated specially.
 .PP
 The
 .I id
@@ -34,14 +37,28 @@ sought for the Obsoletes: header contents.
 .I mailrm
 will rummage through message control files in \fIPOSTOFFICE\fB/transport\fR
 to retrieve the message id for a given message file id.
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice/transport (POSTOFFICE/transport)
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
+.TE
+.PP
 .SH SEE ALSO
+.PP
 .IR router (8),
-.IR  scheduler (8),
-.IR  mailq (1).
+.IR scheduler (8),
+.IR mailq (1).
 .br
 RFC987, RFC1138
 .SH AUTHOR

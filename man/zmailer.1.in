@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "2003-Apr-17"
+.TH ZMAILER 1 "2003-May-05"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
@@ -181,7 +181,8 @@ $MAILBIN/smtpserver
 .IR scheduler (8),
 .IR smtpserver (8),
 .IR mailq (1),
-.IR newdb (8).
+.IR newdb (8),
+.IR zdbases.conf (5).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

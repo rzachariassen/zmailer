@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "11 Feb 2002"
+.TH ROUTER 8 "2003-May-05"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
@@ -101,7 +101,7 @@ If undefined and alternate router directories are in use, the router
 will clear the entire directory before returning.
 See below and 
 .IR zmailer (3)
-about Z-Environment and \fIROUTERDIRS\fR.
+about Z\-Environment and \fIROUTERDIRS\fR.
 .IP \-S
 Can be used to turn off non-serious syslogging.
 .IP \-s
@@ -970,7 +970,7 @@ exit cleanly (immediately if idle, otherwise after finishing
 with the message being processed).
 .PP
 Other signals may be handled by shell traps.
-.SH Z-ENVIRONMENT VARIABLES
+.SH Z\-ENVIRONMENT VARIABLES
 .IP MAILVAR
 .IP MAILSHARE
 these two tell the directories where the configuration files and
@@ -1030,7 +1030,7 @@ files.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
 \fI/var/spool/postoffice/.pid.router\fR	(POSTOFFICE/.pid.router)
 \fI/var/spool/postoffice/.router.notify\fR	(POSTOFFICE/.router.notify)
 \fI/var/spool/postoffice/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)

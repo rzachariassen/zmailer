@@ -1,23 +1,56 @@
+.\" t
 .\" $Header$
-.ds ]W ZMailer 2.0
-.TH NEWDB 1 "10 Dec 2001"
+.ds ]W ZMailer 2.99
+.TH NEWDB 1 "2003-May-05"
 .SH NAME
 newdb \- zmailer database builder
 .SH SYNOPSIS
-.B newdb
+.IP "\fBnewdb\fR" 7em
+[[\fI\-l\fR|\fI\-u\fR]
+.RI [ "\-a" ]
+.RI [ "\-s" ]
+.RI [ "\-t dbtype" ]]
+.I dbfilename
+.RI [ inputfilename ]
 .SH DESCRIPTION
 .PP
-TO BE WRITTEN - 10 Dec 2001
+A wrapper to
+.IR makedb (8)
+supplying various default values from
+.IR ZENV -variables,
+and doing database type specific file version rotations
+so that data users can safely take into use a new version
+of the database at their earliest convenient moment.
+.PP
+.SH ENVIRONMENT VARIABLES
+.PP
+The script inherits
+.I ZCONFIG
+environment variable, but if it isn't available,
+a "configured in" default value will be used instead.
+.PP
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+.IP MAILBIN
+Where
+.IR zmailer (1)'s
+component module binaries (and scripts) are located at
+.IP DBTYPE
+What the the default database type to be used in the system,
+if sysadmin hasn't chosen something else.
 .PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I $MAILSHARE/db/dbases.conf
-.fi
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI$MAILSHARE/db/dbases.conf\fR
+.TE
+.PP
 .SH SEE ALSO
 .IR makedb (8),
+.IR zdbases.conf (5),
 .IR zmailer (1)
-.I newdb.
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

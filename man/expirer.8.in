@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH EXPIRER 8 "10 Dec 2001"
+.TH EXPIRER 8 "2003-May-05"
 .SH NAME
 expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
@@ -78,12 +79,23 @@ log.
 The exit status is a code from
 .BR <sysexits.h> .
 .PP
-.SH Z-ENVIRONMENT VARIABLES
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
+.SH Z\-ENVIRONMENT VARIABLES
 This program uses no \fBZMailer\fR environment variables.
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+.TE
 .PP
 .SH SEE ALSO
 .IR scheduler (8),

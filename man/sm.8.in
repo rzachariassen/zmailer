@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "2 Sep 2002"
+.TH SM 8 "2003-May-05"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -94,11 +95,15 @@ is used as the field separator for all the fields.
 .PP
 The
 .I flags
-field contains a concatenation of one-letter flags.  If no flags are desired,
-a ``-'' character should be used to indicate presense of the field.  All normal
-Sendmail flags are recognized, but the ones that do not make sense in the
-context of ZMailer will produce an error.
-
+field contains a concatenation of one-letter flags.
+If no flags are desired, a ``-'' character should be used to
+indicate presence of the field.
+All normal
+.I Sendmail
+flags are recognized, but the ones that do not make sense in the context of
+.I ZMailer
+will produce an error.
+.PP
 The flags that change the behaviour of
 .IR sm (8)
 and their comparisons against
@@ -667,19 +672,43 @@ or
 and the
 .I message
 is descriptive text associated with the report.  The text is terminated by
-a linefeed.  Any other format (as might be produced by subprocesses)
-is passed to standard output for logging in the
+a linefeed.
+Any other format (as might be produced by subprocesses) is passed
+to standard output for logging in the
 .B scheduler
 log.
 .PP
 The exit status is a code from
 .BR <sysexits.h> .
+.PP
+.SH SUBPROCESS ENVIRONMENT
+.PP
+.B "TO BE WRITTEN"
+.PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+.IP DEFCHARSET
+.IP MAILSHARE
+.IP MAILBIN
+.IP "whatever \"${...}\" things the argv parameters contain"
+.PP
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
-.br
-.I /local/share/mail/sm.cf (MAILSHARE/sm.cf)
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI/opt/zmailer/sm.cf\fR	(MAILSHARE/sm.cf)
+.TE
 .SH SEE ALSO
 .IR scheduler (8),
 .IR smtp (8).

@@ -83,6 +83,6 @@ groff  -c -t -man -Tascii "$1" | \
         s{</I>(\s*)<I>}{\1}og;
         s{</U>(\s*)<U>}{\1}og;
         s{</I><B>_</B><I>}{_}og;
-        s{<I>([-0-9a-zA-Z_]+)</I>\((\d)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
+        s{<I>([-.0-9a-zA-Z_]+)</I>\((\d)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	print;'
 echo "</PRE></BODY></HTML>"

@@ -21,7 +21,7 @@ HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
-MAN5=	aliases.5
+MAN5=	aliases.5 zdbases.conf.5
 MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8 reroute.8 manual-rerouter.8
 
 FRC:
@@ -60,6 +60,7 @@ install:
 	if [ ! -d ${MANDIR}/man5 ] ; then mkdir -p ${MANDIR}/man5 ; fi
 	if [ ! -d ${MANDIR}/man8 ] ; then mkdir -p ${MANDIR}/man8 ; fi
 	$(INSTALL) -m 644 $S/aliases.5	${MANDIR}/man5
+	$(INSTALL) -m 644 $S/zdbases.conf.5	${MANDIR}/man5
 	$(INSTALL) -m 644 $S/errormail.8 ${MANDIR}/man8
 	$(INSTALL) -m 644 $S/hold.8	${MANDIR}/man8
 	$(INSTALL) -m 644 $S/mailbox.8	${MANDIR}/man8
@@ -150,10 +151,14 @@ reroute.8.ps: $(srcdir)/reroute.8
 	groff -t -man $< > $@
 manual-rerouter.8.ps: $(srcdir)/manual-rerouter.8
 	groff -t -man $< > $@
+zdbases.conf.5.ps: $(srcdir)/zdbases.conf.5
+	groff -t -man $< > $@
 
 
 
 aliases.5.html: $(srcdir)/aliases.5
+	sh $(srcdir)/man-to-html.sh $< > $@
+zdbases.conf.5.html: $(srcdir)/zdbases.conf.5
 	sh $(srcdir)/man-to-html.sh $< > $@
 authuser.3.html: $(srcdir)/authuser.3
 	sh $(srcdir)/man-to-html.sh $< > $@
@@ -213,6 +218,8 @@ reroute.8.html: $(srcdir)/reroute.8
 
 
 aliases.5.pdf: aliases.5.ps
+	ps2pdf $<
+zdbases.conf.5.pdf: zdbases.conf.5.ps
 	ps2pdf $<
 authuser.3.pdf: authuser.3.ps
 	ps2pdf $<

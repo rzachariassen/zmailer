@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "10 Dec 2001"
+.TH MAILBOX 8 "2003-May-05"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -400,6 +401,15 @@ time-zone setting.  Available to subprogram only if set when the
 .I mailbox
 was started.
 .PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
 .SH Z\-ENVIRONMENT VARIABLES
 .PP
 Following \fIZENV-variables\fR are used by the \fBmailbox\fR program:
@@ -427,11 +437,12 @@ by the \fBmailbox\fR to find "$MAILSHARE/forms/return-receipt"
 form file.
 .PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/spool/postoffice (POSTOFFICE)
-.I /var/mail (MAILBOX)
-.fi
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI/var/mail\fR	(MAILBOX)
+.TE
 .PP
 .SH SEE ALSO
 .IR scheduler (8),

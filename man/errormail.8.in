@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8 "10 Dec 2001"
+.TH ERRORMAIL 8 "2003-May-05"
 .SH NAME
 errormail \- zmailer error message transport agent
 .SH SYNOPSIS
@@ -95,6 +96,15 @@ log.
 The exit status is a code from
 .BR <sysexits.h> .
 .PP
+.SH ENVIRONMENT VARIABLES
+.IP ZCONFIG
+.RS
+This environment variable is expected to be inherited from the
+.IR scheduler (8),
+and it tells where scheduler's idea of
+.IR ZENV -variables
+are located at.
+.RE
 .SH Z\-ENVIRONMENT VARIABLES
 .PP
 Following \fIZENV-variables\fR are used by the \fBmailbox\fR program:
@@ -102,17 +112,23 @@ Following \fIZENV-variables\fR are used by the \fBmailbox\fR program:
 .IP MAILSHARE
 This supplies the location of the directory under which
 "$MAILSHARE/forms/hostpart" files are located.
+.IP "POSTOFFICE, ROUTERDIRHASH, ROUTERNOTIFY, etc.."
+Variables used by
+.IR zmailer (3)
+library, while posting error messages.
 .PP
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
-.br
-.I /local/share/mail/forms (MAILSHARE/forms)
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI/opt/zmailer/forms\fR	(MAILSHARE/forms)
+.TE
 .PP
 .SH SEE ALSO
 .IR scheduler (8),
-.IR router (8).
+.IR router (8),
+.IR zmailer (3).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

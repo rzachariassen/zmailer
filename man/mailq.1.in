@@ -1,7 +1,8 @@
+.\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "27 Feb 2003"
+.TH MAILQ 1 "2003-May-05"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -255,11 +256,14 @@ Age of oldest message in the queue at this thread.
 ("\fIQ\fRueue\fIA\fRge")
 .PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/spool/postoffice/transport (POSTOFFICE/transport)
-.I /var/spool/postoffice/queue (POSTOFFICE/queue)
-.fi
+.PP
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	(ZCONFIG)
+\fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
+\fI/var/spool/postoffice/queue\fR	(POSTOFFICE/queue)
+.TE
+.PP
 .SH SEE ALSO
 The \fBMAILQ-V2\fR protocol is described at the
 .IR scheduler (8)

@@ -1,6 +1,7 @@
+.\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 3 "11 Feb 2002"
+.TH ZMAILER 3 "2003-May-05"
 .SH NAME
 mail_open, mail_priority, mail_abort, mail_close, mail_close_alternate, mail_alloc, mail_free, mail_host
 \- zmailer message submission interface
@@ -96,7 +97,7 @@ At value 0,
 .B ROUTERDIRS
 variable is not used.
 At higher values, successive directory from "ROUTERDIRS" is taken.
-See below about Z-Environment.
+See below about Z\-Environment.
 .PP
 The
 .IR mail_close_alternate ()
@@ -163,34 +164,69 @@ Then starts the message RFC-822 headers, and below it, the body
 	\fBelse if\fR (mail_close(mfp) == \fBEOF\fR)
 		\&\fI... error handling if something went wrong ...\fR
 .fi
+.PP
 .SH ENVIRONMENT VARIABLES
+.PP
 .IP FULLNAME
+.RS
 variable defines textual fullname, for example: "Sample User"
+.RE
 .IP PRETTYLOGIN
+.RS
 variable defines \fBuser@node\fR format of what user wants to claim as his/her
 own address (it must match those of mail router accepts.)
-.SH Z-ENVIRONMENT VARIABLES
+.RE
+.PP
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
 .IP POSTOFFICE
+.RS
 defines directory where all POSTOFFICE functions are under.
 .br
 Example:
 .B POSTOFFICE=/var/spool/postoffice
+.RE
 .IP ROUTERDIRS
+.RS
 defines a `:' separated list of alternate router directories.
 If these are defined at all, they \fBmust\fR exist, if alternate
 queueing priority mechanism is desired to be used.
 .br
 Example:
 .B ROUTERDIRS=router1:router2:router3:router4
+.RE
 .IP ROUTERDIRHASH
+.RS
 Value ``1'' at this variable means that all router directories
 .B must
 have subdirectories with names ``A'' thru ``Z'', alike 
+.RE
 .IP ROUTERNOTIFY
+.RS
 defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
 which a receiving client \fImay\fR inform the
 .IR router (8)
 that there is some new job available.
+.RE
+.IP INPUTDIRS
+.RS
+.I Presence
+of this ZENV-variable means that messages will be tried to be stored
+into these alternate directories (syntax alike with  ROUTERDIRS !)
+so that it can be leisurely analyzed (by e.g. virus scanners) before
+feeding it onwards to virus scanners.
+.RE
+.IP INPUTDIRHASH=1
+.RS
+This is analogous to
+.IR ROUTERDIRHASH .
+.RE
+.IP INPUTNOTIFY
+.RS
+This is analogous to
+.IR ROUTERNOTIFY .
+.RE
+.PP
 .SH FILES
 .IP \fI/var/spool/postoffice/public/\fR
 $POSTOFFICE/public/
