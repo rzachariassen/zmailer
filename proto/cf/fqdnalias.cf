@@ -123,7 +123,7 @@ fqdn_neighbour (domain, address, A) {
 	# We may also match for:  "@domain.name"
 
 	# Already expanded ?  If yes, go away!
-	if [ -n "$(expansions "$athost")" ; then
+	if [ -n "$(expansions "$athost")" ]; then
 		return 1
 	fi
 
