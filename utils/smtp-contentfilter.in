@@ -23,10 +23,11 @@ select(STDOUT); $| = 1;
 
 while (<>) {
 	chomp;
+	$fname = $_;
 
 	%RFC822 = ();
 
-	$rc = & filter( $_ );
+	$rc = & filter( $fname );
 	printf "%s\n", $rc;
 }
 exit 0;

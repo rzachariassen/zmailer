@@ -257,6 +257,8 @@ struct Zpasswd {
   /* Our ``Z'' extensions */
   long quota1, quota2;
   const char *mail_forward;
+  const char *mailspooldir;
+  const char *mailfolderdir;
 };
 
 struct Zgroup {

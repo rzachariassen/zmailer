@@ -1,3 +1,24 @@
+2002-05-20  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    In some testing cases the "progname" variable is not
+	    set with any sane (non-NULL) value.
+
+	* utils/policy-builder.sh.in:
+	    Output the "smtp-policy.relay*" file entries only, when
+	    there is some data in the line, e.g. no comments, nor
+	    blank lines..
+
+	* smtpserver/contentpolicy.c:
+	    A bit more of debug output into local log..
+
+	* transports/smtp/smtp.c:
+	    Sometimes the  SS->smtpfp  will be NULL, and at such times
+	    sferror() on stream yields SEGV..  Additional code armouring..
+
+	* utils/smtp-contentfilter.in:
+	    A bit cleaner use of perl's implied default variables..
+
 2002-05-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c:

@@ -122,14 +122,14 @@ fi
     echo "# smtp-policy.relay.manual:"
     cat smtp-policy.relay.manual | \
     awk '/^#/{next;}
-	{printf "%s = _full_rights\n",$0;next;}'
+	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
   if [ -f smtp-policy.relay ] ; then
     echo "# ------------------"
     echo "# smtp-policy.relay:"
     cat smtp-policy.relay | \
     awk '/^#/{next;}
-	{printf "%s = _full_rights\n",$0;next;}'
+	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
 
   # smtp-policy.mx.manual

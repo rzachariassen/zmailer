@@ -396,7 +396,7 @@ char **argv;
     version = 0;
     logfile = NULL;
     logstyle = 0;
-    progname = argv[0];
+    progname = argv[0] ? argv[0] : "smtpserver";
     cmdline = &argv[0][0];
     eocmdline = cmdline;
     for (i = 0; i < argc; ++i)

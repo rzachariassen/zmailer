@@ -4128,11 +4128,11 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    if (SS->verboselog)
 	      fwrite(buf, 1, len, SS->verboselog);
 
-	    if (!sferror(SS->smtpfp))
+	    if (SS->smtpfp && !sferror(SS->smtpfp))
 	      r = sfwrite(SS->smtpfp, buf, len);
 	    else
 	      r = -1;
-	    err = (r != len) || sferror(SS->smtpfp);
+	    err = (r != len) || !SS->smtpfp || sferror(SS->smtpfp);
 
 	    if (SS->smtp_outcount > SS->smtp_bufsize) {
 	      SS->smtp_outcount -= SS->smtp_bufsize;
@@ -4149,12 +4149,12 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    if (SS->verboselog)
 	      fwrite(buf, 1, len, SS->verboselog);
 
-	    if (!sferror(SS->smtpfp))
+	    if (SS->smtpfp && !sferror(SS->smtpfp))
 	      r = sfwrite(SS->smtpfp, buf, len);
 	    else
 	      r = -1;
 	    err = (r != len);
-	    if (sferror(SS->smtpfp) || sfsync(SS->smtpfp))
+	    if (!SS->smtpfp || sferror(SS->smtpfp) || sfsync(SS->smtpfp))
 	      err = 1;
 	  }
 

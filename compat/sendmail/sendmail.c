@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-2000
+ *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-2002
  *
  */
 

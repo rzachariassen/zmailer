@@ -20,6 +20,10 @@ sm:	pass the address meta information also in environment
 	variables, and handle multirecipient cases as well!
 	(see what 'mailbox' does.)
 
+mailbox:
+	When doing delivery into a pipe, give  MAIL  variable to
+	tell what would be this user's mailbox ?
+
 sfio:
 	feature-config to use simpler (s)ed facilities than GNU-stuff.
 

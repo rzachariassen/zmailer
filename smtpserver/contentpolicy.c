@@ -102,6 +102,9 @@ const char *fname;
 
   /* Ok, we seem to have content-filter program configured... */
 
+  type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'\n",
+       contentpolicypid, fname);
+
   fprintf(cpol_tofp, "%s\n", fname);
   fflush(cpol_tofp);
 
