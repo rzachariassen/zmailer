@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "4 Jul 1997"
+.TH SMTPSERVER 8 "20 Feb 1998"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -117,6 +117,8 @@ t	check RCPT TO addresses
 v	check VRFY command argument
 e	check EXPN command argument
 R	require addresses to be of syntax: local@remote (strict 821)
+S	allow sloppy input for systems incapable to respect RFC 821
+	properly; WinCE1.0 does: "MAIL FROM:user@domain" :-(
 .fi
 .sp
 The flags are concatenated to form the argument to the \-s option.  The
@@ -226,11 +228,12 @@ PARAM  policydb   btree  /opt/mail/db/smtp-policy
 #
 # HELO pattern          style flags
 #
-*.mgmt.utoronto.ca      ftve
-*.mgmt.toronto.edu      ftve
+*.mgmt.utoronto.ca      ftveR
+*.mgmt.toronto.edu      ftveR
 badguy.org              !Sorry, try later.
 localhost               ve
-*                       -
+sloppy			S
+*                       R
 .fi
 .sp
 .SH FILES
