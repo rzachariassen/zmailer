@@ -1583,6 +1583,7 @@ int fullmode;
 	      fprintf(fp,"\n");
 	    }
 	  }
+
 	  fprintf(fp,"\tThreads: %4d",thg->threads);
 	  if (thg->threads != cnt)
 	    fprintf(fp,"/%d",cnt);
