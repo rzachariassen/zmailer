@@ -37,6 +37,16 @@ else
 	fqdnaliases () { return 1 }
 fi
 
+#
+# Define an LDAP hook, just in case...
+#
+
+if [ -f $MAILVAR/db/fqdnalias.ldap ]; then
+	relation -lmt ldap -f $MAILVAR/db/fqdnalias.ldap fqdnaliasesldap
+else
+	fqdnaliasesldap () { return 1 }
+fi
+
 require fqdnaliasdb
 provide fqdnalias
 
@@ -93,6 +103,15 @@ fqdn_neighbour (domain, address, A) {
 				"$plustail" "$athost")
 	fi
 
+	if a="$(fqdnaliasesldap "$lcaddress")" ; then
+		db add expansions "$lcaddress" fqdnaliasesldap
+		return $(echo "$a" |					\
+			 listaddresses	-c "$a fqdn alias expansion" 	\
+					-e root			 |	\
+			 maprrouter $A "fqdnalias" "$address"		\
+				"$plustail" "$athost")
+	fi
+
 	# Didn't match,
 
 	# Plusfull usernames ??
@@ -113,6 +132,14 @@ fqdn_neighbour (domain, address, A) {
 			 maprrouter $nattr "fqdnalias" "$address"	\
 				"$pl2" "$athost")
 
+	    fi
+	    if a="$(fqdnaliasesldap "$u2$athost")" ; then
+		db add expansions "$lcaddress" fqdnaliasesldap
+		return $(echo "$a" |					\
+			 listaddresses	-c "$a fqdn alias expansion" 	\
+					-e root			 |	\
+			 maprrouter $A "fqdnalias" "$address"		\
+				"$plustail" "$athost")
 	    fi
 	    ;;
 	tfiss
@@ -141,6 +168,14 @@ fqdn_neighbour (domain, address, A) {
 			 listaddresses	-c "$a fqdn alias expansion" 	\
 					-e root			 |	\
 			 maprrouter $nattr "fqdnalias" "$address"	\
+				"$plustail" "$athost")
+	fi
+	if a="$(fqdnaliasesldap "$athost")" ; then
+		db add expansions "$lcaddress" fqdnaliasesldap
+		return $(echo "$a" |					\
+			 listaddresses	-c "$a fqdn alias expansion" 	\
+					-e root			 |	\
+			 maprrouter $A "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 	fi
 

@@ -131,6 +131,15 @@ AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(double)
 
+AC_SUBST(GENINCL)
+AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
+                            Include option for local overriders],
+	use_genincl=1, use_genincl=0)
+if test "$use_genincl" = 1; then
+  GENINCL="$withval"
+  CPPFLAGS="$CPPFLAGS $withval"
+fi
+
 AC_SUBST(ZMAILERCFGFILE)
 use_zcfg=0
 AC_ARG_WITH(zconfig, 
@@ -1444,14 +1453,6 @@ if test "$ac_cv_func_crypt" != yes ; then
     LIBS="$t_oldLibs"
 fi
 
-
-AC_SUBST(GENINCL)
-AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
-                            Include option for local overriders],
-	use_genincl=1, use_genincl=0)
-if test "$use_genincl" = 1; then
-  GENINCL="$withval"
-fi
 
 
 AC_STRUCT_DIRENT_D_INO
