@@ -110,6 +110,15 @@ static int
 flush_child(proc)
      struct procinfo *proc;
 {
+	if (proc->pid < 0 && proc->tofd >= 0) {
+	  pipes_shutdown_child(proc->tofd);
+	  proc->tofd = -1;
+
+	  sfprintf(sfstderr,
+		   "%% shutdown of proc=%p pid=%d flush_child() pid<0 && tofd>=0\n",
+		   proc, proc->pid);
+
+	}
 	if (proc->tofd < 0) {
 	  if (proc->pvertex)
 	    proc->pvertex       = NULL;
@@ -119,6 +128,11 @@ flush_child(proc)
 	  }
 	  proc->cmdlen = 0;
 	  proc->state = CFSTATE_ERROR;
+
+	  sfprintf(sfstderr,
+		   "%% disconnect of flush_child(proc=%p pid=%d) pid<0 && tofd<0 BAD?? \n",
+		   proc, proc->pid);
+
 	  return -1;
 	}
 #if 0
@@ -142,6 +156,7 @@ flush_child(proc)
 
 	  if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
 			 errno != EWOULDBLOCK)) {
+	    int e = errno;
 	    /* Some real failure :-( */
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
@@ -153,6 +168,11 @@ flush_child(proc)
 	    }
 	    proc->cmdlen = 0;
 	    proc->state = CFSTATE_ERROR;
+
+	    sfprintf(sfstderr,
+		     "%% shutdown of proc=%p pid=%d flush_child() write() errno=%d\n",
+		     proc, proc->pid, e);
+
 	    return -1;
 	  }
 	  if (rc > 0) {
@@ -188,13 +208,28 @@ feed_child(proc)
 	  proc->state = CFSTATE_ERROR;
 	  pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
+
+	  sfprintf(sfstderr,
+		   "%% shutdown of proc=%p pid=%d feed_child() proc->pthread == NULL\n",
+		   proc, proc->pid);
+
 	  return -1; /* BUG if called without next THREAD.. */
 	}
 	if (proc->pvertex == NULL) {
+
+	  sfprintf(sfstderr,
+		   "%% feed_child(proc=%p pid=%d) proc->pvertex == NULL\n",
+		   proc, proc->pid);
+
 	  return 0; /* Might be called without next thing to process.. */
 	}
 	if (proc->pid <= 0 || proc->tofd < 0) {
 	  proc->state = CFSTATE_ERROR;
+
+	  sfprintf(sfstderr,
+		   "%% feed_child(proc=%p pid=%d tofd=%d) pid<0 || tofd<0 BAD??\n",
+		   proc, proc->pid, proc->tofd);
+
 	  return -1; /* No process../No write channel.. */
 	}
 
@@ -285,6 +320,10 @@ feed_child(proc)
 }
 
 
+char *proc_state_names[] = {
+  "ERROR", "LARVA", "STUFFING", "FINISHING", "IDLE"
+};
+
 void
 ta_hungry(proc)
      struct procinfo *proc;
@@ -296,8 +335,9 @@ ta_hungry(proc)
 	mytime(&proc->hungertime);
 
 	if (verbose)
-	  sfprintf(sfstdout,"ta_hungry(%p) OF=%d S=%d tofd=%d\n",
-		   proc, proc->overfed, (int)proc->state, proc->tofd);
+	  sfprintf(sfstdout,"ta_hungry(%p) OF=%d S=%s tofd=%d\n",
+		   proc, proc->overfed, proc_state_names[proc->state],
+		   proc->tofd);
 
 	/* If ``proc->tofd'' is negative, we can't feed anyway.. */
 
@@ -337,8 +377,9 @@ ta_hungry(proc)
 	       - state stays in STUFFING
 	    */
 
-	    if (feed_child(proc))
+	    if (feed_child(proc)) {
 	      return; /* If an error, bail out.. */
+	    }
 	    if (proc->tofd >= 0 && proc->cmdlen != 0)
 	      return; /* Outbuf full -- stop feeding here */
 
@@ -365,6 +406,10 @@ ta_hungry(proc)
 	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
 	    /* We have WORK ! */
+
+	    if (verbose)
+	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
+		       proc, proc->pthread);
 
 	    /* Clean vertices 'proc'-pointers,  randomize the
 	       order of thread vertices  (or sort by spool file
@@ -429,6 +474,10 @@ ta_hungry(proc)
 	  /* Some (real?) failure :-( */
 
 	feed_error_handler:
+
+	  sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
+		   proc, proc->overfed, proc_state_names[proc->state],
+		   proc->tofd);
 
 	  proc->state = CFSTATE_ERROR;
 

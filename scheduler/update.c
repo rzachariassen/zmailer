@@ -886,6 +886,9 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	     feeding and move to the finishing state before
 	     continuing anywhere... */
 
+	  sfprintf(sfstderr,"%% u_retryat(proc=%p) -> CFSTATE_FINISHING\n",
+		   proc);
+
 	  proc->state = CFSTATE_FINISHING;
 	}
 
