@@ -7,20 +7,9 @@ router:
 	--> SEGV
 
 
-smtpserver:
-	With PARAM options, decide to show none/some/all of following
-	kind of data which is separately logged into the smtpservers
-	log also at "rcvdfrom" data:
-		ident
-		whoson
-		AUTH username
-		TLS encryption mode
-		Possible client certificate reference name
-	FIXME: Client Certificate name ??? Nothing at the code!
-
-
-	"AUTH-LOGIN-only-under-TLS" option ?
-	Or: "AUTH-LOGIN-also-without-TLS" option ?
+configure.in:
+	Autodetect OpenSSL in case it is installed with   --prefix=/usr
+	(and with  --prefix=/usr/local/ssl/ too ???)
 
 router:
 	Have separate queueing processor feeding actual routers

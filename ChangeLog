@@ -1,5 +1,9 @@
 1999-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/router.c:
+	    Move  openlog()  a couple lines down so that also interactive
+	    routers will use it.
+
 	* router/rfc822.c:
 	    Change the Received: header 'id' information to be the same
 	    which syslog() uses, and which is reported at the smtpserver.
@@ -13,6 +17,17 @@
 	    setup until EHLO/HELO probe was retryable to an MX, but now
 	    a much latter problem phase (DATA + . yielding 4** code,
 	    for example) can do the same.
+	
+	    Latter continued the theme with logging of the smtp client session
+	    to one client with weird looking problem:  Ah, finally some clue
+	    on the PIPELINING problem; smtp_sync() ignored (or treated poorly)
+	    certain way how EXIM responds when it has disk full.  We missed
+	    the initial MAIL FROM-> 4** code, and errored with the latter
+	    "503 No sender yet given"... D'uh..  (Likely this was entirely
+	    ZMailer problem, but was it only introduced yesterday, or has it
+	    been lurking there all along with PIPELING, and never spotted
+	    before ??)  It manifested as never accumulating queue to sites
+	    using PIPELINING, and behaving like above..
 
 	* smtpserver/smtpserver.h, smtpserver/cfgread.c,
 	  smtpserver/smtpserver.c, smtpserver/smtptls.c,
@@ -20,7 +35,8 @@
 	    Much work again, now to parametrize ways of selectively adding
 	    pieces of "Received:" header contained commentary information.
 	    Features: ident, whoson, auth-username, tls-cipher, tls-client-cert
-	    ( Last one is a FIXME item :-| )
+	    Added also:  "PARAM AUTH-LOGIN-also-without-TLS" which allows
+	    paintext "AUTH LOGIN" to be used without successfull STARTTLS.
 
 1999-05-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
