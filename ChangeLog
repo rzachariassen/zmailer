@@ -1,5 +1,19 @@
 2003-06-19  Matti Aarnio  <mea@zmailer.org>
 
+	* router/rfc822.c, router/functions.c:
+	    - Removing dead code (lots of it)
+	    - Reworked a bit the  reject()  function address processing,
+	      now also the originally intended error recipient will receive
+	      the message. (Thanks to Peter Ip to raise my attention at it.)
+	    - All router internal  mail_open()  calls are wrapped with
+	      runastrusteduser()/runasrootuser() calls, so that created
+	      message file's owner will be 'trusted'.  Is THAT an ok thing
+	      in all situations ?  No definite idea...
+
+	* proto/cf/standard.cf:
+	    Rearranged the list of known top-level domains, and added
+	    'info', 'biz', 'name', 'eu'.
+	
 	* transports/mailbox/mailbox.c, transports/libta/mimeheaders.c,
 	  transports/libta/ctlopen.c:
 	    Been hunting memory leaks...  Have found a bunch more..

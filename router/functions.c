@@ -1050,7 +1050,9 @@ run_listexpand(avl, il)
 	int   okaddresses = 0;
 	int   errcount = 0;
 	int   linecnt = 0;
+	int   euid = geteuid();
 	GCVARS3;
+
 
 	il = cdar(avl); /* The CDR (next) of the arg list.. */
 
@@ -1222,7 +1224,13 @@ run_listexpand(avl, il)
 		    if (erroraddress != NULL) {
 		      if (!isErrChannel && !isErrorMsg) {
 			if (mfp == NULL) {
-			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
+			  /* We are likely running under 'runas ..'
+			     Do reset now to ROOT, then to TRUSTED, ... */
+			  runasrootuser();
+			  runastrusteduser();
+			  mfp = mail_open(MSG_RFC822);
+			  runasrootuser();
+			  if (mfp != NULL) {
 			    osiop = siofds[FILENO(mfp)];
 			    siofds[FILENO(mfp)] = NULL;
 			    fprintf(mfp, "channel error\n");
@@ -1281,7 +1289,6 @@ run_listexpand(avl, il)
 		/* If the file is empty, use error address ...
 		   Except when this is already an error mesage, say nothing! */
 
-
 		if (erroraddress == NULL)
 			erroraddress = "postmaster";
 
@@ -1308,7 +1315,13 @@ run_listexpand(avl, il)
 		}
 
 		if (mfp == NULL) {
-		  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
+		  /* We are likely running under 'runas ..'
+		     Do reset now to ROOT, then to TRUSTED, ... */
+		  runasrootuser();
+		  runastrusteduser();
+		  mfp = mail_open(MSG_RFC822);
+		  runasrootuser();
+		  if (mfp != NULL) {
 		    osiop = siofds[FILENO(mfp)];
 		    siofds[FILENO(mfp)] = NULL;
 		    fprintf(mfp, "channel error\n");
@@ -1323,12 +1336,12 @@ run_listexpand(avl, il)
 		    /* Print the report: */
 		    fprintf(mfp,"NO valid recipient addresses!\n");
 		    fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
-		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
+		    fprintf(mfp,"Current effective UID = %d\n", euid);
 		  }
 		} else { /* mfp != NULL */
 		  fprintf(mfp,"\nNO valid recipient addresses!\n");
 		  fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
-		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
+		  fprintf(mfp,"Current effective UID = %d\n", euid);
 		}
 	}
 
@@ -1548,298 +1561,6 @@ run_listexpand(avl, il)
 } /* end-of: run_listexpand() */
 
 
-
-#if 0
---- function linkage table ---
-{	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
-
---- function itself ---
-static int
-run_listaddresses(argc, argv)
-	int argc;
-	const char *argv[];
-{
-	struct header hs;
-	struct envelope *e;
-	struct address *ap, *aroot = NULL, **atail = &aroot;
-	token822 *t;
-	struct addr *pp;
-	int c, n, errflag, stuff;
-	const char *comment, *erroraddress;
-	char *s, *s_end;
-	struct siobuf *osiop = NULL;
-	FILE *mfp = NULL, *fp;
-	char buf[4096];
-	int fd2;
-	int okaddresses = 0;
-	int errcount = 0, linecnt = 0;
-	char *old_errorsto = errors_to;
-
-	errflag = 0;
-	erroraddress = NULL;
-	comment = "list";
-	zoptind = 1;
-
-	while (1) {
-		c = zgetopt(argc, (char*const*)argv, "c:e:E:");
-		if (c == EOF)
-			break;
-		switch (c) {
-		case 'c':
-			comment = zoptarg;
-			break;
-		case 'e':
-			erroraddress = zoptarg;
-			break;
-		case 'E':
-			if (errors_to != old_errorsto)
-			  free(errors_to);
-			errors_to = (void*)strdup(zoptarg);
-			break;
-		default:
-			++errflag;
-			break;
-		}
-	}
-	if (errflag) {
-	  fprintf(stderr,
-		  "Usage: %s [ -e error-address ] [ -E errors-to-address ] [ -c comment ]\n",
-		  argv[0]);
-	  if (errors_to != old_errorsto)
-	    free(errors_to);
-	  errors_to = old_errorsto;
-	  return EX_USAGE;
-	}
-	e = (struct envelope *)tmalloc(sizeof (struct envelope));
-	e->e_nowtime = now;
-	e->e_file = argv[0];
-	/* we only need sensible `e' if its a time stamp header,
-	   which it ain't, so "listaddress" is just fine for e_file .. */
-
-	hs.h_descriptor = &aliashdr;
-	hs.h_pname = argv[0];
-
-	initzline(4096);
-
-	/*
-	 * These hoops are so we can do this for both real stdin and
-	 * the fake I/O stuff in ../libsh.
-	 */
-	if ((fp = fdopen(0, "r")) == NULL) {
-		fprintf(stderr, "%s: fdopen failed\n", argv[0]);
-#ifdef DEBUG_FOPEN
-		report_fds(stderr);
-#endif
-		if (errors_to != old_errorsto)
-		  free(errors_to);
-		errors_to = old_errorsto;
-		return 1;
-	}
-	fd2 = dup(0);	/* Copy the file handle for later returning
-			   AFTER an fclose() has closed the primary
-			   copy.. */
-
-	/* use a constant buffer to avoid memory leaks from stdio usage */
-	setvbuf(fp, buf, _IOFBF, sizeof buf);
-	c = 0;
-	while ((n = zgetline(fp)) > 0) {
-		++linecnt;
-		/*
-		 * For sendmail compatibility, addresses may not cross line
-		 * boundaries, and line boundary is just as good an address
-		 * separator as comma is, sigh.
-		 * Also lines beginning with '#' are comments, and blank
-		 * lines are (sortof) comments too.
-		 */
-		if (zlinebuf[n-1] == '\n')
-			--n;
-		if (zlinebuf[0] == '#')
-			continue;
-
-		stuff = 0;
-		s_end = &zlinebuf[n];
-		for (s = zlinebuf; s < s_end; ++s) {
-			if (isascii(*s) && !isspace(*s))
-				c = stuff = 1;
-			if (*s == ',')
-				c = 0;
-		}
-		if (!stuff)
-			continue;
-		if (c) {
-			zlinebuf[n] = ',';
-			++n;
-		}
-
-/* #ifdef SENDMAIL_COMPABILITY_KLUDGE */
-		/**
-		 * Additional sendmail compability kludge ++haa
-		 * If address starts with \, zap the \ character.
-		 * This is just to not to force people to edit their
-		 * .forwards :-(  "\haa" works as expected  :-)
-		 **/
-		if (zlinebuf[0] == '\\') zlinebuf[0] = ' ';
-		for (s = zlinebuf+1; s < s_end; ++s) {
-		  if (s[-1] == ',' && s[0]=='\\') s[0] = ' ';
-		}
-		/* end of sendmail compatibility kluge */
-/* #endif */
-		/* create h->h_lines */
-		/*
-		 * It is best to maintain a line at a time as tokens,
-		 * so errors will print out nicely.
-		 */
-
-		hs.h_lines = t = makeToken(zlinebuf, n);
-		t->t_type = Line;
-
-		/* fix up any trailing comma (more sendmail
-		   compatibility kluges) */
-		s = (char*)t->t_pname + TOKENLEN(t)-1;
-		if (c && (*s == ',' || *s == '\n'))
-		  *s = '\0';
-
-		hs.h_contents = hdr_scanparse(e, &hs, 1, 1);
-		hs.h_stamp = hdr_type(&hs);
-
-		if (hs.h_stamp == BadHeader || hs.h_contents.a == NULL) {
-		  ++errcount;
-		  if (hs.h_stamp == BadHeader) {
-		    if (erroraddress != NULL) {
-		      if (!isErrChannel && !isErrorMsg) {
-			if (mfp == NULL) {
-			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
-			    osiop = siofds[FILENO(mfp)];
-			    siofds[FILENO(mfp)] = NULL;
-			    fprintf(mfp, "channel error\n");
-			    fprintf(mfp, "errormsg\n");
-			    fprintf(mfp, "to <%s>\n", erroraddress);
-			    fprintf(mfp, "to <postoffice>\n");
-			    fprintf(mfp, "env-end\n");
-			    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
-			    fprintf(mfp, "To: %s\n", erroraddress);
-			    fprintf(mfp, "Subject: Error in %s\n", comment);
-			    fprintf(mfp, "Precedence: junk\n\n");
-			    /* Print the report: */
-			    fprintf(mfp,"Input file line number %d:\n",linecnt);
-			    hdr_errprint(e, &hs, mfp, comment);
-			  }
-			} else { /* mfp != NULL */
-			  fprintf(mfp,"Input file line number %d:\n",linecnt);
-			  hdr_errprint(e, &hs, mfp, comment);
-			}
-		      }
-		      if (errcount == 1) /* At the first time only! */
-			printf("%s\n", erroraddress);
-		    }
-		    fprintf(stderr,"Input file line number %d:\n",linecnt);
-		    hdr_errprint(e, &hs, stderr, comment);
-		  } else {		/* if (hs.h_contents.a == NULL) */
-#if 0
-		    if (errcount == 1) {
-		      /* Print only for the first intance.. */
-		      if (erroraddress != NULL)
-			printf("%s\n", erroraddress);
-		      fprintf(stderr, "%s: null input on line\n", argv[0]);
-		    }
-#endif
-		  }
-		  continue;
-		}
-
-		*atail = hs.h_contents.a;
-		while (*atail != NULL)
-		  atail = &((*atail)->a_next);
-
-		++okaddresses;
-	}
-
-	fclose(fp);	/* Now we discard the stdio buffers, but not the
-			   fd number 0!  Actually we use a copy of it..	*/
-	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
-	close(fd2);	/* .. and discard the backup copy..		*/
-
-	if (okaddresses == 0 && !isErrChannel && !isErrorMsg) {
-		/* If the file is empty, use error address ...
-		   Except when this is already an error mesage, say nothing! */
-
-		if (erroraddress == NULL)
-			erroraddress = "postmaster";
-
-		hs.h_lines = t = makeToken(erroraddress, strlen(erroraddress));
-		t->t_type = Line;
-
-		/* fix up any trailing comma (more sendmail
-		   compatibility kluges) */
-		s = (char*)t->t_pname + TOKENLEN(t)-1;
-		if (c && (*s == ',' || *s == '\n'))
-		  *s = '\0';
-
-		hs.h_contents = hdr_scanparse(e, &hs, 1, 1);
-		hs.h_stamp = hdr_type(&hs);
-
-		if (hs.h_stamp == BadHeader || hs.h_contents.a == NULL) {
-		  /* OUTCH!  Even the "erroraddress" parameter is illegal! */
-		  fprintf(stderr,"%s: input parameters bad, empty input, even 'erroraddress' bad!\n", argv[0]);
-		} else {
-		  *atail = hs.h_contents.a;
-		  while (*atail != NULL)
-		    atail = &((*atail)->a_next);
-		}
-
-		if (mfp == NULL) {
-		  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
-		    osiop = siofds[FILENO(mfp)];
-		    siofds[FILENO(mfp)] = NULL;
-		    fprintf(mfp, "channel error\n");
-		    fprintf(mfp, "errormsg\n");
-		    fprintf(mfp, "to <%s>\n", erroraddress);
-		    fprintf(mfp, "to <postoffice>\n");
-		    fprintf(mfp, "env-end\n");
-		    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
-		    fprintf(mfp, "To: %s\n", erroraddress);
-		    fprintf(mfp, "Subject: Error in %s\n", comment);
-		    fprintf(mfp, "Precedence: junk\n\n");
-		    /* Print the report: */
-		    fprintf(mfp,"NO valid recipient addresses!\n");
-		    fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
-		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
-		  }
-		} else { /* mfp != NULL */
-		  fprintf(mfp,"\nNO valid recipient addresses!\n");
-		  fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
-		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
-		}
-
-	}
-
-	if (mfp != NULL) {
-	  siofds[FILENO(mfp)] = osiop;
-	  mail_close(mfp);
-	}
-
-	for (ap = aroot; ap != NULL; ap = ap->a_next) {
-
-		for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
-			if (pp->p_type == anAddress)
-				break;
-		if (pp == NULL)
-			continue;
-
-		pureAddress(stdout, pp);
-		/* printAddress(stdout, pp, 0); */
-		putc('\n', stdout);
-	}
-	/*
-	 * XX: If the alias expansion was a mail group,
-	 * we didn't print anything.
-	 */
-	if (errors_to != old_errorsto)
-	  free(errors_to);
-	errors_to = old_errorsto;
-	return 0;
-}
-#endif /* disable a bit of code */
 
 static int
 run_homedir(argc, argv)

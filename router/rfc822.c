@@ -249,7 +249,6 @@ run_rfc822(argc, argv)
  * Read, store, and parse the message control information (envelope + header).
  */
 
-#if 1
 
 /* Live code, 'octothorp' eliminated (obsolete thing..) */
 
@@ -431,175 +430,6 @@ makeLetter(e)
 
 	return PERR_OK;
 }
-
-#else /* DEAD CODE */
-
-
-int
-makeLetter(e, octothorp)
-	register struct envelope *e;
-	int octothorp;		/* does # at start of word start a comment? */
-{
-	register int	i;
-	register char	*cp;
-	struct header	*h;
-	int		n, inheader;
-	struct header	*ph, *nh;
-
-	e->e_eHeaders = 0;
-	e->e_headers = 0;
-	e->e_hdrOffset = 0;
-	e->e_msgOffset = 0;
-	e->e_nowtime = now = time(NULL);
-	if (efstat(FILENO(e->e_fp), &(e->e_statbuf)) < 0) {
-#ifdef	HAVE_STRUCT_STAT_ST_BLKSIZE
-		e->e_statbuf.st_blksize = 0;
-#endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
-		e->e_statbuf.st_mtime = e->e_nowtime;
-	}
-	e->e_localtime = *(localtime(&(e->e_statbuf.st_mtime)));
-#ifdef	HAVE_STRUCT_STAT_ST_BLKSIZE
-	initzline((int)e->e_statbuf.st_blksize);
-#else	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
-	initzline(4096);
-#endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
-
-	inheader = 0;
-	while ((n = zgetline(e->e_fp)) > !octothorp) {
-		/* We do kludgy processing things in case the input
-		   does have a CRLF at the end of the line.. */
-		if (n > 1 &&
-		    zlinebuf[n-2] == '\r' &&
-		    zlinebuf[n-1] == '\n') {
-			--n;
-			zlinebuf[n-1] = '\n';
-			if (n <= !octothorp) break; /* void line */
-		}
-		/* Ok, now we can proceed with the original agenda.. */
-		i = hdr_status(zlinebuf, zlinebuf, n, octothorp);
-		if (i > 0) {		/* a real message header */
-			if (octothorp && zlinebuf[0] == '#')
-				continue;
-			/* record start of headers for posterity */
-			if (!inheader)
-			  e->e_hdrOffset = zlineoffset(e->e_fp)-n;
-			/* cons up a new one at top of header list */
-			h = makeHeader(spt_headers, zlinebuf, i);
-			h->h_next = e->e_headers;
-			e->e_headers = h;
-			h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
-			h->h_lines->t_type = Line;
-			++inheader;
-		} else if (i == 0) {	/* a continuation line */
-			if (inheader && zlinebuf[0] == ':') {
-				optsave(FYI_ILLHEADER, e);
-				/* cons up a new one at top of header list */
-				h = makeHeader(spt_headers,"X-Null-Field",12);
-				h->h_next = e->e_headers;
-				e->e_headers = h;
-				h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
-				h->h_lines->t_type = Line;
-			} else if (inheader && n > 1) {
-				/* append to the header we just saw */
-				token822 *t;
-				if (e->e_headers == NULL) {
-				  /* Wow, continuation without previous header! */
-				  /* It must be body.. */
-				  repos_zgetline(e->e_fp,
-						 zlineoffset(e->e_fp) - n);
-				  break;
-				}
-				t = e->e_headers->h_lines;
-				while (t->t_next)
-					t = t->t_next;
-				t->t_next = makeToken(zlinebuf, n-1);
-				t->t_next->t_type = Line;
-			} else if (!octothorp) {
-				return PERR_BADCONTINUATION;
-			}
-		} else if (!inheader		/* envelope information */
-			   && (*(cp=zlinebuf-i) == ' ' || *cp == '\t'
-				|| *cp == '\n')) {
-			HeaderSemantics osem;
-
-			if (octothorp && zlinebuf[0] == '#')
-				continue;
-			/* cons up a new one at top of envelope header list */
-			h = makeHeader(spt_eheaders, zlinebuf, -i);
-			h->h_next = e->e_eHeaders;
-			e->e_eHeaders = h;
-			h->h_lines = makeToken(zlinebuf-i+1, n > 1-i ? n+i-2: 0);
-			h->h_lines->t_type = Line;
-			switch (h->h_descriptor->class) {
-
-			case normal:
-			case Resent:
-				/* error */
-				fprintf(stderr,
-					"%s: unknown envelope header (class %d): ",
-					progname, h->h_descriptor->class);
-				fwrite((char *)zlinebuf, sizeof (char), -i, stderr);
-				putc('\n', stderr);
-				h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-				h->h_stamp = hdr_type(h);
-				return PERR_BADSUBMIT;
-				/* break; */
-			case eFrom:		/* pity to break the elegance */
-				osem = h->h_descriptor->semantics;
-				h->h_descriptor->semantics = Mailbox;
-				h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-				h->h_stamp = hdr_type(h);
-				h->h_descriptor->semantics = osem;
-				break;
-			case eEnvEnd:		/* more elegance breaks */
-				inheader = 1;
-				/* record start of headers for posterity */
-				e->e_hdrOffset = zlineoffset(e->e_fp);
-				e->e_eHeaders = h->h_next;
-				break;
-			default:		/* a real envelope header */
-				h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-				h->h_stamp = hdr_type(h);
-				break;
-			}
-		} else if (!octothorp) {
-			/* Expected RFC-822 header, and got something else.
-			   We play as if it was the end of the headers, and
-			   start of the body.  Keep the first faulty input
-			   around by reseeking into its start.		    */
-			repos_zgetline(e->e_fp, zlineoffset(e->e_fp) - n);
-			break;
-		}
-	}
-	/* reverse the list of headers so we keep them in the original order */
-	for (ph = NULL, h = e->e_eHeaders; h != NULL; h = nh) {
-		nh = h->h_next;
-		h->h_next = ph;
-		if (h->h_descriptor->semantics == nilHeaderSemantics
-		    || !hdr_nilp(h))
-			ph = h;
-	}
-	e->e_eHeaders = ph;
-	/* parse the message headers -- we already took care of envelope info */
-	for (ph = NULL, h = e->e_headers; h != NULL; h = nh) {
-		nh = h->h_next;
-		h->h_next = ph;
-		if (!octothorp && h->h_descriptor) {
-			h->h_contents = hdr_scanparse(e, h, 0, 0);
-			h->h_stamp = hdr_type(h);
-			if (!hdr_nilp(h))	/* excise null-valued headers */
-				ph = h;
-		} else
-			ph = h;
-	}
-	e->e_headers = ph;
-	/* record the start of the message body for posterity */
-	e->e_msgOffset = zlineoffset(e->e_fp);
-
-	return PERR_OK;
-}
-
-#endif /* ... dead code */
 
 
 void
@@ -835,6 +665,7 @@ erraddress(e)
 }
 
 
+#if 0 /* DEAD CODE */
 /* Pick recipient address from the input line.
    EXTREMELY Simple minded parsing.. */
 static void pick_env_addr __((char *buf, FILE *mfp));
@@ -863,6 +694,7 @@ FILE *mfp;
 	  fprintf(mfp,"to <%s>\n",buf);
 	}
 }
+#endif /* DEAD CODE */
 
 static int nullhost __((conscell *cs));
 static int
@@ -894,9 +726,10 @@ reject(e, msgfile)
 	
 	h = erraddress(e);
 	if (h == NULL) {
-		squirrel(e, "noerraddr", "No one to return an error to!");
-		return;
+	  squirrel(e, "noerraddr", "No one to return an error to!");
+	  return;
 	}
+
 	/*
 	 * turn all (possibly more than one) the addresses in whatever h
 	 * is pointing at, into recipient addresses.
@@ -907,35 +740,40 @@ reject(e, msgfile)
 	path = (char*)alloca(3+strlen(mailshare)+strlen(FORMSDIR)+strlen(msgfile));
 #endif
 	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR, msgfile);
+
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		perror(path);
-		squirrel(e, "norejform", "Couldn't open reject form file");
+	  perror(path);
+	  squirrel(e, "norejform", "Couldn't open reject form file");
 #ifndef	USE_ALLOCA
-		free(path);
+	  free(path);
 #endif
-		return;
+	  return;
 	}
 #ifndef	USE_ALLOCA
 	free(path);
 #endif
+
+	setvbuf(fp, vbuf, _IOFBF, sizeof vbuf);
+	fseek(fp,(off_t)0,0);
+
+
+	runastrusteduser();
 	mfp = mail_open(MSG_RFC822);
+	runasrootuser();
+
 	if (mfp == NULL) {
 	  squirrel(e, "mailcreatefail", "Couldn't open reject message file");
+	  fclose(fp);
 	  return;
 	}
-	setvbuf(fp, vbuf, _IOFBF, sizeof vbuf);
-	while (fgets(buf,sizeof(buf),fp)) {
-	  if (strncmp("ADR",buf,3)==0) {
-	    pick_env_addr(buf+4,mfp);
-	  } else if (strncmp("HDR",buf,3)==0 ||
-		     strncmp("SUB",buf,3)==0) {
-	    continue;
-	  } else
-	    break;
-	}
-	fputs("env-end\n",mfp);
-	fseek(fp,(off_t)0,0);
+
+	/* Mark this as an error message, but don't add the EXPLICITE
+	   envelope and RFC-822 header separator ("env-end") !         */
+
+	fputs("channel error\n", mfp);
+	fputs("errormsg\n",      mfp);
+	/* fputs("env-end\n",    mfp); */
 
 	/* who is it from? */
 	c_cp = h->h_pname;
