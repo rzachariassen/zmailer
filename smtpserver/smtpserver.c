@@ -1537,6 +1537,11 @@ int insecure;
 		return;
 	    break;
 	case Reset:
+	    while (*cp == ' ' || *cp == '\t') ++cp;
+	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+	      type(SS, 501, m554, "Extra junk after 'RSET' verb");
+	      break;
+	    }
 	    if (SS->mfp != NULL) {
 		clearerr(SS->mfp);
 		mail_abort(SS->mfp);
@@ -1565,10 +1570,19 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case Turn:
+	    while (*cp == ' ' || *cp == '\t') ++cp;
+	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+	      type(SS, -502, m554, "Extra junk after 'TURN' verb");
+	    }
 	    type(SS, 502, m551, (char *) NULL);
 	    typeflush(SS);
 	    break;
 	case NoOp:
+	    while (*cp == ' ' || *cp == '\t') ++cp;
+	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+	      type(SS, 501, m554, "Extra junk after 'NOOP' verb");
+	      break;
+	    }
 	    type(SS, 250, m200, (char *) NULL);
 	    typeflush(SS);
 	    break;
@@ -1595,6 +1609,10 @@ int insecure;
 	    SS->with_protocol = WITH_BSMTP;
 	    break;
 	case Quit:
+	    while (*cp == ' ' || *cp == '\t') ++cp;
+	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+	      type(SS, -221, m554, "Extra junk after 'QUIT' verb");
+	    }
 	    if (SS->mfp != NULL)
 		mail_abort(SS->mfp);
 	    SS->mfp = NULL;

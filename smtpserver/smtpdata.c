@@ -45,6 +45,12 @@ const char *buf, *cp;
     int ino;
     char msg[2048];
 
+    while (*cp == ' ' || *cp == '\t') ++cp;
+    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+      type(SS, 501, m554, "Extra junk after 'DATA' verb");
+      return 0;
+    }
+
     if (SS->state != RecipientOrData) {
 	switch (SS->state) {
 	case Hello:
