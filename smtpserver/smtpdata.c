@@ -414,7 +414,7 @@ const char *buf, *cp;
 		       SS->rhostname, SS->rport));
 
 	    if (logfp != NULL) {
-	      type(NULL,0,NULL,"s: %ld bytes", taspid, tell);
+	      type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
 	      fflush(logfp);
 	    }
 	}
