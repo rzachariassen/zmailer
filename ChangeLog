@@ -1,5 +1,9 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* router/router.c, proto/cf/server.cf:
+	    Automated 'server purge' every about 1000 interactions.
+	    Also call 'server init' before start.
+
 	* lib/fdpassing.c, lib/zshmmibattach.c, subdaemon-rtr.c:
 	    Add a few  fcntl(fd,F_SETFD,FD_CLOEXEC)  calls into
 	    selected places so that exec()ed subprocesses won't

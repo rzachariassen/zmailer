@@ -708,6 +708,7 @@ Imode_smtpserver __((void))
 	const char *av[4];
 	char *linebuf = malloc(20000);
 	int linespc = 19500;
+	int cmdcount = 0;
 	char *sh_memlevel = getlevel(MEM_SHCMD);
 
 	oval = stickymem;
@@ -717,7 +718,21 @@ Imode_smtpserver __((void))
 
 	isInteractive = 1;
 
+	av[0] = "server";
+	av[1] = "init";
+	av[2] = NULL;
+	s_apply(2, &av[0]);
+
 	for(;;) {
+
+	  ++cmdcount;
+	  if (cmdcount > 1000) {
+	    av[0] = "server";
+	    av[1] = "purge";
+	    av[2] = NULL;
+	    s_apply(2, &av[0]);
+	    cmdcount = 0;
+	  }
 
 	  fprintf(stdout, "#hungry\n");
 	  fflush(stdout);

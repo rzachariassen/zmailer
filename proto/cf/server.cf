@@ -111,6 +111,14 @@ server (key) {
 		log () {
 		}
 		;;
+	purge)	# Purge growing in-memory databases ...
+		db flush pwuid
+		db flush pwnam
+		db flush fullname
+		db flush hostexpansions
+		db flush recipients
+		db flush expansions
+		;;
 	to|from)
 		a="$(router "$a" default_attributes)"
 		for i in $(elements $a)
