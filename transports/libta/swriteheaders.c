@@ -67,7 +67,8 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	    }
 
 	    if (*chunkbufp == NULL)
-	      /* Actually the SMTP has already malloced a block */
+	      /* Actually the SMTP has already malloced a block,
+		 thus this branch should not be needed ... */
 	      *chunkbufp = malloc( hsize + linelen + newlinelen );
 	    else
 	      *chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
@@ -104,6 +105,7 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	    char *s = *msgheaders;
 	    int linelen = strlen(s);
 	    if (**msgheaders == '.')
+	      /* sferror() not needed to check here.. */
 	      sfputc(fp,'.'); /* ALWAYS double-quote the begining
 				 dot -- though it should NEVER occur
 				 in the headers, but better safe than
@@ -126,7 +128,7 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	    }
 
 	    if (linelen > 0)
-	      if (sfwrite(fp, s, linelen) != linelen)
+	      if (sferror(fp) || sfwrite(fp, s, linelen) != linelen)
 		return -1;
 
 	    hsize += linelen;

@@ -1267,6 +1267,9 @@ deliver(SS, dp, startrp, endrp)
 	     with checkpoints at first */
 
 	} else if (pipelining) {
+
+	  /* No CHUNKING here... do normal DATA-dot exchange */
+
 	  /* In PIPELINING mode ... send "DATA" */
 	  r = smtpwrite(SS, 1, "DATA", pipelining, NULL);
 	  if (r != EX_OK) { /* failure on pipes ? */
@@ -1773,7 +1776,7 @@ smtpopen(SS, host, noMX)
 	      if (i != EX_OK)
 		continue;;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
-	      if (i == EX_TEMPFAIL && SS->smtpfp) {
+	      if (i != EX_OK && SS->smtpfp) {
 		smtpclose(SS, 1);
 		if (logfp)
 		  fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed(2))\n", logtag());
@@ -3514,7 +3517,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    /* We are asynchronous! */
 	    SS->smtp_outcount += len; /* Where will we grow to ? */
 
-	    /* Read possible reponses into response buffer.. */
+	    /* Read possible responses into response buffer.. */
 	    pipeblockread(SS);
 
 	    memcpy(buf,strbuf,len-2);

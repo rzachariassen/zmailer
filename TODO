@@ -26,6 +26,12 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 
       Eh ???  Hmm...
 
+      A bit latter:
+
+      Jan 31 14:29:15 nic smtp[23675]: S7648AbQAaMVa: to=<cgantz@lucent.com>, delay=00:07:45, xdelay=00:04:35, mailer=smtp, relay=auemail1.lucent.com ([192.11.223.161|25|193.166.0.145|47264]), stat=deferred <<- .->> 451 timeout waiting for input during message collect500 Command unrecognized: "Received: from vger.rutgers.edu ([128.6.190.2]:23297 "EHLO vger.rutgers.edu""500 Command unrecognized: "       ident: "NO-IDENT-SERVICE[2]" smtp-auth: <none> TLS-CIPHER: <none>)"500 Command unrecognized: "  by nic.funet.fi with ESMTP id <S7648AbQAaMVa>;"500 Command unrecognized: "      Mon, 31 Jan 2000 14:21:30 + cvt=NONE
+
+      Which suspicuously points to data-dot buffering failure.
+
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)

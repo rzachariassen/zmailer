@@ -1122,6 +1122,13 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		  " smtp_sfwrite() to write %d bytes\n", (int)len);
 #endif
 
+	/* Don't even consider writing, if the stream has error status.. */
+	if (sferror(sfp)) return -1;
+
+	/* If 'len' is zero, return zero.. */
+	/* (I have a feeling such writes are sometimes asked for..) */
+	if (len == 0) return 0;
+
 	while (len > 0 && !sferror(sfp)) {
 
 #ifdef HAVE_OPENSSL
@@ -1203,7 +1210,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	      if (r > 0)
 		/* Ready to write! */
-		continue;
+		break;
 
 	      if (r == 0) {
 		/* TIMEOUT!  Uarrgh!! */
