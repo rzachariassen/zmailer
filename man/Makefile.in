@@ -3,7 +3,7 @@
 #
 
 srcdir = @srcdir@
-VPATH = @srcdir@
+# VPATH = @srcdir@ ## NO VPATH HERE!
 @SET_MAKE@
 
 #prefix=		@prefix@
@@ -25,6 +25,7 @@ FRC:
 
 clean:
 	rm -rf *~
+	if [ "$(srcdir)" != "" ]; then rm -f *.ps *.html; fi
 
 distclean:
 	rm -rf *~ vacation.1
@@ -67,102 +68,103 @@ install:
 	$(INSTALL) -m 644 $S/zmsh.1	${MANDIR}/man1
 	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
 
-aliases.5.ps: aliases.5
+
+aliases.5.ps: $(srcdir)/aliases.5
 	groff -man $< > $@
-authuser.3.ps: authuser.3
+authuser.3.ps: $(srcdir)/authuser.3
 	groff -man $< > $@
-mailq.1.ps: mailq.1
+mailq.1.ps: $(srcdir)/mailq.1
 	groff -man $< > $@
-mailrm.1.ps: mailrm.1
+mailrm.1.ps: $(srcdir)/mailrm.1
 	groff -man $< > $@
-newaliases.1.ps: newaliases.1
+newaliases.1.ps: $(srcdir)/newaliases.1
 	groff -man $< > $@
-rmail.1.ps: rmail.1
+rmail.1.ps: $(srcdir)/rmail.1
 	groff -man $< > $@
-ssl.1.ps: ssl.1
+ssl.1.ps: $(srcdir)/ssl.1
 	groff -man $< > $@
 vacation.1.ps: vacation.1
 	groff -man $< > $@
-zmailer.1.ps: zmailer.1
+zmailer.1.ps: $(srcdir)/zmailer.1
 	groff -man $< > $@
-zmsh.1.ps: zmsh.1
+zmsh.1.ps: $(srcdir)/zmsh.1
 	groff -man $< > $@
-zmailer.3.ps: zmailer.3
+zmailer.3.ps: $(srcdir)/zmailer.3
 	groff -man $< > $@
-errormail.8.ps: errormail.8
+errormail.8.ps: $(srcdir)/errormail.8
 	groff -man $< > $@
-hold.8.ps: hold.8
+hold.8.ps: $(srcdir)/hold.8
 	groff -man $< > $@
-router.8.ps: router.8
+router.8.ps: $(srcdir)/router.8
 	groff -man $< > $@
-scheduler.8.ps: scheduler.8
+scheduler.8.ps: $(srcdir)/scheduler.8
 	groff -man $< > $@
-sendmail.8.ps: sendmail.8
+sendmail.8.ps: $(srcdir)/sendmail.8
 	groff -man $< > $@
-sm.8.ps: sm.8
+sm.8.ps: $(srcdir)/sm.8
 	groff -man $< > $@
-smtp.8.ps: smtp.8
+smtp.8.ps: $(srcdir)/smtp.8
 	groff -man $< > $@
-smtpserver.8.ps: smtpserver.8
+smtpserver.8.ps: $(srcdir)/smtpserver.8
 	groff -man $< > $@
-manual-expirer.8.ps: manual-expirer.8
+manual-expirer.8.ps: $(srcdir)/manual-expirer.8
 	groff -man $< > $@
-expirer.8.ps: expirer.8
+expirer.8.ps: $(srcdir)/expirer.8
 	groff -man $< > $@
-mprobe.8.ps: mprobe.8
+mprobe.8.ps: $(srcdir)/mprobe.8
 	groff -man $< > $@
-mailbox.8.ps: mailbox.8
+mailbox.8.ps: $(srcdir)/mailbox.8
 	groff -man $< > $@
-mboxpath.1.ps: mboxpath.1
+mboxpath.1.ps: $(srcdir)/mboxpath.1
 	groff -man $< > $@
 
 
 
-aliases.5.html: aliases.5
+aliases.5.html: $(srcdir)/aliases.5
 	groff -man -Thtml $< > $@
-authuser.3.html: authuser.3
+authuser.3.html: $(srcdir)/authuser.3
 	groff -man -Thtml $< > $@
-mailq.1.html: mailq.1
+mailq.1.html: $(srcdir)/mailq.1
 	groff -man -Thtml $< > $@
-mailrm.1.html: mailrm.1
+mailrm.1.html: $(srcdir)/mailrm.1
 	groff -man -Thtml $< > $@
-newaliases.1.html: newaliases.1
+newaliases.1.html: $(srcdir)/newaliases.1
 	groff -man -Thtml $< > $@
-rmail.1.html: rmail.1
+rmail.1.html: $(srcdir)/rmail.1
 	groff -man -Thtml $< > $@
-ssl.1.html: ssl.1
+ssl.1.html: $(srcdir)/ssl.1
 	groff -man -Thtml $< > $@
 vacation.1.html: vacation.1
 	groff -man -Thtml $< > $@
-zmailer.1.html: zmailer.1
+zmailer.1.html: $(srcdir)/zmailer.1
 	groff -man -Thtml $< > $@
-zmsh.1.html: zmsh.1
+zmsh.1.html: $(srcdir)/zmsh.1
 	groff -man -Thtml $< > $@
-zmailer.3.html: zmailer.3
+zmailer.3.html: $(srcdir)/zmailer.3
 	groff -man -Thtml $< > $@
-errormail.8.html: errormail.8
+errormail.8.html: $(srcdir)/errormail.8
 	groff -man -Thtml $< > $@
-hold.8.html: hold.8
+hold.8.html: $(srcdir)/hold.8
 	groff -man -Thtml $< > $@
-router.8.html: router.8
+router.8.html: $(srcdir)/router.8
 	groff -man -Thtml $< > $@
-scheduler.8.html: scheduler.8
+scheduler.8.html: $(srcdir)/scheduler.8
 	groff -man -Thtml $< > $@
-sendmail.8.html: sendmail.8
+sendmail.8.html: $(srcdir)/sendmail.8
 	groff -man -Thtml $< > $@
-sm.8.html: sm.8
+sm.8.html: $(srcdir)/sm.8
 	groff -man -Thtml $< > $@
-smtp.8.html: smtp.8
+smtp.8.html: $(srcdir)/smtp.8
 	groff -man -Thtml $< > $@
-smtpserver.8.html: smtpserver.8
+smtpserver.8.html: $(srcdir)/smtpserver.8
 	groff -man -Thtml $< > $@
-manual-expirer.8.html: manual-expirer.8
+manual-expirer.8.html: $(srcdir)/manual-expirer.8
 	groff -man -Thtml $< > $@
-expirer.8.html: expirer.8
+expirer.8.html: $(srcdir)/expirer.8
 	groff -man -Thtml $< > $@
-mprobe.8.html: mprobe.8
+mprobe.8.html: $(srcdir)/mprobe.8
 	groff -man -Thtml $< > $@
-mailbox.8.html: mailbox.8
+mailbox.8.html: $(srcdir)/mailbox.8
 	groff -man -Thtml $< > $@
-mboxpath.1.html: mboxpath.1
+mboxpath.1.html: $(srcdir)/mboxpath.1
 	groff -man -Thtml $< > $@
