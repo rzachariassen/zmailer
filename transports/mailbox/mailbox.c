@@ -1836,7 +1836,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	fstat(fdmail, &st);
 
-	fp = sfnew(NULL, NULL, 16*1024, fdmail, SF_WRITE|SF_APPEND);
+	fp = sfnew(NULL, NULL, 64*1024, fdmail, SF_READ|SF_WRITE|SF_APPEND);
 	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
@@ -2023,6 +2023,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	    goto time_reset;
 	  }
 
+if (verboselog)
+  fprintf(verboselog," end of putmail(file='%s'), topipe=%d\n",file,topipe);
+
 	if (!topipe) {
 	  /*
 	   * Ok, we are NOT writing to a pipe, and thus we can do
@@ -2039,9 +2042,13 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	   * login etc. can distinguish new mail from old.
 	   * The mtime will be set to now by the following write() calls.
 	   */
-	  sfseek(fp, (off_t)-2, SEEK_END);
+	  sfseek(fp, (Sfoff_t)-2LL, SEEK_END);
 	  len = sfread(fp, buf, 2);
-	  sfseek(fp, (off_t)0, SEEK_END);	/* to end of file, again */
+	  sfseek(fp, (Sfoff_t)0,    SEEK_END);
+	  /* to end of file, again */
+
+if (verboselog)
+  fprintf(verboselog," .. EOF read did yield %d bytes\n", len);
 
 	  if (len == 1 || len == 2) {
 	    int err;
@@ -2049,6 +2056,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	    len = (buf[len]!='\n') + (len == 1 ? buf[0]!='\n' : 1);
 	    err = (len > 0 && (sfwrite(fp, "\n\n", len) != len));
 	    sfsync(fp);
+
+if (verboselog)
+  fprintf(verboselog," .. wrote %d newlines to the end\n", len);
 
 	    if (!err) err = sferror(fp);
 	    if (err) {

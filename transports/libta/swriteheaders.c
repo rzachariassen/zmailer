@@ -61,9 +61,9 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	    if (*chunkbufp == NULL)
 	      /* Actually the SMTP has already malloced a block */
-	      *chunkbufp = malloc(hsize+linelen+newlinelen);
+	      *chunkbufp = malloc(hsize+linelen+tabsiz+newlinelen);
 	    else
-	      *chunkbufp = realloc(*chunkbufp, hsize+linelen+newlinelen);
+	      *chunkbufp = realloc(*chunkbufp, hsize+linelen+tabsiz+newlinelen);
 	    if (*chunkbufp == NULL) return -1;
 
 	    if (tabsiz) {

@@ -1,3 +1,18 @@
+1999-12-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Spotted lurking SFIO usage bug which caused
+	    missing safe buffer zone newlines at the ends
+	    of the mailbox stored messages.  At least
+	    my MUTT seem to be a happy camper even with
+	    this problem present, but perhaps not all
+	    are so good..
+
+	* transports/libta/swriteheaders.c:
+	    Missed reserving space for TAB-expansions in CHUNKING
+	    mode operation of SMTP.  Only against other ZMailers,
+	    and a few other rare systems..
+
 1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:
