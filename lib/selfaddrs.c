@@ -476,7 +476,7 @@ stashmyaddress(host)
 	int addrsiz, af, rc;
 	void *addrs[2];
 
-	if (host == NULL) return;
+	if (host == NULL || *host == 0) return;
 
 	hp = NULL;
 	if (*host != '[')
@@ -611,7 +611,7 @@ const char *host;
 	  stashmyaddress(host);
 
 	s1 = zenv;
-	while (s1) {
+	while (s1 && *s1) {
 	  s2 = strchr(s1,',');
 	  if (s2) *s2 = 0;
 	  stashmyaddress(s1);
