@@ -20,10 +20,10 @@ CFLAGS= -O $(DEFS)
 
 all:	in.rlockd
 
-in.rlockd: in.rlockd.o ../../lib/libz.a
-	$(CC) $(CFLAGS) -o $@ in.rlockd.o ../../lib/libz.a
+in.rlockd: in.rlockd.o ../../lib/libzm.a
+	$(CC) $(CFLAGS) -o $@ in.rlockd.o ../../lib/libzm.a
 
-../../lib/libz.a:
+../../lib/libzm.a:
 	cd ../../lib ; $(MAKE) $(MFLAGS)
 
 install: in.rlockd

@@ -25,7 +25,7 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(SCHEDULER_INCL) $(INCL)
 MQCFLAGS=	$(COPTS) $(CPPFLAGS) $(DEFS) $(MAILQ_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lz -lzc  -lta $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lzm -lzc  -lta $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
 #
@@ -96,9 +96,9 @@ $(TOPDIR)/libc/libzc.a-a:
 $(TOPDIR)/libc/libzc.a:
 	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libz.a:
+$(TOPDIR)/lib/libzm.a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
 
 $(TOPDIR)/libsh/libsh.a-a:

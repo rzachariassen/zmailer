@@ -24,7 +24,7 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(SMTP_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
 #
-LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln
 
@@ -71,9 +71,9 @@ $(TOPDIR)/libs/libtag:
 ../libta/libta.a:
 	cd ../libta ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libz.a:
+$(TOPDIR)/lib/libzm.a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
 
 $(TOPDIR)/libc/libzc.a-a:

@@ -23,10 +23,10 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(ERRORMAIL_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
-#LIB=		$(TOPDIR)/lib/libz.a $(TOPDIR)/libc/libzc.a ../libta/libta.a $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)
+#LIB=		$(TOPDIR)/lib/libzm.a $(TOPDIR)/libc/libzc.a ../libta/libta.a $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
-#LIBDEB=		$(TOPDIR)/lib/libz.a-a $(TOPDIR)/libc/libzc.a-a ../libta/libta.a-a $(LIBMALLOCDEB)
+#LIBDEB=		$(TOPDIR)/lib/libzm.a-a $(TOPDIR)/libc/libzc.a-a ../libta/libta.a-a $(LIBMALLOCDEB)
 LINTLIB=	../libta/llib-llibta.ln $(TOPDIR)/libc/llib-llibzc.ln
 
 $(PROGRAM)-a: $(LIBDEB) $(PROGRAM)
@@ -65,9 +65,9 @@ $(TOPDIR)/libc/libzc.a-a:
 $(TOPDIR)/libs/libzc.a:
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/libs/libz.a:
+$(TOPDIR)/libs/libzm.a:
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
 
 $(TOPDIR)/libmalloc/libmalloc_d.a:

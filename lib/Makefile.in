@@ -1,4 +1,4 @@
-LIBNAME=	libz
+LIBNAME=	libzm
 #
 # ZMailer routines destined for the system C library
 #
@@ -44,7 +44,7 @@ rfc822date-test: rfc822date-test.o rfc822date.o
 	$(CC) $(CFLAGS) -o rfc822date-test rfc822date-test.o rfc822date.o
 
 selfaddrs-test: $(srcdir)/selfaddrs.c
-	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lresolv -lz
+	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lresolv -lzm
 
 $(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
 	ar rv $@ $(OBJS)

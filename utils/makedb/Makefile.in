@@ -19,7 +19,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 
 PROGS=		makedb dblook
 SOURCE=		makedb.c dblook.c
-LIBS=		-L$(TOPDIR)/libs -lz -lzc @LIBDBMS@
+LIBS=		-L$(TOPDIR)/libs -lzm -lzc @LIBDBMS@
 
 all: $(PROGS)
 

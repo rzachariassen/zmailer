@@ -26,7 +26,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(SMTPSERVER_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lz -lzc -lident -lta $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o wantconn.o \
@@ -101,9 +101,9 @@ $(TOPDIR)/libc/libzc.a-a:
 $(TOPDIR)/libc/libzc.a:
 	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libz.a:
+$(TOPDIR)/lib/libzm.a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
 
 

@@ -23,7 +23,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(HOLD_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
-LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln
 
@@ -65,9 +65,9 @@ $(TOPDIR)/libc/libzc.a-a:
 $(TOPDIR)/libs/libzc.a:
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/libs/libz.a:
+$(TOPDIR)/libs/libzm.a:
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
 
 $(TOPDIR)/libmalloc/libmalloc_d.a-a:

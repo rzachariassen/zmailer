@@ -9,7 +9,7 @@ VPATH=          @srcdir@
 LIBRESOLVA= @LIBRESOLVA@
 LIBMALLOC=  @LIBMALLOC@
 
-all:	libident.a libzmdb.a libsh.a libta.a libz.a libzc.a	\
+all:	libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a	\
 	$(LIBRESOLVA) lib@MALLOC@.a
 
 libtag: all
@@ -35,7 +35,7 @@ libsh.a:	force
 libta.a:	force
 	cd ../transports/libta; $(MAKE) $(MFLAGS) $@
 
-libz.a:	force
+libzm.a:	force
 	cd ../lib; $(MAKE) $(MFLAGS) $@
 
 libzc.a:	force

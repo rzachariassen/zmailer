@@ -20,7 +20,7 @@ LN_S=		"@LN_S@"
 MKDIR=		@MKDIR@
 #
 INCL=   -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-LIB=    -L$(TOPDIR)/libs -lz -lzc
+LIB=    -L$(TOPDIR)/libs -lzm -lzc
 LIBDEB= $(TOPDIR)/libs/libtag
 CFLAGS= $(COPTS) $(CPPFLAGS) $(DEFS) $(RMAIL_INCL) $(INCL)
 #BIN=    /bin
@@ -97,9 +97,9 @@ $(TOPDIR)/libc/libzc.a-a:
 $(TOPDIR)/libc/libzc.a:
 	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
 
-$(TOPDIR)/lib/libz.a-a:
+$(TOPDIR)/lib/libzm.a-a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libz.a:
+$(TOPDIR)/lib/libzm.a:
 	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
 
 depend:
