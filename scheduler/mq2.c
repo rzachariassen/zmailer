@@ -599,6 +599,15 @@ static int mq2cmd_show(mq,s)
       mq2_puts_(mq, ".\n");
       return 0;
 
+    } else if (strcmp(t,"THREADS2") == 0) {
+
+      if (! (MQ2MODE_FULL & mq->auth)) /* If not allowed operation, exit! */
+	return -1;
+      mq2_puts(mq, "+OK until LF.LF\n");
+      mq2_thread_report(mq, MQ2MODE_FULL2, NULL, NULL);
+      mq2_puts_(mq, ".\n");
+      return 0;
+
     } else if (strcmp(t,"THREADS") == 0) {
 
       if (! (MQ2MODE_FULL & mq->auth)) /* If not allowed operation, exit! */

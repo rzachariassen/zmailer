@@ -1439,6 +1439,8 @@ void thread_report(fp,mqmode)
 	struct procinfo *p;
 	struct thread *thr;
 
+	int spc = (mqmode & MQ2MODE_FULL) ? ' ' : '\t';
+
 	mytime(&now);
 
 #if 0
@@ -1494,7 +1496,13 @@ void thread_report(fp,mqmode)
 	      }
 	    }
 
-	    if (mqmode & MQ2MODE_FULL) {
+	    if (mqmode & MQ2MODE_FULL2) {
+	      width = sfprintf(fp,"%s\t%s\t",
+			       /* thr->thvertices->orig[L_CHANNEL]->name */
+			       thr->channel,
+			       /* thr->thvertices->orig[L_HOST]->name */
+			       thr->host);
+	    } else if (mqmode & MQ2MODE_FULL) {
 	      width = sfprintf(fp,"    %s/%s/%d",
 			       /* thr->thvertices->orig[L_CHANNEL]->name */
 			       thr->channel,
@@ -1519,6 +1527,8 @@ void thread_report(fp,mqmode)
 
 	    if (mqmode & MQ2MODE_FULL)
 	      sfprintf(fp,"R=%-3d A=%-2d", thr->jobs, thr->attempts);
+	    if (mqmode & MQ2MODE_FULL2)
+	      sfprintf(fp,"R=%d\tA=%d", thr->jobs, thr->attempts);
 
 	    ++cnt;
 	    if (thr->proc != NULL &&
@@ -1533,13 +1543,13 @@ void thread_report(fp,mqmode)
 		++thrkidsum;
 	      }
 
-	      if (mqmode & MQ2MODE_FULL) {
+	      if (mqmode & (MQ2MODE_FULL|MQ2MODE_FULL2)) {
 		proc = thr->proc;
 
 		if (thr->thrkids != thrprocs)
-		  sfprintf(fp, " Kids=%d/%d", thr->thrkids, thrprocs);
+		  sfprintf(fp, "%cKids=%d/%d", spc, thr->thrkids, thrprocs);
 
-		sfprintf(fp, " P={");
+		sfprintf(fp, "%cP={", spc);
 		while (proc) {
 		  sfprintf(fp, "%d", (int)proc->pid);
 		  if (proc->pnext) sfprintf(fp, ",");
@@ -1548,7 +1558,7 @@ void thread_report(fp,mqmode)
 		sfprintf(fp, "}");
 
 		proc = thr->proc;
-		sfprintf(fp, " HA={");
+		sfprintf(fp, "%cHA={", spc);
 		while (proc) {
 		  sfprintf(fp, "%d", (int)(now - proc->hungertime));
 		  if (proc->pnext) sfprintf(fp, ",");
@@ -1557,7 +1567,7 @@ void thread_report(fp,mqmode)
 		sfprintf(fp, "}s");
 
 		proc = thr->proc;
-		sfprintf(fp, " FA={");
+		sfprintf(fp, "%cFA={", spc);
 		while (proc) {
 		  if (proc->feedtime == 0)
 		    sfprintf(fp, "never");
@@ -1569,7 +1579,7 @@ void thread_report(fp,mqmode)
 		sfprintf(fp, "}s");
 
 		proc = thr->proc;
-		sfprintf(fp, " OF={");
+		sfprintf(fp, "%cOF={", spc);
 		while (proc) {
 		  sfprintf(fp, "%d", proc->overfed);
 		  if (proc->pnext) sfprintf(fp, ",");
@@ -1578,7 +1588,7 @@ void thread_report(fp,mqmode)
 		sfprintf(fp, "}");
 
 		proc = thr->proc;
-		sfprintf(fp, " S={");
+		sfprintf(fp, "%cS={", spc);
 		while (proc) {
 		  sfprintf(fp, "%s", proc_state_names[proc->state]);
 		  if (proc->pnext) sfprintf(fp, ",");
@@ -1586,26 +1596,26 @@ void thread_report(fp,mqmode)
 		}
 		sfprintf(fp, "}");
 
-		sfprintf(fp, " UF=%d", thr->unfed);
+		sfprintf(fp, "%cUF=%d", spc, thr->unfed);
 	      }
 
 	    } else if (thr->wakeup > now) {
-	      if (mqmode & MQ2MODE_FULL) {
-		sfprintf(fp," W=%ds",(int)(thr->wakeup - now));
+	      if (mqmode & (MQ2MODE_FULL|MQ2MODE_FULL2)) {
+		sfprintf(fp,"%cW=%ds", spc, (int)(thr->wakeup - now));
 	      }
 	    } else if (thr->pending) {
-	      if (mqmode & MQ2MODE_FULL) {
-		sfprintf(fp," pend=%s", thr->pending);
+	      if (mqmode & (MQ2MODE_FULL|MQ2MODE_FULL2)) {
+		sfprintf(fp,"%cpend=%s", spc, thr->pending);
 	      }
 	    }
 
-	    if (mqmode & MQ2MODE_FULL) {
+	    if (mqmode & (MQ2MODE_FULL|MQ2MODE_FULL2)) {
 	      *timebuf = 0;
 	      saytime((long)oldest_age_on_thread(thr), timebuf, 1);
-	      sfprintf(fp, " QA=%s", timebuf);
+	      sfprintf(fp, "%cQA=%s", spc, timebuf);
 
 	      if (thr->thvertices && thr->thvertices->ce_pending)
-		if (thr->thvertices->ce_pending != SIZE_L)
+		if (thr->thvertices->ce_pending != SIZE_L && spc == ' ')
 		  sfprintf(fp, "%s",
 			   (thr->thvertices->ce_pending ==
 			    L_CHANNEL ? " channelwait" : " threadwait"));
@@ -1722,7 +1732,7 @@ void thread_detail_report(fp,mqmode,channel,host)
 	      else
 		sfprintf(fp, "%s", cfp->mid);
 	      /* Sender index -- or sender address */
-	      sfprintf(fp, "\t<%s>", cfp->erroraddr);
+	      sfprintf(fp, "\t%s", cfp->erroraddr);
 	      /* Recipient offset */
 	      sfprintf(fp,"\t%d", cfp->offset[vp->index[i]]);
 	      /* Expiry stamp */

@@ -419,6 +419,87 @@ main(argc, argv)
 	return 0;
 }
 
+
+/* Lifted from BIND res/res_debug.c */
+/*
+ * Return a mnemonic for a time to live
+ */
+char *
+saytime(value, buf, shortform)
+	long value;
+	char *buf;
+	int shortform;
+{
+	int secs, mins, hours, fields = 0;
+	register char *p;
+
+	p = buf;
+
+	while (*p) ++p;
+	if (value < 0) {
+	  *p++ = '-'; *p = 0;
+	  value = -value;
+	}
+
+	if (value == 0) {
+	  if (shortform)
+	    strcpy(p,"0s");
+	  else
+	    strcpy(p,"0 sec");
+	  return buf;
+	}
+
+	secs = value % 60;
+	value /= 60;
+	mins = value % 60;
+	value /= 60;
+	hours = value % 24;
+	value /= 24;
+
+#define	PLURALIZE(x)	x, (x == 1) ? "" : "s"
+	if (value) {
+	  if (shortform)
+	    sprintf(p, "%ldd", value);
+	  else
+	    sprintf(p, "%ld day%s", PLURALIZE(value));
+	  ++fields;
+	  while (*++p);
+	}
+	if (hours) {
+	  if (shortform)
+	    sprintf(p, "%dh", hours);
+	  else {
+	    if (value && p != buf)
+	      *p++ = ' ';
+	    sprintf(p, "%d hour%s", PLURALIZE(hours));
+	  }
+	  ++fields;
+	  while (*++p);
+	}
+	if (mins && fields < 2) {
+	  if (shortform)
+	    sprintf(p, "%dm", mins);
+	  else {
+	    if ((hours || value) && p != buf)
+	      *p++ = ' ';
+	    sprintf(p, "%d min%s", PLURALIZE(mins));
+	  }
+	  while (*++p);
+	}
+	if (secs && fields < 2) {
+	  if (shortform)
+	    sprintf(p, "%ds", secs);
+	  else {
+	    if ((mins || hours || value) && p != buf)
+	      *p++ = ' ';
+	    sprintf(p, "%d sec%s", PLURALIZE(secs));
+	  }
+	  while (*++p);
+	}
+	*p = '\0';
+	return buf;
+}
+
 void
 docat(file, fd)
 	const char *file;
@@ -1130,7 +1211,142 @@ void query2(fpi, fpo)
 
 	  }
 	} else {
-	  fprintf(stdout,"Sorry, scheduler with protocol version 2 can't give results without -Q option\n");
+
+	  /* Non -Q* -mode processing */
+
+	  int linespace = 256;
+	  int linecnt = 0;
+	  char **lines = malloc(sizeof(char *) * linespace);
+
+	  fprintf(fpo, "SHOW QUEUE THREADS2\n");
+	  fflush(fpo);
+
+	  bufsize = 0;
+	  if (GETLINE(buf, bufsize, bufspace, fpi))
+	    return;
+
+	  if (*buf != '+') {
+	    fprintf(stdout,"Scheduler response: '%s'\n",buf);
+	    return;
+	  }
+
+	  for (;;) {
+	    char *b;
+	    bufsize = 0;
+	    if (GETLINE(buf, bufsize, bufspace, fpi))
+	      break;
+	    if (buf[0] == '.' && buf[1] == 0)
+	      break;
+
+	    if (linecnt >= linespace) {
+	      linespace *= 2;
+	      lines = (char **)realloc((void**)lines,
+				       sizeof(char *) * linespace);
+	    }
+
+	    /* Do leading dot duplication suppression */
+	    b = buf;
+	    if (*b == '.') {
+	      --bufsize;
+	      ++b;
+	    }
+
+	    lines[linecnt] = malloc(bufsize+2);
+	    memcpy(lines[linecnt], b, bufsize+1);
+	    lines[++linecnt] = NULL;
+
+	    fprintf(stdout,"%s\n", b);
+	  }
+
+	  for (i = 0; lines[i] != NULL; ++i) {
+	    char *channel = lines[i];
+	    char *host    = strchr(channel, '\t');
+	    char *rest    = "";
+	    char *b;
+
+	    if (host) {
+	      *host++ = 0;
+	      rest = strchr(host,'\t');
+	      if (rest) *rest++ = 0;
+	    } else host = "";
+
+	    fprintf(fpo, "SHOW THREAD %s %s\n",channel,host);
+	    fflush(fpo);
+
+	    bufsize = 0;
+	    if (GETLINE(buf, bufsize, bufspace, fpi))
+	      return;
+
+	    if (*buf != '+') {
+	      fprintf(stdout,"Scheduler response: '%s'\n",buf);
+	      return;
+	    }
+
+
+	    printf("%s/%s:\n",channel, host);
+
+	    for (;;) {
+	      int j;
+	      char *split[10];
+	      char timebuf[30];
+	      bufsize = 0;
+	      if (GETLINE(buf, bufsize, bufspace, fpi))
+		break;
+	      if (buf[0] == '.' && buf[1] == 0)
+		break;
+
+	      /* Do leading dot duplication suppression */
+	      b = buf;
+	      if (*b == '.') {
+		--bufsize;
+		++b;
+	      }
+
+	      /* Array elts:
+		 0) filepath under $POSTOFFICE/transport/
+		 1) error address in brackets
+		 2) recipient line offset within the control file
+		 3) message expiry time (time_t)
+		 4) next wakeup time (time_t)
+		 5) last feed time (time_t)
+		 6) count of attempts at the delivery
+		 7) "retry in NNN" or a pending on "channel"/"thread"
+		 8) possible diagnostic message from previous delivery attempt
+	      */
+
+	      for (j = 0; b && j < 9; ++j) {
+		split[j] = b;
+		b = strchr(b ? b : "", '\t');
+		if (b) *b++ = 0;
+	      }
+	      
+	      if (j != 9) {
+		fprintf(stderr,"Communication error! Malformed data entry!\n");
+		continue;
+	      }
+
+	      printf("\t%s: (", split[0]);
+
+	      *timebuf = 0;
+	      saytime((long)(atol(split[3]) - now), timebuf, 1);
+
+	      printf("%s tries, expires in %s", split[6], timebuf);
+
+	      printf(") %s\n", split[8]);
+
+	      if (verbose) {
+		/* XXX: Pick message file control data to present old-style
+		   verbose report */
+		/* XXX: printf("\t  id\t%s", ... );
+		   XXX: printf("...\n"); */
+		printf("\t  from\t%s\n", *split[1] ? split[1] : "<>");
+		/* XXX: TO line ... */
+	      }
+
+	    }
+
+	  }
+
 	}
 }
 
