@@ -423,6 +423,8 @@ ta_hungry(proc)
 
 	feed_error_handler:
 
+	  proc->state = CFSTATE_ERROR;
+
 	  /* We shut-down the child feed pipe */
 	  pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
@@ -812,13 +814,6 @@ if (verbose)
 	    proc->pthread->proc = NULL;
 	    proc->pthread       = NULL;
 	  }
-	  /* If e.g. RESCHEDULE has not destroyed this thread-group.. */
-	  if (proc->thg) {
-	    proc->thg->transporters -= 1;
-	    /* It may go down to zero and be deleted.. */
-	    delete_threadgroup(proc->thg);
-	    proc->thg    = NULL;
-	  }
 	} else {
 	  /* Maybe we were in idle chain! */
 	  struct procinfo *p, **pp;
@@ -845,11 +840,13 @@ if (verbose)
 	      proc->pthread = NULL;
 	    }
 	  }
-
-	  /* If e.g. RESCHEDULE has not destroyed this thread-group.. */
+	}
+	/* If e.g. RESCHEDULE has not destroyed this thread-group.. */
+	if (proc->thg) {
 	  proc->thg->transporters -= 1;
-	  /* It may go down to zero and be deleted... */
+	  /* It may go down to zero and be deleted.. */
 	  delete_threadgroup(proc->thg);
+	  proc->thg    = NULL;
 	}
 	--numkids;
 	proc->thg    = NULL;
@@ -1509,7 +1506,7 @@ int signum;
 		cpids[i].waitstat = statloc;
 		ok = 0;
 		if (WSIGNALSTATUS(statloc) == 0 &&
-		    WEXITSTATUS(statloc) == EX_SOFTWARE) {
+		    WEXITSTATUS(statloc)   == EX_SOFTWARE) {
 		  zsyslog((LOG_EMERG, "Transporter process %d exited with EX_SOFTWARE!", pid));
 		  sfprintf(sfstderr, "Transporter process %d exited with EX_SOFTWARE; cmdline='%s'\n", pid, cpids[i].cmdline);
 		}
