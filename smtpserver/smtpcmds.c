@@ -603,8 +603,7 @@ int insecure;
     if (SS->policyresult < 0) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (ss != NULL) {
-	type(SS,-453, m471, "Policy analysis reported:");
-	type(SS, 453, m471, "%s", ss);
+	type(SS, 453, m471, "Policy analysis reported: %s", ss);
       } else if (SS->policyresult < -99) {
 	if (SS->policyresult < -103) { /* -104 */
 	  if (!multilinereplies) {
@@ -637,8 +636,7 @@ int insecure;
       } else {
 	char *ss = policymsg(policydb, &SS->policystate);
 	if (ss != NULL) {
-	  type(SS,-553, m571, "Policy analysis reported:");
-	  type(SS, 553, m571, "%s", ss);
+	  type(SS, 553, m571, "Policy analysis reported: %s", ss);
 	} else if (SS->policyresult < -1) {
 	  if (!multilinereplies) {
 	    type(SS,553,m543,"Policy analysis reports DNS error with your source domain.");
@@ -1070,8 +1068,7 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
-	    type(SS,-453, m471, "Policy analysis reported:");
-	    type(SS, 453, m471, "%s", ss);
+	    type(SS, 453, m471, "Policy analysis reported: %s", ss);
 	  } else if (SS->policyresult < -103) { /* -104 */
 	    if (!multilinereplies)
 	      type(SS, 453, m443, "Policy analysis reports temporary DNS error with the target domain.");
@@ -1108,8 +1105,7 @@ const char *buf, *cp;
 	  }
 	} else {
 	  if (ss != NULL) {
-	    type(SS,-553, m571, "Policy analysis reported:");
-	    type(SS, 553, m571, "%s", s);
+	    type(SS, 553, m571, "Policy analysis reported: %s", ss);
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    if (!multilinereplies)
