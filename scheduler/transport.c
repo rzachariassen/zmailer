@@ -1981,7 +1981,7 @@ int signum;
 	  pid = waitpid(-1, &statloc, WNOHANG);
 #else
 #ifdef  HAVE_WAIT4
-	  pid = wait4(-1, &statloc, WNOHANG, NULL);
+	  pid = wait4(0, &statloc, WNOHANG, NULL);
 #else
 #ifdef  HAVE_WAIT3
 	  pid = wait3(&statloc, WNOHANG, NULL);

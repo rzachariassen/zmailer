@@ -1730,7 +1730,7 @@ int sig;
     while ((lpid = waitpid(-1, &status, WNOHANG)) > 0)
 #else
 #ifdef	HAVE_WAIT4
-    while ((lpid = wait4(-1, &status, WNOHANG, (struct rusage *) NULL)) > 0)
+    while ((lpid = wait4(0, &status, WNOHANG, (struct rusage *) NULL)) > 0)
 #else
 #ifdef	HAVE_WAIT3
     while ((lpid = wait3(&status, WNOHANG, (struct rusage *) NULL)) > 0)
