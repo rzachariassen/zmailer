@@ -386,6 +386,10 @@ count_btree(sip, outfp)
 #else
 	db = open_btree(sip, O_RDONLY, "count_btree");
 	if (db != NULL) {
+
+	  memset(&val, 0, sizeof(val));
+	  memset(&key, 0, sizeof(key));
+
 	  rc = (db->seq)(db, &key, &val, R_FIRST);
 	  while (rc == 0) {
 	    if (val.data == NULL) /* ???? When this would happen ? */

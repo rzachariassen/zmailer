@@ -234,8 +234,10 @@ print_gdbm(sip, outfp)
 
 	for (key = gdbm_firstkey(db); key.dptr != NULL; nextkey = gdbm_nextkey(db, key)) {
 		val = gdbm_fetch(db, key);
-		if (val.dptr == NULL)
+		if (val.dptr == NULL) {
+			key = nextkey;
 			continue;
+		}
 		if (gdbm_errno)
 			break;
 		if (val.dptr == NULL || *val.dptr == '\0')
