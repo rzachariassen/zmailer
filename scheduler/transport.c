@@ -641,7 +641,6 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->ho     = howp;
 	proc->pvertex = vhead;
 	proc->pthread = vhead->thread;
-	proc->pthread->proc = proc;
 	proc->thg    = vhead->thread->thgrp;
 	proc->thg->transporters += 1;
 	++numkids;
@@ -649,18 +648,20 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	if (howp != NULL) howp->kids += 1;
 	proc->tofd   = tofd;
 	vhead->proc  = proc;
+	proc->pthread->proc = proc;
+
 	mytime(&proc->hungertime); /* Actually it is not yet 'hungry' as
 				      per reporting so, but we store the
 				      time-stamp anyway */
 
-	cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
+	cmdbufalloc(200, &proc->cmdbuf,  &proc->cmdspc);
 	cmdbufalloc(200, &proc->cmdline, &proc->cmdlspc);
 
 	fd_nonblockingmode(fromfd);
 	if (fromfd != tofd)
 	  fd_nonblockingmode(tofd);
 
-	/* Costruct a faximille of the argv[] in a single string.
+	/* Construct a faximille of the argv[] in a single string.
 	   This is entirely for debug porposes in some rare cases
 	   where transport subprocess returns EX_SOFTWARE, and we
 	   send out LOG_EMERG alerts thru syslog.  */
