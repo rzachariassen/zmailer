@@ -1755,12 +1755,10 @@ int insecure;
 
 	for (cp = buf; isascii(*cp) && isalnum(*cp); ++cp)
 	    continue;
-	if (cp > buf + 8) {	/* "DEBUG" is longest of them.. */
-	    smtp_tarpit(SS);
-	    type(SS, 550, m552, "Syntax error");
-	    typeflush(SS);
-	    continue;
-	}
+
+	if (cp > buf + 8)	/* "DEBUG" is longest of them.. */
+	  goto unknown_command;
+
 	c = *cp;
 	if (c != '\0')
 	    *cp = '\0';
