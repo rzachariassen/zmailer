@@ -2141,10 +2141,10 @@ smtpconn(SS, host, noMX)
 	    r = getaddrinfo(host, "smtp", &req, &ai);
 #else
 	    r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
-
+#endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
-#endif
+
 #if defined(AF_INET6) && defined(INET6)
 	    if (use_ipv6) {
 	      struct addrinfo *ai2 = NULL, *a;
@@ -2162,11 +2162,11 @@ smtpconn(SS, host, noMX)
 	      i2 = getaddrinfo(host, "0", &req, &ai2);
 #else
 	      i2 = _getaddrinfo_(host, "0", &req, &ai2, SS->verboselog);
+#endif
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,
 			"  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
 			host,i2,ai2);
-#endif
 
 	      if (r != 0 && i2 == 0) {
 		/* IPv6 address, no IPv4 (or error..) */
