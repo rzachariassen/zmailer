@@ -708,9 +708,6 @@ int strict;
     }
     if (*p == '[') {
 	q = rfc821_dotnum(p + 1, strict);
-#if 0
- printf("    dotnum: p='%s', q='%s'\n",p,q); 
-#endif
 	if (q == p + 1)
 	    return s;
 	if (*q != ']') {

@@ -147,7 +147,7 @@ appendlet(SS, dp, convertmode)
 	  lastwasnl = 0;
 	  for (;;) {
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    i = cfgets(let_buffer, sizeof(let_buffer), mfp);
+	    i = csfgets(let_buffer, sizeof(let_buffer), mfp);
 	    if (i < 0)
 	      break;
 	    /* It MAY be malformed -- if it has a ZBUFSIZ*8 length

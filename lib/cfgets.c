@@ -19,7 +19,7 @@
 #include "libz.h"
 
 
-int cfgets(s, n, stream)
+int csfgets(s, n, stream)
 	char *s;
 	int n;
 	Sfio_t *stream;

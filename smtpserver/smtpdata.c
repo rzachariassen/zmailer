@@ -177,18 +177,29 @@ const char *buf, *cp;
 
 	/* Lets see what the content-policy will tell now ? */
 	char *fname = mail_fname(SS->mfp);
+	char *ss0, *ss;
+	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
+	ss  = policymsg(policydb, &SS->policystate);
+	ss0 = "";
+	if (!('0' <= *ss && *ss <= '9')) {
+	  /* The message is not starting with a number */
+	  ss0 = NULL;
+	}
+
 	if (SS->policyresult < 0) {
-	  char *ss = policymsg(policydb, &SS->policystate);
 	  type(NULL,0,NULL,
 	       "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
-	  type(SS, -552,m571, "Content-Policy analysis rejected this message");
-	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
-	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
-	    type(SS, -552,m571, "Content-Policy analysis rejected this message");
-	    type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
-	  }
+
+	  if (!ss0 && ss)
+	    ss0 = "552 5.7.1 ";
+	  if (!ss0) ss0 = "";
+
+	  Z_printf(SS, "%s%s\r\n", ss0, ss ? ss : "552 5.7.1 Content-Policy-analysis rejected this message");
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	    Z_printf(SS, "%s%s\r\n", ss0, ss ? ss : "552 5.7.1 Content-Policy-analysis rejected this message");
+
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
@@ -214,9 +225,18 @@ const char *buf, *cp;
 	    static int freezecnt = 1;
 	    freezecnt <<= 1;
 	    sleep(freezecnt);
-	    type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
-	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+
+	    if (!ss) {
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
+	    } else {
+	      if (!ss0) ss0 = "250 2.6.0 ";
+	      Z_printf(SS, "%s%s\r\n", ss0, ss);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		Z_printf(SS, "%s%s\r\n", ss0, ss);
+	    }
+
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
@@ -243,9 +263,16 @@ const char *buf, *cp;
 	    taspoolid(taspid, mtime, (long)ino);
 
 	    SS->mfp = NULL;
-	    type(SS, 250, "2.6.0", "%s message accepted", taspid);
-	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	    if (!ss || *ss == 0) {
 	      type(SS, 250, "2.6.0", "%s message accepted", taspid);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		type(SS, 250, "2.6.0", "%s message accepted", taspid);
+	    } else {
+	      if (!ss0) ss0 = "250 2.6.0 ";
+	      Z_printf(SS, "%s%s\r\n", ss0, ss);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		Z_printf(SS, "%s%s\r\n", ss0, ss);
+	    }
 	    typeflush(SS);
 
 	    if (smtp_syslog)
@@ -420,6 +447,7 @@ const char *buf, *cp;
 
 	/* Lets see what the content-policy will tell now ? */
 	char *fname = mail_fname(SS->mfp);
+	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {

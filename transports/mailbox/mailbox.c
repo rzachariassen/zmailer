@@ -2431,7 +2431,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	/* read any messages from its stdout/err on in[0] */
 	/* ... having forked and set up the pipe, we quickly continue */
 	buf[sizeof(buf)-100] = 0; /* Chop it just to make sure */
-	if (cfgets(buf, (sizeof buf) - 100, errfp) < 0)
+	if (csfgets(buf, (sizeof buf) - 100, errfp) < 0)
 		buf[0] = '\0';
 	else if ((cp = strchr(buf, '\n')) != NULL)
 		*cp = '\0';
@@ -2900,7 +2900,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  /* We really can't use the 'let_buffer' cache here */
 	  readalready = 0;
 	  i = 0;
-	  while ((i = cfgets(let_buffer, sizeof(let_buffer), mfp)) != EOF) {
+	  while ((i = csfgets(let_buffer, sizeof(let_buffer), mfp)) != EOF) {
 	    /* It MAY be malformed -- if it has a BUFSIZ length
 	       line in it, IT CAN'T BE MIME  :-/		*/
 	    if (i == sizeof(let_buffer) &&
@@ -3486,7 +3486,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	if (efp != NULL) {
 	  int inhdr = 1;
 	  buf[sizeof(buf)-1] = 0;
-	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
+	  while (csfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
 	      sfprintf(mfp, "%s", buf+4);
 	    } else if (strncmp(buf,"SUB",3)==0) {

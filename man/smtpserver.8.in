@@ -1,12 +1,12 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "12 Oct 2000"
+.TH SMTPSERVER 8 "13 Oct 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
 .B smtpserver
 [
-.B \-46aignBVvw
+.B \-46aBigntVvw
 ]
 [
 .B \-p
@@ -180,6 +180,10 @@ in the supplied IP address
 .B must
 be present, otherwise illegal syntax will be reported.
 (Using RFC 821 address literal parser here.)
+.IP \-t
+Set when running smtpserver under e.g. inetd, and using service port
+number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
+before ``STARTTLS'' protocol verb.)
 .IP \-V
 prints a version message and exits.
 .SH CONFIGURATION
@@ -191,7 +195,10 @@ allow server start-time parametrization of several things, including:
 .nf
 .I \-\ help-texts
 .I \-\ acceptance/rejection\ database\ definitions
+.I \-\ various\ feature\ parametrizations
 .fi
+On PARAM lines the system allows $-expansions of ZENV variables.
+(Special note: '$$' expands as '$', not shell-style process-id number!)
 .IP The\ style\ (\fI\-s\fR)\ option
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
@@ -363,13 +370,14 @@ See the comments at the sample
 file.
 
 
-.IP PARAM\ contentfilter\ @MAILBIN@/smtp-contentfilter
+.IP PARAM\ contentfilter\ $MAILBIN/smtp-contentfilter
 An external program for received message content analysis.
 
-The interface to the program is simple, smtpserver writes relative
-filepath of the programs stdin, ending it with a newline.
-The reply begins with a signed integer, then if an additional message
-follows, a space separates the integer from the message.
+The interface to the program is simple synchronous half-duplex one,
+smtpserver writes relative filepath of the message into programs stdin,
+ending it with a newline.
+The filter programs reply must begin with a signed integer, then whatever
+text is desired to give to the user.
 
 .IP PARAM\ tarpit\ n1\ n2
 This defines a pre-reply slow-down factor, and next delay multiplier
@@ -507,10 +515,10 @@ PARAM help ------------------------------------------------------
 # The policy database:
 # (NOTE: See `makedb' for its default suffixes!)
 #
-PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #
 # External program for received message content analysis:
-#PARAM  contentfilter  @MAILBIN@/smtp-content-policy-analysis
+#PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
 
 #PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
 #PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)
@@ -523,9 +531,10 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 # http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 #
 #PARAM  use-tls
-#PARAM  tls-CAfile      /opt/mail/db/smtpserver-CAcert.pem
-#PARAM  tls-cert-file   /opt/mail/db/smtpserver-cert.pem
-#PARAM  tls-key-file    /opt/mail/db/smtpserver-key.pem
+##PARAM listen-ssmtp    # A deprecated TCP/465 port listener for SSL/SMTP
+#PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
+#PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
+#PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem
 #  # Then some futher thoughs that may materialize some time..
 #PARAM tls-loglevel     0
 #PARAM tls-ccert-vd     0
@@ -571,6 +580,47 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 *                   999 veR
 .fi
 .sp
+.SH CONTENTFILTER INTERFACE
+The
+.I contentfilter
+program is started without parameters running userid of
+.IR daemon 
+in directory $POSTOFFICE.
+.PP
+The program must silently wait for input, which is full path to
+the message spool file, analyze it, and reply with exactly one
+line matching rule of: "%i " -- begin with signed integer, then
+have one or more whitespace, then whatever filter writer liked.
+.PP
+General rule:
+.nf
+\fC
+ -1 negatives are condemned into rejection
+  0 zero is ok! gladly accepted
+  1 positives are sent into the freezer
+.fi
+.PP
+The program
+.I may
+produce also the numeric SMTP reply codes in its response text:
+.nf
+\fC
+ -1
+ -1 250 2.7.1 Glad to see some spam, immediately destroyed :)
+  0
+  0 250 2.6.0 Message OK!
+  1
+  1 550 5.7.1 That is spam, rejected!
+.fi
+.PP
+If the message has no text, some defaults are supplied.
+If the message text starts 
+.PP
+Interface message text lines beginning with anything except signed integer
+are logged, and the communication channel from the smtpserver to the
+contentfilter program is closed.  Interface continues to scan things
+reported by the contentfilter program, and if no properly formatted line
+appears, default is to send the message into the freezer ("-1");
 .SH PAM-SUPPORT FOR SMTP-AUTH
 If the system has <security/pam_appl.h> file, following file will also
 be needed for the system:

@@ -208,7 +208,7 @@ cf:	FRC  $(MD5SUM)
 clean:	FRC
 	rm -f ./+* *~
 distclean: clean
-	rm -f Makefile sm.conf smtpserver.conf zmailer.sh \
+	rm -f Makefile sm.conf zmailer.sh \
 		newfqdnaliases newaliases newdb mailrm.sh \
 		scheduler.conf post-install.sh smtp-tls.conf
 depend:

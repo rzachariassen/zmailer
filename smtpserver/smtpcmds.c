@@ -162,6 +162,7 @@ const char *buf, *cp;
     else
       while (*cp == ' ' || *cp == '\t') ++cp;
 
+    if (debug) typeflush(SS);
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_HELONAME, cp, strlen(cp),
 				  SS->authuser);
@@ -726,6 +727,7 @@ int insecure;
 
     RFC821_822QUOTE(cp, newcp, addrlen);
 
+    if (debug) typeflush(SS);
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_MAILFROM, cp, addrlen,
 				  SS->authuser);
@@ -1291,6 +1293,7 @@ const char *buf, *cp;
 
     RFC821_822QUOTE(cp, newcp, addrlen);
 
+    if (debug) typeflush(SS);
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_RCPTTO, cp, addrlen,
 				  SS->authuser);
@@ -1311,9 +1314,11 @@ const char *buf, *cp;
 	  SS->policyresult = 0; /* Plain <postmaster> */
 	else
 	  if (policydb != NULL && SS->policyresult > -100) {
-	    int rc = policytest(policydb, &SS->policystate,
-				POLICY_RCPTPOSTMASTER, cp, addrlen,
-				SS->authuser);
+	    int rc;
+	    if (debug) typeflush(SS);
+	    rc = policytest(policydb, &SS->policystate,
+			    POLICY_RCPTPOSTMASTER, cp, addrlen,
+			    SS->authuser);
 	    if (rc == 0)
 	      SS->policyresult = 0;
 

@@ -214,15 +214,17 @@ int pipeliningok = 1;
 int chunkingok = 1;
 int enhancedstatusok = 1;
 int multilinereplies = 1;
-int enable_router = 0; /* Off by default -- security */
+int enable_router = 0;		/* Off by default -- security */
 int mime8bitok = 1;
 int dsn_ok = 1;
 int auth_ok = 0;
 int ehlo_ok = 1;
 int etrn_ok = 1;
 int starttls_ok = 0;
+int ssmtp_listen = 0;	   /* Listen on port TCP/465; deprecated SMTP in TLS */
+int ssmtp_connected = 0;
 int msa_mode = 0;
-int deliverby_ok = -1; /* FIXME: RFC 2852 */
+int deliverby_ok = -1;		/* FIXME: RFC 2852 */
 etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
 char *tls_cert_file = NULL;
 char *tls_key_file  = NULL;
@@ -349,7 +351,7 @@ int main(argc, argv)
 int argc;
 char **argv;
 {
-    int inetd, errflg, raddrlen, s, msgfd, version, i;
+    int inetd, errflg, raddrlen, s25, ssmtp, msgfd, version, i;
     const char *mailshare;
     char path[1024];
     int force_ipv4 = 0;
@@ -408,15 +410,15 @@ char **argv;
 #ifndef __STDC__
 #if defined(AF_INET6) && defined(INET6)
 #ifdef USE_TRANSLATION
-		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:T:VvwX8"
+		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwX8"
 #else /* xlate */
-		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:T:Vvw"
+		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:Vvw"
 #endif /* xlate */
 #else /* INET6 */
 #ifdef USE_TRANSLATION
-		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:T:VvwX8"
+		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwX8"
 #else
-		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:T:Vvw"
+		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:Vvw"
 #endif /* xlate */
 #endif /* INET6 */
 #else /* __STDC__ */
@@ -426,7 +428,7 @@ char **argv;
 		       "6"
 #endif
 		       "aBC:d:ighl:n"
-		       "p:"
+		       "p:t"
 		       "I:L:M:P:R:s:S:T:Vvw"
 #ifdef USE_TRANSLATION
 		       "X8"
@@ -518,6 +520,11 @@ char **argv;
 		logstyle = 2;
 	    else if (CISTREQ(optarg, "local"))
 		logstyle = 1;
+	    break;
+	case 't':
+	    ssmtp_connected = 1; /* If this connection should immediately
+				    start the TLS negotiaion before SMTP
+				    greeting -- and only then do SMTP greet. */
 	    break;
 	case 'T':
 	  /* Enter in interactive mode claimed foreign source IPv4/IPv6
@@ -792,6 +799,8 @@ char **argv;
 	  fflush(stdout);
 	  fflush(stderr);
 	}
+
+	ssmtp = -1;
 #if defined(AF_INET6) && defined(INET6)
 
 	/* Perhaps the system can grok the IPv6 - at least the headers
@@ -800,41 +809,64 @@ char **argv;
 	   If we are not explicitely told to use IPv6 only, we will try
 	   here to use IPv6, and if successfull, register it!  */
 	if (!use_ipv6 && !force_ipv4) {
-	  s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-	  if (s >= 0) {
+	  s25 = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  if (s25 >= 0) {
 	    use_ipv6 = 1;	/* We can do it! */
-	    close(s);
+	    close(s25);
 	  }
 	}
 	if (force_ipv4) {
-	  s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  s25 = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 	  use_ipv6 = 0;
 	} else if (use_ipv6) {
-	  s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-	  if (s < 0) {	/* Fallback to the IPv4 mode .. */
-	    s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  s25 = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  if (s25 < 0) {	/* Fallback to the IPv4 mode .. */
+	    s25 = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 	    use_ipv6 = 0;
 	  }
 	} else
-	  s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  s25 = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+
+	if (ssmtp_listen)
+	  ssmtp = socket(use_ipv6 ? PF_INET6 : PF_INET, SOCK_STREAM, 0 );
 #else
-	s = socket(PF_INET, SOCK_STREAM, 0);
+	s25 = socket(PF_INET, SOCK_STREAM, 0);
+	if (ssmtp_listen)
+	  ssmtp = socket(PF_INET, SOCK_STREAM, 0 );
 #endif
-	if (s < 0) {
+	if (s25 < 0) {
+	  fprintf(stderr,
+		  "%s: socket(PF_INET%s, SOCK_STREAM): %s\n",
+		  progname, (use_ipv6 ? "6" : ""), strerror(errno));
+	  exit(1);
+	}
+	if (ssmtp_listen && ssmtp < 0) {
 	  fprintf(stderr,
 		  "%s: socket(PF_INET%s, SOCK_STREAM): %s\n",
 		  progname, (use_ipv6 ? "6" : ""), strerror(errno));
 	  exit(1);
 	}
 	i = 1;
-	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (caddr_t) & i, sizeof i) < 0) {
+	if (setsockopt(s25, SOL_SOCKET, SO_REUSEADDR, (caddr_t) & i, sizeof i) < 0) {
+	  fprintf(stderr,
+		  "%s: setsockopt(SO_REUSEADDR): %s\n",
+		  progname, strerror(errno));
+	  exit(1);
+	}
+	if (ssmtp >= 0 && setsockopt(ssmtp, SOL_SOCKET, SO_REUSEADDR, (caddr_t) & i, sizeof i) < 0) {
 	  fprintf(stderr,
 		  "%s: setsockopt(SO_REUSEADDR): %s\n",
 		  progname, strerror(errno));
 	  exit(1);
 	}
 #ifdef SO_REUSEPORT
-	if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, (caddr_t) & i, sizeof i) < 0) {
+	if (setsockopt(s25, SOL_SOCKET, SO_REUSEPORT, (caddr_t) & i, sizeof i) < 0) {
+	  fprintf(stderr,
+		  "%s: setsockopt(SO_REUSEPORT): %s\n",
+		  progname, strerror(errno));
+	  exit(1);
+	}
+	if (ssmtp >= 0 && setsockopt(ssmtp, SOL_SOCKET, SO_REUSEPORT, (caddr_t) & i, sizeof i) < 0) {
 	  fprintf(stderr,
 		  "%s: setsockopt(SO_REUSEPORT): %s\n",
 		  progname, strerror(errno));
@@ -844,7 +876,15 @@ char **argv;
 
 #ifdef SO_RCVBUF
 	if (TcpRcvBufferSize > 0)
-	  if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
+	  if (setsockopt(s25, SOL_SOCKET, SO_RCVBUF,
+			 (char *) &TcpRcvBufferSize,
+			 sizeof(TcpRcvBufferSize)) < 0) {
+	    fprintf(stderr, "%s: setsockopt(SO_RCVBUF): %s\n",
+		    progname, strerror(errno));
+	    exit(1);
+	  }
+	if (TcpRcvBufferSize > 0 && ssmtp >= 0)
+	  if (setsockopt(ssmtp, SOL_SOCKET, SO_RCVBUF,
 			 (char *) &TcpRcvBufferSize,
 			 sizeof(TcpRcvBufferSize)) < 0) {
 	    fprintf(stderr, "%s: setsockopt(SO_RCVBUF): %s\n",
@@ -854,7 +894,15 @@ char **argv;
 #endif
 #ifdef SO_SNDBUF
 	if (TcpXmitBufferSize > 0)
-	  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF,
+	  if (setsockopt(s25, SOL_SOCKET, SO_SNDBUF,
+			 (char *) &TcpXmitBufferSize,
+			 sizeof(TcpXmitBufferSize)) < 0) {
+	    fprintf(stderr, "%s: setsockopt(SO_SNDBUF): %s\n",
+		    progname, strerror(errno));
+	    exit(1);
+	  }
+	if (TcpXmitBufferSize > 0 && ssmtp >= 0)
+	  if (setsockopt(ssmtp, SOL_SOCKET, SO_SNDBUF,
 			 (char *) &TcpXmitBufferSize,
 			 sizeof(TcpXmitBufferSize)) < 0) {
 	    fprintf(stderr, "%s: setsockopt(SO_SNDBUF): %s\n",
@@ -886,11 +934,21 @@ char **argv;
 	  if (bindaddr_set && bindaddr.v6.sin6_family == AF_INET6)
 	    memcpy(&si6.sin6_addr, &bindaddr.v6.sin6_addr, 16);
 
-	  i = bind(s, (struct sockaddr *) &si6, sizeof si6);
+	  i = bind(s25, (struct sockaddr *) &si6, sizeof si6);
 	  if (i < 0) {
 	    fprintf(stderr, "%s: bind(IPv6): %s\n",
 		    progname, strerror(errno));
 	    exit(1);
+	  }
+	  if (ssmtp >= 0) {
+	    memset(&si6, 0, sizeof(si6));
+	    si6.sin6_family = AF_INET6;
+	    si6.sin6_flowinfo = 0;
+	    si6.sin6_port = htons(465); /* Deprecated SMTP/TLS WKS port */
+	    memcpy( &si6.sin6_addr, zin6addrany, 16 );
+	    if (bindaddr_set && bindaddr.v6.sin6_family == AF_INET6)
+	      memcpy(&si6.sin6_addr, &bindaddr.v6.sin6_addr, 16);
+	    i = bind(ssmtp, (struct sockaddr *) &si6, sizeof si6);
 	  }
 	} else
 #endif
@@ -904,11 +962,21 @@ char **argv;
 	    if (bindaddr_set && bindaddr.v4.sin_family == AF_INET)
 	      memcpy(&si4.sin_addr, &bindaddr.v4.sin_addr, 4);
 
-	    i = bind(s, (struct sockaddr *) &si4, sizeof si4);
+	    i = bind(s25, (struct sockaddr *) &si4, sizeof si4);
 	    if (i < 0) {
 	      fprintf(stderr, "%s: bind(IPv4): %s\n",
 		      progname, strerror(errno));
 	      exit(1);
+	    }
+	    if (ssmtp >= 0) {
+	      memset(&si4, 0, sizeof(si4));
+	      si4.sin_family = AF_INET;
+	      si4.sin_addr.s_addr = INADDR_ANY;
+	      si4.sin_port = htons(465); /* Deprecated SMTP/TLS WKS port */
+	      if (bindaddr_set && bindaddr.v4.sin_family == AF_INET)
+		memcpy(&si4.sin_addr, &bindaddr.v4.sin_addr, 4);
+
+	      i = bind(ssmtp, (struct sockaddr *) &si4, sizeof si4);
 	    }
 	  }
 
@@ -927,11 +995,18 @@ char **argv;
 	   allow rather high limits, lets try to use it!
 	   (The classical default is: 5) */
 
-	if (listen(s, ListenQueueSize) < 0) {
-	  fprintf(stderr, "%s: listen(sock,%d): %s\n",
+	if (listen(s25, ListenQueueSize) < 0) {
+	  fprintf(stderr, "%s: listen(smtp_sock,%d): %s\n",
 		  progname, ListenQueueSize, strerror(errno));
 	  exit(1);
 	}
+
+	if (ssmtp >= 0 &&
+	    listen(ssmtp, ListenQueueSize) < 0) {
+	  fprintf(stderr, "%s: listen(ssmtp_sock,%d): %s\n",
+		  progname, ListenQueueSize, strerror(errno));
+	}
+
 	settrusteduser();	/* dig out the trusted user ID */
 	zcloselog();		/* close the syslog too.. */
 	detach();		/* this must NOT close fd's */
@@ -953,11 +1028,13 @@ char **argv;
 	pid = getpid();
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
-	  char *cp;
+	  char *cp, *ssmtps = "";
+	  if (ssmtp >= 0)
+	    ssmtps = " including deprecated SMTP/TLS port TCP/465";
 	  time(&now);
 	  cp = rfc822date(&now);
 	  zsyslog((LOG_INFO, "server started."));
-	  fprintf(logfp, "00000#\tstarted server pid %d at %s", pid, cp);
+	  fprintf(logfp, "00000#\tstarted server pid %d at %s%s", pid, cp, ssmtps);
 	  /*fprintf(logfp,"00000#\tfileno(logfp) = %d\n",fileno(logfp)); */
 	  fclose(logfp);
 	  logfp = NULL;
@@ -972,8 +1049,38 @@ char **argv;
 	SIGNAL_HANDLE(SIGHUP, SIG_IGN);
 	SIGNAL_HANDLE(SIGTERM, sigterminator);
 	while (!mustexit) {
+	  fd_set rdset;
+	  int n;
+
+	  _Z_FD_ZERO(rdset);
+	  _Z_FD_SET(s25, rdset);
+	  if (ssmtp >= 0)
+	    _Z_FD_SET(ssmtp, rdset);
+	  n = s25;
+	  if (n < ssmtp) n = ssmtp;
+	  ++n;
+	  n = select(n, &rdset, NULL, NULL, NULL);
+
+	  if (n == 0) /* Timeout can't really happen here.. */
+	    continue;
+	  if (n < 0) {
+	    /* various interrupts can happen here.. */
+	    if (errno == EBADF || errno == EINVAL) break;
+	    if (errno == ENOMEM) sleep(1); /* Wait a moment, then try again */
+	    continue;
+	  }
+
+	  /* Ok, here the  select()  has reported that we have something
+	     appearing in the listening socket(s).
+	     We are simple, and try them in order.. */
+
+	  n = -1;
+	  if (s25   >= 0 && _Z_FD_ISSET(s25,   rdset)) n = s25;
+	  if (ssmtp >= 0 && _Z_FD_ISSET(ssmtp, rdset)) n = ssmtp;
+
+
 	  raddrlen = sizeof(SS.raddr);
-	  msgfd = accept(s, (struct sockaddr *) &SS.raddr, &raddrlen);
+	  msgfd = accept(n, (struct sockaddr *) &SS.raddr, &raddrlen);
 	  if (msgfd < 0) {
 	    int err = errno;
 	    switch (err) {
@@ -1050,7 +1157,12 @@ char **argv;
 
 	    netconnected_flg = 1;
 
-	    close(s);	/* Listening socket.. */
+	    if (n == ssmtp) ssmtp_connected = 1;
+
+	    close(s25);	/* Listening socket.. */
+	    if (ssmtp >= 0)
+	      close(ssmtp);
+
 	    pid = getpid();
 
 	    if (msgfd != 0)
@@ -1674,10 +1786,12 @@ int insecure;
       policystatus = 0; /* For internal - non-net-connected - mode
 			   lack of PolicyDB is no problem at all.. */
 
+    if (debug) typeflush(SS);
     SS->policyresult = policytestaddr(policydb, &SS->policystate,
 				      POLICY_SOURCEADDR,
 				      (void *) &SS->raddr);
     SS->reject_net = (SS->policyresult < 0);
+    if (debug) typeflush(SS);
     if (SS->policyresult == 0) /* Alternates to this condition are:
 				  Always reject, or Always freeze.. */
       SS->policyresult = policytest(policydb, &SS->policystate,
@@ -1687,6 +1801,16 @@ int insecure;
 
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
+
+#ifdef HAVE_OPENSSL
+    if (ssmtp_connected) {
+      if (tls_start_servertls(SS)) {
+	/* No dice... */
+	exit(2);
+      }
+    }
+#endif /* - HAVE_OPENSSL */
+
 
 #if 0 /* NO MORE TCP-WRAPPER AT SMTPSERVER -- USE POLICY CODE! */
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
@@ -2330,6 +2454,70 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     if (!SS) return; /* Only to local log.. */
     strcpy(s, "\r\n");
     Z_write(SS, buf, buflen+2); /* XX: check return value */
+}
+
+
+#ifdef HAVE_VPRINTF
+#ifdef HAVE_STDARG_H
+void
+#ifdef __STDC__
+ Z_printf(SmtpState * SS, const char *fmt,...)
+#else				/* Non ANSI-C */
+ Z_printf(SS, fmt)
+SmtpState *SS;
+const char *fmt;
+#endif
+#else
+/* VARARGS2 */
+void Z_printf(SS, fmt, va_alist)
+SmtpState *SS;
+const char *fmt;
+va_dcl
+#endif
+#else				/* No VPRINTF */
+/* VARARGS2 */
+void Z_printf(SS, fmt, s1, s2, s3, s4, s5, s6)
+SmtpState *SS;
+const char *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
+#endif
+{
+    char *s;
+    int buflen;
+    char buf[6000];
+
+
+    if (!SS)
+      *buf = 0;
+
+    s = buf;
+
+#ifdef HAVE_VPRINTF
+    {
+	va_list ap;
+#ifdef HAVE_STDARG_H
+	va_start(ap, fmt);
+#else
+	va_start(ap);
+#endif
+	vsprintf(s, fmt, ap);
+	va_end(ap);
+    }
+#else
+    sprintf(s, fmt, s1, s2, s3, s4, s5, s6);
+#endif
+    s += strlen(s);
+    buflen = s - buf;
+
+    if (buflen+4 > sizeof(buf)) {
+      /* XXX: Buffer overflow ??!! Signal about it, and crash! */
+    }
+
+    if (logfp != NULL) {
+      fwrite(buf, 1, buflen, logfp);
+      fflush(logfp);
+    }
+    if (!SS) return; /* Only to local log.. */
+    Z_write(SS, buf, buflen); /* XX: check return value */
 }
 
 

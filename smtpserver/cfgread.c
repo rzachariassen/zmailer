@@ -13,23 +13,125 @@
 
 #include "smtpserver.h"
 
-/* as in: SKIPWHILE(isascii,cp) */
-#define SKIPWHILE(X,Y)  while (*Y != '\0' && isascii(*Y) && X(*Y)) { ++Y; }
+#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t') ++Y
+#define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
+#define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 
-static void cfparam __((char *));
-static void cfparam(str)
+static void dollarexpand __((unsigned char *s0, int space));
+static void dollarexpand(s0, space)
+     unsigned char *s0;
+     int space;
+{
+    unsigned char *str = s0;
+    unsigned char *eol = s0 + space; /* assert(str < eol) */
+    unsigned char namebuf[80];
+    unsigned char *s;
+    int len, taillen;
+
+    while (*str) {
+      if (*str != '$') {
+	++str;
+	continue;
+      }
+      /*  *str == '$' */
+      s0 = str; /* start position */
+      ++str;
+      if (*str == '$') {
+	/* A '$$' sequence shrinks to '$' */
+	strcpy(str, str+1);
+	continue;
+      }
+      s = namebuf;
+      if (*str == '{' || *str == '(') {
+	int endc = (*str == '{') ? '}' : ')';
+	++str;
+	for (;*str;++str) {
+	  if (*str == endc)
+	    break;
+	  if (s < namebuf + sizeof(namebuf)-1)
+	    *s++ = *str;
+	}
+	if (*str) ++str; /* End char */
+	*s = 0; /* name end */
+      } else {
+	for (;*str;++str) {
+	  if (!((isascii(*str) && isalnum(*str)) || *str == '_'))
+	    break; /* 'A'..'Z', 'a'..'z', '0'..'9', '_' */
+	  if (s < namebuf + sizeof(namebuf)-1)
+	    *s++ = *str;
+	}
+	*s = 0;
+      }
+      if (*namebuf == 0) /* If there are e.g.  "$/" or "${}" or "$()", or
+			    just "$" at the end of the line, then let it be. */
+	continue;
+      s = getzenv(namebuf); /* Pick whatever name there was.. */
+      if (!s) continue;     /* No ZENV variable with this name ? */
+
+      len     = strlen(s);
+      taillen = strlen(str);
+
+      if (len > (str - s0)) {
+	/* Must expand the spot! */
+
+	unsigned char *replacementend = s0  + len;
+
+	if ((replacementend + taillen) >= eol) {
+	  /* Grows past the buffer end, can't! */
+	  taillen = eol - replacementend;
+	} /* else
+	     We have space */
+
+	if (taillen > 0) {
+	  unsigned char *si = str            + taillen;
+	  unsigned char *so = replacementend + taillen;
+	  /* Copy also the tail NIL ! */
+	  for (;taillen>=0; --taillen, --so, --si) *so = *si;
+	}
+
+	if ((s0 + len) >= eol)
+	  /* The fill-in goes over the buffer end */
+	  len = eol - s0; /* Cut down */
+	if (len > 0) { /* Still something can be copied ? */
+	  memcpy(s0, s, len);
+	  str = s0 + len;
+	} else
+	  str = s0 + (*s0 == '$'); /* Hmm.. grumble.. */
+
+      } else {
+
+	/* Same space, or can shrink! */
+
+	if (len > 0)
+	  memcpy(s0, s, len);
+	if (s0+len < str)
+	  /* Copy down */
+	  strcpy(s0+len, str);
+	str = s0 + len;
+	str[taillen] = 0; /* Chop the possible old junk from the tail */
+
+      }
+    }
+    eol[-1] = 0;
+}
+       
+
+static void cfparam __((char *, int));
+static void cfparam(str,size)
      char *str;
+     int size;
 {
     char *name, *param1, *param2, *param3;
+    char *str0 = str;
 
     name = strchr(str, '\n');	/* The trailing newline chopper ... */
     if (name)
 	*name = 0;
 
-    SKIPWHILE(!isspace, str);
-    SKIPWHILE(isspace, str);
+    SKIPTEXT (str); /* "PARAM" */
+    SKIPSPACE(str);
     name = str;
-    SKIPWHILE(!isspace, str);
+    SKIPTEXT (str);
     if (*str != 0)
 	*str++ = 0;
 
@@ -54,20 +156,24 @@ static void cfparam(str)
 	return;
     }
 
-    SKIPWHILE(isspace, str);
+    /* Do '$' expansions on the string */
+    dollarexpand(str, size - (str - str0));
+
+    SKIPSPACE(str);
+
     param1 = *str ? str : NULL;
 
-    SKIPWHILE(!isspace, str);
+    SKIPTEXT (str);
     if (*str != 0)
 	*str++ = 0;
-    SKIPWHILE(isspace, str);
+    SKIPSPACE(str);
     param2 = *str ? str : NULL;
-    SKIPWHILE(!isspace, str);
+    SKIPTEXT (str);
     if (*str != 0)
 	*str++ = 0;
-    SKIPWHILE(isspace, str);
+    SKIPSPACE(str);
     param3 = *str ? str : NULL;
-    SKIPWHILE(!isspace, str);
+    SKIPTEXT (str);
     if (*str != 0)
 	*str++ = 0;
 
@@ -272,8 +378,11 @@ static void cfparam(str)
 
     /* TLSv1/SSLv* options */
 
-    else if (cistrcmp(name, "use-tls") == 0) {
+    else if (cistrcmp(name, "use-tls") == 0)
       starttls_ok = 1;		/* Default: OFF */
+
+    else if (cistrcmp(name, "listen-ssmtp") == 0) {
+      ssmtp_listen = 1;		/* Default: OFF */
 
     } else if (cistrcmp(name, "tls-cert-file") == 0 && param1) {
       if (tls_cert_file) free(tls_cert_file);
@@ -364,15 +473,15 @@ readcffile(name)
 	buf[sizeof(buf) - 1] = 0;	/* Trunc, just in case.. */
 
 	cp = buf;
-	SKIPWHILE(isspace, cp);
+	SKIPSPACE(cp);
 	if (strncmp(cp, "PARAM", 5) == 0) {
-	    cfparam(cp);
+	    cfparam(cp, sizeof(buf) -(cp-buf));
 	    continue;
 	}
 	scf.flags = "";
 	scf.next = NULL;
 	s0 = cp;
-	SKIPWHILE(!isspace, cp);
+	SKIPTEXT(cp);
 	c = *cp;
 	*cp = '\0';
 	s0 = strdup(s0);
@@ -383,13 +492,13 @@ readcffile(name)
 	scf.maxloadavg = 999;
 	if (c != '\0') {
 	    ++cp;
-	    SKIPWHILE(isspace, cp);
+	    SKIPSPACE(cp);
 	    if (*cp && isascii(*cp) && isdigit(*cp)) {
 		/* Sanity-check -- 2 is VERY LOW */
 		if ((scf.maxloadavg = atoi(cp)) < 2)
 		    scf.maxloadavg = 2;
-		SKIPWHILE(isdigit, cp);
-		SKIPWHILE(isspace, cp);
+		SKIPDIGIT(cp);
+		SKIPSPACE(cp);
 	    }
 	    scf.flags = strdup(cp);
 	    if ((cp = strchr(scf.flags, '\n')) != NULL)

@@ -10054,7 +10054,7 @@ trap 'rm -fr `echo "Makefile
 	proto/newdb			proto/newdbprocessor		\
 	proto/scheduler.conf		proto/scheduler.auth		\
 	proto/mailrm.sh			proto/db/Makefile		\
-	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
+	proto/cf/TELE-FI.cf						\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
 	proto/cf/SMTP.cf		proto/smtp-tls.conf		\
 	proto/db/aliases		proto/sm.conf			\
@@ -10245,7 +10245,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	proto/newdb			proto/newdbprocessor		\
 	proto/scheduler.conf		proto/scheduler.auth		\
 	proto/mailrm.sh			proto/db/Makefile		\
-	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
+	proto/cf/TELE-FI.cf						\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
 	proto/cf/SMTP.cf		proto/smtp-tls.conf		\
 	proto/db/aliases		proto/sm.conf			\

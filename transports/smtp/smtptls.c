@@ -603,20 +603,21 @@ int     tls_init_clientengine(SS, cfgpath)
     if (s) *s = 0;
     s = (void*) buf;
 
-#define SKIPWHILE(X,Y)  while (*Y != '\0' && isascii(*Y) && X(*Y)) { ++Y; }
+#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t' || *Y == '\n') ++Y
+#define SKIPTEXT(Y ) while (*Y && !(*Y == ' ' || *Y == '\t' || *Y == '\n')) ++Y
 
-    SKIPWHILE(isspace, s);
+    SKIPSPACE(s);
     if (!*s || *s == '#' || *s == ';')
       continue; /* First non-whitespace char is comment start (or EOL) */
 
-    SKIPWHILE( isspace, s);
+    SKIPSPACE(s);
     n = s;
-    SKIPWHILE(!isspace, s);
+    SKIPTEXT(s);
     if (*s) *s++ = 0;
 
-    SKIPWHILE( isspace, s);
+    SKIPSPACE(s);
     a1 = s;
-    SKIPWHILE(!isspace, s);
+    SKIPTEXT(s);
     if (*s) *s++ = 0;
 
 

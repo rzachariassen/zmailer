@@ -250,7 +250,7 @@ static struct mq2pw * authuser(mq, user)
   if (!fp) return NULL; /* D'uh! */
 
   mpw.user = linebuf;
-  while (cfgets(linebuf, sizeof(linebuf)-1, fp) >= 0) {
+  while (csfgets(linebuf, sizeof(linebuf)-1, fp) >= 0) {
     if (*linebuf == '#' || *linebuf == '*' || *linebuf == '\n')
       continue;
     s = strchr(linebuf,'\n');

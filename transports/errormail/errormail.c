@@ -294,7 +294,7 @@ process(dp)
 	if (efp != NULL) {
 	  int inhdr = 1;
 	  buf[sizeof(buf)-1] = 0;
-	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
+	  while (csfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0)
 	      continue;
 	    else if (strncmp(buf,"ADR",3)==0)
@@ -310,7 +310,7 @@ process(dp)
 	  /* copy To: from error return address */
 	  sfprintf(mfp, "To: <%s>\n", rp->addr->link->user);
 
-	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
+	  while (csfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
 	      sfprintf(mfp, "%s", buf+4);
 	    } else if (strncmp(buf,"ADR",3)==0) {

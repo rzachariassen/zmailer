@@ -22,6 +22,10 @@
 
 #include "libz.h"
 
+#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t' || *Y == '\n') ++Y
+#define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t' && *Y != '\n') ++Y
+#define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
+
 static void celink __((struct config_entry *, struct config_entry **, struct config_entry **));
 static int readtoken __((Sfio_t *fp, char *buf, int buflen, int *linenump));
 static int paramparse __((char *line));
@@ -344,7 +348,7 @@ readconfig(file)
 	      while (p >= line && (*p == ' ' || *p == '\t'))
 		*p-- = '\0';
 	      a = cp+1;
-	      while (*a == ' ' || *a == '\t') ++a;
+	      SKIPSPACE(a);
 	      if (*a == '"') {
 		++a;
 		cp = a;
@@ -406,14 +410,13 @@ readtoken(fp, buf, buflen, linenump)
 
 redo_readtoken:
 	if (lp == NULL) {
-	  if (cfgets(line, sizeof line, fp) < 0)
+	  if (csfgets(line, sizeof line, fp) < 0)
 	    return -1;
 	  *linenump += 1;
 	  lp = line;
 	}
 	/* Skip initial white-space */
-	while (*lp != '\0' && isspace(0xFF & *lp))
-	  ++lp;
+	SKIPSPACE(lp);
 	/* Now it is one of: a token, a comment start, or end of line */
 	if (*lp == '\0' || *lp == '#') {
 	  /* Comment/EOL */
@@ -422,12 +425,12 @@ redo_readtoken:
 	}
 	/* Now we scan for the token + possible value */
 	elp = lp;
-	while (*elp && !isspace(0xFF & *elp) && *elp != '=' && *elp != '#')
+	while (*elp && *elp != ' ' && *elp != '\t' && *elp != '\n' && *elp != '=' && *elp != '#')
 	  ++elp;
 	if (isspace(0xFF & *elp)) {
 	  /* Allow spaces after the token and before '=' */
 	  char *p = elp;
-	  while (*p && isspace(0xFF & *p)) ++p;
+	  SKIPSPACE(p);
 	  if (*p == '=')
 	    elp = p;
 	}
@@ -435,12 +438,12 @@ redo_readtoken:
 	if (*elp == '=') {
 	  /* Allow spaces between '=', and value */
 	  ++elp;
-	  while (*elp && isspace(0xFF & *elp)) ++elp;
+	  SKIPSPACE(elp);
 	  if (*elp == '"') {
 	    ++elp;
 	    while (*elp != '"' && *elp != '\0') {
 	      if (*elp == '\\' && *(elp+1) == '\n') {
-		if (cfgets(elp, sizeof line - (elp - line), fp) < 0) {
+		if (csfgets(elp, sizeof line - (elp - line), fp) < 0) {
 		  sfprintf(sfstderr,
 			  "%s: bad continuation line\n",
 			  progname);
@@ -457,8 +460,7 @@ redo_readtoken:
 	    }
 	    ++elp;
 	  } else {
-	    while (*elp && !isspace(0xFF & *elp) && *elp != '"')
-	      ++elp;
+	    SKIPTEXT(elp);
 	  }
 	}
 	strncpy(buf, lp, elp-lp);
@@ -538,17 +540,14 @@ static int rc_command(key, arg, ce)
 
 	ce->command = strsave(arg);
 	j = 0;
-	for (cp = ce->command; *cp != '\0' && isascii(*cp);) {
+	for (cp = ce->command; *cp;) {
 	  argv[j++] = cp;
 	  if (j >= (sizeof argv)/(sizeof argv[0]))
 	    break;
-	  while (*cp != '\0' && !isspace(0xFF & *cp))
-	    ++cp;
-	  if (*cp == '\0')
-	    break;
+	  SKIPTEXT(cp);
+	  if (*cp == '\0')  break;
 	  *cp++ = '\0';
-	  while (*cp != '\0' && isspace(0xFF & *cp))
-	    ++cp;
+	  SKIPSPACE(cp);
 	}
 	argv[j++] = NULL;
 	if (j > 0) {
@@ -594,7 +593,7 @@ static int rc_group(key, arg, ce)
 	if (isascii(*arg) && isdigit(*arg))
 	  ce->gid = atoi(arg);
 	else if ((gr = getgrnam(arg)) == NULL) {
-	  sfprintf(sfstderr, "%s: unknown group: %s\n", progname, arg);
+	  sfprintf(sfstderr, "%s: unknown group: '%s'\n", progname, arg);
 	  return 1;
 	} else
 	  ce->gid = gr->gr_gid;
@@ -734,13 +733,11 @@ static int rc_retries(key, arg, ce)
 
 	j = 0;
 	for (cp = arg; *cp != '\0'; ++cp) {
-	  while (*cp != '\0' && isspace(0xFF & *cp))
-	    ++cp;
+	  SKIPSPACE(cp);
 	  if (*cp == '\0')
 	    break;
 	  d = cp++;
-	  while (*cp != '\0' && !isspace(0xFF & *cp))
-	    ++cp;
+	  SKIPTEXT(cp);
 	  c = *cp;
 	  *cp = '\0';
 	  i = atoi(d);
@@ -780,13 +777,11 @@ static int rc_reporttimes(key, arg, ce)
 
 	j = 0;
 	for (cp = arg; *cp != '\0'; ++cp) {
-	  while (*cp != '\0' && isspace(0xFF & *cp))
-	    ++cp;
+	  SKIPSPACE(cp);
 	  if (*cp == '\0')
 	    break;
 	  d = cp++;
-	  while (*cp != '\0' && !isspace(0xFF & *cp))
-	    ++cp;
+	  SKIPTEXT(cp);
 	  c = *cp;
 	  *cp = '\0';
 	  i = parse_interval(d, NULL);
@@ -893,7 +888,7 @@ static int paramparse(line)
 	  while (p >= line && (*p == ' ' || *p == '\t'))
 	    *p-- = '\0';
 	  a = s+1;
-	  while (*a == ' ' || *a == '\t') ++a;
+	  SKIPSPACE(a);
 	  if (*a == '"') {
 	    ++a;
 	    s = a;

@@ -51,7 +51,8 @@ extern int wait();
 #endif	/* !SEEK_SET */
 
 /* as in: SKIPWHILE(isascii,cp) */
-#define	SKIPWHILE(X,Y)	while (*Y != '\0' && isascii(*Y) && X(*Y)) { ++Y; }
+#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t' || *Y == '\n') ++Y
+#define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t' && *Y != '\n') ++Y
 
 #define	FROM_	"From "
 
@@ -965,7 +966,7 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 
 	  for (;;) {
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    if ((i = cfgets(let_buffer, sizeof(let_buffer), mfp)) == EOF)
+	    if ((i = csfgets(let_buffer, sizeof(let_buffer), mfp)) == EOF)
 	      break;
 #else
 	    const char *let_buffer = s, *s2 = s;
@@ -1249,7 +1250,7 @@ readsmcf(file, mailer)
 	  }
 	  entry = (char*)cp;
 	  strcpy(entry, buf);
-	  SKIPWHILE(!isspace, cp);
+	  SKIPTEXT(cp);
 	  if (isascii(*cp) && isspace(*cp)) {
 	    if (*cp == '\n') {
 	      fprintf(stderr, "%s: %s: bad entry: %s",
@@ -1271,9 +1272,9 @@ readsmcf(file, mailer)
 	m.name = entry;
 	m.flags = MO_UNIXFROM;
 	++cp;
-	SKIPWHILE(isspace, cp);
+	SKIPSPACE(cp);
 	/* process mailer option flags */
-	for (;isascii(*cp) && !isspace(*cp); ++cp) {
+	for (;*cp && *cp != ' ' && *cp != '\t' && *cp != '\n'; ++cp) {
 	  int no = 0;
 	  switch (*cp) {
 	  case '7':	m.flags |= MO_STRIPHIBIT;	break;
@@ -1326,9 +1327,9 @@ readsmcf(file, mailer)
 		    progname,no);
 	  }
 	}
-	SKIPWHILE(isspace, cp);
+	SKIPSPACE(cp);
 	m.command = (char*) cp;
-	SKIPWHILE(!isspace, cp);
+	SKIPTEXT(cp);
 	if ((char*)cp == m.command) {
 		fprintf(stderr,"%s: bad entry for %s\n",progname, m.name);
 		return NULL;
@@ -1344,16 +1345,16 @@ readsmcf(file, mailer)
 	  sprintf(nmc, "%s/%s", mailbin, m.command);
 	  m.command = nmc;
 	}
-	SKIPWHILE(isspace, cp);
+	SKIPSPACE(cp);
 	i = 0;
 	while (isascii(*cp) && !isspace(*cp) && i < MD_ARGVMAX) {
 	  if (*cp == '\0')
 	    break;
 	  m.argv[i++] = (char*) cp;
-	  SKIPWHILE(!isspace, cp);
-	  if (isascii(*cp)) {
+	  SKIPTEXT(cp);
+	  if (*cp) {
 	    *cp++ = '\0';
-	    SKIPWHILE(isspace, cp);
+	    SKIPSPACE(cp);
 	  }
 	}
 	if (i == 0) {

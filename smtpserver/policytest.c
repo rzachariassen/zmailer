@@ -692,9 +692,11 @@ int whosonrc;
     }
     if (!openok) {
 	/* ERROR!  Could not open the database! */
-      if (debug)
+      if (debug) {
 	printf("000- ERROR!  Could not open the database file '%s'; errno=%d!\n",
 	       dbname, errno);
+	fflush(stdout);
+      }
       *relp = NULL;
 
 #ifndef HAVE_ALLOCA
@@ -914,6 +916,7 @@ PolicyTest what;
 Usockaddr *raddr;
 {
     char pbuf[64]; /* Not THAT much space needed.. */
+    int rc;
 
     struct sockaddr_in *si4;
 #if defined(AF_INET6) && defined(INET6)
@@ -967,7 +970,9 @@ Usockaddr *raddr;
     }
 
     state->request = 0;
-    return _addrtest_(rel, state, pbuf, 1);
+    rc = _addrtest_(rel, state, pbuf, 1);
+    if (debug) fflush(stdout);
+    return rc;
 }
 
 
@@ -1648,7 +1653,7 @@ const int len;
       abort();			/* Code error! Bad policy ! */
       return 9999; /* To silence most compilers.. */
     }
-    fflush(stdout);
+    if (debug) fflush(stdout);
     return rc;
 }
 

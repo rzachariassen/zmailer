@@ -35,7 +35,7 @@ extern char *    strnsave __((const char *s, const size_t n));
 
 /* cfgets.c */
 #ifdef _SFIO_H
-extern int cfgets __((char *, int, Sfio_t *));
+extern int csfgets __((char *, int, Sfio_t *));
 #endif
 
 /* cleanenv.c */

@@ -96,7 +96,7 @@ static int _getline(buf, bufsize, bufspace, fp)
   (*buf)[*bufsize] = 0;
 
   if (c == EOF && *bufsize != 0) {
-    fprintf(stderr, "%s: no input from scheduler\n", progname);
+    fprintf(stderr," no input from scheduler");
     (*buf)[0] = '\0';
     return -1;
   }
@@ -163,7 +163,7 @@ const char *name, *cp;
       req.ai_family   = PF_INET;
       ai = NULL;
 
-      if (debug) fprintf(stderr,"INET6 lookup for '%s'\n",node->nodename);
+      if (debug) fprintf(stderr,"INET lookup for '%s'\n",node->nodename);
 
 #ifdef HAVE_GETADDRINFO
       rc = getaddrinfo(node->nodename, "0", &req, &ai);

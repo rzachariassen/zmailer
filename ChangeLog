@@ -1,3 +1,50 @@
+2000-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/smtpserver.8, smtpserver/contentfilter.c, smtpserver/smtpdata.c:
+	    Improved documentation of the CONTENTFILTER INTERFACE
+	    ( = wrote it ), and modified a bit of the interface itself.
+
+	* configure.in, proto/smtpserver.conf, smtpserver/cfgread.c,
+	  man/smtpserver.8, proto/Makefile.in, 
+	    Allow $ZENV expansions in smtpserver's configuration.
+	    Thus allow simpler moving of the thing to other location
+	    without needing to edit anything but  zmailer.conf  file..
+	    Also removed  smtpserver.conf  from autoconfigured protofiles.
+
+	* scheduler/readconfig.c, smtpserver/cfgread.c, transports/sm/sm.c,
+	  transports/mailbox/mailbox.c, transports/smtp/smtptls.c, 
+	    Changed all instances of macro-in-macro style CPP things
+	    of 'SKIPWHILE(testfunction,varname)' to be appropriate
+	    'SKIPSPACE(varname)' and 'SKIPTEXT(varname)'.
+	    (RedHat 7.0 gcc version does not work correctly with those..)
+
+	* smtpserver/policytest.c, smtpserver/rfc821scn.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtpetrn.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtphelp.c, smtpserver/mxverify.c:
+	    Aimed for some coherence at debug mode printouts/flushes
+	    in some cases.  Mainly the problem is that at the policytest.c,
+	    and at the mxverify.c the debug output goes to stdout via
+	    printf(), while elsewere it goes via type() to SFIO attached
+	    to the connection.    TO BE ACCURATE, AS THINGS ARE NOW IS
+	    NOT SUITABLE FOR DEBUGGING E.G. SSL WRAPPED SESSIONS!
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/cfgread.c, smtpserver/smtptls.c:
+	    - Have new runtime flag (-t) telling that this is a session
+	      running immediately under TLS (port tcp/465, "ssmtp"), which
+	      feature predates STARTTLS facility.
+	    - Have parallel listen socket for two different services;
+	      namely plain 'smtp', and 'ssl/smtp')
+
+	* scheduler/mq2auth.c, scheduler/msgerror.c, scheduler/readconfig.c,
+	  include/libz.h, lib/cfgets.c, smtpserver/cfgread.c,
+	  transports/errormail/errormail.c, transports/mailbox/mailbox.c,
+	  transports/sm/sm.c, transports/smtp/appendlet.c:
+	    Renamed that function to be   csfgets()  -- after I myself
+	    got confused about its calling convention...
+	    (That is: FILE * or Sfio_t * thing..)
+
 2000-10-13  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* sfio/src/lib/sfio/makefile.in, sfio/src/lib/sfio/Stdio_b/Makefile.in:

@@ -114,6 +114,58 @@ extern int wait();
 #include "zsyslog.h"
 
 
+
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
+#include <sys/time.h>
+
+#ifndef	NFDBITS
+/*
+ * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
+ * assumption we are dealing with pre-4.3bsd select().
+ */
+
+/* #error "FDSET macro susceptible" */
+
+typedef long	fd_mask;
+
+#ifndef	NBBY
+#define	NBBY	8
+#endif	/* NBBY */
+#define	NFDBITS		((sizeof fd_mask) * NBBY)
+
+/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
+#ifdef	notdef
+typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
+#endif	/* notdef */
+
+#ifndef	_Z_FD_SET
+/* #warning "_Z_FD_SET[1]" */
+#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
+#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
+#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
+#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
+#endif	/* !FD_SET */
+#endif	/* !NFDBITS */
+
+#ifdef FD_SET
+/* #warning "_Z_FD_SET[2]" */
+#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
+#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
+#define _Z_FD_ZERO(var) FD_ZERO(&var)
+#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
+#else
+/* #warning "_Z_FD_SET[3]" */
+#define _Z_FD_SET(sock,var) var |= (1 << sock)
+#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
+#define _Z_FD_ZERO(var) var = 0
+#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
+#endif
+
+
+
 #ifndef __Usockaddr__
 typedef union {
     struct sockaddr_in v4;
@@ -268,6 +320,7 @@ extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;
+extern int ssmtp_listen;;
 extern int msa_mode;
 extern int deliverby_ok;
 #define MAX_ETRN_CLUSTER_IDX 40
@@ -377,9 +430,11 @@ extern void header_from_mime __((char *, int *, int));
 extern void killr __((SmtpState * SS, int rpid));
 extern void typeflush __((SmtpState *));
 #if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
-extern void type __((SmtpState *, const int code, const char *status, const char *fmt,...));
+extern void type __((SmtpState *, int code, const char *status, const char *fmt,...));
+extern void Z_printf __(( SmtpState *, const char *fmt, ... ));
 #else
 extern void type __(( /* SmtpState *SS, int code, const char *status, const char *fmt, ... */ ));
+extern void Z_printf __(( /* SmtpState *, const char *fmt, ... */ ));
 #endif
 extern void debug_report __((SmtpState *, int, const char *, const char *));
 extern void header_to_mime __((char *, int *, int));
@@ -440,6 +495,7 @@ extern void smtp_tarpit __((SmtpState * SS));
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
 
 #ifdef HAVE_OPENSSL
+extern int tls_start_servertls __((SmtpState *SS));
 extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern void Z_init    __(( void ));
 extern void Z_cleanup __(( SmtpState * ));

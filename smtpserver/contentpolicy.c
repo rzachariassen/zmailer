@@ -10,7 +10,7 @@
  *  The protocol in between the smtpserver, and the content
  *  policy analysis program is a simple one:
  *     to contentpolicy:   relfilepath \n  (relative to current dir)
- *     from contentpolicy: %i comment text \n
+ *     from contentpolicy: %i [%i ]comment text \n
  */
 
 #include "smtpserver.h"
@@ -106,11 +106,15 @@ const char *fname;
   fprintf(cpol_tofp, "%s\n", fname);
   fflush(cpol_tofp);
 
-  for (c = i = 0; i < sizeof(responsebuf)-1; ++i) {
+ pick_reply:;
+
+  c = i = 0;
+  for (;;) {
     if (ferror(cpol_fromfp) || feof(cpol_fromfp)) break;
     c = fgetc(cpol_fromfp);
     if (c == '\n') break;
-    responsebuf[i] = c;
+    if (i < sizeof(responsebuf)-1)
+      responsebuf[i++] = c;
   }
   responsebuf[i] = 0;
   while (c != '\n') {
@@ -124,17 +128,39 @@ const char *fname;
 
   /* Pick at first the heading numeric value. */
 
-  rc = atoi(responsebuf);
-  /* Scan until first space - or EOL */
-  for (i = 0; i < sizeof(responsebuf) && responsebuf[i] != 0; ++i)
-    if (responsebuf[i] == ' ') break;
-  /* Scan over spaces */
-  while (i < sizeof(responsebuf) && responsebuf[i] == ' ') ++i;
+  i = sscanf(responsebuf, "%d", &rc);
 
-  s = NULL;
-  if (rc)
-    s = strdup(responsebuf + i);
+  if (i == 1) {
+    /* Scan until first space - or EOL */
+    for (i = 0; i < sizeof(responsebuf) && responsebuf[i] != 0; ++i)
+      if (responsebuf[i] == ' ') break;
+    /* Scan over spaces */
+    while (i < sizeof(responsebuf) && responsebuf[i] == ' ') ++i;
+  } else {
 
-  state->message = s;
+    /* Hmm.. Bad!  Lets close the  cpol_tofp  and see what happens..
+       Will we ever get working reply ? */
+
+    if (cpol_tofp) {
+      fclose(cpol_tofp);
+      cpol_tofp = NULL;
+      goto pick_reply;
+    }
+
+    /* No working reply, ah well, push it into the freezer */
+
+    i = 0;
+    rc = -1;
+  }
+
+  if (!cpol_tofp) {
+    fclose(cpol_fromfp);
+    cpol_fromfp = NULL;
+    kill(SIGKILL, contentpolicypid);
+    contentpolicypid = -1;
+  }
+
+  state->message = strdup(responsebuf + i);
+
   return rc;
 }

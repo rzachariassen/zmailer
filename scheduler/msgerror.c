@@ -314,7 +314,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	if (fp != NULL) {
 	  int inhdr = 1, hadsubj =0;
 	  buf[sizeof(buf)-1] = 0;
-	  while (cfgets(buf,sizeof(buf)-1,fp) >= 0) {
+	  while (csfgets(buf,sizeof(buf)-1,fp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
 	      continue;
 	    } else if (strncmp(buf,"ADR",3)==0) {
@@ -333,7 +333,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	    sfprintf(errfp, "To: %s\n", eaddr);
 	  else if (*no_error_reportp < 0)
 	    sfprintf(errfp, "To: dummy:; (error trapped source)\n");
-	  while (cfgets(buf,sizeof(buf)-1,fp) >= 0) {
+	  while (csfgets(buf,sizeof(buf)-1,fp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
 	      sfprintf(errfp, "%s", buf+4);
 	    } else if (strncmp(buf,"ADR",3)==0) {
@@ -882,7 +882,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	  } else {
 	    /* Scan the input, and drop off the ZMailer
 	       envelope headers */
-	    while (cfgets(buf,sizeof(buf),fp) >= 0) {
+	    while (csfgets(buf,sizeof(buf),fp) >= 0) {
 	      const char *s = buf;
 	      while (*s && *s != ':' && *s != ' ' && *s != '\t') ++s;
 	      if (*s == ':') break;
@@ -946,7 +946,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	    /* Scan the input, and drop off the Zmailer
 	       envelope headers */
 	    sfseek(fp, (Sfoff_t)0, SEEK_SET);
-	    while (cfgets(buf,sizeof(buf),fp) >= 0) {
+	    while (csfgets(buf,sizeof(buf),fp) >= 0) {
 	      const char *s = buf;
 	      while (*s && *s != ':' && *s != ' ' && *s != '\t') ++s;
 	      if (*s == ':') break;

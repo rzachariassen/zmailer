@@ -17,6 +17,8 @@
  * parse the query string and print an appropriate help message.
  */
 
+
+
 void help(SS, cfinfo, query)
 SmtpState *SS;
 struct smtpconf *cfinfo;
@@ -160,9 +162,8 @@ const char *query;
 	break;
     case Help:
 	TYPE_("HELP [command]");
-	TYPE_("\tReminder of what the SMTP command does, or prints:");
-	TYPE_("");
-	/* fall through */
+	TYPE_("\tReminder of what the SMTP command does.");
+	break;
     case Null:
     default:
 	TYPE_(Copyright);
@@ -174,8 +175,7 @@ const char *query;
 		TYPE_(helplines[i]);
 	    TYPE_("");
 	}
-	typeflush(SS);
-	printf("214-The following commands are recognized:");
+	Z_printf(SS,"214-The following commands are recognized:");
 	if (logfp)
 	    fprintf(logfp, "%sw\t214-The following commands are recognized:",
 		    logtag);
@@ -189,18 +189,17 @@ const char *query;
 	      continue;
 	    if (col > 70) {
 		col = 12;
-		printf(",\r\n214-\t%s", carp->verb);
+		Z_printf(SS,",\r\n214-\t%s", carp->verb);
 		if (logfp)
 		    fprintf(logfp, ",\n%sw\t214\t%s", logtag, carp->verb);
 	    } else {
-		printf(", %s", carp->verb);
+		Z_printf(SS,", %s", carp->verb);
 		if (logfp)
 		    fprintf(logfp, ", %s", carp->verb);
 		col += 6;
 	    }
 	}
-	printf("\r\n");
-	fflush(stdout);
+	Z_printf(SS,"\r\n");
 	if (logfp)
 	    fprintf(logfp, "\n");
 	TYPE_("");
