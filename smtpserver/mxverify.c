@@ -47,6 +47,7 @@
 #include "ta.h"
 #include "malloc.h"
 #include "libz.h"
+#include "libc.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */
