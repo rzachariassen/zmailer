@@ -849,8 +849,19 @@ int insecure;
 	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
+	    int code = atoi(s);
+	    char *esc = NULL;
+	    char *msg = (char*)s+4;
+
+	    if (('0' <= msg[0] && msg[0] <= '9') && msg[1] == '.') {
+	      esc = msg;
+	      while (('0' <= msg[0] && msg[0] <= '9') || msg[1] == '.')
+		++msg;
+	      if (*msg == ' ') *msg++ = 0;
+	    }
+
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), NULL, "Hi %s, %s", SS->rhostaddr, s + 4);
+	    type(SS, code, esc, "Hi %s, %s", SS->rhostaddr, msg);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
@@ -1464,8 +1475,19 @@ const char *buf, *cp;
 	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
+	    int code = atoi(s);
+	    char *esc = NULL;
+	    char *msg = (char*)s+4;
+
+	    if (('0' <= msg[0] && msg[0] <= '9') && msg[1] == '.') {
+	      esc = msg;
+	      while (('0' <= msg[0] && msg[0] <= '9') || msg[1] == '.')
+		++msg;
+	      if (*msg == ' ') *msg++ = 0;
+	    }
+
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), NULL, "Hi %s, %s", SS->rhostaddr, s + 4);
+	    type(SS, code, esc, "Hi %s, %s", SS->rhostaddr, msg);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);

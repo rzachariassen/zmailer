@@ -1538,9 +1538,9 @@ char **argv;
 		  /* if (logfp) type(NULL,0,NULL,"Input fd=%d",getpid(),msgfd); */
 		  
 		  if (childcnt > MaxParallelConnections) {
-		    type(&SS, -450, NULL, "Too many simultaneous connections to this server (%d max %d)", childcnt, MaxParallelConnections);
-		    type(&SS, -450, NULL, "Come again later");
-		    type(&SS,  450, NULL, contact_pointer_message);
+		    type(&SS, -450, m571, "%s", contact_pointer_message);
+		    type(&SS, -450, m571, "Come again later");
+		    type(&SS,  450, m571, "Too many simultaneous connections to this server (%d max %d)", childcnt, MaxParallelConnections);
 		    typeflush(&SS);
 		    MIBMtaEntry->ss.MaxParallelConnections ++;
 		    close(0); close(1); close(2);
@@ -1554,9 +1554,9 @@ char **argv;
 		    exit(0);	/* Now exit.. */
 		  }
 		  if (sameipcount > MaxSameIpSource && sameipcount > 1) {
-		    type(&SS, -450, NULL, "Too many simultaneous connections from same IP address (%d max %d)", sameipcount, MaxSameIpSource);
-		    type(&SS, -450, NULL, "Come again later");
-		    type(&SS,  450, NULL, contact_pointer_message);
+		    type(&SS, -450, m571, "Come again later");
+		    type(&SS, -450, m571, "%s", contact_pointer_message);
+		    type(&SS,  450, m571, "Too many simultaneous connections from same IP address (%d max %d)", sameipcount, MaxSameIpSource);
 		    typeflush(&SS);
 		    MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
 		    close(0); close(1); close(2);
@@ -2350,15 +2350,17 @@ int insecure;
 
     if (SS->reject_net) {
 	char *msg = policymsg(&SS->policystate);
+	type(SS, -550, m571, "Hello %s; If you feel we mistreat you, do contact us.", SS->rhostaddr);
+	type(SS, -550, m571, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
+	typeflush(SS);
 	smtp_tarpit(SS);
 	if (msg != NULL) {
-	  type(SS, -550, NULL, "Hello %s; %s",SS->rhostaddr,  msg);
+	  type(SS, 550, m571, "Hello %s; %s",SS->rhostaddr,  msg);
 	} else {
-	  type(SS, -550, NULL, "Hello %s; %s - You are on our reject-IP-address -list, GO AWAY!",
+	  type(SS, 550, m571, "Hello %s; %s - You are on our reject-IP-address -list, GO AWAY!",
 	       SS->rhostaddr, SS->myhostname);
 	}
-	type(SS, -550, NULL, "Hello %s; If you feel we mistreat you, do contact us.", SS->rhostaddr);
-	type(SS, 550, NULL, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
+
     } else if ((maxsameip >= 0) && (SS->sameipcount > maxsameip)) {
 	smtp_tarpit(SS);
 	type(SS, 450, NULL, "%s - Come again latter, too many simultaneous connections from this IP address /ms(%li of %li)",
@@ -2570,18 +2572,21 @@ int insecure;
 	if (policystatus != 0 &&
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	  smtp_tarpit(SS);
-	  type(SS, -400, "4.7.0", "Policy database problem, code=%d", policystatus);
-	  type(SS,  400, "4.7.0", contact_pointer_message);
+	  type(SS, -400, "4.7.0", "%s", contact_pointer_message);
+	  type(SS,  400, "4.7.0", "Policy database problem, code=%d", policystatus);
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver policy database problem, code: %d", policystatus));
 	  zsleep(20);
 	  continue;
 	}
 	if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
+	    type(SS, -550, m571, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
+	    type(SS, -550, m571, "If you feel we mistreat you, do contact us.");
+	    typeflush(SS);
+
 	    smtp_tarpit(SS);
-	    type(SS, -550, NULL, "Hello %s; you are on our reject-IP-address -list, GO AWAY!", SS->rhostaddr);
-	    type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
-	    type(SS, 550, NULL, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
+	    type(SS,  550, m571, "Hello %s; you are on our reject-IP-address -list, GO AWAY!", SS->rhostaddr);
+
 	    typeflush(SS);
 	    continue;
 	}
