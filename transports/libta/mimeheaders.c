@@ -126,8 +126,19 @@ strqcpy(buf,buflen,str)
 }
 
 
+void cvtspace_free(rp)
+     struct rcpt *rp;
+{
+	char **ss;
+
+	if (!rp->newmsgheadercvt) return;
+
+	ss = rp->newmsgheadercvt;
+}
+
+
 int cvtspace_copy(rp)
-struct rcpt *rp;
+     struct rcpt *rp;
 {
 	int hdrcnt = 0;
 	char **probe = *(rp->newmsgheader);
@@ -617,7 +628,8 @@ struct rcpt *rp;
 	int mime = 0;
 
 	/* if (*(rp->newmsgheadercvt) != NULL)
-	   hdrs = *(rp->newmsgheadercvt); */ /* here we check the ORIGINAL headers.. */
+	   hdrs = *(rp->newmsgheadercvt); */
+	/* here we check the ORIGINAL headers.. */
 
 	if (!hdrs) return 0;
 
@@ -754,10 +766,10 @@ FILE *verboselog;
 	  /* We downgrade by changing it to Q-P as per RFC 1428/Appendix A */
 	  static const char *warning_lines[] = {
 "X-Warning: Original message contained 8-bit characters, however during",
-"           the SMTP transport session the receiving system was unable to",
-"           announce capability of receiving 8-bit SMTP (RFC 1651-1653),",
-"           and as this message does not have MIME headers (RFC 2045-2049)",
-"           to enable encoding change, we had very little choices.",
+"           the SMTP transport session the receiving system did not announce",
+"           capability of receiving 8-bit SMTP (RFC 1651-1653), and as this",
+"           message does not have MIME headers (RFC 2045-2049) to enable",
+"           encoding change, we had very little choice.",
 "X-Warning: We ASSUME it is less harmful to add the MIME headers, and",
 "           convert the text to Quoted-Printable, than not to do so,",
 "           and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
@@ -792,14 +804,10 @@ NULL };
 	    delete_header(rp,CT);
 	  /* These most propably won't happen, but the delete_header()
 	     does scram the pointers anyway.. */
-	  if (MIME) {
-	    MIME = has_header(rp,"MIME-Version:");
+	  if (MIME)
 	    delete_header(rp,MIME);
-	  }
-	  if (CTE) {
-	    CTE  = has_header(rp,cCTE);
+	  if (CTE)
 	    delete_header(rp,CTE);
-	  }
 
 	  for (i = 0; (*oldmsgheader)[i] != NULL; ++i)
 	    newmsgheaders[lines+i] = (*oldmsgheader)[i];

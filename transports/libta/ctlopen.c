@@ -147,7 +147,7 @@ ctlclose(dp)
 	  free(*msghpp);
 	}
 	free(dp->msgheaders);
-	dp->msgheaders = NULL; /* XX: Excessive caution.. */
+	dp->msgheaders = NULL;
 	for (msghpp = dp->msgheaderscvt; msghpp &&  *msghpp; ++msghpp) {
 	  char **msghp = *msghpp;
 	  for ( ; msghp && *msghp ; ++msghp )
@@ -155,7 +155,7 @@ ctlclose(dp)
 	  free(*msghpp);
 	}
 	free(dp->msgheaderscvt);
-	dp->msgheaders = NULL; /* XX: Excessive caution.. */
+	dp->msgheaderscvt = NULL;
 }
 
 
@@ -227,8 +227,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	struct stat stbuf;
 	char ***msgheaders = NULL;
 	char ***msgheaderscvt = NULL;
-	int headers_cnt = 0;
-	int headers_spc = 0;
+	int headers_cnt;
+	int headers_spc;
 	int largest_headersize = 80; /* Some magic minimum.. */
 	char dirprefix[8];
 	int mypid = getpid();
@@ -353,6 +353,17 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	d.envid      = NULL;
 	d.dsnretmode = NULL;
 	d.verbose    = NULL;
+
+	headers_cnt = 0;
+	headers_spc = 1;
+	for (i = 0; i < n; ++i)
+	  if (contents[ d.offset[i] ] == _CF_MSGHEADERS)
+	    ++headers_spc;
+
+	msgheaders = (char***)malloc(sizeof(char***) *
+				     (headers_spc+1));
+	msgheaderscvt = (char***)malloc(sizeof(char***) *
+					(headers_spc+1));
 
 	/* run through the file and set up the information we need */
 	for (i = 0; i < n; ++i) {
@@ -551,20 +562,6 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      }
 
 	      /* And the global connection.. */
-	      if (headers_cnt == 0) {
-		msgheaders = (char***)malloc(sizeof(char***)*8);
-		msgheaderscvt = (char***)malloc(sizeof(char***)*8);
-		headers_spc = 7;
-	      }
-	      if (headers_cnt+1 >= headers_spc) {
-		headers_spc += 8;
-		msgheaders =
-		  (char***)realloc(msgheaders,
-				   sizeof(char***)*headers_spc);
-		msgheaderscvt =
-		  (char***)realloc(msgheaderscvt,
-				   sizeof(char***)*headers_spc);
-	      }
 	      msgheaders   [headers_cnt] = msgheader;
 	      msgheaderscvt[headers_cnt] = NULL;
 

@@ -515,9 +515,9 @@ main(argc, argv)
 		smtpclose(&SS);
 		notary_setwtt(NULL);
 		notary_setwttip(NULL);
-		if (logfp) {
-		  fprintf(logfp, "%s#\t(closed SMTP channel - new host)\n", logtag());
-		}
+		if (logfp)
+		  fprintf(logfp, "%s#\t(closed SMTP channel - new host)\n",
+			  logtag());
 		strncpy(SS.remotehost, (char*)host, sizeof(SS.remotehost));
 		SS.remotehost[sizeof(SS.remotehost)-1] = 0;
 		if (statusreport)
