@@ -374,7 +374,10 @@ sh_lreplace(avl, il)
 		return NULL;
 	}
 	d = v_find(key->string);
-	if (!d) return NULL;
+	if (!d) {
+	  fprintf(stderr, lreplace_usage, car(avl)->string);
+	  return NULL;
+	}
 
 	tmp = cdr(key);  /* Numeric value for field index */
 	if (!STRING(tmp)) {
