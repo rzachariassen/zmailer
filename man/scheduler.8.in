@@ -822,7 +822,23 @@ Implements 'mailq -QQ'.
 .IP SHOW\ QUEUE\ THREADS
 Implements 'mailq -Q'.
 .IP SHOW\ THREAD\ channel\ host
-Unimplemented.
+Reports details usable to implement mailq-v1 like interface.
+The details are TAB separated fields in a line until an LF.
+Fields are:
+.sp
+.ta 0.5i
+.nf
+	1) filepath under $POSTOFFICE/transport/
+	2) error address in brackets
+	3) recipient line offset within the control file
+	4) message expiry time (time_t)
+	5) next wakeup time (time_t)
+	6) last feed time (time_t)
+	7) count of attempts at the delivery
+	8) "retry in NNN" or a pending on "channel"/"thread"
+	9) possible diagnostic message from previous delivery attempt
+.fi
+.sp
 .IP ETRN\ etrn\_string
 Supports ETRN-cluster subsystem at smtpserver.
 .IP KILL\ MSG\ spoolid

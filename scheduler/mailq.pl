@@ -15,6 +15,8 @@ use Getopt::Std;
 
 %main::opts = {};
 $main::Q = undef;
+$main::chan = '';
+$main::host = '';
 
 getopt('Q:',\%main::opts);
 if ($main::opts{'Q'}) {
@@ -23,9 +25,12 @@ if ($main::opts{'Q'}) {
 
 local($main::s);
 
-$main::s = & ZMailer::MAILQ::new('127.0.0.1','174');
+$main::host = $ARGV[0];
+$main::host = '127.0.0.1' unless (defined $main::host);
 
-$main::s->setdebug(1);
+$main::s = & ZMailer::MAILQ::new($main::host,'174');
+
+# $main::s->setdebug(1);
  
 #if (!defined $main::s) {
 #    printf("ZMailer::MAILQ::new() yielded UNDEF\n");
@@ -35,11 +40,22 @@ $main::s->setdebug(1);
 
 $main::s->login("nobody","nobody");
 
-#printf("login responce: '%s'\n",$main::s->{resp});
+printf("login responce: '%s'\n",$main::s->{resp});
 
 
 local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE THREADS");
-printf "SHOW QUEUE THREADS:\n%s\n",join("\n",@main::rc);
+printf "SHOW QUEUE THREADS: rc=%s\n",$main::rc;
+foreach $main::l (@main::rc) {
+    printf("%s\n",$main::l);
+    if ($main::l =~ m/^    /o) {
+	local(@main::rc2);
+	($main::chan,$main::host,$main::rc) = split('/',$main::l);
+	($main::rc,@main::rc2) = $main::s->showcmd("SHOW THREAD ${main::chan} ${main::host}");
+	printf("SHOW THREAD ${main::chan} ${main::host}\n\t%s\n",
+	       join("\n\t",@main::rc2));
+	next;
+    }
+}
 
 #local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
 #printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);

@@ -77,7 +77,7 @@ static void mq2interpret __((struct mailq *, char *));
 static struct mailq *mq2root  = NULL;
 static int           mq2count = 0;
 static int	     mq2max   = 20; /* How many can live simultaneously */
-static int           max_mq_life = 30; /* 30 seconds for an action */
+static int           max_mq_life = 90; /* 90 seconds for an action */
 
 int mq2_active __((void))
 {

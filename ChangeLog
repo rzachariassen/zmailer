@@ -1,3 +1,10 @@
+2000-06-13  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* scheduler/scheduler.c, man/scheduler.8, scheduler/mq2.c,
+	  scheduler/mailq.pl:
+	    Playing with MAILQ-V2 code to get (experimental) version
+	    of detailed reporting a'la old mailq-v1 code.
+
 2000-06-07  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/libta/ctlopen.c:

@@ -1970,9 +1970,10 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      *cp = 0;
 	      if (cfp->erroraddr)  free(cfp->erroraddr);
 	      cfp->erroraddr = strsave(latest_sender);
-	      if (strcmp(senderchannel,"error")==0)
+	      if (strcmp(senderchannel,"error")==0) {
 		cfp->iserrmesg = 1;
-	      break;
+		cfp->erroraddr[0] = 0; /* Make it '<>' */
+	      } break;
 	    case _CF_RECIPIENT:
 	      if (opcnt >= offspc-1) {
 		offspc *= 2;
