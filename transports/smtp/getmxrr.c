@@ -185,6 +185,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (cp > eom) break;
 	    saw_cname = 1;
 	    --ancount;
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog, " -> CNAME: '%s'\n", realname);
 	    continue;
 	  } else if (type != T_MX)  {
 	    cp += n;
@@ -206,6 +208,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    fprintf(stderr, "Out of virtual memory!\n");
 	    exit(EX_OSERR);
 	  }
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog, " -> MX[%d] pref=%d host=%s\n",
+		    nmx, mx[nmx].pref, buf);
 	  mxtype[nmx] = 0;
 	  ++nmx;
 	  --ancount;
