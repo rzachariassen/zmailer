@@ -2661,13 +2661,15 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. All MXes rejected [we are the best?], no address: '%.200s')", host);
 #if 1
 		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
-		  r = EX_NOHOST;
+		  if (r != EX_TEMPFAIL)
+		    r = EX_NOHOST;
 #endif
 		} else if (gai_err == EAI_NONAME || gai_err == EAI_NODATA) {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s')",
 			  host);
-		  r = EX_NOHOST; /* Can do instant reject */
+		  if (r != EX_TEMPFAIL)
+		    r = EX_NOHOST; /* Can do instant reject */
 		} else {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",
