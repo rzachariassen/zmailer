@@ -1,11 +1,11 @@
-# File listing headers which the router should kill on sight.
-# Lines beginning with alphanumeric character are assumed to
-# contain header names to be killed.  No embedded spaces are
-# allowed.
-#
-# Just some (built-in) examples, add your own ones!
 #
 # THIS FILE CONTAINS ZMSH SCRIPT COMMANDS TO ADD KEYS TO THE headers DB!
+#
+# File listing headers which the router should kill on sight, or
+# possibly treat as "Sender:" addresses which contents need to be
+# rewritten.
+#
+# Just some (built-in) examples, add your own ones!
 #
 
 #db add headers return-path		-:kill:-
@@ -14,3 +14,7 @@
 #db add headers resent-x-orcpt		-:kill:-
 #db add headers x-envid			-:kill:-
 #db add headers resent-x-envid		-:kill:-
+
+# A likely usefull addition:
+
+db add headers x-sender			MailBox:Sender:-
