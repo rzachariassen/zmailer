@@ -1,5 +1,11 @@
 2003-04-28  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    A bit experimental re-arrangements of EZMLM related
+	    processing of messages in smtp-level.  Moved  smtp
+	    connection formation from before deliver() to within
+	    it, so that it can (when needing) re-open the connection.
+
 	* utils/mxverify/mxverify-cgi.c:
 	    Auto-detect, if can use IPv6 addresses in testing.
 
