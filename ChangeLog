@@ -1,3 +1,8 @@
+2000-09-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* router/functions.c, transports/hold/hold.c, proto/cf/aliases.cf:
+	    "hold" handling for the $(homedirectory ...) function.
+
 2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/rrouter.cf, proto/db/routes:

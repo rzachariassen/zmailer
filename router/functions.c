@@ -1784,6 +1784,7 @@ run_homedir(argc, argv)
 	const char *argv[];
 {
 	struct passwd *pw;
+	char *b;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s name\n", argv[0]);
@@ -1793,8 +1794,20 @@ run_homedir(argc, argv)
 	if (pw == NULL) {
 		strlower((char*)argv[1]);
 		pw = getpwnam(argv[1]);
-		if (pw == NULL)
-			return 2;
+		if (pw == NULL) {
+		  if (errno == ENOENT) return 2;
+#ifdef __osf__
+		  if (errno == EINVAL) return 2;
+#endif
+		  ++deferit;
+
+		  b = malloc(strlen(argv[1])+10);
+		  sprintf(b, "HOME:%s", argv[1]);
+		  v_set(DEFER, b);
+		  free(b);
+
+		  return 3;
+		}
 	}
 	printf("%s\n", pw->pw_dir);
 	return 0;

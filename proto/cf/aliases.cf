@@ -602,6 +602,9 @@ fi
 	if homedir="$(homedirectory "$user")" ; then
 		hashomedir=1
 	else
+	    [ "$defer" ] &&
+		    return (((hold "$defer" "$address" $attr)))
+
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	    (.+)\+.+
 		# Try expanding 'user+', and then plain 'user'
@@ -673,6 +676,8 @@ fi
 		if homedir="$(homedirectory "\1")"; then
 			hashomedir=1
 		fi
+		[ "$defer" ] &&
+		    return (((hold "$defer" "$address" $attr)))
 		;;
 	    tfiss
 	fi
