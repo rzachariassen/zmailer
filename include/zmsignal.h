@@ -13,7 +13,7 @@
 #define RETSIGTYPE void	/* Propably not globally portable.. */
 #endif
 
-#ifdef	SV_INTERRUPT	/* BSDism */
+#if defined(SV_INTERRUPT) && !defined(HAVE_SIGPROCMASK)	/* BSDism */
 	/* ================ BSD 4.3+ (?) STUFF ================ */
 #define	SIGNAL_HANDLE(X,Y)	\
 	{	struct sigvec sv;			\
@@ -33,7 +33,7 @@
 #define SIGNAL_HOLD(SIG) \
 	sigblock(sigmask(SIG))
 #define SIGNAL_RELEASE(SIG) \
-	sigsetmask(~sigmask(SIG) & sigblock(SIGNAL_HOLD(sig)))
+	sigsetmask(~sigmask(SIG) & sigblock(SIGNAL_HOLD(SIG)))
 #define SIGNAL_IGNORE(SIG) \
 	SIGNAL_HANDLE(SIG,SIG_IGN)
 
