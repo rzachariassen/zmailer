@@ -798,35 +798,7 @@ mailbox delivery for local users.
 \end{itemize}
 
 
-\subsubsection{About Large Lists, and Memory Consumption}
-
-
-
-With old configuration scripts there used to be problems with list
-expansion causing serious memory bloat.  {\em ZMailer-2.98-mea} did introduce
-a working solution via the builtin  {\tt \$(listexpand ..)} function.
-
-The rest of these notes apply to older config files using old style pipe
-of:
-\begin{alltt}
- $(listaddresses  < file | maprrouter ...)
-\end{alltt}
-where the maprrouter caused the actual memory bloat...
-
-Internal list expansion (through the  {\tt \$MAILVAR/lists/LISTNAME} 
-mechanism) is a sure way to expand {\em router} process memory usage.
-
-You can decrease the memory requirement dramatically, if you can
-feed all the addresses in the envelope, or via {\tt utils/listexpand.c}
-utility (alpha-test tool on 1-Sep-94) You don't need to worry about 
-it unless your list is 100+ recipients, only then the memory usage starts 
-to bloat seriously with the old-style in-core {\tt \$(listaddress ...)} 
-expander.
-
-Although more interesting and useful models exist, the mail forwarding
-functionality of ZMailer has been designed to generally emulate the
-interface and behaviour of {\em sendmail}.  The mechanisms that accomplish this
-are likely to be generalized in a future version.
+\subsubsection{aliases}
 
 The file containing the actual aliasing data is automatically created by
 the {\em router} when asked to reconstruct the aliases database.  It does this
@@ -850,14 +822,14 @@ manner, but because some of the characters in the prefix are RFC822
 specials, the entire local-part must be quoted.  Thus, whereas {\em sendmail}
 allowed:
 
-\begin{alltt}
- people: :include:/usr/lib/mail/lists/people
-\end{alltt}
+\begin{alltt}\medskip\small\hrule\medskip
+people: :include:/usr/lib/mail/lists/people
+\medskip\hrule\end{alltt}\medskip
 
 the proper syntax with ZMailer is:
-\begin{alltt}
- people: ":include:/usr/lib/mail/lists/people"
-\end{alltt}
+\begin{alltt}\medskip\small\hrule\medskip
+people: ":include:/usr/lib/mail/lists/people"
+\medskip\hrule\end{alltt}\medskip
 
 
 Like {\em sendmail}, if a local-part is not found in the aliases database, the
@@ -873,12 +845,12 @@ by the local-part.
 
 General format:
 
-\begin{alltt}
+\begin{alltt}\medskip\hrule\scriptsize\medskip
  local-address-token:    "replacement address" ,
                          "extension line w/ another addr"
  --------------------    --------------------------------
      "The Key"                "The Data"
-\end{alltt}
+\medskip\hrule\end{alltt}\medskip
 
 Protection of the aliases database must be at least 0644.
 Protection of the {\tt \$MAILVAR/db/} directory must be at least 03755.
@@ -892,18 +864,18 @@ The following processing is done for (replacement) local-parts
 
 If the local-part starts with ``{\tt $\|$}" assume it is a command specification:
 \begin{alltt}
-    prog-pipe: "|/path/to/program -args"
+ prog-pipe: "|/path/to/program -args"
 \end{alltt}
 
 If the local-part starts with ``/" assume it is a file pathname:
 \begin{alltt}
-    file-path: "/path/to/file"
+ file-path: "/path/to/file"
 \end{alltt}
 
 If the local-part starts with {\tt :include:} the rest should be a file
 pathname of a list of mail addresses.  They are substituted:
 \begin{alltt}
-    included-list: ":include:/path/to/address/file"
+ included-list: ":include:/path/to/address/file"
 \end{alltt}
 
 After this point, all matches are case-insensitive by means of translating
@@ -911,6 +883,50 @@ the value to be looked up to lower-case, and then conducting a case-sensitive
 lookup. {\bf All keys in aliases et.al. must be in lower case}.
 (The hash functions inside  {\tt ndbm/gdbm/db/dbm}  are case sensitive, and 
 as such, there is no way to avoid this requirement.)
+
+
+
+\subsubsection{About Large Lists, and Memory Consumption}
+
+With old configuration scripts there used to be problems with list
+expansion causing serious memory bloat (of $O(n^{2})$ kind of memory
+consumption\ldots)
+{\em ZMailer-2.98} did introduce a working solution via the builtin
+{\tt\$(listexpand ..)} function.
+
+The rest of these notes apply to older config files using old style pipe
+of:
+\begin{alltt}\medskip\small\hrule\medskip
+ $(listaddresses < file | maprrouter ...)
+\medskip\hrule\end{alltt}\medskip
+where the maprrouter caused the actual memory bloat...
+
+The primary reason behind this is that the router does nnecessary
+copies of objects -- it uses memory in a form of heap storage which is
+allocated progressively and managed via ``{\tt mark()}'', and
+``{\tt release()}'' type calls.
+The ``{\tt release()}'' calls are done when exiting ``{\em zmsh}''
+interpreter, and never during script running (however calling
+builtin C functions which call scripts is another story -- there
+are ``{\tt release()}'' checkpoints available then.)
+
+Especially bad thing for memory use to do is to use ``{\tt setf}'' function.
+
+Internal list expansion (through the  {\tt \$MAILVAR/lists/LISTNAME} 
+mechanism) is a sure way to expand {\em router} process memory usage.
+
+You can decrease the memory requirement dramatically, if you can
+feed all the addresses in the envelope, or via {\tt utils/listexpand.c}
+utility (alpha-test tool on 1-Sep-94) You don't need to worry about 
+it unless your list is 100+ recipients, only then the memory usage starts 
+to bloat seriously with the old-style in-core {\tt \$(listaddress ...)} 
+expander.
+
+Although more interesting and useful models exist, the mail forwarding
+functionality of ZMailer has been designed to generally emulate the
+interface and behaviour of {\em sendmail}.
+The mechanisms that accomplish this are likely to be generalized in
+a future version.
 
 
 \subsubsection{Security Considerations}

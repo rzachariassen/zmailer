@@ -11,7 +11,11 @@ PARTS=	zadministration.tex     zref-router.tex			\
 	zinstall.tex            zref-zmailer3.tex		\
 	zreference.tex		zref-rmail.tex			\
 	ztutorial.tex		zappendixes.tex			\
-	zmanual-head.tex	zmanual-tail.tex
+	zmanual-head.tex	zmanual-tail.tex		\
+	zadm-dnsissues.tex	zadm-router.tex			\
+	zadm-sm.tex		zadm-logging.tex		\
+	zadm-scheduler.tex	zadm-smtpserver.tex		\
+	zadm-queues.tex		zadm-security.tex
 
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
 		zmdirs.fig zmprocs.fig
