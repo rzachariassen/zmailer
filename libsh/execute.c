@@ -1072,9 +1072,11 @@ fprintf(stderr,"runio(@%p) ioop=%p &ioop->command->buffer=%p\n",
 					f.__fileL = ioop->fd % 256;
 					f.__fileH = ioop->fd / 256;
 #else /* Other non-portable.. */
-#ifdef	__GLIBC__ /* and other GNU LIBC systems */
+#if defined(__GNU_LIBRARY__) || defined(__GLIBC__)
+					/* GNU LIBC systems */
 					f._fileno = ioop->fd;
 #else
+					/* classic SysIII derived systems */
 					f._file = ioop->fd;/* XX: nonportable */
 
 #endif
