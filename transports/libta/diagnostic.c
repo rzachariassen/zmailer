@@ -110,13 +110,14 @@ int xdly;
 	xdelay = xdly;
 }
 
+static char *A1 = NULL, *A2 = NULL, *A3 = NULL, *A4 = NULL;
+
 void
 notaryreport(arg1,arg2,arg3,arg4)
      const char *arg1, *arg2, *arg3, *arg4;
 {
 	const char *fmt = "%s\001%s\001%s\001%s\001%s";
 	int len;
-	static char *A1 = NULL, *A2 = NULL, *A3 = NULL, *A4 = NULL;
 
 	if (arg1) { if (A1) free(A1); A1 = strdup(arg1); }
 	if (arg2) { if (A2) free(A2); A2 = strdup(arg2); }
