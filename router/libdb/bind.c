@@ -461,7 +461,7 @@ getmxrr(host, ttlp, depth, flags)
 		    req.ai_socktype = SOCK_STREAM;
 		    req.ai_protocol = IPPROTO_TCP;
 		    req.ai_flags    = AI_CANONNAME;
-		    req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
+		    req.ai_family   = AF_INET; /* Both OK (IPv4/IPv6) */
 		    ai = NULL;
 		  
 #if !defined(GETADDRINFODEBUG)
@@ -474,6 +474,25 @@ getmxrr(host, ttlp, depth, flags)
 			maxpref = mx[nmx].pref;
 		    if (ai)
 		      freeaddrinfo(ai);
+#if defined(AF_INET6) && defined(INET6)
+		    memset(&req, 0, sizeof(req));
+		    req.ai_socktype = SOCK_STREAM;
+		    req.ai_protocol = IPPROTO_TCP;
+		    req.ai_flags    = AI_CANONNAME;
+		    req.ai_family   = AF_INET6; /* Both OK (IPv4/IPv6) */
+		    ai = NULL;
+		  
+#if !defined(GETADDRINFODEBUG)
+		    i = getaddrinfo((const char*)hbuf, "0", &req, &ai);
+#else
+		    i = _getaddrinfo_((const char*)hbuf,"0",&req,&ai,stderr);
+#endif
+		    if (matchmyaddresses(ai) != 0)
+		      if ((maxpref < 0) || (maxpref > (int)mx[nmx].pref))
+			maxpref = mx[nmx].pref;
+		    if (ai)
+		      freeaddrinfo(ai);
+#endif
 		    h_errno = herr;
 		  }
 		++nmx;
@@ -535,7 +554,7 @@ getmxrr(host, ttlp, depth, flags)
 	}
 	if (flags & T_MXLOCAL) {
 	  /* Did find MXes, and we were the lowest of them all... */
-	  if (!n && nmx > 0) {
+	  if (n == 0 && nmx > 0) {
 	    int slen = strlen(host);
 	    char  *s = dupnstr(host, slen);
 	    lhead = newstring(s, slen);

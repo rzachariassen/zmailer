@@ -1,3 +1,9 @@
+2000-03-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/zmailer.sh.in, proto/newdb.in, proto/db/dbases.conf:
+	    Now 'zmailer newdb' uses the  $MAILVAR/db/dbases.conf  file,
+	    if it exists.
+
 2000-03-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/threads.c:

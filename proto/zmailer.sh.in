@@ -5,9 +5,213 @@
 #       Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
 #       This will be free software, but only when it is finished.
 #
-#       Some hacking by Matti Aarnio, Copyright 1990-1998
+#       Some hacking by Matti Aarnio, Copyright 1990-2000
 #       Modified for Debian by Christoph Lameter 1997
 #
+
+# -------- function definitions first, then main program below ---------
+
+# -----------------------------------------------------------------------
+#    newdbprocessor()  -- converts DB configuration to ZMSH scripts
+#                         which the router digests at its startup.
+#
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv_yield_varname
+#|                  newdb_compile_options (-a for aliases!)
+#|                   dbfile (or "-")
+#|                         dbflags (or "-") ...
+#|
+
+#|Example:
+#|
+#| aliases         $DBTYPE  priv -la $MAILVAR/db/aliases        -lm
+#| aliases         $DBTYPE  priv -la $MAILVAR/db/aliases-2      -lm
+#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames      -lm
+#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap      -lm
+#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts   -lm
+#| fqdnaliases     $DBTYPE  priv -la $MAILVAR/db/fqdnaliases    -lm
+#| fqdnaliasesldap ldap     -    -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
+#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes       -lm -d longestmatch
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes         -lm
+#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames     -lm
+#| thishost        unordered -   -   $MAILVAR/db/localnames     -l
+#| thishost        bind,mxlocal - -  -                          -l
+#| otherservers    unordered -   -   $MAILVAR/db/otherservers   -lm -d pathalias
+#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active         -lm
+#| userdb          $DBTYPE  -    -la $MAILVAR/db/userdb         -lm
+#
+#
+
+newdbprocessor() {
+    infn=$1
+
+    relnames=`cat $infn | awk '/^[0-9a-zA-Z]/{print $1;}' | sort | uniq`
+
+    cd $MAILVAR/db
+
+    echoo "( "
+
+    for rel in $relnames
+    do
+	echoo "${rel}{"
+	ofn="$rel.zmsh"
+	tfn="/tmp/newdb.$$"
+	rnum=1
+	> $tfn # Trunc the file
+	cat > $ofn <<EOF
+# ZMSH init script for relation: $rel
+
+# ---boilerplate head
+EOF
+	# --- construct each relation, and binding at lookup, generate the db
+	cat $infn | ( 
+	oo=''
+	while read rname rtype rpriv rndbopt rdbfile rdbflags
+	do
+	    if [ "$rel" = "$rname" ]; then
+		rn="${rel}_$rnum"
+		rnum=`expr $rnum + 1`
+
+		rdbext=''
+		rdbtype=''
+		rdbexttst=''
+		# Process options into what the newdb really likes to get..
+		case "$rndbopt" in
+		-)
+		    rndbopt=''
+		    ;;
+		-l)
+		    rndbopt='-l'
+		    ;;
+		-la)
+		    rndbopt='-l -a'
+		    ;;
+		esac
+		eval fn=$rdbfile
+		echoo "$oo$rn"
+		oo=','
+		case "$rtype" in
+		    *DBTYPE)
+			rdbexttst='$DBEXTtest'
+			rdbext='$DBEXT'
+			rdbtype='$DBTYPE'
+			newdb -s $rndbopt -t $DBTYPE $fn
+			echoo ":NEW"
+			;;
+		    ndbm)
+			rdbexttst='.pag'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t ndbm $fn
+			echoo ":NEW"
+			;;
+		    dbm)
+			rdbexttst='.pag'
+			rdbext=''
+			rdbtype=$rtype
+			newdb -s $rndbopt -t dbm $fn
+			echoo ":NEW"
+			;;
+		    sdbm)
+			rdbexttst='.pag'
+			rdbext=''
+			rdbtype=$rtype
+			newdb -s $rndbopt -t sdbm $fn
+			echoo ":NEW"
+			;;
+		    gdbm)
+			rdbexttst='.gdbm'
+			rdbext='.gdbm'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t gdbm $fn
+			echoo ":NEW"
+			;;
+		    btree)
+			rdbexttst='.db'
+			rdbext='.db'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t btree $fn
+			echoo ":NEW"
+			;;
+		    bhash)
+			rdbexttst='.dbh'
+			rdbext='.dbh'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t btree $fn
+			echoo ":NEW"
+			;;
+		    *)
+			rdbexttst='.dat'
+			rdbext='.dat'
+			
+			;;
+		    esac
+		if [ "$rpriv" = "-" ]; then
+		    # ---- No privilege things collected -----
+		    cat >> $tfn <<EOF
+	if a="\$($rn "\$key")"; then
+	    return "\$a"
+	fi
+EOF
+		else
+		    # ---- privilege things to collect ----
+		    cat >> $tfn <<EOF
+	if a="\$($rn "\$key")"; then
+	    $rpriv="\$(filepriv -M 644 $rdbfile$rdbexttst \\
+			    \$(db owner $rn))" &&
+	    return "\$a"
+	fi
+EOF
+		fi
+		if [ "$rdbfile" = "-" ]; then
+		    cat >> $ofn <<EOF
+	relation $rdbflags -t $rtype $rn
+EOF
+		else
+		    cat >> $ofn <<EOF
+	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn
+EOF
+		fi
+	    fi
+	done )
+	# --- put out tails, and complete..
+	cat >> $ofn <<EOF
+# boilerplate tail---
+
+$rel(key) {
+    local a
+EOF
+	cat $tfn >> $ofn
+	cat >> $ofn <<EOF
+    return 1
+}
+EOF
+	rm -f $tfn
+	echoo "} "
+    done
+
+    echoo ") "
+}
+
+
+# -----------------------------------------------------------------------
+
+checkfreeze () {
+    if [ -f $POSTOFFICE/.freeze ]; then
+	echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
+	exit 0
+    fi
+}
+
+# -----------------------------------------------------------------------
+
+echoo () {
+    echo $eopt "$@$eeol"
+}
+
+# -----------------------------------------------------------------------
+
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 if [ -d /usr/ucb ]; then
@@ -55,7 +259,7 @@ esac
 # set up the default arguments
 if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then
         set -$- router scheduler smtpserver
-        echo $eopt "Starting Zmailer mail server: $eeol"
+        echoo "Starting Zmailer mail server: "
 fi
 
 umask 022
@@ -70,7 +274,7 @@ do
         stop|kill|nuke|kills|killr)     # print nothing
             ;;
         *)
-            echo $eopt "${op} $eeol"
+            echoo "${op} "
             ;;
     esac
     case "$op" in
@@ -80,14 +284,11 @@ do
                     if [ -f $POSTOFFICE/.pid.router ]; then
                         router -k > /dev/null
         #           else
-        #               echo $eopt "(warning: no .pid.router file) $eeol"
+        #               echoo "(warning: no .pid.router file) "
                     fi
                     ;;
                 *)
-                    if [ -f $POSTOFFICE/.freeze ]; then
-                        echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-                        exit 0
-                    fi
+		    checkfreeze
                     router $ROUTEROPTIONS
                     ;;
             esac
@@ -96,10 +297,7 @@ do
             case $KILL in
                 -*)     kill $KILL -`cat $POSTOFFICE/.pid.scheduler` 2>/dev/null ;;
                 *)
-                        if [ -f $POSTOFFICE/.freeze ]; then
-                            echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-                            exit 0
-                        fi
+			checkfreeze
                         cd $POSTOFFICE/transport
                         # must send signal to scheduler to make it
                         # stop reading the directory for new files
@@ -108,7 +306,7 @@ do
                             PID=`cat ../$PIDFILE`
                             kill -TERM -$PID 2>/dev/null
         #               else
-        #                   echo $eopt "(warning: no $PIDFILE file) $eeol"
+        #                   echoo "(warning: no $PIDFILE file) "
                         fi
                         scheduler $SCHEDULEROPTIONS
                         ;;
@@ -121,14 +319,11 @@ do
                         elif [ -d $POSTOFFICE/.pid.smtpserver ]; then
                             kill $KILL `cat $POSTOFFICE/.pid.smtpserver/* 2>/dev/null` 2>/dev/null
         #               else
-        #                   echo $eopt "(warning: no .pid.smtpserver file) $eeol"
+        #                   echo "(warning: no .pid.smtpserver file) "
                         fi
                         ;;
                 *)
-                        if [ -f $POSTOFFICE/.freeze ]; then
-                            echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
-                            exit 0
-                        fi
+			checkfreeze
                         cd /
                         if [ -f $MAILSHARE/smtpserver.conf ]; then
                             cd /; smtpserver $SMTPOPTIONS
@@ -160,26 +355,30 @@ do
             #
             #  Translate all common flatfile databases to binary db's
             #
-            echo $eopt "( $eeol"
-            if [   -f $MAILVAR/db/routes -a  \
-                 ! -f $MAILVAR/db/routes.zmsh ] ; then
-                echo $eopt "routes $eeol"
-                newdb -l $MAILVAR/db/routes
-            fi
-            if [   -f $MAILVAR/db/localnames -a \
-                 ! -f $MAILVAR/db/localnames.zmsh ] ; then
-                echo $eopt "localnames $eeol"
-                newdb -l $MAILVAR/db/localnames
-            fi
-            if [ -f $MAILVAR/db/aliases ] ; then
-                echo $eopt "aliases $eeol"
-                newaliases -s
-            fi
-            if [ -f $MAILVAR/db/fqdnaliases ] ; then
-                echo $eopt "fqdnaliases $eeol"
-                newfqdnaliases -s
-            fi
-            echo $eopt ") $eeol"
+	    if [ -r $MAILVAR/db/dbases.conf ]; then
+		newdbprocessor $MAILVAR/db/dbases.conf
+	    else
+		echoo "( "
+                if [   -f $MAILVAR/db/routes -a  \
+                     ! -f $MAILVAR/db/routes.zmsh ] ; then
+                    echoo "routes "
+                    newdb -l $MAILVAR/db/routes
+                fi
+                if [   -f $MAILVAR/db/localnames -a \
+                     ! -f $MAILVAR/db/localnames.zmsh ] ; then
+                    echoo "localnames "
+                    newdb -l $MAILVAR/db/localnames
+                fi
+                if [ -f $MAILVAR/db/aliases ] ; then
+                    echoo "aliases "
+                    newaliases -s
+                fi
+                if [ -f $MAILVAR/db/fqdnaliases ] ; then
+                    echoo "fqdnaliases "
+                    newfqdnaliases -s
+                fi
+                echoo ") "
+	    fi
             ;;
         newf*)
             newfqdnaliases
@@ -201,10 +400,6 @@ do
             # the router has learned better ways.
             # Still the scheduler is resistant...
 
-            # if [ -f $POSTOFFICE/.pid.router ]; then
-            #   pid=`cat $POSTOFFICE/.pid.router`
-            #   kill -1 -$pid # SIGHUP the router GROUP
-            # fi
             if [ -f $POSTOFFICE/.pid.scheduler ]; then
                 pid=`cat $POSTOFFICE/.pid.scheduler`
                 kill -1 $pid # SIGHUP the scheduler PROCESS
@@ -220,11 +415,11 @@ do
             case $op in
                 kill|stop|kills|killr)
                     KILL="-TERM"
-                    echo $eopt "Stopping Zmailer services: $eeol"
+                    echoo "Stopping Zmailer services: "
                     ;;
                 nuke)
                     KILL="-KILL"
-                    echo $eopt "Aborting Zmailer services: $eeol"
+                    echoo "Aborting Zmailer services: "
                     ;;
             esac
             ;;

@@ -1,5 +1,10 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- BUG? router/libdb/bind.c: relation of bind,mxlocal doesn't seem to
+  work completely :-/ (30-mar-2000)
+- BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
+  CommuniGate Pro 3.2 ... Suspect Communigate.
+
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
    DNS lookups, connecting, protocol exchanges, ...)
@@ -9,6 +14,11 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   and turn it into mandated default mode.
   IP-ACL controls (tcp-wrapper-like) integrated into this
   authentication somehow ?
+
+- scheduler: BUG? (cured? 2000/3/29)
+   - Seen a ta_hungry() related VTX == NULL crash on thread_reschedule()
+   - Seen idle chains getting completely trashed up ( propably also
+     related to  ta_hungry() -- or excessive calls of it thereof. )
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)

@@ -14,6 +14,11 @@ while @TRUE@; do
     LUOPT="-l"
     shift
     ;;
+  x-la)
+    LUOPT="-l"
+    AOPT="-a"
+    shift
+    ;;
   x-u)
     LUOPT="-u"
     shift

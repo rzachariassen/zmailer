@@ -29,23 +29,22 @@ that is, lowercase hex characters.
 	---------- ToBeWritten: commands ... -------------
 	(and multiline replies, and state things, and ...)
 
+	Multiline replies follow same rules as e.g. at POP3.
+
 ETRN etrn_string
 	- Single-line reply
 
 SHOW QUEUE SHORT
 	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
-	- On success a multiline appendix with SMTP DATA phase dot-duplication
-	  rules (same as with POP3)
+	- On success a multiline reply
 
 SHOW QUEUE THREADS
 	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
-	- On success a multiline appendix with SMTP DATA phase dot-duplication
-	  rules (same as with POP3)
+	- On success a multiline reply
 
 SHOW SNMP
 	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
-	- On success a multiline appendix with SMTP DATA phase dot-duplication
-	  rules (same as with POP3)
+	- On success a multiline reply
 
 SHOW THREAD channel host
 	- Multiline reply

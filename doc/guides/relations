@@ -52,3 +52,6 @@ NOTES:
 	are r/o mapped into memory, and for ordered case, a special
 	line-index is generated for speeding up the binary search.
 	(Makes less system calls that way..)
+
+	Relation NAMES can contain only Alphanumeric chars + '_'!
+	Especially '-' is FORBIDDEN.
