@@ -1,9 +1,5 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
-VERIFY: transports/smtp/smtp.c  ... that the CNAME rewrite
-	for the target domain is only used, when destination
-	domain matches work selector domain!
-
 VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	dirq[] allocation compared with  nrouters  setting..
 	What happens, when   nrouters  is smaller, than the
@@ -235,6 +231,7 @@ transports/smtp:
 	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
 	and at RCPT TO the domain parts MUST be primary DNS objects,
 	*not* CNAMEs.  We never rewrite...
+	   ... 3-Apr-2003: We process RCPT TO domains. Should we do MAIL FROM ?
 
 
    BUG?
