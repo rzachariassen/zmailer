@@ -1,5 +1,8 @@
 2000-06-20  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* scheduler/mailq.c:
+	    One-off in array realloc() biting us at Solaris..
+
 	* transports/smtp/smtp.c, nam/smtp.8:
 	    Coded '-L' option processing to bind to named local
 	    interface.

@@ -1232,7 +1232,7 @@ void query2(fpi, fpo)
 
 	  int linespace = 256;
 	  int linecnt = 0;
-	  char **lines = malloc(sizeof(char *) * linespace);
+	  char **lines = (char **) malloc(sizeof(char *) * linespace);
 
 	  fprintf(fpo, "SHOW QUEUE THREADS2\n");
 	  fflush(fpo);
@@ -1254,7 +1254,7 @@ void query2(fpi, fpo)
 	    if (buf[0] == '.' && buf[1] == 0)
 	      break;
 
-	    if (linecnt >= linespace) {
+	    if (linecnt+1 >= linespace) {
 	      linespace *= 2;
 	      lines = (char **)realloc((void**)lines,
 				       sizeof(char *) * linespace);
