@@ -82,10 +82,17 @@ main(argc, argv)
 	setgroups(0, NULL);
 #endif
 
-	/* setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-	   setvbuf(stderr, (char *)NULL, _IOLBF, 0); */
+#if 1 /* LINE BUFFERED */
+
+	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
+	setvbuf(stderr, (char *)NULL, _IOLBF, 0);
+
+#else /* NOT BUFFERED AT ALL */
+
 	setvbuf(stdout, (char *)NULL, _IONBF, 0);
 	setvbuf(stderr, (char *)NULL, _IONBF, 0);
+
+#endif
 
 	progname = strrchr(argv[0], '/');
 	if (progname == NULL)
