@@ -2894,13 +2894,18 @@ rmsgappend(va_alist)
 	fmt    = va_arg(ap, char *);
 #endif
 
-	if (SS->cmdstate < SS->prevcmdstate)
-	  SS->remotemsgs[SS->cmdstate] = SS->remotemsg;
-	SS->prevcmdstate = SS->cmdstate;
-	if (!append) SS->remotemsgs[SS->cmdstate][0] = 0;
-
 	cp    = SS->remotemsg + strlen(SS->remotemsg);
 	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
+
+	if (SS->cmdstate < SS->prevcmdstate)
+	  SS->remotemsgs[SS->cmdstate] = SS->remotemsg;
+	if (SS->cmdstate > SS->prevcmdstate)
+	  SS->remotemsgs[SS->cmdstate] = cp;
+
+	if (!append)
+	  cp = SS->remotemsgs[SS->cmdstate];
+
+	SS->prevcmdstate = SS->cmdstate;
 
 	if (!fmt) fmt="(NULL)";
 	for (; *fmt != 0; ++fmt) {
