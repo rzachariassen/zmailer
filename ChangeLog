@@ -1,3 +1,10 @@
+1999-06-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/sm/sm.c:
+	    Internal users reported that somewhen since 2.99.50s5 the
+	    'm'ultiple recipients mode has been broken.  A likely fix
+	    is supplied.  (I haven't had change to test this.)
+
 1999-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.c:

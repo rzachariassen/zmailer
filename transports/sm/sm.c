@@ -101,7 +101,8 @@ struct maildesc {
 	char	*name;
 	short	flags;
 	char	*command;
-	char	*argv[20];
+#define MD_ARGVMAX 20
+	char	*argv[MD_ARGVMAX];
 };
 
 extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, int len, int convertmode));
@@ -350,11 +351,11 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	struct rcpt *rp = NULL;
 	struct exmapinfo *exp;
 	const char *exs, *exd;
-	int i, j, pid, in[2], out[2], ii = 0;
+	int i, j, pid = 0, in[2], out[2], ii = 0;
 	unsigned int avsize;
 	FILE *tafp = NULL, *errfp = NULL;
 	char *cp = NULL, buf[BUFSIZ], buf2[BUFSIZ];
-	char *ws = NULL;
+	char *ws = NULL, *we = NULL;
 	const char *ds, **av, *s;
 	int status;
 	int content_kind, conversion_prohibited,
@@ -399,7 +400,9 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	      av = (const char **)erealloc((char *)av,
 					   sizeof av[0] * avsize);
 	    }
-	    for (cp = mp->argv[j], ws = buf; *cp != '\0'; ++cp) {
+	    ws = buf;
+	    we = buf + sizeof(buf);
+	    for (cp = mp->argv[j]; *cp != '\0'; ++cp) {
 	      if (*cp == '$') {
 		switch (*++cp) {
 		case 'g':
@@ -411,12 +414,19 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		case 'u':
 		  ds = rp->addr->user;
 		  rp = rp->next;
+		  if ((mp->flags & MO_MANYUSERS) &&
+		      (rp != endrp) && (rp != startrp))
+		    --j; /* repeat this one! */
 		  break;
 		case 'U':
-		  strcpy(buf2, rp->addr->user);
+		  strncpy(buf2, rp->addr->user, sizeof(buf2));
+		  buf2[sizeof(buf2)-1] = 0;
 		  strlower(buf2);
 		  ds = buf2;
 		  rp = rp->next;
+		  if ((mp->flags & MO_MANYUSERS) &&
+		      (rp != endrp) && (rp != startrp))
+		    --j; /* repeat this one! */
 		  break;
 		case '{':
 		  s = ++cp;
@@ -441,16 +451,22 @@ deliver(dp, mp, startrp, endrp, verboselog)
 			  *cp, dp->msgfile);
 		  warning(msg, mp->name);
 		} else {
-		  strcpy(ws, ds);
-		  ws += strlen(ds);
+		  int len = strlen(ds);
+		  if (ws + len >= we)
+		    break; /* D'uh :-( */
+		  memcpy(ws, ds, len+1);
+		  ws += len;
 		}
 	      } else
-		*ws++ = *cp;
+		if (ws < we)
+		  *ws++ = *cp;
 	    }
-	    *ws = '\0';
-	    av[ii] = emalloc((u_int)(strlen(buf)+1));
+	    if (ws < we)
+	      *ws = '\0';
+	    else
+	      we[-1] = '\0'; /* Trunk in all cases */
 	    /* not worth freeing this stuff */
-	    strcpy((char*)av[ii], buf);
+	    av[ii] = strdup(buf);
 	    if (j > 0)
 	      ++i;
 	  } while (rp != startrp && rp != endrp);
@@ -1257,7 +1273,7 @@ readsmcf(file, mailer)
 	}
 	SKIPWHILE(isspace, cp);
 	i = 0;
-	while (isascii(*cp) && !isspace(*cp)) {
+	while (isascii(*cp) && !isspace(*cp) && i < MD_ARGVMAX) {
 	  if (*cp == '\0')
 	    break;
 	  m.argv[i++] = cp;
