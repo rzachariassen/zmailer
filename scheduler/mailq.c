@@ -46,7 +46,6 @@
 #endif /* HAVE_DIRENT_H */
 
 
-#if	defined(HAVE_SOCKET) && (defined(HAVE_RESOLVER) || defined(HAVE_YP))
 #include <netdb.h>
 #ifndef EAI_AGAIN
 # include "netdb6.h"
@@ -56,7 +55,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/file.h>
-#endif	/* HAVE_SOCKET */
+
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
@@ -325,7 +324,7 @@ main(argc, argv)
 	    rc = _getaddrinfo_(host, "0", &req, &ai,
 			       (debug ? stderr : NULL));
 #endif
-#if defined(INET) && defined(INET6)
+#if defined(AF_INET6) && defined(INET6)
 	    {
 	      struct addrinfo *ai6;
 	      req.ai_family   = AF_INET6;

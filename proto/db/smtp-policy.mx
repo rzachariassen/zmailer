@@ -10,6 +10,6 @@
 #|    exact.domain
 #|
 #| You can replace exact knowledge with fuzzy feeling by using
-#| ``acceptofmx -'' at the boilerplate defaults and no need
+#|  ``acceptifmx -''  at the boilerplate defaults and no need
 #| anything at this file.
 #|

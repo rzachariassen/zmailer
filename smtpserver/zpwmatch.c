@@ -73,6 +73,11 @@ static void clean_reply(int num_msg, const struct pam_message **msg,
     }
 }
 
+/** WARNING:  Linux vs. Solaris:
+      Linux   = const struct pam_message **
+      Solaris =       struct pam_message **
+**/
+
 static int
 pam_cons __((int, const struct pam_message **,
 	     struct pam_response **, void *));

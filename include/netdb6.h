@@ -4,6 +4,7 @@
 	By Matti Aarnio <mea@nic.funet.fi> 1997
  */
 
+#ifndef HAVE_GETADDRINFO
 #ifndef AI_PASSIVE
 
 struct addrinfo {
@@ -51,3 +52,4 @@ struct addrinfo {
 #define NI_NOFQDN	0x08
 #define NI_DGRAM	0x10
 #endif
+#endif /* ndef HAVE_GETADDRINFO */
