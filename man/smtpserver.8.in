@@ -1415,7 +1415,7 @@ RFC 2033	 LMTP server mode (for testing)
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
 .\" RFC 2476	 SUBMIT protocol (port 587)
 RFC 2487/3207	 ESMTP STARTTLS
-RFC 2222	 SASL mechanism mase definition
+RFC 2222	 SASL mechanism base definition
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
 RFC 2554+NetScape	 ESMTP AUTH=LOGIN
 RFC 2852	 ESMTP DELIVERBY (incomplete implementation)
