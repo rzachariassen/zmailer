@@ -109,7 +109,18 @@ int subdaemons_init __((void))
 	  fdpass_close_parent(to);
 	}
 
-	if (contentfilter) {
+	while (contentfilter) {
+	  struct stat stbuf;
+
+	  if (stat(contentfilter, &stbuf)) {
+	    type(NULL,0,NULL, "contentfilter stat(%s) error %d",
+		 contentfilter, errno);
+	    return 0;
+	  }
+
+	  if (!S_ISREG(stbuf.st_mode))
+	    break;  /* Do not start contentfilter subdaemon. */
+
 	  rc = fdpass_create(to);
 	  if (rc == 0) {
 	    contentfilter_rdz_fd = to[1];
@@ -132,7 +143,8 @@ int subdaemons_init __((void))
 	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
 	    fdpass_close_parent(to);
 	  }
-	}
+	  break;
+	}  /* .. while contentfilter */
 
 	if (enable_router) {
 	  rc = fdpass_create(to);
@@ -635,10 +647,10 @@ fdgetc(fdp, fd, timeout)
 	      fdp->rdsize += rc;
 	      goto extract_from_buffer;
 	    }
-	    if (rc == 0) return -1; /* EOF */
-	    if (errno == EBADF) return -1; /* Simulate EOF! */
+	    if (rc == 0) return 0; /* EOF */
+	    if (errno == EBADF) return 0; /* Simulate EOF! */
 #ifdef EBADFD /* linux & Solaris, not FreeBSD ... */
-	    if (errno == EBADFD) return -1; /* Simulate EOF! */
+	    if (errno == EBADFD) return 0; /* Simulate EOF! */
 #endif
 	    if (errno == EINTR) continue;
 	    if (errno == EAGAIN) {

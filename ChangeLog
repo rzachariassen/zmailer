@@ -1,5 +1,9 @@
 2004-07-09  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c:
+	    Contentfilter interface to socket required some
+	    additional fixes.  Waiting for a report from Eugene.
+
 	* proto/cf/aliases.cf:
 	    Third try to get Eugene Crosser's DOMAIN_AWARE_GETPWNAM
 	    to work correctly..  (I applied the thing by hand, and

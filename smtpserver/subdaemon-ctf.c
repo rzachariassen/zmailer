@@ -112,6 +112,8 @@ subdaemon_killctf(CTF, idx)
 
 
 /* ============================================================ */
+/* Eugene Crosser reported that this code is broken..
+   .. changed things to do socket calls from client side,  */
 
 static int subdaemon_ctf_sock __((Ctfstate * CTF, int idx));
 static int
@@ -516,8 +518,9 @@ smtpcontentfilter_init ( statepp )
      struct ctf_state **statepp;
 {
 	struct ctf_state *state = *statepp;
-	int toserver[2];
-	int rc;
+	struct stat stbuf;
+
+	if (!contentfilter) return -1; /* D'uh!  Not configured! */
 
 	if (!state)
 	  state = calloc(1, sizeof(*state));
@@ -530,25 +533,65 @@ smtpcontentfilter_init ( statepp )
 	memset( state, 0, sizeof(*state) );
 	state->fd_io = -1;
 
-	/* Abusing the thing, to be exact, but... */
-	rc = socketpair(PF_UNIX, SOCK_STREAM, 0, toserver);
-	if (rc != 0) return -2; /* create fail */
 
-	state->fd_io = toserver[1];
-	rc = fdpass_sendfd(contentfilter_rdz_fd, toserver[0]);
-
-	if (debug)
-	  type(NULL,0,NULL,"smtpcontentfilter_init: fdpass_sendfd(%d,%d) rc=%d, errno=%s",
-	       contentfilter_rdz_fd, toserver[0], rc, strerror(errno));
-
-	if (rc != 0) {
-	  /* did error somehow */
-	  close(toserver[0]);
-	  close(toserver[1]);
-	  return -3;
+	if (stat(contentfilter, &stbuf)) {
+	  type(NULL,0,NULL, "contentfilter stat(%s) error %d",
+	       contentfilter, errno);
+	  return 0;
 	}
-	close(toserver[0]); /* Sent or not, close the remote end
-			       from our side. */
+
+	if (S_ISREG(stbuf.st_mode)) {
+
+	  int toserver[2];
+	  int rc;
+
+	  /* Abusing the thing, to be exact, but... */
+	  rc = socketpair(PF_UNIX, SOCK_STREAM, 0, toserver);
+	  if (rc != 0) return -2; /* create fail */
+
+	  state->fd_io = toserver[1];
+	  rc = fdpass_sendfd(contentfilter_rdz_fd, toserver[0]);
+
+	  if (debug)
+	    type(NULL,0,NULL,"smtpcontentfilter_init: fdpass_sendfd(%d,%d) rc=%d, errno=%s",
+		 contentfilter_rdz_fd, toserver[0], rc, strerror(errno));
+
+	  if (rc != 0) {
+	    /* did error somehow */
+	    close(toserver[0]);
+	    close(toserver[1]);
+	    return -3;
+	  }
+	  close(toserver[0]); /* Sent or not, close the remote end
+				 from our side. */
+
+	} else {
+	  /* PRESUMING HERE: If the file is not regular, it is socket.. */
+
+	  int msgsock;
+	  struct sockaddr_un server;
+
+	  memset((char*)&server,0,sizeof(server));
+	  server.sun_family = AF_UNIX;
+	  strncpy(server.sun_path,contentfilter,sizeof(server.sun_path)-1);
+	  server.sun_path[sizeof(server.sun_path)-1]='\0';
+
+	  msgsock = socket(AF_UNIX,SOCK_STREAM,0);
+
+	  if (msgsock < 0) {
+	    type(NULL,0,NULL, "contentfilter socket(%s) error %d (%s)",
+		 contentfilter,errno,strerror(errno));
+	    return(0);
+	  }
+	  if (connect(msgsock,(struct sockaddr *)&server,
+		      sizeof(server) - sizeof (server.sun_path)
+		      + strlen(server.sun_path)+1) < 0) {
+	    type(NULL,0,NULL, "contentfilter connect(%s) error %d (%s)",
+		 contentfilter,errno,strerror(errno));
+	    return 0;
+	  }
+	  state->fd_io = msgsock;
+	}
 
 	if (debug)
 	  type(NULL,0,NULL,"smtpcontentfilter_init; 9");
