@@ -53,6 +53,9 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #endif	/* HAVE_SOCKET */
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 
 #ifdef	MALLOC_TRACE
 struct conshell *envarlist = NULL;
@@ -76,6 +79,8 @@ extern char *strchr(), *strrchr();
 const char	*progname;
 const char	*postoffice;
 
+static char *port = NULL;
+
 char * v2username = "nobody";
 char * v2password = "nobody";
 
@@ -98,7 +103,6 @@ main(argc, argv)
 	int fd, c, errflg, eval;
 	struct passwd *pw;
 #ifdef	AF_INET
-	short port = 0;
 	struct in_addr naddr;
 	struct hostent *hp = NULL, he;
 	struct sockaddr_in sad;
@@ -128,11 +132,7 @@ main(argc, argv)
 	    break;
 #ifdef	AF_INET
 	  case 'p':
-	    if ((port = (short)atoi(optarg)) <= 0) {
-	      fprintf(stderr, "%s: illegal port: %s\n", progname, optarg);
-	      ++errflg;
-	    } else
-	      port = htons(port);
+	    port = optarg;
 	    break;
 #else  /* !AF_INET */
 	  case 'r':
@@ -203,116 +203,156 @@ main(argc, argv)
 	  postoffice = POSTOFFICE;
 
 	sprintf(path, "%s/%s", postoffice, PID_SCHEDULER);
+
 	errno = 0;
-#ifdef	AF_INET
-	nonlocal = 0; /* Claim it to be: "localhost" */
 
-	if (status < 2 || summary) {
+#if defined(AF_UNIX) && defined(HAVE_SYS_UN_H)
+	if (port && *port == '/') {
+	  struct sockaddr_un sun;
 
-	  if (port == 0 && (serv = getservbyname("mailq", "tcp")) == NULL) {
-	    fprintf(stderr, "%s: cannot find 'mailq' tcp service\n", progname);
-	    port = 174; /* MAGIC knowledge! */
-	  } else if (port == 0)
-	    port = serv->s_port;
-
-	  if (host == NULL) {
-	    host = getzenv("MAILSERVER");
-	    if ((host == NULL || *host == '\n')
-		&& (host = whathost(path)) == NULL) {
-	      if (status > 0) {
-		host = "127.0.0.1"; /* "localhost" */
-		nonlocal = 0;
-	      } else {
-		if (whathost(postoffice)) {
-		  fprintf(stderr, "%s: %s is not active", progname, postoffice);
-		  fprintf(stderr, " (\"%s\" does not exist)\n", path);
-		} else
-		  fprintf(stderr, "%s: cannot find postoffice host\n", progname);
-		exit(EX_OSFILE);
-	      }
-	    }
+	  if (status) {
+	    checkrouter();
+	    checkscheduler();
+	    if (status > 1 && !summary)
+	      exit(0);
 	  }
-	  hp = gethostbyname(host);
-	  if (hp == NULL) {
-	    if (inet_pton(AF_INET, host, &naddr.s_addr) == 1) {
-	      hp = gethostbyaddr((void*)&naddr, sizeof(naddr), AF_INET);
-	      if (hp == NULL){
-		hp = &he;
-		he.h_name = host;
-		he.h_length = 4;
-	      }
-	    } else if (hp == NULL) {
-	      fprintf(stderr, "%s: cannot find address of %s\n", progname, host);
-	      exit(EX_UNAVAILABLE);
-	    }
-	  }
-	  if (strcmp(host, "localhost") != 0 &&
-	      strcmp(host, "127.0.0.1") != 0) {
-	    printf("[%s]\n", hp->h_name);
-	    nonlocal = 1;
-	  } else
-	    nonlocal = 0;	/* "localhost" is per default a "local" */
-	}
-	if (status) {
-	  checkrouter();
-	  checkscheduler();
-	  if (status > 1 && !summary)
-	    exit(0);
-	}
-	/* try grabbing a port */
-	fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (fd < 0) {
-	  fprintf(stderr, "%s: ", progname);
-	  perror("socket");
-	  exit(EX_UNAVAILABLE);
-	}
-	sad.sin_family = AF_INET;
-	if (hp == &he)
-	  sad.sin_addr.s_addr = htonl(naddr.s_addr);
-	else {
-	  char *addr;
 
-	  eval = EFAULT;
-	  hp_init(hp);
-	  while ((addr = *hp_getaddr()) != NULL) {
-	    sad.sin_addr.s_addr = 0;
-	    sad.sin_port = htons((short)0);
-	    if (bind(fd, (void*)&sad, sizeof sad) < 0) {
-	      fprintf(stderr, "%s: ", progname);
-	      perror("bind");
-	      exit(EX_UNAVAILABLE);
-	    }
-	    sad.sin_port = port;
-	    memcpy((void*)&sad.sin_addr, addr, hp->h_length);
-	    if (connect(fd, (void*)&sad, sizeof sad) < 0) {
-	      eval = errno;
-	      fprintf(stderr, "%s: connect failed to %s", progname,
-		      dottedquad(&sad.sin_addr));
-	      if ((addr = *hp_nextaddr()) != NULL) {
-		memcpy((char *)&sad.sin_addr, addr, hp->h_length);
-		fprintf(stderr, ", trying %s...\n", dottedquad(&sad.sin_addr));
-	      } else
-		putc('\n', stderr);
-	      close(fd);
-	      if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		fprintf(stderr, "%s: ", progname);
-		perror("socket");
-		exit(EX_UNAVAILABLE);
-	      }
-	      continue;
-	    }
-	    break;
-	  }
-	  if (*hp_getaddr() == NULL) {
+	  /* try grabbing a port */
+	  fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	  if (fd < 0) {
 	    fprintf(stderr, "%s: ", progname);
-	    errno = eval;
-	    perror("connect");
-	    fprintf(stderr, "%s: unable to contact scheduler on %s\n",
-		    progname, hp->h_name);
+	    perror("socket");
 	    exit(EX_UNAVAILABLE);
 	  }
+
+	  sun.sun_family = AF_UNIX;
+	  strncpy(sun.sun_path, port, sizeof(sun.sun_path));
+	  sun.sun_path[ sizeof(sun.sun_path) ] = 0;
+
+	  if (connect(fd, (void*)&sun, sizeof sun) < 0) {
+	    fprintf(stderr,"%s: connect failed to path: '%s'\n",progname,sun.sun_path);
+	    exit(EX_UNAVAILABLE);
+	  }
+
+	  docat((char *)NULL, fd);
 	}
-	docat((char *)NULL, fd);
+#endif
+#ifdef	AF_INET
+	if (!port || (port && *port != '/')) {
+
+	  int portnum = 174;
+	  nonlocal = 0; /* Claim it to be: "localhost" */
+
+	  if (status < 2 || summary) {
+
+	    if (port == NULL &&
+		(serv = getservbyname(port ? port : "mailq", "tcp")) == NULL) {
+
+	      fprintf(stderr,"%s: cannot find 'mailq' tcp service\n",progname);
+
+	    } else if (port == 0)
+	      
+	      portnum = serv->s_port;
+
+	    if (host == NULL) {
+	      host = getzenv("MAILSERVER");
+	      if ((host == NULL || *host == '\n')
+		  && (host = whathost(path)) == NULL) {
+		if (status > 0) {
+		  host = "127.0.0.1"; /* "localhost" */
+		  nonlocal = 0;
+		} else {
+		  if (whathost(postoffice)) {
+		    fprintf(stderr, "%s: %s is not active", progname, postoffice);
+		    fprintf(stderr, " (\"%s\" does not exist)\n", path);
+		  } else
+		    fprintf(stderr, "%s: cannot find postoffice host\n", progname);
+		  exit(EX_OSFILE);
+		}
+	      }
+	    }
+	    hp = gethostbyname(host);
+	    if (hp == NULL) {
+	      if (inet_pton(AF_INET, host, &naddr.s_addr) == 1) {
+		hp = gethostbyaddr((void*)&naddr, sizeof(naddr), AF_INET);
+		if (hp == NULL){
+		  hp = &he;
+		  he.h_name = host;
+		  he.h_length = 4;
+		}
+	      } else if (hp == NULL) {
+		fprintf(stderr, "%s: cannot find address of %s\n", progname, host);
+		exit(EX_UNAVAILABLE);
+	      }
+	    }
+	    if (strcmp(host, "localhost") != 0 &&
+		strcmp(host, "127.0.0.1") != 0) {
+	      printf("[%s]\n", hp->h_name);
+	      nonlocal = 1;
+	    } else
+	      nonlocal = 0;	/* "localhost" is per default a "local" */
+	  }
+	  if (status) {
+	    checkrouter();
+	    checkscheduler();
+	    if (status > 1 && !summary)
+	      exit(0);
+	  }
+	  /* try grabbing a port */
+	  fd = socket(AF_INET, SOCK_STREAM, 0);
+	  if (fd < 0) {
+	    fprintf(stderr, "%s: ", progname);
+	    perror("socket");
+	    exit(EX_UNAVAILABLE);
+	  }
+	  sad.sin_family = AF_INET;
+	  if (hp == &he)
+	    sad.sin_addr.s_addr = htonl(naddr.s_addr);
+	  else {
+	    char *addr;
+
+	    eval = EFAULT;
+	    hp_init(hp);
+	    while ((addr = *hp_getaddr()) != NULL) {
+	      sad.sin_addr.s_addr = 0;
+	      sad.sin_port = htons((short)0);
+	      if (bind(fd, (void*)&sad, sizeof sad) < 0) {
+		fprintf(stderr, "%s: ", progname);
+		perror("bind");
+		exit(EX_UNAVAILABLE);
+	      }
+	      sad.sin_port = htons(portnum);
+	      memcpy((void*)&sad.sin_addr, addr, hp->h_length);
+	      if (connect(fd, (void*)&sad, sizeof sad) < 0) {
+		eval = errno;
+		fprintf(stderr, "%s: connect failed to %s", progname,
+			dottedquad(&sad.sin_addr));
+		if ((addr = *hp_nextaddr()) != NULL) {
+		  memcpy((char *)&sad.sin_addr, addr, hp->h_length);
+		  fprintf(stderr, ", trying %s...\n", dottedquad(&sad.sin_addr));
+		} else
+		  putc('\n', stderr);
+		close(fd);
+		if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+		  fprintf(stderr, "%s: ", progname);
+		  perror("socket");
+		  exit(EX_UNAVAILABLE);
+		}
+		continue;
+	      }
+	      break;
+	    }
+	    if (*hp_getaddr() == NULL) {
+	      fprintf(stderr, "%s: ", progname);
+	      errno = eval;
+	      perror("connect");
+	      fprintf(stderr, "%s: unable to contact scheduler on %s\n",
+		      progname, hp->h_name);
+	      exit(EX_UNAVAILABLE);
+	    }
+	  }
+	  docat((char *)NULL, fd);
+	}
 #else	/* !AF_INET */
 	if (strcmp(host, "localhost") == 0 ||
 	    strcmp(host, "127.0.0.1") == 0) {

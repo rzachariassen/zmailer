@@ -1,3 +1,19 @@
+1999-11-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Autodetect  <sys/un.h>  header file
+
+	* proto/scheduler.conf.in, scheduler/mailq.c, scheduler/mq2auth.c,
+	  scheduler/prototypes.h, scheduler/readconfig.c,
+	  scheduler/scheduler.c, scheduler/transport.c:
+	    * scheduler.conf file can now have:
+	        PARAMmailqpath = "UNIX:/path/to/af_unix/mailq/port"
+		PARAMmailqpath = "TCP:174"
+	    * mailq -p /path/to/af_unix/mailq/port
+
+	    Those are for running multiple schedulers in the system,
+	    and allowing each different mailq port.
+
 1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/mq2.c, scheduler/scheduler.c, scheduler/prototypes.h,

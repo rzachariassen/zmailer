@@ -155,7 +155,7 @@ fildes(avp)
 {
 	int fd;
 
-	if (**avp != NULL && isdigit(***avp))
+	if (**avp != NULL && isdigit((unsigned char)(***avp)))
 		fd = atoi(**avp), ++*avp;
 	else
 		fd = 1;

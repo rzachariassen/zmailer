@@ -25,6 +25,7 @@
 static void celink __((struct config_entry *, struct config_entry **, struct config_entry **));
 static int readtoken __((FILE *fp, char *buf, int buflen, int *linenump));
 static u_int parse_intvl __((char *string));
+static int paramparse __((char *line));
 
 #define RCKEYARGS __((char *key, char *arg, struct config_entry *ce))
 
@@ -49,7 +50,6 @@ static int rc_priority		RCKEYARGS;
 static int rc_nice		RCKEYARGS;
 static int rc_syspriority	RCKEYARGS;
 static int rc_sysnice		RCKEYARGS;
-static int rc_paramauthfile	RCKEYARGS;
 
 extern int errno;
 
@@ -92,7 +92,6 @@ static struct rckeyword {
 {	"nice",			rc_nice		},	/* number */
 {	"syspriority",		rc_syspriority	},	/* number */
 {	"sysnice",		rc_sysnice	},	/* number */
-{	"paramauthfile",	rc_paramauthfile },	/* string */
 {	NULL,			0		}
 };
 
@@ -271,7 +270,16 @@ readconfig(file)
 	  if (verbose)
 	    printf("read '%s' %d\n",  line, n);
 	  if (n == 1) {
-	    /* Selector entry */
+	    /* Selector entry - or "PARAM" */
+	    if (cistrncmp(line,"PARAM",5) == 0) {
+	      if (paramparse(line+5)) {
+		fprintf(stderr, "%s: illegal syntax at %s:%d\n",
+			progname, file, linenum);
+		++errflag;
+	      }
+	      continue;;
+	    }
+
 	    if (ce != NULL)
 	      celink(ce, &head, &tail);
 	    ce = (struct config_entry *)emalloc(sizeof (struct config_entry));
@@ -335,7 +343,8 @@ readconfig(file)
 	      ++errflag;
 	    }
 	  } else {
-	    fprintf(stderr, "%s: illegal syntax\n", progname);
+	    fprintf(stderr, "%s: illegal syntax at %s:%d\n",
+		    progname, file, linenum);
 	    ++errflag;
 	  }
 	}
@@ -821,16 +830,47 @@ static int rc_queueonly(key, arg, ce)
 
 extern int mailqmode;
 
-static int rc_paramauthfile(key, arg, ce)
-	char *key, *arg;
-	struct config_entry *ce;
+static int paramparse(line)
+	char *line;
 {
-	if (mq2authfile)
-	  free(mq2authfile);
-	mq2authfile = strsave(arg);
+	char *s, *a = NULL;
 
-	if (mq2authfile && access(mq2authfile,R_OK)==0)
-	  mailqmode = 2;
+	if ((s = strchr(line, '=')) != NULL) {
+	  char *p = s-1;
+	  *s = '\0';
+	  while (p >= line && (*p == ' ' || *p == '\t'))
+	    *p-- = '\0';
+	  a = s+1;
+	  while (*a == ' ' || *a == '\t') ++a;
+	  if (*a == '"') {
+	    ++a;
+	    s = a;
+	    while (*s && *s != '"') {
+	      if (*s == '\\' && s[1] != 0)
+		++s;
+	      ++s;
+	    }
+	    if (*s)
+	      *s = '\0';
+	  }
+	}
 
-	return 0;
+	if (cistrcmp(line,"authfile")==0 && a) {
+	  if (mq2authfile)
+	    free(mq2authfile);
+	  mq2authfile = strsave(a);
+
+	  if (mq2authfile && access(mq2authfile,R_OK)==0)
+	    mailqmode = 2;
+
+	  return 0;
+	}
+
+	if (cistrcmp(line,"mailqsock")==0 && a) {
+	  if (mailqsock)
+	    free(mailqsock);
+	  mailqsock = strsave(a);
+	  return 0;
+	}
+	return 1;
 }

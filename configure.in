@@ -1012,7 +1012,7 @@ fi
 # The API specs say: <netinet/in.h>,  but some people disagree...
 #
 
-AC_CHECK_HEADERS(netinet/in.h sys/socket.h)
+AC_CHECK_HEADERS(netinet/in.h sys/un.h sys/socket.h)
 if test "$ac_cv_header_netinet_in_h" = no ; then
     AC_MSG_RESULT([%%% AIEEE!  NO  <netinet/in.h>  HEADER ?!])
 fi

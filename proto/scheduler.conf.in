@@ -47,6 +47,19 @@
 #       clause matching the selector.
 #
 
+#
+# -------- Some external parameters - name starts from column 0, and -----
+# -------- always begins with "PARAM" ------------------------------------
+
+# MAILQv2 authentication database file reference:
+# If you define this (like the default is), and the file exists,
+# scheduler mailq interface goes to v2 mode.
+
+PARAMauthfile = "@MAILSHARE@/scheduler.auth"
+
+
+#PARAMmailqsock = "UNIX:/path/to/mailq.sock"
+#PARAMmailqsock = "TCP:174"
 
 #
 # Default parameter boilerplate, following values are in use in
@@ -96,12 +109,6 @@
 	#
 	# sysnice=-2
 	# syspriority=-2
-
-	# MAILQv2 authentication database file reference:
-	# If you define this (like the default is), and the file exists,
-	# scheduler mailq interface goes to v2 mode.
-	PARAMauthfile = "@MAILSHARE@/scheduler.auth"
-
 
 # Deferred delivery is handled by this transport agent.  Deferrals are low
 # priority, but they tend to bunch up.  The 1 channel slot means there will

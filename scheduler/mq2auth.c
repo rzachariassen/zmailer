@@ -93,8 +93,10 @@ static struct mq2pw * authuser(user)
 
   mpw.user = linebuf;
   while ((s = fgets(linebuf, sizeof(linebuf)-1, fp))) {
-    if (*linebuf == '#' || *linebuf == '*')
+    if (*linebuf == '#' || *linebuf == '*' || *linebuf == '\n')
       continue;
+    s = strchr(linebuf,'\n');
+    if (s) *s = 0;
     s = strchr(linebuf,':');
     if (!s) continue; /* Bad syntax! */
     *s++ = '\000';

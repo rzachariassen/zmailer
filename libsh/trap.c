@@ -404,7 +404,7 @@ sh_trap(argc, argv)
 		/* ignore the specified signals */
 		script = *argv;
 		--argc, ++argv;
-	} else if (isascii(**argv) && isdigit(**argv)) {
+	} else if (isascii((unsigned)(**argv)) && isdigit((unsigned)(**argv))){
 		/* reset the signal handlers to original value */
 		script = NULL;
 	} else {

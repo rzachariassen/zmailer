@@ -118,9 +118,10 @@ char * procselect = NULL;	/* Non-null defines  channel/host specifier
 				   prevent running anything else, and also
 				   prevent running error processing, or
 				   job-specifier deletions. */
-char * procselhost = NULL;	/* Just spliced out 'host'-part of the above */
+char *  procselhost = NULL;	/* Just spliced out 'host'-part of the above */
 extern int forkrate_limit;	/* How many forks per second ? */
 int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
+char *  mailqsock = NULL;
 
 static int vtxprep_skip      = 0;
 static int vtxprep_skip_any  = 0;

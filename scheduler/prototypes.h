@@ -53,6 +53,7 @@ extern const char *replchannel;
 extern int  nobody;
 extern int  sweepinterval;
 extern char *mq2authfile;
+extern char *mailqsock;
 
 
 /* msgerror.c */

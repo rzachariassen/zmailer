@@ -29,7 +29,11 @@
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 #include "ta.h"
+#include "libz.h"
 
 extern int forkrate_limit;
 extern int freeze;
@@ -871,7 +875,8 @@ time_t timeout;
 	      if (rc == 0) { /* Child! */
 		close(querysocket);
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
-		if (wantconn(i, "mailq") == 0) {
+		if (raddr.sin_family == AF_INET &&
+		    wantconn(i, "mailq") == 0) {
 		  char *msg = "refusing 'mailq' query from your whereabouts\r\n";
 		  int   len = strlen(msg);
 		  write(i,msg,len);
@@ -987,49 +992,111 @@ queryipccheck()
 void
 queryipcinit()
 {
-#ifdef	AF_INET
-	struct servent *serv;
-	struct sockaddr_in sad;
-	int on = 1;
-	int port = 174; /* MAGIC knowledge */
+	int modecode = 1; /* Modes: 1=TCP, 2=UNIX, default=TCP */
+	char *modedata = NULL;
 
 	if (querysocket >= 0)
 		return;
-	mytime(&now);
-	if ((serv = getservbyname("mailq", "tcp")) == NULL) {
-	  fprintf(stderr, "No 'mailq' tcp service defined!\n");
-	} else
-	  port = serv->s_port;
-	qipcretry = now + 5;
-	sad.sin_port        = port;
-	sad.sin_family      = AF_INET;
-	sad.sin_addr.s_addr = htonl(INADDR_ANY);
-	if ((querysocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	  perror("socket");
-	  return;
-	}
-	setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
 
-	if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
-	  perror("bind:mailq socket");
-	  close(querysocket);
-	  querysocket = -1;
-	  return;
+	if (mailqsock) {
+	  if (cistrncmp(mailqsock,"UNIX:",5)==0) {
+	    modedata = mailqsock+5;
+	    modecode = 2;
+	  } else if (cistrncmp(mailqsock,"TCP:",4)==0) {
+	    modedata = mailqsock+4;
+	    modecode = 1;
+	  }
 	}
+
+#ifdef  AF_UNIX
+	if (modecode == 2) {
+	  struct sockaddr_un sad;
+	  int on = 1;
+
+	  mytime(&now);
+	  qipcretry = now + 5;
+
+	  sad.sun_family = AF_UNIX;
+	  strncpy(sad.sun_path, modedata, sizeof(sad.sun_path));
+	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	  if ((querysocket = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+	    perror("querysocket: socket(AF_UNIX)");
+	    return;
+	  }
+
+	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+	  /* In case that one already exists.. */
+	  unlink(sad.sun_path);
+
+	  if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
+	    perror("bind:mailq socket");
+	    close(querysocket);
+	    querysocket = -1;
+	    return;
+	  }
 #if defined(F_SETFD)
-	fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
+	  fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
 #endif
 
-	if (listen(querysocket, 5) < 0) {
-	  perror("listen:mailq socket");
-	  close(querysocket);
-	  querysocket = -1;
-	  return;
+	  if (listen(querysocket, 5) < 0) {
+	    perror("listen:mailq socket");
+	    close(querysocket);
+	    querysocket = -1;
+	    return;
+	  }
+	  qipcretry = 0;
 	}
-	qipcretry = 0;
+#endif
+#ifdef	AF_INET
+	if (modecode == 1) {
+	  struct servent *serv;
+	  struct sockaddr_in sad;
+	  int on = 1;
+	  int port = 174; /* MAGIC knowledge */
+
+	  mytime(&now);
+	  if (sscanf(modedata,"%d",&port) != 1) {
+	    if ((serv = getservbyname(modedata ? modedata : "mailq", "tcp")) == NULL) {
+	      fprintf(stderr, "No 'mailq' tcp service defined!\n");
+	    } else
+	      port = serv->s_port;
+	  }
+	  qipcretry = now + 5;
+	  sad.sin_port        = port;
+	  sad.sin_family      = AF_INET;
+	  sad.sin_addr.s_addr = htonl(INADDR_ANY);
+	  if ((querysocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	    perror("querysocket: socket(AF_INET)");
+	    return;
+	  }
+	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+	  if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
+	    perror("bind:mailq socket");
+	    close(querysocket);
+	    querysocket = -1;
+	    return;
+	  }
+
+#if defined(F_SETFD)
+	  fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
+#endif
+
+	  if (listen(querysocket, 5) < 0) {
+	    perror("listen:mailq socket");
+	    close(querysocket);
+	    querysocket = -1;
+	    return;
+	  }
+	  qipcretry = 0;
+	}
 #endif	/* AF_INET */
 }
+
 #else	/* !HAVE_SELECT */
+
 int
 mux(timeout)
 time_t timeout;
