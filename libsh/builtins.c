@@ -531,32 +531,12 @@ sh_returns(avl, il, statusp)
 	conscell *avl, *il;
 	int *statusp;
 {
-	int n;
-	char *cp;
-
 	if ((il = cdar(avl)) && LIST(il) && cdr(il) == NULL)
 		return il;
 	else if (il == NULL)
 		return NULL;
-	else if (STRING(il)) {
-		for (cp = il->string; *cp != 0; ++cp) {
-		  int c = (*cp) & 0xFF;
-		  if (!isascii(c) || !isdigit(c))
-		    break;
-		}
-		if (*cp)
-			return il;
-		n = atoi(il->string);
-		if (n < 0) {
-			fprintf(stderr, "%s: %s: %d\n", car(avl)->string,
-					NEGATIVE_VALUE, n);
-			n = 1;
-		}
-		*statusp = n;
-		return NULL;
-	}
-	/* NOTREACHED */
-	return NULL;
+	else
+		return il;
 }
 
 conscell *
