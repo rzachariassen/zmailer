@@ -1257,6 +1257,8 @@ deliver(SS, dp, startrp, endrp)
 	  notary_setxdelay((int)(endtime-starttime));
 	  if (pipelining && SS->smtpfp /* might have timed out */)
 	    r = smtp_sync(SS, r, 0);
+	  else
+	    r = smtp_sync(SS, r, 1); /* non-blocking */
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
 	    notaryreport(rp->addr->user, FAILED,
@@ -1303,6 +1305,8 @@ deliver(SS, dp, startrp, endrp)
 	    notary_setxdelay((int)(endtime-starttime));
 	    if (pipelining && SS->smtpfp)
 	      r = smtp_sync(SS, r, 0);
+	    else
+	      r = smtp_sync(SS, r, 1); /* non-blocking */
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(NULL, FAILED, NULL, NULL);
 	    diagnostic(rp, r, 0, "%s", SS->remotemsg);
@@ -3226,10 +3230,8 @@ int bdat_flush(SS, lastflg)
 
 	if (lastflg || ! SS->pipelining)
 	  r = smtp_sync(SS, r, 0);
-#if 0 /* not yet! */
 	else
 	  r = smtp_sync(SS, r, 1); /* non-blocking */
-#endif
 	return r;
 }
 
@@ -3399,12 +3401,12 @@ smtp_sync(SS, r, nonblocking)
 	int idx = 0, code;
 	int rc = EX_OK, len;
 	int some_ok = 0;
-	int datafail = 0;
+	int datafail = EX_OK;
 	int err;
 	char buf[8192];
 	char *p;
-	int continuation_line = 0;
-	int first_line = 1;
+	static int continuation_line = 0;
+	static int first_line = 1;
 
 	alarm(timeout);
 	gotalarm = 0;
@@ -3415,8 +3417,8 @@ smtp_sync(SS, r, nonblocking)
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
 
-	s = SS->pipebuf;
-	eol = s;
+	eol = SS->pipebuf;
+
 	/* Pre-fill  some_ok,  and  datafail  variables */
 	if (SS->rcptstates & RCPTSTATE_OK) /* ONE (or more) of them was OK */
 	  some_ok = 1;
@@ -3425,8 +3427,12 @@ smtp_sync(SS, r, nonblocking)
 	if (SS->rcptstates & DATASTATE_500)
 	  datafail = EX_UNAVAILABLE;
 
+	if (SS->pipereplies == 0) {
+	  continuation_line = 0;
+	  first_line = 1;
+	}
+
 	for (idx = SS->pipereplies; idx < SS->pipeindex; ++idx) {
-	  SS->pipereplies = idx;
       rescan_line_0: /* processed some continuation line */
 	  s = eol;
       rescan_line:   /* Got additional input */
@@ -3562,12 +3568,17 @@ smtp_sync(SS, r, nonblocking)
 	      strcpy(SS->remotemsg,"\r<<- (null)");
 	    }
 	  }
+	  /* first_line is not exactly complement of continuation_line,
+	     it is rather more complex entity. */
 	  first_line = !continuation_line;
 
 	  rmsgappend(SS,"\r->> %s",s);
 
 	  if (continuation_line)
 	    goto rescan_line_0;
+	  else
+	    SS->pipereplies = idx +1; /* Final line, mark this as processed! */
+	    
 
 	  if (code >= 400) {
 	    /* Errors */
@@ -3658,20 +3669,31 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	      if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
 	    SS->pipecmds[idx] = NULL;
 	  }
+
+	  /* Now compress away that processed dataset */
+	  if (eol > SS->pipebuf) {
+	    int sz = eol - SS->pipebuf;
+	    SS->pipebufsize -= sz;
+	    if (SS->pipebufsize > 0)
+	      memcpy(SS->pipebuf, eol, SS->pipebufsize);
+	    s -= sz;
+	    eol = SS->pipebuf;
+	  }
+
 	} /* for(..; idx < SS->pipeindex ; ..) */
 
 	if (! nonblocking) {
-	  for (; idx < SS->pipeindex; ++idx) {
+	  for (idx = 0; idx < SS->pipeindex; ++idx) {
 	    if (SS->pipecmds[idx] != NULL)
 	      free(SS->pipecmds[idx]);
-	    else
-	      if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
 	    SS->pipecmds[idx] = NULL;
 	  }
 	}
 
-	if (some_ok)  rc = EX_OK;
-	if (datafail) rc = datafail;
+	if (some_ok)
+	  rc = EX_OK;
+	if (datafail != EX_OK)
+	  rc = datafail;
 
 	return rc;
 }
@@ -3713,6 +3735,8 @@ SmtpState *SS;
 	  fd_blockingmode(infd);
 	  /* Continue the processing... */
 	}
+	if (SS->pipebufsize != 0)
+	  smtp_sync(SS, EX_OK, 1); /* NON-BLOCKING! */
 	/* ENABLEALARM; */
 }
 

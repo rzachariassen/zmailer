@@ -1,5 +1,11 @@
 1998-03-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Full-blown pipelining -- will collect replies asynchronously,
+	    and merge results into smtp_sync() states while still sending
+	    things out.  This limits (sometimes) amount of things kept
+	    in the reply pipeline buffers.
+
 	* proto/cf/aliases.cf:
 	    Backed off some changes; pushed too much into bitbucket :-(
 
