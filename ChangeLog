@@ -1,5 +1,9 @@
 2000-11-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    Meaningless variable name changes (and some revoked changes
+	    which got committed into CVS - and now removed.)
+
 	* transports/libta/fwriteheaders.c, transports/libta/swriteheaders.c:
 	    One subtle bug in BDAT buffering mode left in line-ending
 	    newline handling --> surprising crashes seen.
