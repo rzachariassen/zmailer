@@ -1,4 +1,4 @@
-PKG=ZMailer
+PKG=ZMailer02
 NAME=ZMailer configuration, forms, et.al. customizable files
 ARCH=sparc
 VERSION=%VERSION%

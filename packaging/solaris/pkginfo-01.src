@@ -1,4 +1,4 @@
-PKG=ZMailer
+PKG=ZMailer01
 NAME=ZMailer base binaries et.al. common for everybody
 ARCH=sparc
 VERSION=%VERSION%
