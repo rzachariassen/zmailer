@@ -2114,6 +2114,11 @@ type220headers(SS, identflg, xlatelang, curtime)
 {
     char *s, **hh = hdr220lines;
 
+    /* Below use of  fprintf()  for SS->outfp  channel is for
+       ensuring that  setvbuf( _IOFBF ) is honoured always.
+       It appears not to be so with  fputc() and putc(), it *may*
+       be so with  fputs()  -- Solaris 2.5.1 */
+
     for (; *hh ; ++hh) {
       char c = (hh[1] == NULL) ? ' ' : '-';
       
@@ -2137,30 +2142,30 @@ type220headers(SS, identflg, xlatelang, curtime)
 	  ++s;
 	  switch (*s) {
 	  case '%':
-	    fputc('%',SS->outfp);
-	    if (logfp) fputc('%',logfp);
+	    fprintf(SS->outfp,"%%");
+	    if (logfp) putc('%',logfp);
 	    break;
 	  case 'H':
-	    fputs(SS->myhostname,SS->outfp);
+	    fprintf(SS->outfp,"%s",SS->myhostname);
 	    if (logfp) fputs(SS->myhostname,logfp);
 	    break;
 	  case 'I':
 	    if (identflg) {
-	      fputs("+IDENT",SS->outfp);
+	      fprintf(SS->outfp,"+IDENT");
 	      if (logfp) fputs("+IDENT",logfp);
 	    }
 	    break;
 	  case 'V':
-	    fputs(VersionNumb,SS->outfp);
+	    fprintf(SS->outfp,"%s",VersionNumb);
 	    if (logfp) fputs(VersionNumb,logfp);
 	    break;
 	  case 'T':
-	    fputs(curtime,SS->outfp);
+	    fprintf(SS->outfp,"%s",curtime);
 	    if (logfp) fputs(curtime,logfp);
 	    break;
 	  case 'X':
 	    if (!xlatelang) xlatelang = "";
-	    fputs(xlatelang,SS->outfp);
+	    fprintf(SS->outfp,"%s",xlatelang);
 	    if (logfp) fputs(xlatelang,logfp);
 	    break;
 	  default:
@@ -2168,12 +2173,12 @@ type220headers(SS, identflg, xlatelang, curtime)
 	    break;
 	  }
 	} else {
-	  fputc(*s, SS->outfp);
-	  if (logfp) fputc(*s, logfp);
+	  fprintf(SS->outfp,"%c",*s);
+	  if (logfp) putc(*s, logfp);
 	}
 	if (*s) ++s;
       }
-      fputs("\r\n",SS->outfp);
+      fprintf(SS->outfp,"\r\n");
       if (logfp) fputc('\n',logfp);
     }
     fflush(SS->outfp);
