@@ -27,6 +27,16 @@ int mail_free(char *)
 char *mail_host()
 .fi
 \fR
+.PP
+The main program against which this library is liked is expected to
+export
+.nf
+   char *progname;
+.fi
+variable which carries a copy of
+.I argv[0]
+or something else that programmer wants to set.
+.PP
 Linkage time:
 .B -lzmailer
 .SH DESCRIPTION
@@ -55,7 +65,7 @@ intended for old style UUCP format message headers
 intended for X.400(88) messages.
 .PP
 The
-.I mail_open
+.IR mail_open ()
 routine will look for
 .B FULLNAME
 and
@@ -64,13 +74,13 @@ environment variables and translate them into message envelope data
 for use by the mailer if it generates a sender address header for the message.
 .PP
 Note that the return value from the
-.I mail_open
+.IR mail_open ()
 routine corresponds to the return value of an
 .IR fopen (3),
 and similarly the return values from
-.I mail_abort
+.IR mail_abort ()
 and
-.I mail_close
+.IR mail_close ()
 correspond to the return value of
 .IR fclose (3).
 .PP
@@ -89,7 +99,7 @@ At higher values, successive directory from "ROUTERDIRS" is taken.
 See below about Z-Environment.
 .PP
 The
-.IR mail_close_alternate (3)
+.IR mail_close_alternate ()
 can be used to send currently open message file to some alternate
 destination, and is used at
 .IR smtpserver (8)
@@ -97,9 +107,9 @@ to send some quick-action requests directly to the
 .IR scheduler (8).
 .PP
 The
-.I mail_alloc
+.IR mail_alloc ()
 and
-.I mail_free
+.IR mail_free ()
 routines are used to provide memory space for internal data structures.
 The versions of these routines in the library simply call
 .IR malloc (3)
@@ -108,7 +118,7 @@ and
 but an application may override them if desired.
 .PP
 Similarly the
-.I mail_host
+.IR mail_host ()
 routine is intended to return a unique string for each host, by default the
 hostname, and this too is intended to be overridden by an application that
 may already have this information available in some form.
