@@ -67,11 +67,16 @@ pick_secrets(SS, ru, ruspace, rs, rsspace)
 
 	*ru = *rs = 0;
 
-	if (!authpasswdfile)
+	if (!authpasswdfile) {
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"smtpauth()::pick_secrets() called without defined  authpasswdfile !\n");
 	  return EX_OSFILE;
+	}
 
 	fp = fopen(authpasswdfile, "r");
 	if (!fp) {
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"smtpauth()::pick_secrets() failed to open '%s' file for reading!\n", authpasswdfile);
 	  /* no-perm ? -> TEMPFILE ? */
 	  return EX_OSFILE;
 	}
@@ -91,7 +96,7 @@ pick_secrets(SS, ru, ruspace, rs, rsspace)
 	  }
 	  if (! *p)      continue; /* Blank line */
 	  if (*p == '#') continue; /* comment    */
-
+	  
 	  chp = p; /* Channel */
 
 	  /* skip over non-whitespace stuff.. */
@@ -128,8 +133,10 @@ pick_secrets(SS, ru, ruspace, rs, rsspace)
 	  /* skip over whitespace stuff .. */
 	  /* ... not needed here ... */
 
-	  if (!*sp || !*up || *rhp || *chp) {
+	  if (!*sp || !*up || !*rhp || !*chp) {
 	    /* FIXME: log this ?? */
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"smtpauth()::auth-secrets.txt:%d: bad data!\n", linenum);
 	    continue; /* Bad input data.. */
 	  }
 
@@ -169,9 +176,19 @@ smtpauth(SS)
 	char remoteuser[256];
 	char remotesecret[256];
 
+	if (SS->verboselog)
+	  fprintf(SS->verboselog, "smtpauth(ch='%s' remhost='%s')\n",
+		  SS->sel_channel, SS->remotehost);
+
+	*remoteuser=0;
 	rc = pick_secrets(SS,
 			  remoteuser, sizeof(remoteuser),
 			  remotesecret, sizeof(remotesecret));
+
+	if (SS->verboselog)
+	  fprintf(SS->verboselog, " ... secrets pickup rc=%d; remoteuser='%s'\n",
+		  rc, remoteuser);
+
 
 	if (rc != EX_OK) {
 	  if (rc == EX_UNAVAILABLE) rc = EX_OK;

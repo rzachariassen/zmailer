@@ -2534,6 +2534,12 @@ smtpopen(SS, host, noMX)
 	  /* If the remote has AUTH-capability, and we have
 	     'authpasswdfile' set, call  smtpauth() !  */
 
+	  if (authpasswdfile) {
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog, " AUTHSECRETS file exists, EHLO rc=%d capa has AUTH: %d\n",
+		      i, (SS->ehlo_capabilities & ESMTP_AUTH) != 0);
+	  }
+
 	  if ( (i == EX_OK) && (SS->ehlo_capabilities & ESMTP_AUTH) &&
 	       authpasswdfile )
 	    i = smtpauth(SS);

@@ -1,5 +1,12 @@
 2003-11-23  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c, transports/smtp/smtpauth.c, TODO:
+	    Testing, and correcting the -A option 'smtpauth()'
+	    processing while feeding test messages to
+	    Cyrus IMAP 2.2.2 (BETA) server.  Interesting beast this...
+	    PROBLEM: Reveals in  -l  option file, as well as  verboselog
+	    the outgoing _secret_ data in authentication!
+
 	* proto/cf/router.cf, proto/cf/server.cf, proto/cf/SMTP.cf.in:
 	    Changes In order to get one system to report straight from
 	    'routes' database an entry like following:

@@ -8,6 +8,7 @@ contrib/zmailcheck  -script   vs.  mailq output ?
 
 smtp-ta: TLS mode demands a bit too much of remote server's certificates..
 	 How to relax it more ?
+smtp-ta: DO NOT REVEAL OUTGOING AUTH-LOGIN SECRETS IN LOGS!
 
 VERIFY:  router/rfc822hdrs.c line 720 onwards "NillHeaderSemantics"
 	processing.  Can it break headers sometimes ?
