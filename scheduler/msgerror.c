@@ -640,6 +640,9 @@ reporterrs(cfpi, delayreports)
 		    } else if (CISTREQN(p,"FAILURE",7)) {
 		      notaries[notarycnt].notifyflgs |= NOT_FAILURE;
 		      p += 7;
+		    } else if (CISTREQN(p,"TRACE",5)) {
+		      notaries[notarycnt].notifyflgs |= NOT_TRACE;
+		      p += 5;
 		    } else
 		      break; /* Burp.. Junk! */
 		    if (*p == ',') ++p;

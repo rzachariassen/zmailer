@@ -2034,6 +2034,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		      } else if (CISTREQN(cp,"SUCCESS",7)) {
 			cp += 7;
 			offarr[prevrcpt].notifyflg |= NOT_SUCCESS;
+		      } else if (CISTREQN(cp,"TRACE",  5)) {
+			cp += 5;
+			offarr[prevrcpt].notifyflg |= NOT_TRACE;
 		      } else {
 			break; /* Burp ?? */
 		      }

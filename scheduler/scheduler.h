@@ -226,6 +226,7 @@ struct vertex {
 #define NOT_DELAY   002
 #define NOT_SUCCESS 004
 #define NOT_FAILURE 010
+#define NOT_TRACE   020 /* RFC 2852 */
 	int		ce_pending;	/* pending on what ?		     */
 	time_t		ce_expiry;	/* when this vertex expires ?        */
 	int		attempts;	/* count of number of TA invocations */

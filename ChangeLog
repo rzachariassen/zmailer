@@ -1,5 +1,8 @@
 2000-07-31  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/msgerror.c:
+	    Recognize our internal NOTIFY=TRACE flag.
+
 	* transports/smtp/smtp.c:
 	    When 'NOTIFY=TRACE' flag is present, don't send it out
 	    as it is our INTERNAL thing.  Thus the change from string
