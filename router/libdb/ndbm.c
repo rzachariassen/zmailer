@@ -271,7 +271,7 @@ owner_ndbm(sip, outfp)
 		return;
 	/* There are more timing hazards, when the internal fd is not
 	   available for probing.. */
-	if (fstat(dbm_dirfno(db), &stbuf) < 0) {
+	if (fstat(dbm_pagfno(db), &stbuf) < 0) {
 		fprintf(stderr, "owner_ndbm: cannot fstat(\"%s\")!\n",
 				sip->file);
 		return;
@@ -294,7 +294,7 @@ modp_ndbm(sip)
 	if (db == NULL)
 		return 0;
 
-	if (fstat(dbm_dirfno(db), &stbuf) < 0) {
+	if (fstat(dbm_pagfno(db), &stbuf) < 0) {
 		fprintf(stderr, "modp_ndbm: cannot fstat(\"%s\")!\n",
 			sip->file);
 		return 0;
