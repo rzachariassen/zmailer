@@ -68,16 +68,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # include "hostenv.h"  /* ZMailer autoconfig environment */
 
+#include <sys/param.h>
+#include <sys/types.h>
 #include <errno.h>
-#include <netdb.h>
-#if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
-# include "netdb6.h"
-#endif
-#include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
-#include <resolv.h>
-
-#include <errno.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -85,10 +78,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/in.h>
-#include <sys/param.h>
-#include <sys/types.h>
+#include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
+#include <resolv.h>
 #include <sys/un.h>
 #include <sys/utsname.h>
+#include <netdb.h>
+#if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
+# include "netdb6.h"
+#endif
+
+#include "libc.h" /* More of ZMailer environment */
 
 #ifndef min
 # define min(x,y) (((x) > (y)) ? (y) : (x))
