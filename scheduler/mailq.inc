@@ -249,7 +249,7 @@ to allow.
 	   M.ss.MaxParallelConnections);
 /*<VAR><NAME>SS.MaxParallelConnectionCloses</NAME><DESC>
 Number of times, when there have been more connections into smtpserver,
-than the global "PARAM MaxParallelConnections" parameter as been configured
+than the global "PARAM MaxParallelConnections" parameter has been configured
 to allow.
 </DESC></VAR>*/
 
