@@ -692,16 +692,16 @@ const char *pbuf;
       state->always_freeze = 1;
       return  1;
     }
-    if (state->values[P_A_RELAYCUSTNET] == '+') {
-      if (debug)
-	printf("policytestaddr: 'relaycustnet +' found\n");
-      state->always_accept = 1;
-      return  0;
-    }
     if (state->values[P_A_FullTrustNet] == '+') {
       if (debug)
 	printf("policytestaddr: 'fulltrustnet +' found\n");
       state->full_trust = 1;
+      return  0;
+    }
+    if (state->values[P_A_RELAYCUSTNET] == '+') {
+      if (debug)
+	printf("policytestaddr: 'relaycustnet +' found\n");
+      state->always_accept = 1;
       return  0;
     }
     if (state->values[P_A_TestDnsRBL] == '+' &&

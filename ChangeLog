@@ -1,5 +1,9 @@
 1998-06-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/policytest.c:
+	    Moved "P_A_FullTrustNet" attribute recognition up a bit
+	    so that "P_A_RelayCustNet" does not blank full_trust mode!
+
 	* utils/policy-builder.sh.in:
 	    Added another retrievable spam domain list
 
