@@ -1516,20 +1516,28 @@ deliver(SS, dp, startrp, endrp)
 
 	time(&body_start); /* "DATA" issued, and synced */
 
+
+	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
+				  convertmode, 0, chunkblkptr);
+
 	if (SS->verboselog) {
 	  char **hdrs = *(startrp->newmsgheader);
 	  if (*(startrp->newmsgheadercvt) != NULL &&
 	      convertmode != _CONVERT_NONE)
 	    hdrs = *(startrp->newmsgheadercvt);
+	  
 	  fprintf(SS->verboselog,
-		  "Processed headers:  ContentKind=%d, CvtMode=%d\n------\n",
-		  content_kind,(int)convertmode);
-	  while (hdrs && *hdrs)
-	    fprintf(SS->verboselog,"%s\n",*hdrs++);
+		  "Written headers:  ContentKind=%d, CvtMode=%d, hsize=%d\n------\n",
+		  content_kind, (int)convertmode, SS->hsize);
+	  
+	  if (chunkblkptr && SS->hsize > 0)
+	    fwrite(*chunkblkptr, 1, SS->hsize, SS->verboselog);
+	  else if (SS->hsize <= 0)
+	    fprintf(SS->verboselog," ****** WRITE FAILURE ****\n");
+	  else
+	    for ( ; hdrs && *hdrs; ++hdrs)
+	      fprintf(SS->verboselog,"%s\n",*hdrs);
 	}
-
-	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
-				  convertmode, 0, chunkblkptr);
 
 	if (SS->hsize >= 0 && chunkblk) {
 

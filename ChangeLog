@@ -1,6 +1,9 @@
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:
+	    Debugging most peculiar problems - propably at swriteheader.c
+
+	* transports/smtp/smtp.c:
 	    A bit different handling on pipelined response collection.
 	    If MAIL FROM yields error, report it, never mind what socket
 	    read did latter..
