@@ -506,7 +506,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    if (last_peer_index >= top_peer)
 	      last_peer_index = 0;             /* Wrap around */
 
-#if 1
+#if 0
 	    peer = & peers[ last_peer_index ]; /* Round-robin;
 						  in abominal overload
 						  this means that nobody
