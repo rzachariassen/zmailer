@@ -70,7 +70,7 @@ const char *maildirs[] = {
 
 void usage()
 {
-  fprintf(stderr,"%s: Usage: [-P[P]|-D[D]] [-d maildir] username\n", progname);
+  fprintf(stderr,"%s: Usage: [-P[P]|-D[D]|-X[X]] [-d maildir] username\n", progname);
   exit(EX_USAGE);
 }
 

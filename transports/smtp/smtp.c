@@ -1262,9 +1262,11 @@ deliver(SS, dp, startrp, endrp)
 	  }
 	  strcpy(p, u);
 	} else
-	  sprintf(SMTPbuf+11, "%.1000s>", startrp->addr->link->user);
+	  sprintf(SMTPbuf+11, "%.1000s", startrp->addr->link->user);
 
 	s = SMTPbuf + strlen(SMTPbuf);
+	*s++ = '>';
+
 	if (SS->ehlo_capabilities & ESMTP_8BITMIME) {
 	  strcpy(s, " BODY=8BITMIME");
 	  s += strlen(s);

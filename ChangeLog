@@ -1,3 +1,13 @@
+2002-04-20  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    In the obscureish EZMLM mode we LACKED mandatory trailing
+	    ">" character at MAIL FROM envelope address.  A major goofup.. :-/
+	    (Especially as I use the beast myself sometimes..)
+
+	* transports/mailbox/mboxpath.c:
+	    At the  usage()  do document also the -X[X] option.
+
 2002-04-18  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
