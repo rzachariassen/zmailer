@@ -1,3 +1,8 @@
+2001-09-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in, acconfig.h:
+	    Autoconfig detection of  SleepyCat DB 3.x
+
 2001-09-27  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* packaging/rpm/*:

@@ -84,12 +84,22 @@
    of a dbm_pagfno() on OpenBSD. */
 #undef HAVE_DB1
 #undef HAVE_DB2
+#undef HAVE_DB3
 #undef HAVE_NDBM
 #undef HAVE_GDBM
 #undef HAVE_SDBM
 
 /* Defined if NDBM has  dbm_error()  function */
 #undef HAVE_DBM_ERROR
+
+/* Have SleepyCat's BSD DB 2.x version of BSD DB database */
+#undef HAVE_DB_OPEN2
+/* Have SleepyCat's BSD DB 3.x version of BSD DB database */
+#undef HAVE_DB_CREATE
+
+/* Latter versions of 2.x have 4-args (db->cursor)() method */
+#undef HAVE_DB_CURSOR4
+
 
 /* Defined if using LDAP */
 #undef HAVE_LDAP
@@ -174,11 +184,6 @@
 /* HAVE_OPENSSL -- The system has www.OpenSSL.org software;
    version 0.9.3a, very least */
 #undef HAVE_OPENSSL
-
-/* Have SleepyCat's BSD DB 2.x version of BSD DB database */
-#undef HAVE_DB_OPEN2
-/* Latter versions of 2.x have 4-args (db->cursor)() method */
-#undef HAVE_DB_CURSOR4
 
 /* For mailbox; check mailbox quota thru  checkmbsize() routine.. */
 #undef CHECK_MB_SIZE

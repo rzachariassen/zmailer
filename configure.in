@@ -742,17 +742,17 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
   fi
 fi
 
-LIBDB=""
+LIBDB1=""
 # Sometimes it is in libc, sometimes at separate lib...
 # Umm...
 if test "$ac_cv_header_db_185_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen1" = yes ; then
-    LIBDB=""
+    LIBDB1=""
     t_found_at="libc(1)"
     DBTYPE="btree"
   elif test "$ac_cv_lib_db1_dbopen1" = yes ; then
-    LIBDB="-ldb1"
+    LIBDB1="-ldb1"
     t_found_at="db1 library"
     DBTYPE="btree"
   else
@@ -768,7 +768,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
                                       ac_cv_lib_db1_dbopen1=no)
         LIBS="$t_oldLibs"
         if test "$ac_cv_lib_db1_dbopen1" = yes ; then
-          LIBDB="-ldb1"
+          LIBDB1="-ldb1"
           t_found_at="db1 library"
           DBTYPE="btree"
         else
@@ -778,7 +778,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
         AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
       fi
     else # Has it in the libc!
-      LIBDB=""
+      LIBDB1=""
       t_found_at="libc(2)"
       DBTYPE="btree"
     fi
@@ -787,7 +787,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
     AC_MSG_RESULT([Didn't locate BSD DB 1.x  dbopen()  anywhere, although <db_185.h> file exists.])
   else
     AC_MSG_RESULT([Located BSD DB 1.x  dbopen()  routine at $t_found_at])
-    if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
+    if test "$LIBDB1" != "" -a "$LIBDB1" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb ), which propably
         # means that  <ndbm.h>  is just an emulation mode at BSD DB.
         LIBNDBM=""
@@ -810,15 +810,15 @@ dnl same binary layout as old BSD DB 1.85 version did...
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen" = yes ; then
-    LIBDB=""
+    LIBDB1=""
     t_found_at="libc(3)"
     DBTYPE="btree"
   elif test "$ac_cv_lib_db1_dbopen" = yes ; then
-    LIBDB="-ldb1"
+    LIBDB1="-ldb1"
     t_found_at="db1 library"
     DBTYPE="btree"
   elif test "$ac_cv_lib_db_dbopen" = yes ; then
-    LIBDB="-ldb"
+    LIBDB1="-ldb"
     t_found_at="db library"
     DBTYPE="btree"
   else
@@ -841,11 +841,11 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
           LIBS="$t_oldLibs"
         fi
         if test "$ac_cv_lib_db1_dbopen" = yes ; then
-          LIBDB="-ldb1"
+          LIBDB1="-ldb1"
           t_found_at="db1 library"
           DBTYPE="btree"
         elif test "$ac_cv_lib_db_dbopen" = yes ; then
-          LIBDB="-ldb"
+          LIBDB1="-ldb"
           t_found_at="db library"
           DBTYPE="btree"
         else
@@ -855,7 +855,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
         AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
       fi
     else # Has it in the libc!
-      LIBDB=""
+      LIBDB1=""
       t_found_at="libc(4)"
       DBTYPE="btree"
     fi
@@ -864,7 +864,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
     AC_MSG_RESULT([Didn't locate BSD DB 1.x  dbopen()  anywhere, although <db.h> file exists.])
   else
     AC_MSG_RESULT([Located BSD DB 1.x  dbopen()  routine at $t_found_at])
-    if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
+    if test "$LIBDB1" != "" -a "$LIBDB1" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb ), which propably
         # means that  <ndbm.h>  is just an emulation mode at BSD DB.
         LIBNDBM=""
@@ -882,20 +882,21 @@ dnl
 dnl Ok, a third case; SleepyCat's BSD DB 2.*;  db_open() et.al.
 dnl
 
+LIBDB2=""
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_db_open2" = yes ; then
-    LIBDB=""
+    LIBDB2=""
     t_found_at="libc(3)"
     DBTYPE="btree"
     AC_DEFINE(HAVE_DB_OPEN2)
   elif test "$ac_cv_lib_db2_db_open2" = yes ; then
-    LIBDB="-ldb2"
+    LIBDB2="-ldb2"
     t_found_at="db2 library"
     DBTYPE="btree"
     AC_DEFINE(HAVE_DB_OPEN2)
   elif test "$ac_cv_lib_db_db_open2" = yes ; then
-    LIBDB="-ldb"
+    LIBDB2="-ldb"
     t_found_at="db library"
     DBTYPE="btree"
     AC_DEFINE(HAVE_DB_OPEN2)
@@ -918,12 +919,12 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
           LIBS="$t_oldLibs"
         fi
         if test "$ac_cv_lib_db2_db_open2" = yes ; then
-          LIBDB="-ldb2"
+          LIBDB2="-ldb2"
           t_found_at="db2 library"
           DBTYPE="btree"
           AC_DEFINE(HAVE_DB_OPEN2)
         elif test "$ac_cv_lib_db_db_open2" = yes ; then
-          LIBDB="-ldb"
+          LIBDB2="-ldb"
           t_found_at="db library"
           DBTYPE="btree"
           AC_DEFINE(HAVE_DB_OPEN2)
@@ -941,7 +942,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
         fi
       fi
     else # Has it in the libc!
-      LIBDB=""
+      LIBDB2=""
       t_found_at="libc(4)"
       DBTYPE="btree"
       AC_DEFINE(HAVE_DB_OPEN2)
@@ -972,7 +973,7 @@ int err = (db->cursor)(db, NULL, &curs, 0);],
       AC_MSG_RESULT([  (db->cursor)() method function seems to want 3 args.])
     fi
   fi
-  if test -n "$LIBDB" -a "$LIBDB" = "$LIBNDBM" ; then
+  if test -n "$LIBDB2" -a "$LIBDB2" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb ), which propably
         # means that  <ndbm.h>  is just an emulation mode at BSD DB.
         LIBNDBM=""
@@ -984,6 +985,115 @@ int err = (db->cursor)(db, NULL, &curs, 0);],
     AC_DEFINE(HAVE_DB2)
   fi
 fi
+
+dnl
+dnl Ok, fourth case; SleepyCat's BSD DB 3.*;  db_create() et.al.
+dnl
+
+LIBDB3=""
+if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db3_db_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_db_create" = yes ; then
+    LIBDB3=""
+    t_found_at="libc(3)"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_CREATE)
+  elif test "$ac_cv_lib_db3_db_create" = yes ; then
+    LIBDB3="-ldb3"
+    t_found_at="db3 library"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_CREATE)
+  elif test "$ac_cv_lib_db_db_create" = yes ; then
+    LIBDB3="-ldb"
+    t_found_at="db library"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_CREATE)
+  else
+    if test "x$ac_cv_lib_c_db_create" = x ; then # not set
+      AC_TRY_LINK([], [db_create();], ac_cv_lib_c_db_create=yes,
+                                      ac_cv_lib_c_db_create=no)
+    fi
+    if test "$ac_cv_lib_c_db_create" = no ; then
+      if test "x$ac_cv_lib_db_db_create" = x ; then # not set
+        t_oldLibs="$LIBS"
+        LIBS="$LIBS -ldb"
+        AC_TRY_LINK([], [db_create();], ac_cv_lib_db_db_create=yes,
+                                        ac_cv_lib_db_db_create=no)
+        LIBS="$t_oldLibs"
+        if test "$ac_cv_lib_db_db_create" = no ; then
+          LIBS="$LIBS -ldb3"
+          AC_TRY_LINK([], [db_create();], ac_cv_lib_db3_db_create=yes,
+                                          ac_cv_lib_db3_db_create=no)
+          LIBS="$t_oldLibs"
+        fi
+        if test "$ac_cv_lib_db3_db_create" = yes ; then
+          LIBDB3="-ldb3"
+          t_found_at="db3 library"
+          DBTYPE="btree"
+          AC_DEFINE(HAVE_DB_CREATE)
+        elif test "$ac_cv_lib_db_db_create" = yes ; then
+          LIBDB3="-ldb"
+          t_found_at="db library"
+          DBTYPE="btree"
+          AC_DEFINE(HAVE_DB_CREATE)
+        else
+          if test "$ac_cv_lib_db_dbopen"   != yes -a \
+                  "$ac_cv_lib_c_dbopen"    != yes -a \
+                  "$ac_cv_lib_db1_dbopen1" != yes -a \
+                  "$ac_cv_lib_c_dbopen1"   != yes ; then
+            AC_MSG_RESULT([Has <db.h> or <db3/db.h>, but db_create() is not at libc, nor at -ldb or -ldb3])
+          fi
+        fi
+      else
+        if test "$ac_cv_lib_db_db_create" = yes ; then
+          AC_MSG_ERROR([config.cache inconsistency! (db3) Delete it, and redo!])
+        fi
+      fi
+    else # Has it in the libc!
+      LIBDB3=""
+      t_found_at="libc(4)"
+      DBTYPE="btree"
+      AC_DEFINE(HAVE_DB_CREATE)
+    fi
+  fi
+  if test "$t_found_at" = nowhere ; then
+    AC_MSG_RESULT([Didn't locate SleepyCat DB 3.x  db_create()  anywhere, although <db.h> file exists.  SleepyCat DB 3.x will not be used.])
+  else
+    AC_MSG_RESULT([Located SleepyCat DB 3.x  db_create()  routine at $t_found_at])
+    # Does (db->cursor)(...) have 3 or 4 args ?
+    if test -z "$ac_cv_db_cursor_4" ; then # not set
+      if test "$ac_cv_header_db3_db_h" = yes ; then
+        AC_TRY_COMPILE([#include <db3/db.h>],[DB *db; DBC *curs;
+int err = (db->cursor)(db, NULL, &curs, 0);],
+                       ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+      elif test "$ac_cv_header_db_h" = yes ; then
+        AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+int err = (db->cursor)(db, NULL, &curs, 0);],
+                       ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+      else
+        AC_MSG_RESULT([  Hmm.. No <db3/db.h>, nor <db.h> ??])
+      fi
+    fi
+    if test "$ac_cv_db_cursor_4" = yes ; then
+      AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
+      AC_DEFINE(HAVE_DB_CURSOR4)
+    else
+      AC_MSG_RESULT([  (db->cursor)() method function seems to want 3 args.])
+    fi
+  fi
+  if test -n "$LIBDB3" -a "$LIBDB3" = "$LIBNDBM" ; then
+        # Well, both at the same library ( -ldb ), which propably
+        # means that  <ndbm.h>  is just an emulation mode at BSD DB.
+        LIBNDBM=""
+    AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
+    AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
+  fi
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+    AC_DEFINE(HAVE_DB3)
+  fi
+fi
+
 
 AC_SUBST(INCLLDAP)
 LIBLDAP=""
@@ -1030,27 +1140,37 @@ AC_SUBST(LIBLOCALDBMS)
 # the linkage order will make a surprise for us by overloading GDBM's
 # compability layer instead of the real NDBM.
 sep=""
-if test "x$LIBNDBM" != "x" ; then
+if test "$LIBNDBM" != "" ; then
   LIBDBMS="$LIBDBMS$sep$LIBNDBM"
   LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBNDBM"
   sep=" "
 fi
-if test "x$LIBSDBM" != "x" ; then
+if test "$LIBSDBM" != "" ; then
   LIBDBMS="$LIBDBMS$sep$LIBSDBM"
   LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBSDBM"
   sep=" "
 fi
-if test "x$LIBDB" != "x" ; then
-  LIBDBMS="$LIBDBMS$sep$LIBDB"
-  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBDB"
+if test "$LIBDB1" != "" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBDB1"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBDB1"
   sep=" "
 fi
-if test "x$LIBGDBM" != "x" ; then
+if test "$LIBDB2" != "" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBDB2"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBDB2"
+  sep=" "
+fi
+if test "$LIBDB3" != "" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBDB3"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBDB3"
+  sep=" "
+fi
+if test "$LIBGDBM" != "" ; then
   LIBDBMS="$LIBDBMS$sep$LIBGDBM"
   LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBGDBM"
   sep=" "
 fi
-if test "x$LIBLDAP" != "x" ; then
+if test "$LIBLDAP" != "" ; then
   LIBDBMS="$LIBDBMS$sep$LIBLDAP"
   sep=" "
 fi
