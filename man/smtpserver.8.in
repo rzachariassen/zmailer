@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Apr-20"
+.TH SMTPSERVER 8zm "2004-Apr-22"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ smtpserver \- zmailer SMTP server
 [\fB\-p\fR\ \fIport\fR]
 [\fB\-l\fR\ \fISYSLOG\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
-[\fB\-s\fR[\fBftveR\fR]]
+[\fB\-s\fR[\fBftveRSDh\fR]]
 [\fB\-s\ \fCstrict\fR]
 [\fB\-s\ \fCsloppy\fR]
 [\fB\-I\fR\ \fIpidfile\fR]
@@ -160,32 +160,39 @@ slightly.  Great for compliance testing ;)
 This makes smtpserver even more alike sendmail(TM), with
 all of its sloppy protocol processing.
 .RE
-.IP "\-s [ftveRS]"
+.IP "\-s [ftvehRSD]"
 .RS
 specifies the style of address verification to be performed.  There are
 four independent commands that can invoke some kind of address verification,
 and four independent flags to control whether this should be done.
 They are:
 .PP
-.IP f
+.IP f 3em
 check MAIL FROM addresses
-.IP t
+.IP t 3em
 check RCPT TO addresses
-.IP v
+.IP v 3em
 check VRFY command argument
-.IP e
+.IP e 3em
 check EXPN command argument
-.IP R
+.IP R 3em
 require addresses to be of syntax:
 local@remote (strict 2821)
-.IP S
-.RS
+.IP S 3em
+.RS 3em
 allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
 .RS 3em
 "MAIL FROM:user@domain"
 .RE
 :\-(
 .RE
+.IP D 3em
+Don't discard failed data input, but leave them laying into
+the input spool.
+This is debug-use flag, don't use in normal mode!
+.IP h 3em
+Pass 'HELO'/'EHLO' parameter to the interactive router.
+There just to complement the setup, not really for active use!
 .PP
 The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
@@ -468,7 +475,7 @@ This set contains
 of like named Extended SMTP EHLO responses, plus EHLO verb itself,
 e.g. using these will turn off given (for example ``PIPELINING'')
 response from the EHLO replies, and then a client possibly capable
-to feed PIPELINING will not do it -- unless it breaks rules, and
+to feed PIPELINING will not do it \- unless it breaks rules, and
 does it even when the server does not report facility being available.
 .PP
 If you want to disable any of these, you better have a good reason
@@ -1301,16 +1308,16 @@ Per default the system
 use RBL-type blocking lists.
 There are two ways how to take them into use: 
 .PP
-.IP 1. 4em
+.IP 1. 3em
 .RS 4em
- You can start rejecting at the connection setup and then at
+You can start rejecting at the connection setup and then at
 MAIL FROM (and RCPT TO). 
 .PP
 However many (especially M$ environment) SMTP clients won't
 react on that properly, and will just keep repeating the delivery
 attempts. 
 .RE
-.IP 2.  4em
+.IP 2.  3em
 .RS 4em
 You can delay the rejections until RCPT addresses are given. 
 .RE
@@ -1532,6 +1539,40 @@ Special interactive authenticated and ACL controlled command
 for querying
 .IR smtpserver "'s"
 internal resource trackers for given IP address.
+.PP
+If access-control (can use/share
+.I \fCscheduler.auth\fR
+file mechanisms with "SMTPIP" token) allows access to
+this command, the report will be something like:
+.PP
+.nf
+.ft C
+  Z-REPORT <username> <password> IP 11.22.33.44
+  200-Slot-ages:  117 630 1146 1658 2175 2691 3203 3720
+  200 Slot-IPv4-data: 0 9 2 3 9 0 3 7 MAILs: 99 SLOTAGE: 90 Limit 99
+.ft R
+.fi
+.PP
+where the first reply line ("Slot-ages:") is telling counting bin ages
+(in seconds) in same order as the counts are given in the second line
+("Slot-IPv4-data:")
+.PP
+Additional items in the second line are:
+.IP \(bu 3em
+"MAILs:" the count of "MAIL FROM" lines in total during the lifetime
+of this counting entry.
+.I "NOTE: The lifetime may be a lot longer, than just the 8 counting bins!"
+The counting entry disappears completely only when all 8 bins are zero!
+.IP \(bu 3em
+"SLOTAGE:" the
+.I age
+of this tracking entry in seconds.
+.IP \(bu 3em
+"Limit:" last "ratelimitmsgs" limit parameter value used when the
+policy processing did query the rate data.
+.PP
+If access-control fails, command issuer receives "550 .. unknown command"
+reply.
 .RE
 .IP "Z\-IDENT"
 .RS

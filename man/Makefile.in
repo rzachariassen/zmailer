@@ -22,8 +22,10 @@ DB2MAN    = jw -c ${OJCAT} -b man -f docbook -o .
 HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 
 MAN2HTML  = sh $(srcdir)/man-to-html.sh
-MAN2PS    = groff -t -man
+MAN2PS    = groff -Tps -t -man
+MAN2DVI   = groff -Tdvi -t -man
 PS2PDF	  = ps2pdf
+DVI2PDF	  = dvipdfm
 
 GENMANS= zmailer.conf.5  mailq-m.5 ZMailer-mailq.3pm
 
@@ -58,7 +60,14 @@ FRC:
 %.5zm.ps     : %.5   ; $(MAN2PS) $< > $@
 %.8zm.ps     : %.8   ; $(MAN2PS) $< > $@
 
-%.pdf : %.ps ; $(PS2PDF) $<
+%.1zm.dvi     : %.1   ; $(MAN2DVI) $< > $@
+%.3zm.dvi     : %.3   ; $(MAN2DVI) $< > $@
+%.3pmzm.dvi   : %.3pm ; $(MAN2DVI) $< > $@
+%.5zm.dvi     : %.5   ; $(MAN2DVI) $< > $@
+%.8zm.dvi     : %.8   ; $(MAN2DVI) $< > $@
+
+#%.pdf : %.ps ; $(PS2PDF) $<
+%.pdf : %.dvi ; $(DVI2PDF) $<
 
 
 clean:
@@ -73,6 +82,7 @@ mostlyclean depend:
 groff: ps
 
 ps:	$(patsubst %, %zm.ps,   $(MAN1) $(MAN3) $(MAN5) $(MAN8) $(MANe))
+dvi:	$(patsubst %, %zm.dvi,  $(MAN1) $(MAN3) $(MAN5) $(MAN8) $(MANe))
 pdf:	$(patsubst %, %zm.pdf,  $(MAN1) $(MAN3) $(MAN5) $(MAN8) $(MANe))
 html:	$(patsubst %, %zm.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8) $(MANe))
 	-rm -f index.html
@@ -84,7 +94,7 @@ html:	$(patsubst %, %zm.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8) $(MANe))
 # Publish  is for Matti's use to publish these files at  zmailer.org
 publish:
 	# Make the files in correct order
-	make ps pdf html
+	make pdf html
 	# publish in  http://zmailer.org/man/
 	cp -p *.html *.pdf /home/httpd/zmailer/html/man/
 
