@@ -50,16 +50,19 @@ This is considered equivalent to the following
 
 <PARA>
 In order for the mailer to process the incoming message properly,
-<COMMAND>rmail</> must be run by a ``<EMPHASIS>userid</>'' which
+<COMMAND>rmail</> must be run by a <QUOTE><EMPHASIS>userid</></> which
 the <COMMAND>router</>(1) will accept forged mail from.
 his is normally the UUCP account id.
 </PARA>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-rmail [-d] [-h somewhere] recipient...
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>rmail</>
+    <ARG><OPTION>-d</></ARG>
+    <ARG><OPTION>-h</> <REPLACEABLE>somewhere</></ARG>
+    <ARG CHOICE=PLAIN REP=REPEAT><REPLACEABLE>recipient</></ARG>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
@@ -69,7 +72,7 @@ rmail [-d] [-h somewhere] recipient...
 turns on debugging output.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-h somewhere</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-h</> somewhere</TERM><LISTITEM><PARA>
 will use the argument as the  default remote UUCP host name
 to use if there is no <EMPHASIS>remote from host</> tag in the
 first <EMPHASIS>From-space</> line in the message.

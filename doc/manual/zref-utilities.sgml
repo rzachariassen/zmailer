@@ -14,14 +14,14 @@ Not all of them even become installed into your system in all situations.
 
 <PARA>
 The <COMMAND>zmailer</> command script is a wrapper for driving various
-sub-utilities, and in some cases, honouring flags like ``freeze-state'',
+sub-utilities, and in some cases, honouring flags like <QUOTE>freeze-state</>,
 which administrator may set to keep system down over reboots while some
 maintenance acitivity is under way.
 </PARA>
 
 <PARA>
-Plain ``<COMMAND>zmailer</>'' command is synonymous
-to ``<COMMAND>zmailer start</>''.
+Plain <QUOTE><COMMAND>zmailer</></> command is synonymous
+to <QUOTE><COMMAND>zmailer start</></>.
 </PARA>
 
 <!-- ============================================================ -->
@@ -55,8 +55,8 @@ just that (or those) subsystem(s).
 </PARA>
 
 <PARA>
-If the system is in ``frozen'' state, start fails.
-See ``<COMMAND>zmailer freeze</>'' below.
+If the system is in <QUOTE>frozen</> state, start fails.
+See <QUOTE><COMMAND>zmailer freeze</></> below.
 </PARA>
 
 </SECT2>
@@ -105,7 +105,7 @@ just that (or those) subsystem(s).
 <TITLE><COMMAND>zmailer router</></>
 
 <PARA>
-Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+Synonym to <QUOTE><COMMAND>zmailer start router</></>, (re)starts
 the <COMMAND>router</> process(es).
 </PARA>
 </SECT2>
@@ -117,7 +117,7 @@ the <COMMAND>router</> process(es).
 <TITLE><COMMAND>zmailer scheduler</></>
 
 <PARA>
-Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+Synonym to <QUOTE><COMMAND>zmailer start router</></>, (re)starts
 the <COMMAND>scheduler</> process.
 </PARA>
 </SECT2>
@@ -128,7 +128,7 @@ the <COMMAND>scheduler</> process.
 <TITLE><COMMAND>zmailer smtp(server)</></>
 
 <PARA>
-Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+Synonym to <QUOTE><COMMAND>zmailer start smtpserver</></>, (re)starts
 the <COMMAND>smtpserver</> process.
 </PARA>
 </SECT2>
@@ -144,8 +144,9 @@ A complicated subsystem on its own merits used to re-generate
 </PARA>
 
 <PARA>
-This runs utility called ``<COMMAND>newdbprocessor</>'' with its
-only argument of ``<FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</>''.
+This runs utility called <QUOTE><LINK LINKEND="zref.util.newdbprocessor"
+<CITETITLE><COMMAND>newdbprocessor</></></LINK></> with its only argument
+of <QUOTE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</></>.
 </PARA>
 </SECT2>
 
@@ -155,8 +156,10 @@ only argument of ``<FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</>''.
 <TITLE><COMMAND>zmailer newal(iases)</></>
 
 <PARA>
-Re-generates ``<FILENAME>aliases</>'' database, wrapper of
-``<COMMAND>newaliases</>'', and superceded by <COMMAND>zmailer newdb</>.
+Re-generates <QUOTE><FILENAME>aliases</></> database, wrapper of
+<QUOTE><COMMAND>newaliases</></>, and superceded by
+<QUOTE><LINK LINKEND="zref-zmailer-newdb"><CITETITLE><COMMAND
+>zmailer newdb</></></LINK></>.
 </PARA>
 </SECT2>
 
@@ -166,8 +169,9 @@ Re-generates ``<FILENAME>aliases</>'' database, wrapper of
 <TITLE><COMMAND>zmailer newf(qdnaliases)</></>
 
 <PARA>
-Re-generates ``<FILENAME>fqdnaliases</>'' database, wrapper of
-``<COMMAND>newfqdnaliases</>'', and superceded by <COMMAND>zmailer newdb</>.
+Re-generates <QUOTE><FILENAME>fqdnaliases</></> database, wrapper of
+<QUOTE><COMMAND>newfqdnaliases</></>, and superceded by
+<COMMAND>zmailer newdb</>.
 </PARA>
 </SECT2>
 
@@ -177,7 +181,7 @@ Re-generates ``<FILENAME>fqdnaliases</>'' database, wrapper of
 <TITLE><COMMAND>zmailer new-route(s)</></>
 
 <PARA>
-Compiles ``<FILENAME>routes</>'' database, and superceded
+Compiles <QUOTE><FILENAME>routes</></> database, and superceded
 by <COMMAND>zmailer newdb</>.
 </PARA>
 </SECT2>
@@ -188,7 +192,7 @@ by <COMMAND>zmailer newdb</>.
 <TITLE><COMMAND>zmailer new-local(names)</></>
 
 <PARA>
-Compiles ``<FILENAME>localnames</>'' database, and superceded
+Compiles <QUOTE><FILENAME>localnames</></> database, and superceded
 by <COMMAND>zmailer newdb</>.
 </PARA>
 </SECT2>
@@ -208,7 +212,7 @@ to new names, but before anything further is done to them.
 
 <PARA>
 These days only the <COMMAND>scheduler</> needs it, and if you have
-a choice, use this only after the ``scheduler'' logfile is rotated.
+a choice, use this only after the <QUOTE>scheduler</> logfile is rotated.
 </PARA>
 </SECT2>
 
@@ -219,7 +223,7 @@ a choice, use this only after the ``scheduler'' logfile is rotated.
 <TITLE><COMMAND>zmailer logrotate</></>
 
 <PARA>
-Runs ZMailer sub-utility ``rotate-logs.sh''.
+Runs ZMailer sub-utility <QUOTE>rotate-logs.sh</>.
 </PARA>
 </SECT2>
 
@@ -672,7 +676,7 @@ to local needs.
 #
 # USAGE:
 #
-# Create an alias for the address to use:
+# Create an alias for the address want to use:
 # autoreply: "|/path/to/autoanswer.pl"
 #
 ##########################################################################
@@ -701,18 +705,18 @@ while (&lt;STDIN&gt;) {
 
     $text = $_;
 
-    if (($text eq "\n") && ( $double = 1)) {
-        last;
+    if (($text eq "\n") && ( $double == 1)) {
+	last;
     }
 
-    if (($text eq "\n") && ( $double = 0)) {
-        $double = 1;
-        next;
+    if (($text eq "\n") && ( $double == 0)) {
+	$double = 1;
+	next;
     }
     
-    if ($text =~ "X-autoanswer-loop: ") {
-        $nosend = 1;
-        LOG("Looping message, sender=$address");
+    if ($text =~ m/^X-autoanswer-loop:/i) {
+	$nosend = 1;
+	LOG("Looping message, sender=$address");
     }
 
     $double = 0;
@@ -720,17 +724,18 @@ while (&lt;STDIN&gt;) {
     push(@header,$text);
 }
 
-if (($address eq '&lt;&gt;') || ($nosend = 0)) {
+if (($address eq '&lt;&gt;') || $nosend ) {
     LOG("SENDER invalid");
     exit 1;
 }
+
 
 $outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
 #$outfile = "/tmp/aa.$$";
 $now = time;
 $txttime = localtime(time);
 
-open(OUT,">$outfile");
+open(OUT,"&gt;$outfile");
 select(OUT);
 print "channel error\n";
 print "to $address\n";
@@ -743,9 +748,9 @@ print "      This is autoreply answer message by your request.\n\n";
 print "      Original message was received at UNIX time $now;\n";
 print "      which means '$txttime' in cleartext.\n\n";
 print "      Headers were:\n\n";
-print "--------------------------------------------------------------------\n";
+print "------------------------------------------------------------------------------\n";
 print @header;
-print "--------------------------------------------------------------------\n";
+print "------------------------------------------------------------------------------\n";
 print "\n      Have a nice day.\n";
 select(STDOUT);
 close OUT;
@@ -757,10 +762,10 @@ exit 0;
 
 sub LOG {
 
-        open(LOGf, ">>$logfile");
-        $ttime = localtime(time);
-        printf (LOGf "$ttime autoanswer: @_\n");
-        close LOGf;
+	open(LOGf, "&gt;&gt;$logfile");
+	$ttime = localtime(time);
+	printf (LOGf "$ttime autoanswer: @_\n");
+	close LOGf;
 }
 </SCREEN>
 </SECT1>
@@ -816,7 +821,10 @@ and the automatic replies will stop.
 </PARA>
 
 <SYNOPSIS>
-vacation start vacation stop vacation -I vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]
+  vacation start
+  vacation stop
+  vacation -I
+  vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]
 </SYNOPSIS>
 
 </LISTITEM></VARLISTENTRY>
@@ -869,9 +877,9 @@ disables the list of senders kept in the
 </SCREEN>
 
 <PARA>
-No message is sent if the ``user'' specified in the vacation command
+No message is sent if the <QUOTE>user</> specified in the vacation command
 (if nothing is specified, it uses your username) does not appear explicitly
-in the ``To:'' or ``Cc:'' lines of the message, which prevents messages from
+in the <QUOTE>To:</> or <QUOTE>Cc:</> lines of the message, which prevents messages from
 being sent back to mailing lists and causing loops.
 </PARA>
 
@@ -887,18 +895,20 @@ The default vacation message is stored in <FILENAME>/opt/mail/vacation.msg</>
 </PARA>
 
 <PARA>
-On machines running ZMailer, the ``name'' argument to <COMMAND>vacation</>
-is optional, and the $USER environment variable is used to determine where
-to look for the message and the list of previous recipients.
+On machines running ZMailer, the <QUOTE>name</> argument to
+<COMMAND>vacation</> is optional, and the $USER environment
+variable is used to determine where to look for the message
+and the list of previous recipients.
 </PARA>
 
 <PARA>
-The $SENDER} variable is checked first to determine the reply destination.
-It is normally set to the SMTP ``MAIL FROM:'' address or equivalent.
+The <VARNAME>$SENDER</> variable is checked first to determine the reply
+destination.
+It is normally set to the SMTP <QUOTE>MAIL FROM:</> address or equivalent.
 This is an additional safeguard against sending replies to mailing lists,
 the PostMaster or the mailer daemon, since standards and common sense dictate
 that it never points back to an address that could cause a loop.
-The ``From '' line is used only as a last resort.
+The <QUOTE>From </> line is used only as a last resort.
 </PARA>
 </LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

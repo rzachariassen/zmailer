@@ -12,7 +12,7 @@ the SMTP standard) functions that require <COMMAND>router</> functionality.
 <PARA>
 The server will run an RFC-821 syntax scanner for addresses, plus possible
 policy analysis phase, and if things are ok, it says
-``<EMPHASIS>Yes yes, sure!</>'' to everything.
+<QUOTE><EMPHASIS>Yes yes, sure!</></> to everything.
 The program may also be used in non-daemon mode to unpack BSMTP format
 messages on the standard input stream.
 </PARA>
@@ -44,12 +44,12 @@ well-known shell function with well-known parameters for each request.
 The server implements also most of the ESMTP facilities invented
 up to date (Feb, 2000).
 The ones that are active are visible at greeting response to
-``<EMPHASIS ROLE="STRONG">EHLO</>'' command, as can be seen
+<QUOTE><EMPHASIS ROLE="STRONG">EHLO</></> command, as can be seen
 in figure <XREF LINKEND="fig.ref.smtpserver1">.
 </PARA>
 
 <FIGURE ID="fig.ref.smtpserver1" PGWIDE="0" FLOAT="1">
-<TITLE>Sample ``<EMPHASIS>EHLO</>'' greeting with smtpserver</TITLE>
+<TITLE>Sample <QUOTE><EMPHASIS>EHLO</></> greeting with smtpserver</TITLE>
 <SCREEN>
 <PROMPT>$ </><USERINPUT>telnet 127.1 smtp</>
 Connected to 127.1.
@@ -100,12 +100,14 @@ Escape character is '^]'.
 <TERM>Parameters:</TERM>
 <LISTITEM><PARA>
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION>-4</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-4</></>
+<LISTITEM><PARA>
 Explicitly use IPv4 type of socket even on machines that are capable to do
 IPv6 type of sockets.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-6</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-6</></>
+<LISTITEM><PARA>
 Explicitely (try to) use IPv6 type of socket even if the machine does not
 support it.
 By default the server will try to use IPv6, if it has been compiled in
@@ -113,54 +115,63 @@ an environment where it is present, but will fall back to IPv4, if
 the runtime system does not have IPv6.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-8</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-8</></>
+<LISTITEM><PARA>
 This option is part of optional inbound translate processing;
-see ``<OPTION>-X</>'' option below.
+see <QUOTE><OPTION>-X</></> option below.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-a</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-a</></>
+<LISTITEM><PARA>
 Turn on RFC931/RFC1413 identification protocol, and log the information
 acquired with it into the submitted file.
 Reliability, validity, worthwhileness, ... all such are suspect at this.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-B</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-B</></>
+<LISTITEM><PARA>
 Flags the email to arrive via BSMTP channel (via BITNET, for example).
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-B <REPLACEABLE>cfgfile</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-B <REPLACEABLE>cfgfile</></></>
+<LISTITEM><PARA>
 Specifies nonstandard configuration file location; the default is 
 <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-d <REPLACEABLE>nnnn</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-d <REPLACEABLE>nnnn</></></>
+<LISTITEM><PARA>
 This option sets numeric debug value.
 Any non-zero will work.
 This numeric argument is provision for possible bit-flag or level oriented
 debugging mode&hellip;.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-g</></><LISTITEM><PARA>
-The ``<EMPHASIS>gullible</>'' option will make the program believe
+<VARLISTENTRY><TERM><OPTION>-g</></>
+<LISTITEM><PARA>
+The <QUOTE><EMPHASIS>gullible</></> option will make the program believe
 any information it is told (such as origin of a connection) without checking.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-h</></><LISTITEM><PARA>
-Check ``<USERINPUT>HELO</>'' parameter very closely (syntax),
-and if it is bad, complain with ``501''.
+<VARLISTENTRY><TERM><OPTION>-h</></>
+<LISTITEM><PARA>
+Check <QUOTE><USERINPUT>HELO</></> parameter very closely (syntax),
+and if it is bad, complain with <QUOTE>501</>.
 Such behaviour is against interoperability minded 
-``<EMPHASIS>Be lenient on what you accept</>'' policy, and apparently
+<QUOTE><EMPHASIS>Be lenient on what you accept</></> policy, and apparently
 will break a lot of <EMPHASIS>common</> clients&hellip;.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-i</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-i</></>
+<LISTITEM><PARA>
 Runs the server interactively, which makes it usable for processing a batched 
 <EMPHASIS>SMTP</> stream (<EMPHASIS>BSMTP</>) on <PARAMETER>stdin</>.
-With ``<OPTION>-v</>'' option this echoes incoming BSMTP to create more 
+With <QUOTE><OPTION>-v</></> option this echoes incoming BSMTP to create more 
 accurate faximile of BITNET BSMTP mailers.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>maxloadaver</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>maxloadaver</></></>
+<LISTITEM><PARA>
 The maximum load-average the system is under when we still accept email.
 </PARA><PARA>
 <EMPHASIS>Not all systems are supported for load-aver extraction; and as
@@ -171,50 +182,59 @@ to see any load-average &mdash; anyway the ZMailer </>smtpserver<EMPHASIS>
 used without interactive routing is very low load inpact system.</EMPHASIS>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-l <CONSTANT>'SYSLOG'</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l <CONSTANT>'SYSLOG'</></></>
+<LISTITEM><PARA>
 Specifies that incoming <EMPHASIS>SMTP</> conversations are logged via
 <FUNCTION>syslog(3)</> to system <COMMAND>syslogd(8)</> server by using
 facility <LITERAL>LOG_MAIL</> and level <LITERAL>LOG_DEBUG</> messages.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>LOGFILE</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>LOGFILE</></></>
+<LISTITEM><PARA>
 Specifies a logfile and enables recording of incoming <EMPHASIS>SMTP</>
 conversations to go there.
 </PARA><PARA>
 <EMPHASIS>This can be used in parallel with <OPTION>-l 'SYSLOG'</> version!</>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-M <REPLACEABLE>SMTPmaxsize</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-M <REPLACEABLE>SMTPmaxsize</></></>
+<LISTITEM><PARA>
 Defines the absolute maximum size we accept from incoming email. 
 (Default: infinite) (This is a local policy issue.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-n</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n</></>
+<LISTITEM><PARA>
 Indicates the program is being run from {\em inetd(8)}.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postofficedir</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postofficedir</></></>
+<LISTITEM><PARA>
 Specifies an alternate <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
 directory.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>port</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>port</></></>
+<LISTITEM><PARA>
 Specifies the TCP port to listen on instead of the default <EMPHASIS>SMTP</>
 port: 25.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-R <REPLACEABLE>routerpath</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-R <REPLACEABLE>routerpath</></></>
+<LISTITEM><PARA>
 Specifies an alternate <COMMAND>router</>(8) program to use for address
 verification.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></>
+<LISTITEM><PARA>
 This turns server protocol processing into extremely strict mode, any
 misplaced character is rejected.  Not very practical in real file, but
 nice for protocol interoperability bakeout testing.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></>
+<LISTITEM><PARA>
 Specifies the style of address verification to be performed.
 There are four independent commands  that can invoke some kind of address
 verification, and four independent flags to control whether this should be
@@ -222,82 +242,94 @@ done.
 </PARA><PARA>
 They are:
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION>f</></><LISTITEM><PARA>
-Run ``<USERINPUT>MAIL FROM</>'' address through online router for analysis.
+<VARLISTENTRY><TERM><OPTION>f</></>
+<LISTITEM><PARA>
+Run <QUOTE><USERINPUT>MAIL FROM</></> address through online router for analysis.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>t</></><LISTITEM><PARA>
-Run ``<USERINPUT>RCPT TO</>'' address through online router for analysis.
+<VARLISTENTRY><TERM><OPTION>t</></>
+<LISTITEM><PARA>
+Run <QUOTE><USERINPUT>RCPT TO</></> address through online router for analysis.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>v</></><LISTITEM><PARA>
-Enable ``<USERINPUT>VRFY</>'' command for this style selector
-(if configuration ``<PARAMETER>PARAM vrfycmd</>'' is in effect)
+<VARLISTENTRY><TERM><OPTION>v</></>
+<LISTITEM><PARA>
+Enable <QUOTE><USERINPUT>VRFY</></> command for this style selector
+(if configuration <QUOTE><PARAMETER>PARAM vrfycmd</></> is in effect)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>e</></><LISTITEM><PARA>
-Enable ``<USERINPUT>EXPN</>'' command for this style selector
-(if configuration ``<PARAMETER>PARAM expncmd</>'' is in effect)
+<VARLISTENTRY><TERM><OPTION>e</></>
+<LISTITEM><PARA>
+Enable <QUOTE><USERINPUT>EXPN</></> command for this style selector
+(if configuration <QUOTE><PARAMETER>PARAM expncmd</></> is in effect)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>R</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>R</></>
+<LISTITEM><PARA>
 Require incoming addresses to be of fully-qualified domained form.
 </PARA><PARA>
 Don't use this if you want to allow non-domained addresses accepted
 into your server through SMTP.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>S</></><LISTITEM><PARA>
-Allow ``<EMPHASIS>Sloppy</>'' behaviour from the sending smtp clients;
-namely allow ``<USERINPUT>MAIL FROM:foo@bar</>'', that is, an addresses
+<VARLISTENTRY><TERM><OPTION>S</></>
+<LISTITEM><PARA>
+Allow <QUOTE><EMPHASIS>Sloppy</></> behaviour from the sending smtp clients;
+namely allow <QUOTE><USERINPUT>MAIL FROM:foo@bar</></>, that is, an addresses
 <EMPHASIS>without</>
 mandatory (<LINK LINKEND="RFC821.FROM">RFC-821</>) angle braces.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
-The flags are concatenated to form the argument to the ``<OPTION>-s</>''
+The flags are concatenated to form the argument to the <QUOTE><OPTION>-s</></>
 option. 
-The default is ``<OPTION>ve</>''.
+The default is <QUOTE><OPTION>ve</></>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-S <REPLACEABLE>suffixstyle</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-S <REPLACEABLE>suffixstyle</></></>
+<LISTITEM><PARA>
 This defines log suffix which can alter the default logfile
 name to one which splits incoming traffic into separate files.
 </PARA><PARA>
 Possible values are:
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION><LITERAL>'remote'</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION><LITERAL>'remote'</></></>
+<LISTITEM><PARA>
 Append remote hostname to the logfile name (after a dot) so that
-from host ``foo.bar.edu'' the logfile would be:
-``smtpserver.foo.bar.edu''.
+from host <QUOTE>foo.bar.edu</> the logfile would be:
+<QUOTE>smtpserver.foo.bar.edu</>.
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM><OPTION><LITERAL>'local'</></></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION><LITERAL>'local'</></></>
+<LISTITEM><PARA>
 Append local end reversed hostname to the logfile name (after a dot)
-so that in multihomed hosts all different ``hosts'' have different logfiles.
+so that in multihomed hosts all different <QUOTE>hosts</> have different logfiles.
 Such does, of course, assume that different IP addresses in the host reverse
 to different names.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-v</></><LISTITEM><PARA>
-This is a ``<EMPHASIS>verbose</>'' option to be used with
- ``<OPTION>-i</>'' option.
-This is especially for ``BSMTP'' processing.
+<VARLISTENTRY><TERM><OPTION>-v</></>
+<LISTITEM><PARA>
+This is a <QUOTE><EMPHASIS>verbose</></> option to be used with
+ <QUOTE><OPTION>-i</></> option.
+This is especially for <QUOTE>BSMTP</> processing.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-V</></><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-V</></>
+<LISTITEM><PARA>
 prints a version message and exits.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-X</></><LISTITEM><PARA>
-This is ``<EMPHASIS>Xlate</>'' option.
+<VARLISTENTRY><TERM><OPTION>-X</></>
+<LISTITEM><PARA>
+This is <QUOTE><EMPHASIS>Xlate</></> option.
 For more info, see source file:
 </PARA><BLOCKQUOTE><ATTRIBUTION><FILENAME>README.translation</></>
 <PARA>
-``It may be necessary in some cases (e.g. in Cyrillic-language countries)
+<QUOTE>It may be necessary in some cases (e.g. in Cyrillic-language countries)
 to translate charset on the messages coming from the clients with, e.g.
 old Eudora or other MUAs that do not correctly support koi8-r charset.
-&nbsp;&hellip;''</PARA></BLOCKQUOTE>
+&nbsp;&hellip;</></PARA></BLOCKQUOTE>
 </LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -313,7 +345,8 @@ If the <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</> file exists
 it is read to configure two kinds of things.
 Specifically the following:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>PARAM -entries</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM -entries</TERM>
+<LISTITEM><PARA>
 Allow server start-time parametrization of several things, including:
 <ITEMIZEDLIST>
 <LISTITEM><PARA> system parameters </></>
@@ -322,17 +355,18 @@ Allow server start-time parametrization of several things, including:
 </ITEMIZEDLIST>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>The style (<OPTION>-s</>) options</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>The style (<OPTION>-s</>) options</TERM>
+<LISTITEM><PARA>
 Behaviour is based on glob patterns matching
 the <USERINPUT>HELO</>/<USERINPUT>EHLO</> name given by a remote client.
-Lines beginning with a ``#'' or whitespace are ignored in the file,
+Lines beginning with a <QUOTE>#</> or whitespace are ignored in the file,
 and all other lines must consist of two tokens:
 a shell-style (glob) pattern starting at the beginning of the line,
 whitespace, and a sequence of style flags.
 The first matching line is used.
 </PARA>
 <PARA>
-As a special case, the flags section may start with a ``!'' character
+As a special case, the flags section may start with a <QUOTE>!</> character
 in which case the remainder of the line is a failure comment message
 to print at the client.
 This configuration capability is intended as a way to control misbehaving
@@ -345,17 +379,19 @@ client software or mailers.
 <TITLE><COMMAND>Smtpserver</> configuration; PARAM -entries</TITLE>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>PARAM maxsize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM maxsize <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
 Maximum size in the number of bytes of the entire spool message
 containing both the transport envelope, and the actual message.
 That is, if the max-size is too low, and there are a lot of
 addresses, the message may entirely become undeliverable..
 </PARA><PARA>
-This sets system default value, and overrides commandline ``<OPTION>-M</>''
+This sets system default value, and overrides commandline <QUOTE><OPTION>-M</></>
  option.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM max-error-recipients <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM max-error-recipients <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
 In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
 for it. The default value is 3, which should be enough for most cases.
@@ -365,9 +401,10 @@ they begin just sending single recipients per message &mdash; less
 efficient, but working still&hellip;)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM MaxSameIpSource <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
-(Effective only on daemon-mode server &mdash; not on ``<OPTION>-i</>'',
- nor ``<OPTION>-n</>'' modes.)
+<VARLISTENTRY><TERM>PARAM MaxSameIpSource <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
+(Effective only on daemon-mode server &mdash; not on <QUOTE><OPTION>-i</></>,
+ nor <QUOTE><OPTION>-n</></> modes.)
 Sometimes some systems set up multiple parallel connections to same
 host  (qmail ones especially, not that ZMailer has entirely clean
 papers on this either &mdash; at least up to 2.99.X series), we won't
@@ -388,17 +425,20 @@ To avoid the system to succumb under such an accidental denial-of-service
 attack at the overall system, this parallel limit was created.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM TcpRcvBufferSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM TcpRcvBufferSize <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
 This sets <FUNCTION>setsockopt(SO_RCVBUF)</> value, 
 in case the system default is not suitable for some reason.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM TcpXmitBufferSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM TcpXmitBufferSize <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
 This sets <FUNCTION>setsockopt(SO_SNDBUF)</> value, 
 in case the system default is not suitable for some reason.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM ListenQueueSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM ListenQueueSize <REPLACEABLE>nn</></TERM>
+<LISTITEM><PARA>
 This relates to newer systems where the <FUNCTION>listen(2)</> system call
 can define higher limits, than the traditional/original 5.
 This limit tells how many nascent TCP streams we can have in SYN_RCVD state
@@ -421,7 +461,7 @@ be able to get the TCP startup three-way handshake completed.
 Most modern systems can have this value upped to thousands to
 improve systems resiliency against malicious attacks, and most
 likely to provide complete immunity against the accidental
-``attack'' by the failing network routing.
+<QUOTE>attack</> by the failing network routing.
 </PARA><PARA>
 Do consult your system specific information on how much memory each
 nascent (and matured) socket will require before you commence upping
@@ -429,40 +469,46 @@ this very much.  You might commit heaps of unswappable memory to
 useless waste.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM help <REPLACEABLE>string</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM help <REPLACEABLE>string</></TERM>
+<LISTITEM><PARA>
 This one adds yet another string (no quotes are used) into those
-that are presented to the client when it asks for ``<USERINPUT>HELP</>''
+that are presented to the client when it asks for <QUOTE><USERINPUT>HELP</></>
 in the SMTP session.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM debugcmd</TERM><LISTITEM><PARA>
-Enables ``<USERINPUT>DEBUG</>'' command in the server.
+<VARLISTENTRY><TERM>PARAM debugcmd</TERM>
+<LISTITEM><PARA>
+Enables <QUOTE><USERINPUT>DEBUG</></> command in the server.
 This command turns on various trace functions which ruin the protocol
 from standards compliant client, but may help interactive debuggers.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM expncmd</TERM><LISTITEM><PARA>
-Enables ``<USERINPUT>EXPN</>'' command in the server.
+<VARLISTENTRY><TERM>PARAM expncmd</TERM>
+<LISTITEM><PARA>
+Enables <QUOTE><USERINPUT>EXPN</></> command in the server.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM vrfycmd</TERM><LISTITEM><PARA>
-Enables ``<USERINPUT>VRFY</>'' command in the server.
+<VARLISTENTRY><TERM>PARAM vrfycmd</TERM>
+<LISTITEM><PARA>
+Enables <QUOTE><USERINPUT>VRFY</></> command in the server.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM PolicyDB <REPLACEABLE>dbtype</> <REPLACEABLE>dbpath</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM PolicyDB <REPLACEABLE>dbtype</> <REPLACEABLE>dbpath</></TERM>
+<LISTITEM><PARA>
 This defines the database type, and file path prefix to the binary
 database containing policy processing information.
 Actual binary database file names are formed by appending type specific
 suffixes to the path prefix.
-For example NDBM database appends ``.pag'' and ``.dir'', while BSD-Btree
-appends only ``.db''.
+For example NDBM database appends <QUOTE>.pag</> and <QUOTE>.dir</>, while BSD-Btree
+appends only <QUOTE>.db</>.
 (And the latter has only one file, while the first has two.)
 </PARA><PARA>
 More information below, and at <COMMAND>newdb</> at
 <XREF LINKEND="zref.util.newdb">
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>PARAM allowsourceroute</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>PARAM allowsourceroute</TERM>
+<LISTITEM><PARA>
 When present, this parameter will not convert input of form
 &lt;@aa,@bb:cc@dd&gt; into source-route-less form of &lt;cc@dd&gt;
 Instead it carries the original source-route into the system as is.
@@ -595,13 +641,13 @@ ip-reversed.host.name
 .domain.suffix
 \medskip\hrule\end{alltt}\medskip
 
-Server sets its internal ``always_accept'' flag at the source IP tests
+Server sets its internal <QUOTE>always_accept</> flag at the source IP tests
 before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
 
 Usage of domain names here is discouraged as there is no way to tell
-that domain ``foo.bar'' here has different meaning than same domain
-elsewere -- at ``{\tt smtp-policy.mx}'', for example.
+that domain <QUOTE>foo.bar</> here has different meaning than same domain
+elsewere -- at <QUOTE>{\tt smtp-policy.mx}</>, for example.
 
 \item[\tt smtp-policy.mx] \mbox{}
 
@@ -610,7 +656,7 @@ Use this when you really know them, and don't want just to trust
 that if recipient has MX to you, it would be ok&hellip;
 
 You can substitute this knowledge with a fuzzy feeling by using
-``acceptifmx -'' attribute at the generic boilerplate.
+<QUOTE>acceptifmx -</> attribute at the generic boilerplate.
 List here domain names. 
 \begin{alltt}\medskip\hrule\medskip
  mx-target.dom
@@ -639,7 +685,7 @@ or recipients no matter what earlier analysis has shown.
  domain
 \medskip\hrule\end{alltt}\medskip
 
-The ``{\tt policy-builder.sh}'' builds this file from external sources. 
+The <QUOTE>{\tt policy-builder.sh}</> builds this file from external sources. 
 
 \end{description}
 </SCREEN>
@@ -669,8 +715,8 @@ The basic syntax of non-comment lines in the policy source is:
 
 There are any number of attribute-value pairs associated with the key.
 
-There can be only one key of any kind currently active, unless ``{\em makedb}''
-is called with ``-A'' option (Append mode) in which case latter appearances
+There can be only one key of any kind currently active, unless <QUOTE>{\em makedb}</>
+is called with <QUOTE>-A</> option (Append mode) in which case latter appearances
 of some keys will yield catenation of of latter data into previous datasets.
 (This may or may not be a good idea&hellip;)
 
@@ -679,8 +725,8 @@ The key can be any of following forms:
 \item[\rm domain, or .domain.suffix] \mbox{} \\
 a domain name optionally preceded by a dot (.)
 
-\item[\rm``user@'', or ``user@domain''] \mbox{} \\
-Usernames -- domainless (``user@'') or domainfull.
+\item[\rm<QUOTE>user@</>, or <QUOTE>user@domain</>] \mbox{} \\
+Usernames -- domainless (<QUOTE>user@</>) or domainfull.
 
 \item[\rm An IP address in {[}nn.nn.nn.nn{]}/prefix form] \mbox{} \\
 Unspecified bits must be 0.
@@ -688,7 +734,7 @@ Unspecified bits must be 0.
  into plain IPv4.)
 
 \item[\rm A tag -- word begining with underscore] \mbox{} \\
-An ``alias'' dataset entry for ``='' ``attribute'' uses.
+An <QUOTE>alias</> dataset entry for <QUOTE>=</> <QUOTE>attribute</> uses.
 \end{description}
 
 
@@ -699,10 +745,10 @@ The attribute scanners operate in a manner, where the first
 instance of interesting attribute is the one that is used.
 Thus you can construct setups which set some attribute, and
 then {\em ignore} all latter instances of that same attribute
-which have been pulled in via ``{\em = _alias_tag}'' mechanism,
+which have been pulled in via <QUOTE>{\em = _alias_tag}</> mechanism,
 for example.
 
-In following, ``understood'' value is one or both of literals: ``+'', ``-'',
+In following, <QUOTE>understood</> value is one or both of literals: <QUOTE>+</>, <QUOTE>-</>,
 if they are listed at the definition entry.
 In case only one is understood, the other one can be considered as
 placeholder which stops the scanner for that attribute.
@@ -711,17 +757,17 @@ Attribute names, and understood value tokens are:
 
 \begin{description}
 \item[\tt = _any_tag] \mbox{} \\
-The analysis function will descend to look up ``_any_tag'' from
+The analysis function will descend to look up <QUOTE>_any_tag</> from
 the database, and expand its content in this place.
 
 \item[\tt rejectnet +] \mbox{} \\
 Existence of this attribute pair sets persistent session flag:
-``always-reject'', which causes all ``MAIL FROM'' and ``RCPT TO''
+<QUOTE>always-reject</>, which causes all <QUOTE>MAIL FROM</> and <QUOTE>RCPT TO</>
 commands to fail until end of the session.
 
 This is tested for at the connection start against connecting
 IP address, and against IP-reversed domain name.
-This is also tested against the ``HELO/EHLO'' supplied parameter
+This is also tested against the <QUOTE>HELO/EHLO</> supplied parameter
 string.
 
 Use of this should be limited only to addresses against which you
@@ -729,111 +775,111 @@ really have grudges.
 
 \item[\tt freezenet +] \mbox{} \\
 Existence of this attribute pair sets persistent session flag:
-``always-freeze'', which will accept messages in, but all of them
-are moved into ``freezer'' spool directory.
+<QUOTE>always-freeze</>, which will accept messages in, but all of them
+are moved into <QUOTE>freezer</> spool directory.
 
-This is tested for at the same time as ``rejectnet''.
+This is tested for at the same time as <QUOTE>rejectnet</>.
 
 \item[\tt rejectsource +] \mbox{} \\
-Existence of this attribute pair rejects ``MAIL FROM'' address,
-and thus all subsequent ``RCPT TO'' and ``DATA'' transactions
-until new ``MAIL FROM'' is supplied.
+Existence of this attribute pair rejects <QUOTE>MAIL FROM</> address,
+and thus all subsequent <QUOTE>RCPT TO</> and <QUOTE>DATA</> transactions
+until new <QUOTE>MAIL FROM</> is supplied.
 
 \item[\tt freezesource +] \mbox{} \\
 Existence of this attribute pair causes subsequently following
-``DATA'' phase message to be placed into ``freezer'' spool directory.
+<QUOTE>DATA</> phase message to be placed into <QUOTE>freezer</> spool directory.
 
-This is tested for only at ``MAIL FROM'', and subsequent ``MAIL FROM''
+This is tested for only at <QUOTE>MAIL FROM</>, and subsequent <QUOTE>MAIL FROM</>
 may supply another value.
 
 \item[\tt relaycustomer +/-] \mbox{} \\
-Existence of this attribute pair is tested for at ``MAIL FROM'',
-and it affects subsequent ``RCPT TO'' address testing.
+Existence of this attribute pair is tested for at <QUOTE>MAIL FROM</>,
+and it affects subsequent <QUOTE>RCPT TO</> address testing.
 
-Pair ``relaycustomer -'' is a placeholder no-op, while
-``relaycustomer +'' tells to the system that it should not
-test the ``RCPT TO'' address very deeply.
+Pair <QUOTE>relaycustomer -</> is a placeholder no-op, while
+<QUOTE>relaycustomer +</> tells to the system that it should not
+test the <QUOTE>RCPT TO</> address very deeply.
 
 {\em Usage of this attribute is not encouraged!
 Anybody could get email relayed through just by claiming
-a ``MAIL FROM'' domain which has this attribute.}
+a <QUOTE>MAIL FROM</> domain which has this attribute.}
 
 \item[\tt relaycustnet +] \mbox{} \\
 Existence of this attribute pair is tested for at the  connection
 start against connecting IP address, and against IP-reversed domain name.
 
-If this pair exists, session sets persistent ``always-accept'' flag,
-and will not do further policy analysing for the ``MAIL FROM'', nor
-``RCPT TO'' addresses.  (Except looking for valid A/MX data from the
+If this pair exists, session sets persistent <QUOTE>always-accept</> flag,
+and will not do further policy analysing for the <QUOTE>MAIL FROM</>, nor
+<QUOTE>RCPT TO</> addresses.  (Except looking for valid A/MX data from the
 DNS for the sender/recipient domains.)
 
 \item[\tt fulltrustnet +] \mbox{} \\
-Because the DNS lookups still done with ``relaycustnet +'' setting on,
+Because the DNS lookups still done with <QUOTE>relaycustnet +</> setting on,
 a massive feed for fanout servers might become slowed down/effectively
-killed, unless we use ``fulltrustnet +'' specification for the feeder
+killed, unless we use <QUOTE>fulltrustnet +</> specification for the feeder
 host.  Then everything is taken in happily from that source address.
 
 \item[\tt trustrecipients +] \mbox{} \\
-This is a variant of ``relaycustnet,'' where  ``RCPT TO'' addresses are
-not checked at all, but ``MAIL FROM'' addresses are looked up from
-the DNS. (Unless some other test with the ``MAIL FROM'' domain name
+This is a variant of <QUOTE>relaycustnet,</> where  <QUOTE>RCPT TO</> addresses are
+not checked at all, but <QUOTE>MAIL FROM</> addresses are looked up from
+the DNS. (Unless some other test with the <QUOTE>MAIL FROM</> domain name
 has matched before that.)
 
 \item[\tt trust-whoson +] \mbox{} \\
-If the system has been compiled with support to ``{\em whoson}'' services,
-see file ``{\em whoson-*.tar.gz}'' in the ``contrib/'' subdirectory.
+If the system has been compiled with support to <QUOTE>{\em whoson}</> services,
+see file <QUOTE>{\em whoson-*.tar.gz}</> in the <QUOTE>contrib/</> subdirectory.
 This facilitates indirectly authenticated (via POP/IMAP) SMTP message
 submission for dialup-type users.
 
 \item[\tt relaytarget +] \mbox{} \\
-With this attribute pair the current ``RCPT TO'' address is accepted in
+With this attribute pair the current <QUOTE>RCPT TO</> address is accepted in
 without further trouble. (Theory being, that keys where this attribute
 pair exist are fully qualified, and valid, thus no need for DNS analysis.)
 
-See ``RCPT TO'' processing algorithm for further details.
+See <QUOTE>RCPT TO</> processing algorithm for further details.
 
 \item[\tt relaytarget -] \mbox{} \\
-This attribute pair causes instant rejection of the current ``RCPT TO''
+This attribute pair causes instant rejection of the current <QUOTE>RCPT TO</>
 address.
 
-See ``RCPT TO'' processing algorithm for further details.
+See <QUOTE>RCPT TO</> processing algorithm for further details.
 
 \item[\tt freeze +] \mbox{} \\
-When ``RCPT TO'' address test meets this attribute pair, the entire
-message will be placed into ``freezer'' directory.
+When <QUOTE>RCPT TO</> address test meets this attribute pair, the entire
+message will be placed into <QUOTE>freezer</> directory.
 
 \item[\tt acceptifmx +/-] \mbox{} \\
 This attribute pair is used to give fuzzy feeling in anti-relay setups
 so that we don't need to list {\bf all} those target domains that we
 are allowing to use ourselves as relays.
 
-This will basically check that ``RCPT TO'' address has our server
+This will basically check that <QUOTE>RCPT TO</> address has our server
 as one of its MX entries.
 
-The value (``+'' or ``-'') determines how ``severe'' the nonexistence
-of MX data is.  With ``+'' the server will yield ``400'' series temporary
-error with implied invitation to try again, and with ``-'' the server will
-yield ``500'' series permanent error.
+The value (<QUOTE>+</> or <QUOTE>-</>) determines how <QUOTE>severe</> the nonexistence
+of MX data is.  With <QUOTE>+</> the server will yield <QUOTE>400</> series temporary
+error with implied invitation to try again, and with <QUOTE>-</> the server will
+yield <QUOTE>500</> series permanent error.
 
 \item[\tt acceptifdns +/-] \mbox{} \\
-This attribute pair is complementary for the ``acceptifmx'' in sense
+This attribute pair is complementary for the <QUOTE>acceptifmx</> in sense
 that it accept the recipient address in case the DNS system has any
 A or MX information for it.
 
 This attribute pair should not be used.
 
 \item[\tt senderokwithdns +/-] \mbox{} \\
-This attribute pair will do DNS analysis for ``MAIL FROM'' domain, and
+This attribute pair will do DNS analysis for <QUOTE>MAIL FROM</> domain, and
 accept it only if there exists A or MX data for the said domain.
 
-The value (``+'' or ``-'') determines how ``severe'' the nonexistence
-of DNS data is.  With ``+'' the server will yield ``400'' series temporary
-error with implied invitation to try again, and with ``-'' the server will
-yield ``500'' series permanent error.
+The value (<QUOTE>+</> or <QUOTE>-</>) determines how <QUOTE>severe</> the nonexistence
+of DNS data is.  With <QUOTE>+</> the server will yield <QUOTE>400</> series temporary
+error with implied invitation to try again, and with <QUOTE>-</> the server will
+yield <QUOTE>500</> series permanent error.
 
 
 \item[\tt sendernorelay +] \mbox{} \\
-Tested at ``MAIL FROM'' address domain, and affects ``RCPT TO''
+Tested at <QUOTE>MAIL FROM</> address domain, and affects <QUOTE>RCPT TO</>
 address domain analysis.
 {\em At the moment this attribute does not make sense, don't use!}
 
@@ -844,14 +890,14 @@ system to block undesired connection sources.
 
 \item[\tt rply-dns-rbl +] \mbox{} \\
 \item[\tt test-rply-dns-rbl +] \mbox{} \\
-This is a ``recipient selective'' version of the RBL.
+This is a <QUOTE>recipient selective</> version of the RBL.
 The first one is to be placed into the default address case
-(the ``[0.0.0.0]/0´´), and then the latter can be used in given
+(the <QUOTE>[0.0.0.0]/0</>), and then the latter can be used in given
 destination domain(s) to test for the result of the lookup.
 
 This allows selective usage of 'RBL' blocking via this server.
 For example if you have {\tt smtp-policy.mx} file listing special
-cases (opposite of your default domain address ``.'' values)
+cases (opposite of your default domain address <QUOTE>.</> values)
 
 \begin{alltt}\medskip\hrule\medskip
  fobar.com  test-rply-dns-rbl + relaytarget +
@@ -860,14 +906,14 @@ cases (opposite of your default domain address ``.'' values)
 
 The selectivity can be either by means of listing those where the test
 happens, or those where it doesn't happen -- the latter means that
-the default domain address (``.'') must have ``test-rply-dns-rbl +'' entry.
+the default domain address (<QUOTE>.</>) must have <QUOTE>test-rply-dns-rbl +</> entry.
 
 \item[\tt maxinsize nnn] \mbox{} \\
 This attribute pair yields numeric limit for incoming message
 size.  With this you can define source specific message size
 limits so that if your intranetwork has a system with lower
 inbound message size, than you do, you can report this limit
-at the ``EHLO'' responses.
+at the <QUOTE>EHLO</> responses.
 
 Partly this is placeholder for further code with for example
 source/target domain specific runtime enforced size limits.
@@ -891,14 +937,16 @@ Placeholder for further code
 
 <SCREEN>
 The {\tt policytest()} function is called by smtp-server to check the client 
-host, the sender's and recipients' addresses.  {\tt policytest()} looks for 
-the name and address of the client host as well as full and partial user address 
-and domain part of sender and recipient addresses in this database.  The 
-retrieved attributes are used to make decissions on accepting or rejecting 
+host, the sender's and recipients' addresses.
+<FUNCTION>policytest()</>  looks for  the name and address of the client host
+as well as full and partial user address and domain part of sender and
+recipient addresses in this database.
+The retrieved attributes are used to make decissions on accepting or rejecting
 the incoming mail.
 
-If looking for ``foo.bar.edu'' and an exact match failed, the database looks
-for keys in sequence:  ``.foo.bar.edu'', ``.bar.edu'', ``.edu'', and ``.''.
+If looking for <QUOTE>foo.bar.edu</> and an exact match failed, the database
+looks for keys in sequence:
+  <QUOTE>.foo.bar.edu</>, <QUOTE>.bar.edu</>, <QUOTE>.edu</>, and <QUOTE>.</>.
 
 The order of entries in the input file is not important, as the file is
 compiled into binary database for faster lookup.
@@ -909,9 +957,9 @@ default addributes for all unlisted IP addresses. (Both IPv4 and IPv6)
 
 `=' is a special attribute.
 
-The notation `= _tag' means ``See also at `_tag'". If {\tt server()} doesn't 
-find the requested attribute of the object, it will replace object name 
-with `_tag' and restart the search.
+The notation `= _tag' means <QUOTE>See also at `_tag'</>.
+If <FUNCTION>server()</> doesn't find the requested attribute
+of the object, it will replace object name with `_tag' and restart the search.
 
 {\Large SCRIPT REMOVED; SEE FILE  smtp-policy.src}
 </SCREEN>
@@ -921,8 +969,12 @@ with `_tag' and restart the search.
 
 <SECT1 ID="zref-smtpserver-content-filter">
 <TITLE>Content Based Filtering</TITLE>
-<INDEXTERM ID=zref-smtps-content-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters, reference</></>
-<INDEXTERM ID=zref-smtps-content-filtering2><PRIMARY>SMTP input</><SECONDARY>content filtering, reference</></>
+<INDEXTERM ID=zref-smtps-content-filtering1>
+  <PRIMARY><FILENAME>smtpserver.conf</></>
+  <SECONDARY>input content filters, reference</></>
+<INDEXTERM ID=zref-smtps-content-filtering2>
+  <PRIMARY>SMTP input</>
+  <SECONDARY>content filtering, reference</></>
 
 <PARA>
 The ZMailer <COMMAND>smtpserver</> <EMPHASIS>can</> do also message content
@@ -934,7 +986,7 @@ expected by the email sender.)
 </PARA>
 
 <PARA>
-The program becomes active if PARAM entry ``contentfilter''  is set:
+The program becomes active if PARAM entry <QUOTE>contentfilter</>  is set:
 
 <PROGRAMLISTING>
 <![CDATA[
@@ -961,7 +1013,7 @@ running userid of <LITERAL>daemon</> in directory
 <PARA>
 The program must silently wait for input, which is full path to the message
 spool file, analyze it, and reply with exactly one line matching rule of:
- ``<LITERAL>%i </>''
+ <QUOTE><LITERAL>%i </></>
 &mdash; begin with signed integer, then have one or more whitespace,
 then whatever filter writer liked to tell.
 </PARA>
@@ -1007,6 +1059,4 @@ which may have a bug in it..)</>
 </PARA>
 
 </SECT1>
-
-
 </CHAPTER>

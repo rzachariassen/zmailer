@@ -64,13 +64,16 @@ At DEC Tru64 there is another file with same purpose as
 </PARA>
 
 <PARA>
-At Solaris 2.6 (and after?) there is also a ``<COMMAND>nscd</>'' daemon
+At Solaris 2.6 (and after?) there is also a <QUOTE><COMMAND>nscd</></> daemon
 (name service cache daemon), which has appeared at times to <emphasis>harm</>
 DNS lookup intensive systems.
 At its configuration file <FILENAME>/etc/nscd.conf</>:
 <SCREEN>
      enable-cache    hosts   no
 </SCREEN>
+Same trouble entity appears also at Linuxes with glibc 2.*.
+That thing appears (at both systems) to turn temporary lookup
+failures to permanent kind of errors.  E.g. confuse return codes!
 </PARA>
 
 </CHAPTER>

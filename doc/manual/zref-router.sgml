@@ -35,7 +35,7 @@ builtin to the <COMMAND>router</>.
 Invoking router without any arguments will do nothing (except make it read
 its configuration file and promptly exit).
 The normal startup method is to run the <COMMAND>zmailer</>(1) script, as
-in ``<COMMAND>zmailer router</>''.
+in "<COMMAND>zmailer router</>".
 This will start the <COMMAND>router</> as a daemon and kill the previous 
 incarnation of the <COMMAND>router</>.
 </PARA>
@@ -90,9 +90,9 @@ The default is a single router process.
 <VARLISTENTRY><TERM><OPTION>-o <REPLACEABLE>zmsh-options</></></TERM><LISTITEM><PARA>
 Sets the option string passed on the internal <COMMAND>zmsh</> invocation.
 The default is <OPTION>-O</>. 
-Note that the leading ``-'' is mandatory.
+Note that the leading "-" is mandatory.
 See <LINK LINKEND="zref-zmsh-options"><CITETITLE><COMMAND>zmsh</>(1)</CITETITLE>
-</LINK> for the available options. 
+</LINK> (at <XREF LINKEND="zref-zmsh-options">) for the available options. 
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postoffice</></></TERM><LISTITEM><PARA>
@@ -197,21 +197,25 @@ The effects of input and output redirections are predicted
 prior to the execution of a command and its I/O setup.
 </PARA>
 
-<VARIABLELIST>
-<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
+<SECT2 ID="zref-zmsh-usage">
+<TITLE>ZMSH Usage:</TITLE>
+
+<PARA>
 
 <CMDSYNOPSIS>
   <COMMAND>zmsh</COMMAND>
-    <ARG>-CILOPRSYaefhinstuvx</ARG>
-    <ARG>-c <REPLACEABLE>command</></ARG>
+    <ARG><OPTION>-CILOPRSYaefhinstuvx</></ARG>
+    <ARG><OPTION>-c</> <REPLACEABLE>command</></ARG>
     <ARG><REPLACEABLE>script ...</></ARG>
 </CMDSYNOPSIS>
 </PARA>
-</LISTITEM></VARLISTENTRY>
+</SECT2>
 
-<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
+<SECT2  ID="zref-zmsh-options">
+<TITLE>ZMSH Parameters:</TITLE>
+<PARA>
 
-<VARIABLELIST ID="zref-zmsh-options">
+<VARIABLELIST>
 
 <VARLISTENTRY><TERM><OPTION>-c command</OPTION></TERM><LISTITEM><PARA>
 
@@ -251,7 +255,7 @@ The option is set by default.
 This shell is interactive, meaning prompts 
 are printed when ready for more input, <LITERAL>SIGTERM</> signal 
 is ignored, and the shell does not exit easily. This flag is 
-automatically set if <LITERAL>STDIN</> and <LITERAL>STDERR</> are 
+automatically set if <LITERAL>stdin</> and <LITERAL>stderr</> are 
 both attached to a <FILENAME>/dev/tty</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -264,7 +268,7 @@ Read commands but do not execute them.
 
 <VARLISTENTRY><TERM><OPTION>-s</OPTION></TERM><LISTITEM><PARA>
 
-Read commands from <LITERAL>STDIN</>.
+Read commands from <LITERAL>stdin</>.
 If there are non-option arguments to the shell, the first of
 these will be interpreted as a shell script to open on <LITERAL>stdin</>,
 and the rest as arguments to the script. 
@@ -297,14 +301,17 @@ Print commands as they are executed.
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST></PARA>
-</LISTITEM></VARLISTENTRY>
+</SECT2>
 
-<VARLISTENTRY><TERM>Debug options:</TERM><LISTITEM><PARA>
-<VARIABLELIST ID="zref-zmsh-debug-options">
+<SECT2   ID="zref-zmsh-debug-options">
+<TITLE>ZMSH Debug options:</TITLE
+
+<PARA>
+<VARIABLELIST>
 
 <VARLISTENTRY><TERM><OPTION>-C</></TERM><LISTITEM><PARA>
 
-Print code generation output onto <FILENAME>stdout</>.
+Print code generation output onto <LITERAL>stdout</>.
 If this option is doubled, the non-optimized code is printed out instead.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -317,7 +324,7 @@ Print runtime interpreter activity onto <FILENAME>/dev/tty</>.
 
 <VARLISTENTRY><TERM><OPTION>-L</></TERM><LISTITEM><PARA>
 
-Print lexer output onto <FILENAME>stdout</>. 
+Print lexer output onto <LITERAL>stdout</>. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -330,7 +337,7 @@ If this option is doubled, the optimized code is also printed out.
 
 <VARLISTENTRY><TERM><OPTION>-P</></TERM><LISTITEM><PARA>
 
-Print parser output (S/SL trace output) onto <FILENAME>stdout</>. 
+Print parser output (S/SL trace output) onto <LITERAL>stdout</>. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -342,7 +349,7 @@ Print I/O actions onto <FILENAME>/dev/tty</>.
 
 <VARLISTENTRY><TERM><OPTION>-S</></TERM><LISTITEM><PARA>
 
-Print scanner output (token assembly) onto <FILENAME>stdout</>.
+Print scanner output (token assembly) onto <LITERAL>stdout</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -354,9 +361,8 @@ Open <FILENAME>/dev/tty</> for internal debugging use.
 
 </VARIABLELIST>
 </PARA>
-</LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
 
+</SECT2>
 </SECT1>
 
 
@@ -390,28 +396,28 @@ used as entrypoints by various uses inside and outside the <COMMAND>router</>
 program.
 </PARA>
 
-<SECT2 ID=zmshref.process><TITLE>The <FUNCTION>process()</> function</>
+<SECT2 ID=zmshref.wke.process><TITLE>The <FUNCTION>process()</> function</>
 
 <PARA>
 FIXME! WRITEME!
 </PARA>
 </SECT2>
 
-<SECT2 ID=zmshref.router><TITLE>The <FUNCTION>router()</> function</>
+<SECT2 ID=zmshref.wke.router><TITLE>The <FUNCTION>router()</> function</>
 
 <PARA>
 FIXME! WRITEME!
 </PARA>
 </SECT2>
 
-<SECT2 ID=zmshref.crossbar><TITLE>The <FUNCTION>crossbar()</> function</>
+<SECT2 ID=zmshref.wke.crossbar><TITLE>The <FUNCTION>crossbar()</> function</>
 
 <PARA>
 FIXME! WRITEME!
 </PARA>
 </SECT2>
 
-<SECT2 ID=zmshref.server><TITLE>The <FUNCTION>server()</> function</>
+<SECT2 ID=zmshref.wke.server><TITLE>The <FUNCTION>server()</> function</>
 
 <PARA>
 FIXME! WRITEME!
@@ -436,15 +442,17 @@ FIXME! FIXME! some internal functions are missing from this listing!
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.doublecolon">
-<TITLE>``<FUNCTION>:</>'' (doublecolon)</TITLE>
+<TITLE>"<FUNCTION>:</>" (doublecolon)</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</><LISTITEM><PARA>
-<SYNOPSIS>
- : &lt;SPC&gt; anything else forming a command pipeline
-</SYNOPSIS>
-</PARA></LISTITEM></VARLISTENTRY>
+<CMDSYNOPSIS>
+  <COMMAND>:</> 
+    <ARG CHOICE=PLAIN>&lt;SPC&gt;
+      <REPLACEABLE>anything else forming a command pipeline</></ARG>
+</CMDSYNOPSIS>
 
+</PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Description:</><LISTITEM><PARA>
 
 none
@@ -470,22 +478,44 @@ none
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.include">
-<TITLE>``<FUNCTION>.</>'', ``<FUNCTION>include</>''</TITLE>
+<TITLE>"<FUNCTION>.</>", "<FUNCTION>include</>"</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- . <REPLACEABLE>scriptfilename</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>.</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>scriptfilename</></ARG>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Alternate syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
-  <COMMAND>include <REPLACEABLE>scriptfilename</></>
+  <COMMAND>include</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>scriptfilename</></ARG>
 </CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-status of the script load
+Exit status of script evaluation, or specifically:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
+
+File not found, or not fstat:able.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>2</TERM><LISTITEM><PARA>
+
+Internal loadeval() didn't yield same result as fstat:ed file size is.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Usage: Not exactly one parameter, or it is a void string.
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -505,19 +535,24 @@ This puts the running script to read more script from given filename.
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.test">
-<TITLE>``<FUNCTION>[</>'', ``<FUNCTION>test</>''</TITLE>
+<TITLE>"<FUNCTION>[</>", "<FUNCTION>test</>"</TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
-  <COMMAND>[ <REPLACEABLE>test parameters</> <FUNCTION>]</></>
+  <COMMAND>[</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>test parameters</> ]</ARG>
 </CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Alternate syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-<FUNCTION>test</> <REPLACEABLE>test parameters</>
-</SYNOPSIS>
+
+<CMDSYNOPSIS>
+  <COMMAND>test</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>test parameters</></ARG>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -572,7 +607,7 @@ True if file exists and is set-group-id.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-k file</OPTION></TERM><LISTITEM><PARA>
 
-True if file has its ``sticky'' bit set.
+True if file has its "sticky" bit set.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-p file</OPTION></TERM><LISTITEM><PARA>
@@ -590,7 +625,7 @@ True if file exists and is readable.
 True if file exists and has a size greater than zero.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM><OPTION>-t {[fd]}</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-t [fd]</OPTION></TERM><LISTITEM><PARA>
 
 True if <OPTION>fd</> is opened on a terminal. 
 If <OPTION>fd</> is omitted, it defaults to 1 (standard output).
@@ -621,9 +656,9 @@ True if file exists and is executable.
 True if the strings are equal.
 
 </PARA><PARA>
-The ``str1'' must not begin with a hyphen ``-'' character!
+The "str1" must not begin with a hyphen "-" character!
 (Actually they must not be any of the magic prefix-, or infix
- keyword operators, nor ``('', ``!'', or ``)''. )
+ keyword operators, nor "(", "!", or ")". )
 
 </PARA><PARA>
 Suggested test setup:
@@ -637,9 +672,9 @@ Suggested test setup:
 True if the strings are not equal.
 
 </PARA><PARA>
-The ``str1'' must not begin with a hyphen ``-'' character!
+The "str1" must not begin with a hyphen "-" character!
 (Actually they must not be any of the magic prefix-, or infix
- keyword operators, nor ``('', ``!'', or ``)''. )
+ keyword operators, nor "(", "!", or ")". )
 
 </PARA><PARA>
 Suggested test setup:
@@ -660,10 +695,10 @@ True if integer values are equal.
 </PARA><PARA>
 The iexpr intermediate products are strings for the purposes of this
 scanners input, but then they are internally treated as system local
-``integer'' datatype.
+"integer" datatype.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -672,7 +707,7 @@ which is evaluated as <EMPHASIS>length</> of that string-expr.
 True if integer values are not equal.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -681,7 +716,7 @@ which is evaluated as <EMPHASIS>length</> of that string-expr.
 True if integer value1 is greater than integer value2.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -690,7 +725,7 @@ which is evaluated as <EMPHASIS>length</> of that string-expr.
 True if integer value1 is greater or equal than integer value2.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 
@@ -700,7 +735,7 @@ which is evaluated as <EMPHASIS>length</> of that string-expr.
 True if integer value1 is less than integer value2.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -709,7 +744,7 @@ which is evaluated as <EMPHASIS>length</> of that string-expr.
 True if integer value1 is less or equal than integer value2.
 
 </PARA><PARA>
-The <EMPHASIS>second</> iexpr can be a pair of: ``-l string-expr''
+The <EMPHASIS>second</> iexpr can be a pair of: "-l string-expr"
 which is evaluated as <EMPHASIS>length</> of that string-expr.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -724,9 +759,9 @@ True if file1's mtime is newer than file2's.
 
 </PARA><PARA>
 
-Filenames are best to be either absolute paths (begins with ``/''),
-or dot-relative (begins with ``./'' pair).  Unqualified names
-are hazardous, e.g. ``-file-name-''.
+Filenames are best to be either absolute paths (begins with "/"),
+or dot-relative (begins with "./" pair).  Unqualified names
+are hazardous, e.g. "-file-name-".
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>file1 -ot file2</OPTION></TERM><LISTITEM><PARA>
@@ -776,8 +811,8 @@ Parenthesis
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This is basically the shell ``<FUNCTION>[</>'' a.k.a. 
-``<FUNCTION>test</>'' program.
+This is basically the shell "<FUNCTION>[</>" a.k.a. 
+"<FUNCTION>test</>" program.
 
 </PARA><PARA>
 
@@ -787,7 +822,7 @@ does not eliminate evaluation of the right side!
 
 </PARA><PARA>
 
-Usual ``<FUNCTION>test</>'' precautions with things like
+Usual "<FUNCTION>test</>" precautions with things like
 parameter data prefixing with some character so that
 it will not become treated as one of the control options.
 <SCREEN>
@@ -813,9 +848,11 @@ Ok:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-  attributes <REPLACEABLE>object-reference</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>attributes</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -844,16 +881,19 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- basename pathname [ suffix ]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>basename</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>pathname</></ARG>
+    <ARG><REPLACEABLE>suffix</></ARG>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-ok, result string to <LITERAL>STDOUT</>.
+ok, result string to <LITERAL>stdout</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
@@ -871,7 +911,7 @@ If a suffix is given and matches the filename,
 the suffix too is stripped from the filename.
 
 </PARA><PARA>
-There are no ``-''-type options.
+There are no "-"-type options.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
@@ -904,7 +944,7 @@ case ...
    break
    ...
 esac
-</>
+</SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -941,9 +981,10 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <EMPHASIS ROLE="BOLD">NOT IMPLEMENTED!</>
-<SYNOPSIS>
-builtin {builtin command name, and its params}
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>builtin</>
+    <ARG CHOICE=REQ><REPLACEABLE>builtin command name, and its params</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1015,9 +1056,10 @@ List builtin functions.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- car <REPLACEABLE>object-reference</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>car</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></ARG>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1033,9 +1075,10 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the <LINK LINKEND="zmshref.channel">
-<CITETITLE><FUNCTION>channel</></></LINK>, and
+<CITETITLE><FUNCTION>channel</></></LINK> (at
+<XREF LINKEND="zmshref.channel">), and
 <LINK LINKEND="zmshref.first"><CITETITLE><FUNCTION>first</></></LINK>
-functions.
+(at <XREF LINKEND="zmshref.first">) functions.
 
 </PARA><PARA>
 This version name is for die-hard LISP fans ;-)
@@ -1053,12 +1096,13 @@ This version name is for die-hard LISP fans ;-)
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
-  <COMMAND>cat <REPLACEABLE>filenames ...</></>
+  <COMMAND>cat</>
+    <ARG CHOICE=PLAIN REP=REPEAT><REPLACEABLE>filenames</></ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Output into stdout, which can be piped ZMailer router script
+Output into <LITERAL>stdout</>, which can be piped ZMailer router script
 internally to next receiver in a pipeline.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1069,7 +1113,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The filenames to be ``cat:ed'' together need to be
+The filenames to be "cat:ed" together need to be
 regular files.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1085,9 +1129,10 @@ regular files.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-<SYNOPSIS>
-cd <REPLACEABLE>[directory]</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>cd</>
+    <ARG><REPLACEABLE>directory</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1100,7 +1145,18 @@ cd <REPLACEABLE>[directory]</>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
-Error.
+Error, can't find <LITERAL>$HOME</> environment variable.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
+
+Error, internal <FUNCTION>chdir</>(2) call failed.
+The <LITERAL>stderr</> gets an error string.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Bad parameters (too many). (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1128,9 +1184,10 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-cdr <REPLACEABLE>object-reference</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>cdr</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1146,7 +1203,8 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the <LINK LINKEND="zmshref.rest">
-<CITETITLE><FUNCTION>rest</></></LINK> function.
+<CITETITLE><FUNCTION>rest</></></LINK> function
+(at <XREF LINKEND="zmshref.rest">).
 
 </PARA><PARA>
 This version name is for die-hard LISP fans ;-)
@@ -1163,9 +1221,10 @@ This version name is for die-hard LISP fans ;-)
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-channel <REPLACEABLE>object-reference</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>channel</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></ARG>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1179,8 +1238,10 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The <LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>, and
+The <LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>
+(at <XREF LINKEND="zmshref.car">), and
 <LINK LINKEND="zmshref.first"><CITETITLE><FUNCTION>first</></></LINK>
+(at <XREF LINKEND="zmshref.first">)
 functions are synonymous to this one.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1195,9 +1256,9 @@ functions are synonymous to this one.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- continue
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>continue</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1249,9 +1310,9 @@ Usage examples:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-daemon
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>daemon</>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1293,28 +1354,28 @@ the <COMMAND>router</> program and has no other purpose.
 
 <CMDSYNOPSIS>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>add</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
-  <ARG CHOICE=REQ><REPLACEABLE>key</></>
-  <ARG CHOICE=REQ><REPLACEABLE>value</></>
+  <ARG CHOICE=PLAIN>add</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN><REPLACEABLE>key</></>
+  <ARG CHOICE=PLAIN><REPLACEABLE>value</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>flush</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN>flush</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>owner</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN>owner</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>print</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN>print</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>remove</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
-  <ARG CHOICE=REQ><REPLACEABLE>key</></>
+  <ARG CHOICE=PLAIN>remove</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN><REPLACEABLE>key</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>count</>
-  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=PLAIN>count</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>database</></>
  <COMMAND>db</>
-  <ARG CHOICE=REQ>toc</>
+  <ARG CHOICE=PLAIN>toc</>
 </CMDSYNOPSIS>
 
 
@@ -1346,7 +1407,7 @@ Add a <PARAMETER>key,value</> entry to the database, if possible.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>f[lush]</OPTION></TERM><LISTITEM><PARA>
 
-For ``incore'' database this means deletion of the content, but
+For "incore" database this means deletion of the content, but
 for others this is IO buffer flush (in case of modifications.)
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1383,7 +1444,7 @@ This table has five columns, in order:
  <LISTITEM><PARA>and associated files</></>
 </ITEMIZEDLIST>
 See the <FUNCTION>relation</> function for more information.
-(<XREF LINKEND=zmshref.relation>)
+(<XREF LINKEND="zmshref.relation">)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1560,10 +1621,11 @@ See the <FUNCTION>relation</> function for more information.
 Does lookup via <FUNCTION>relation</> defined <EMPHASIS>dblookup</>
 vector:
 <CMDSYNOPSIS>
-<COMMAND>dblookup <REPLACEABLE>key</></>
- <ARG>
-  <ARG>
-    <OPTION>-: <REPLACEABLE>defaultkey</></></ARG> -- %subst1 %subst2 ... %subst9 </ARG>
+  <COMMAND>dblookup</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>key</></ARG>
+    <ARG>
+      <ARG> <OPTION>-:</> <REPLACEABLE>defaultkey</></ARG>
+            <OPTION>--</> %subst1 %subst2 ... %subst9 </ARG>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1598,7 +1660,7 @@ builtin ultimate default lookup of ".").
 </SCREEN>
 
 </PARA><PARA>
-With those things the ``routes'' database can now contain data
+With those things the "routes" database can now contain data
 like:
 
 <SCREEN>
@@ -1608,7 +1670,7 @@ like:
 </SCREEN>
 
 </PARA><PARA>
-With ``subst*'' values below, results would be:
+With "subst*" values below, results would be:
 
 <SCREEN>
   subst1="foo1"
@@ -1637,6 +1699,36 @@ The access function to the database facilities in the
 (That is: <FUNCTION>relation</>'s <OPTION>-%</> option!
  <XREF LINKEND=zmshref.relation>)
 </>
+
+</PARA><PARA>
+A complete example of "<OPTION>-:</>" usage from
+<FILENAME>p-routes.cf</>:
+
+<SCREEN>
+routes_neighbour (domain, address, A) {
+    local tmp
+
+    # We have Alternate default-lookup for cases of locally generated
+    # ERROR MESSAGES -- for case where the dot (.) leads to error!
+    # and we want to reply with DIFFERENT address, thus:  '.:ERROR' key.
+
+    $(iserrormsg) &&
+        tmp=$(routesdb "$domain" -: '.:ERROR') &&
+            tmp=$(routes_spec "$tmp" "$address" $A) &&
+                returns $tmp
+
+    tmp=$(routesdb "$domain") &&
+        tmp=$(routes_spec "$tmp" "$address" $A) &&
+            returns $tmp
+
+#| The routes_spec function interprets the return value from the
+#| routesdb lookup.
+
+    return 1
+}
+</SCREEN>
+
+
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1650,9 +1742,11 @@ The access function to the database facilities in the
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
-<COMMAND>echo</COMMAND>
- <ARG><OPTION>-n</></ARG>
- <ARG>-- <REPLACEABLE>string-expressions</></ARG>
+  <COMMAND>echo</COMMAND>
+    <ARG><OPTION>-n</></ARG>
+    <ARG><OPTION>--</>
+      <ARG CHOICE=PLAIN REP=REPEAT><REPLACEABLE>string-expressions</></>
+   </ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1703,7 +1797,8 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>elements <REPLACEABLE>lisp-object</></>
+  <COMMAND>elements</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>lisp-object</></ARG>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1719,7 +1814,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This does a side-effect on input list, which is need in ``for'' loops:
+This does a side-effect on input list, which is need in "for" loops:
 <SCREEN>
   for loopvar in $(elements $listvar)
   do
@@ -1739,15 +1834,15 @@ This does a side-effect on input list, which is need in ``for'' loops:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-envars
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>envars</>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
-
 
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1777,7 +1872,8 @@ A debug tool to print internal variable tree.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>erraddron</> <ARG><REPLACEABLE>file</></>
+  <COMMAND>erraddron</>
+    <ARG><REPLACEABLE>file</></>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1838,7 +1934,8 @@ This is a debug tool; usage examples:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>eval <REPLACEABLE>expression</></>
+  <COMMAND>eval</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>expression</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1889,9 +1986,9 @@ newattribute (oldattribute) {
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- exit
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>exit</>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1920,7 +2017,8 @@ Exit from the shell/router with exit code.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>export</> <ARG><REPLACEABLE>variable-name ...</></>
+  <COMMAND>export</>
+    <ARG REP=REPEAT><REPLACEABLE>variable-name</></ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1958,7 +2056,9 @@ export prints a list of which variables have been exported.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>filepriv <REPLACEABLE>file</></> <ARG><REPLACEABLE>uid</></>
+  <COMMAND>filepriv</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>file</></ARG>
+    <ARG><REPLACEABLE>uid</></>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2018,13 +2118,15 @@ for nonwritability and for having the same (or a 0) uid.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>first <REPLACEABLE>object-reference</></>
+  <COMMAND>first</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied lisp-object of 
-object-reference's <FUNCTION>car</> operation.
+Pointer to copied lisp-object of object-reference's
+<LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>
+operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -2035,9 +2137,10 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the
-<LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>, and
+<LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>
+(at <XREF LINKEND="zmshref.car">), and
 <LINK LINKEND="zmshref.channel"><CITETITLE><FUNCTION>channel</></></LINK>
-commands.  
+(at <XREF LINKEND="zmshref.channel">) commands.  
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2118,8 +2221,7 @@ newattribute (oldattribute) {
  <COMMAND>get</COMMAND>
    <ARG CHOICE=PLAIN>property-list</ARG>
    <ARG CHOICE=PLAIN>keyname</ARG>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
+
  <COMMAND>get</COMMAND>
    <ARG CHOICE=PLAIN>property-list-varname</ARG>
    <ARG CHOICE=PLAIN>keyname</ARG>
@@ -2158,7 +2260,9 @@ Returns a property-list corresponding to key string:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>getopts <REPLACEABLE>optstring-name</></> <ARG>arguments ...</ARG>
+  <COMMAND>getopts</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>optstring-name</></ARG>
+    <ARG REP=REPEAT>arguments</ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2202,7 +2306,8 @@ missing.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>grind <REPLACEABLE>lisp-object</></>
+  <COMMAND>grind</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>lisp-object</></>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2236,7 +2341,8 @@ The side-effect is to output the text form of the <EMPHASIS>lisp-object</>.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
-  <COMMAND>groupmembers <REPLACEABLE>groupname</></>
+  <COMMAND>groupmembers</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>groupname</></>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2286,7 +2392,9 @@ not listed in the groups file, will not appear in this list.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>hash</> <ARG><OPTION>-r</></> <ARG><REPLACEABLE>command names</></>
+  <COMMAND>hash</>
+    <ARG><OPTION>-r</></>
+    <ARG><REPLACEABLE>command names</></>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2321,7 +2429,7 @@ and results are stored into internal quick-access hash table.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This is a part of the ``<EMPHASIS>zmsh</>'' shell-script
+This is a part of the "<EMPHASIS>zmsh</>" shell-script
 interpreter in good SH-tradition, but is not used in the
 ZMailer <EMPHASIS>router</> in any way.
 
@@ -2338,7 +2446,8 @@ ZMailer <EMPHASIS>router</> in any way.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>homedirectory <REPLACEABLE>user</></>
+  <COMMAND>homedirectory</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>user</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2348,7 +2457,7 @@ ZMailer <EMPHASIS>router</> in any way.
 <VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 Found home directory, side-effect is printing of that
-directory into stdout, whence it may be captured into
+directory into <LITERAL>stdout</>, whence it may be captured into
 e.g. some variable.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2360,12 +2469,12 @@ Error, no such user.
 <VARLISTENTRY><TERM>3</TERM><LISTITEM><PARA>
 
 Error, some temporary lookup failure.
-Also sets ``$defer'' variable.
+Also sets "$defer" variable.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Usage error, wrong number of arguments.
+Usage error, wrong number of arguments. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2394,7 +2503,8 @@ Prints the home directory of the specified user account.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>host <REPLACEABLE>object-reference</></>
+ <COMMAND>host</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2452,8 +2562,8 @@ none
 Sets the <EMPHASIS>router</>'s idea of the system hostname.
 Without an argument the name is retrieved from the system and printed.
 The <EMPHASIS>router</> has no preconceived notion of what the hostname
-is, so ``Message-Id:'' and ``Received:' headers will only be generated
-if a ``hostname'' has been set using this function.
+is, so "Message-Id:" and "Received:' headers will only be generated
+if a "hostname" has been set using this function.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2469,7 +2579,8 @@ if a ``hostname'' has been set using this function.
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
-  <COMMAND>ifssplit <REPLACEABLE>any-string</></>
+  <COMMAND>ifssplit</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>any-string</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2502,13 +2613,15 @@ produces a list of substrings ready for further use.
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
-  <COMMAND>lappend <REPLACEABLE>varname</> <REPLACEABLE>anyvalue</></>
+  <COMMAND>lappend</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>varname</></>
+    <ARG CHOICE=PLAIN><REPLACEABLE>anyvalue</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-NULL; actually error cases output to stderr, all others are
+NULL; actually error cases output to <LITERAL>stderr</>, all others are
 handled <EMPHASIS>silently</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2534,18 +2647,18 @@ maprrouter (attribute, localpart, origaddr, plustail, domain) {
     while read address
     do
         case "$address" in
-        '') shh=(((error expansion "$localpart")))
+        ") shh=(((error expansion "$localpart")))
             lappend al $shh
             continue
             ;;
         esac
 
-        defer=''
+        defer="
         shh=$(rrouter "$address" "$origaddr" $attribute \
              "$plustail" "$domain")
         [ -n "$defer" ] &&
             shh=(((hold "$defer" "$address" $attribute)))
-        defer=''
+        defer="
         lappend al $shh
     done
     returns $al
@@ -2567,7 +2680,8 @@ maprrouter (attribute, localpart, origaddr, plustail, domain) {
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>last <REPLACEABLE>lisp-object</></>
+  <COMMAND>last</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>lisp-object</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2599,7 +2713,8 @@ This is actually a unused relict from way way back..
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>length <REPLACEABLE>lisp-object</></>
+ <COMMAND>length</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>lisp-object</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2634,7 +2749,8 @@ length of any string.
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>list <REPLACEABLE>objects ...</></>
+ <COMMAND>list</>
+   <ARG CHOICE=PLAIN REP=REPEAT><REPLACEABLE>objects</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2682,7 +2798,7 @@ none
 </CMDSYNOPSIS>
 
 </PARA><PARA>
-The stdin feeds in the list of addresses.
+The <LITERAL>stdin</> feeds in the list of addresses.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2696,9 +2812,9 @@ There can still be an error-report sent to the error-address; see below.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>NULL</TERM><LISTITEM><PARA>
 
-Error, stderr gets an error report text,
-and in some cases also the ``<OPTION>-e</>'' defined
-error-address, and ``postmaster'' will get email telling
+Error, <LITERAL>stderr</> gets an error report text,
+and in some cases also the "<OPTION>-e</>" defined
+error-address, and "postmaster" will get email telling
 of problems in the file.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2758,10 +2874,11 @@ files or similar.
     <ARG><OPTION>-E</> <REPLACEABLE>errors-to-address</></ARG>
     <ARG><OPTION>-p</> <REPLACEABLE>privilege-integer</></ARG>
     <ARG><OPTION>-N</> <REPLACEABLE>notary-string</></ARG>
-  <COMMAND>
-    <REPLACEABLE>$attribute $localpart $origaddr</>
-  </COMMAND>
-    <ARG><REPLACEABLE>listfile</></ARG>
+    <ARG CHOICE=PLAIN><REPLACEABLE>$attribute</></>
+    <ARG CHOICE=PLAIN><REPLACEABLE>$localpart</></>
+    <ARG CHOICE=PLAIN><REPLACEABLE>$origaddr</></>
+    <ARG><REPLACEABLE>$plustail</>
+      <ARG><REPLACEABLE>$domain</></ARG></ARG>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2782,8 +2899,8 @@ parsing will cause a report to be mailed to the given address.
 <VARLISTENTRY><TERM><OPTION>-E</></TERM><LISTITEM><PARA>
 
 If an error occurs while messages 
-are being delivered, the ``errors-to-address'' can be used to force error 
-message destination elsewhere than to the default ``sender'' of the message.
+are being delivered, the "errors-to-address" can be used to force error 
+message destination elsewhere than to the default "sender" of the message.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-c</></TERM><LISTITEM><PARA>
@@ -2798,7 +2915,7 @@ Integer privilege code for expanded addresses
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-N</></TERM><LISTITEM><PARA>
 
-Notary string data, or ``-'' for ``no DNS''.
+Notary string data, or "-" for "no DNS".
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2807,42 +2924,53 @@ Notary string data, or ``-'' for ``no DNS''.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Implements the most common pipeline where <EMPHASIS>listaddresses</>
+This implements the most common pipeline where <LINK
+LINKEND="zmshref.listaddresses"><CITETITLE><FUNCTION>listaddresses</></></LINK>
+(at <XREF LINKEND="zmshref.listaddresses">)
 was used with more efficient memory consumption handling.
+(System memory usage internals have changed over the time, and now
+ this is no longer especially great memory expenditure saver.)
 
 </PARA><PARA>
-Comparison of previous <EMPHASIS>listaddresses</> script-implemented code,
-and new one using the <EMPHASIS>listexpand</>:
+The <LITERAL>stdin</> will feed addresses from a file for parsing, and
+parameter mapping + routing.
 
+</PARA><PARA>
+Comparison of previous <LINK LINKEND="zmshref.listaddresses"><CITETITLE>
+<FUNCTION>listaddresses</></></LINK>  (at
+<XREF LINKEND="zmshref.listaddresses">) -script implemented code,
+and new one using the <FUNCTION>listexpand</>:
+
+</PARA><PARA>
+Old:
 <SCREEN>
-old:
-        l="$preowner$(basename "$lcuser" -mod)$postowner"
-        nattr=$(newattribute $attr privilege $priv sender "$l")
+    l="$preowner$(basename "$lcuser" -mod)$postowner"
+    nattr=$(newattribute $attr privilege $priv sender "$l")
+    $(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
+    a=$(runas $priv cat "$a" | \
+        listaddresses       -E "$l$domain"          \
+                            -e "$l"                 \
+                            -c "$a file expansion" |
+        maprrouter $nattr "$a" "$host" "$plustail"  \
+                    "$domain")
+    postzapDSNnotify a
+    returns $a
+</SCREEN>
+</PARA><PARA>
+New:
+<SCREEN>
+    l="$preowner$(basename "$lcuser" -mod)$postowner"
+    if priv=$(getpriv "664" $priv "$a" maillist) &&
+       nattr=$(newattribute $attr privilege $priv sender "$l") ; then
         $(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
         a=$(runas $priv cat "$a" | \
-            listaddresses       -E "$l$domain"          \
-                                -e "$l"                 \
-                                -c "$a file expansion" |
-            maprrouter $nattr "$a" "$host" "$plustail"  \
-                        "$domain")
+            listexpand      -E "$l" -e "$l" -p $priv        \
+                            -c "$a file expansion"          \
+                            $nattr  "$a" "$host" "" "$domain" )
         postzapDSNnotify a
         returns $a
-
-
-new:
-        l="$preowner$(basename "$lcuser" -mod)$postowner"
-        if priv=$(getpriv "664" $priv "$a" maillist) &&
-           nattr=$(newattribute $attr privilege $priv sender "$l") ; then
-            $(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
-            a=$(runas $priv cat "$a" | \
-                listexpand      -E "$l" -e "$l" -p $priv        \
-                                -c "$a file expansion"          \
-                                $nattr  "$a" "$host" "" "$domain" )
-            postzapDSNnotify a
-            returns $a
-        fi
+    fi
 </SCREEN>
-
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2858,7 +2986,8 @@ new:
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>login2uid <REPLACEABLE>username</></>
+ <COMMAND>login2uid</>
+  <ARG CHOICE=PLAIN><REPLACEABLE>username</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2870,9 +2999,9 @@ none
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>``nobody-uid''</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>"nobody-uid"</TERM><LISTITEM><PARA>
 
-Either uid of ``nobody'', or no lookup match for given userid.
+Either uid of "nobody", or no lookup match for given userid.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>uid</TERM><LISTITEM><PARA>
@@ -2906,14 +3035,20 @@ the uid to login name mapping to the <EMPHASIS>pwuid</> in-core database.
 <VARLISTENTRY><TERM><EMPHASIS>Syntax1:</></TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>lreplace <REPLACEABLE>varname indexnum anyvalue</></>
+ <COMMAND>lreplace</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>varname</></>
+   <ARG CHOICE=PLAIN><REPLACEABLE>indexnum</></>
+   <ARG CHOICE=PLAIN><REPLACEABLE>anyvalue</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><EMPHASIS>Syntax2:</></TERM><LISTITEM><PARA>
 
 <CMDSYNOPSIS>
- <COMMAND>lreplace <REPLACEABLE>varname fieldname anyvalue</></>
+  <COMMAND>lreplace</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>varname</></>
+   <ARG CHOICE=PLAIN><REPLACEABLE>fieldname</></>
+   <ARG CHOICE=PLAIN><REPLACEABLE>anyvalue</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2960,7 +3095,7 @@ is added to the list.
 </SCREEN>
 
 <PARA>
-This is an example of ``<EMPHASIS>lreplace</>'' use in the scripts:
+This is an example of "<FUNCTION>lreplace</>" use in the scripts:
 </PARA>
 
 <SCREEN>
@@ -3016,7 +3151,7 @@ different usages:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-malcontents}
+  <COMMAND>malcontents</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -3046,160 +3181,11 @@ ZMSH Debugging thing.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt printaliases [-v] [-o indexoutputfile] file}
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
-
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
-
-Error.
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -v}</TERM><LISTITEM><PARA>
-
-Verbose.
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -o indexoutputfile}</TERM><LISTITEM><PARA>
-
-Each header line will also generate 
-a {\tt header TAB byteoffset} line in the indexfile.
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
-
-Reads RFC822 syntax header lines from the specified
-file, parses them assuming contents must be an address list, and sorts 
-and prints the header lines with all addresses in normal form. Comments 
-are allowed; they extend from the character `\#' at the beginning of 
-a line, or after an address, to the end of line. This function is used 
-by the {\em newaliases(1)} program to generate the aliases database 
-from a source file.
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</SECT2>
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<!--
-<SECT2 ID="zmshref.process">
-<TITLE><FUNCTION>process</FUNCTION></TITLE>
-
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt process messagefile}
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
-
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
-
-none  
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
-
-The protocol switch function. It is called by
-the {\tt daemon} function to process a message found in the 
-{\tt \$POSTOFFICE/router/} directory. This function will 
-in turn call an internal protocol-specific function which knows the 
-syntax and semantics of the message file. The current version knows 
-about messages submitted using the {\tt MSG\_RFC822} parameter to 
-{\tt mail\_open(3)}. For that case, the protocol function is called 
-{\tt rfc822}. {\em router} has a bit more complex directory 
-semantics, than is stated above. See {\tt zmailer(3)} for details. 
-Although the {\tt process} function is provided built in, it is 
-usually overridden by a defined function in the {\em router} 
-configuration file.
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</SECT2>
--->
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2 ID="zmshref.read">
-<TITLE><FUNCTION>read</FUNCTION></TITLE>
-
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt read [variable]}
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
-
-Successful read.
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
-
-Error.
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
-
-none  
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
-
-none  
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</SECT2>
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2 ID="zmshref.recase">
-<TITLE><FUNCTION>recase</FUNCTION></TITLE>
-
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
- <COMMAND>recase [-u | -l | -p] string</>
+  <COMMAND>printaliases</>
+    <ARG><OPTION>-v</></ARG>
+    <ARG><OPTION>-o</> <REPLACEABLE>indexoutputfile</></ARG>
+    <ARG CHOICE='PLAIN'><REPLACEABLE>file</></>
 </CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -3223,6 +3209,245 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION>-v</></TERM><LISTITEM><PARA>
+
+Verbose.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-o</> <REPLACEABLE>indexoutputfile</></TERM><LISTITEM><PARA>
+
+Each header line will also generate 
+a "header TAB byteoffset" line in the indexfile.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+This function was used  by the "<EMPHASIS>newaliases(1)</>" program to
+generate the aliases database from a source file.
+
+</PARA><PARA>
+That task has been moved into "<LINK LINKEND="zref-zmailer-newdb">
+<CITETITLE><COMMAND>zmailer newdb</></></LINK>"
+(at <XREF LINKEND="zref-zmailer-newdb">) process,
+along with all other router database refreshment tasks.
+
+</PARA><PARA>
+
+Reads RFC822 syntax header lines from the specified
+file, parses them assuming contents must be an address list, and sorts 
+and prints the header lines with all addresses in normal form. Comments 
+are allowed; they extend from the character "#" at the beginning of 
+a line, or after an address, to the end of line.
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2 ID="zmshref.process">
+<TITLE><FUNCTION>process</FUNCTION></TITLE>
+
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+
+<CMDSYNOPSIS>
+  <COMMAND>process</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>messagefile</></ARG>
+</CMDSYNOPSIS>
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
+
+Successfull processing.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>100</TERM><LISTITEM><PARA>
+
+File name parameter missing.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>other</TERM><LISTITEM><PARA>
+
+Return value from the underlying scripts.
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+The protocol switch function.
+It is called by the "<LINK LINKEND="zmshref.daemon"><CITETITLE>
+<FUNCTION>daemon</></></LINK>" function (at <XREF LINKEND="zmshref.daemon">)
+to process a message found in the
+<FILENAME CLASS=DIRECTORY>$POSTOFFICE/router/</> directory.
+</PARA><PARA>
+
+This function will in turn call an internal protocol-specific function
+which knows the syntax and semantics of the message file.
+The current version knows about messages submitted using the
+<LITERAL>MSG_RFC822</> parameter to <EMPHASIS>mail_open(3)</>.
+For that case, the protocol function is called "<FUNCTION>rfc822</>".
+
+</PARA><PARA>
+
+<EMPHASIS>router</> has a bit more complex directory semantics,
+than is stated above.
+See "<EMPHASIS>zmailer(3)</>" for details. 
+
+</PARA><PARA>
+
+Although the "<FUNCTION>process</>" function is provided built in,
+it is usually overridden by a defined function in the <EMPHASIS>router</>
+configuration file.  (See <FILENAME>process.cf</>, and
+the entrypoint text at <XREF LINKEND="zmshref.wke.process">)
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2 ID="zmshref.read">
+<TITLE><FUNCTION>read</FUNCTION></TITLE>
+
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+
+<CMDSYNOPSIS>
+  <COMMAND>read</>
+    <ARG CHOICE=PLAIN REP=REPEAT><REPLACEABLE>variable</></ARG>
+</CMDSYNOPSIS>
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
+
+Successful read.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
+
+Error. (End of input)
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Error. Missing mandatory variable name. (Usage.)
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+The <FUNCTION>read</> will get one line of input,
+and if there are more than one variable name parameter,
+split it at the whitespaces (IFS chars).
+</PARA><PARA>
+
+There appears to be a bug when there are less IFS separated
+sequences than there are varnames: The extra varnames do get
+things at a bit random.. (2001-Oct-15)
+</PARA><PARA>
+
+If input line is zero length (or all IFS chars), the <FUNCTION>read</>
+will read another input line.
+
+</PARA><PARA>
+If the input line ends with character: "\" as its very last, the line
+gets a catenation of next input line effectively unfolding multiline
+coded string.
+
+<SCREEN>
+<PROMPT>z# </><USERINPUT>echo "1 2 3 4 5" | read v1 v2</>
+<PROMPT>z# </><USERINPUT>echo $?</>
+0
+<PROMPT>z# </><USERINPUT>echo $v1</>
+1
+<PROMPT>z# </><USERINPUT>echo $v2</>
+2 3 4 5
+<PROMPT>z# </><USERINPUT>echo "11111" | read v1 v2</>
+<PROMPT>z# </><USERINPUT>echo $?</>
+0
+<PROMPT>z# </><USERINPUT>echo $v1</>
+11111
+<PROMPT>z# </><USERINPUT>echo $v2</>
+11111
+</SCREEN>
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2 ID="zmshref.recase">
+<TITLE><FUNCTION>recase</FUNCTION></TITLE>
+
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<CMDSYNOPSIS>
+ <COMMAND>recase</>
+   <GROUP>
+      <ARG><OPTION>-u</></ARG>
+      <ARG><OPTION>-l</></ARG>
+      <ARG><OPTION>-p</></ARG>
+   </GROUP>
+   <ARG CHOICE=PLAIN> <OPTION>--</> <REPLACEABLE>string</></ARG>
+</CMDSYNOPSIS>
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
+
+Success, <LITERAL>stdout</> gets the result string.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Bad option. (Usage.)
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>--</TERM><LISTITEM><PARA>
+
+End options.
+
+</PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>-u</TERM><LISTITEM><PARA>
 
 Convert into uppercase.
@@ -3244,8 +3469,24 @@ Prettify.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-A case-mapping function that prints the parameter 
-string in either all-uppercase, all-lowercase, or capitalized (pretty).
+A case-mapping function that prints the parameter string
+in either all-uppercase, all-lowercase, or capitalized (pretty).
+
+</PARA><PARA>
+The input to be converted is expected to be single string, e.g.
+not multiple strings.
+
+</PARA><PARA>
+Due to internal use of "getopt" for parameter pickup,
+if there is even the slightest change that the string begins
+with a hyphen (minus) character, invocation must use
+the -- pair to end the options, and to protect the parameter.
+
+</PARA><PARA>
+Typical use in the router scripts:
+<SCREEN>
+   lcuser="$(recase -l -- "$user")"
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3260,18 +3501,20 @@ string in either all-uppercase, all-lowercase, or capitalized (pretty).
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt recipient}
+<CMDSYNOPSIS>
+  <COMMAND>recipient</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Is a recipient address.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 Is not.
 
@@ -3287,9 +3530,9 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-A boolean function that returns the value of 
-the statement ``executing a header rewriting function and the address 
-is a recipient address in a message header''.
+A boolean function that returns the value of the statement
+"executing a header rewriting function and the address 
+is a recipient address in a message header".
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3316,8 +3559,8 @@ Generic:
   <ARG><OPTION>-d <REPLACEABLE>driver</></></ARG>
   <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
 </CMDSYNOPSIS>
-The separator character between ``dbtype'' and ``subtype'' can be either
-a comma (``,'') or a slash (``/''), as user wishes.
+The separator character between "dbtype" and "subtype" can be either
+a comma (",") or a slash ("/"), as user wishes.
 In case the subtype is a filepath (or otherwise begins with a slash),
 the user propably wants to use comma to reduce confusion.
 </PARA><PARA>
@@ -3390,7 +3633,7 @@ More specific versions:
   <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
 
 </CMDSYNOPSIS>
-Note:  ``<COMMAND>zmailer newdb</>'' does not support ``<OPTION>-i</>''
+Note:  "<COMMAND>zmailer newdb</>" does not support "<OPTION>-i</>"
 option use! (FIXME! FIXME! 2001-Mar-8)
 </PARA><PARA>
 Special support for testing of presense of support for given
@@ -3606,7 +3849,7 @@ The <OPTION>-f</>-option defines the path of the file-1.
 
 </PARA><PARA>
 
-The version for antique ``<OPTION>-i</>'' mode.
+The version for antique "<OPTION>-i</>" mode.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>unordered,<REPLACEABLE>path-to-file-2</></></><LISTITEM><PARA>
@@ -3615,7 +3858,7 @@ The <OPTION>-f</>-option defines the path of the file-1.
 
 </PARA><PARA>
 
-The version for antique ``<OPTION>-i</>'' mode.
+The version for antique "<OPTION>-i</>" mode.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>hostsfile</></TERM><LISTITEM><PARA>
@@ -3663,7 +3906,7 @@ FIXME! FILL DETAILS! (About the return values)
 <VARLISTENTRY><TERM><OPTION>ndbm</></TERM><LISTITEM><PARA>
 
 The <OPTION>-f</>-option defines the base path of the files, and the NDBM
-appends ``.pag'' and ``.dir'' to each file.
+appends ".pag" and ".dir" to each file.
 
 </PARA><PARA>
 
@@ -3682,7 +3925,7 @@ With certain kinds of alias databases this may be too low limit!
 <VARLISTENTRY><TERM><OPTION>dbm</></TERM><LISTITEM><PARA>
 
 The <OPTION>-f</>-option defines the base path of the files, and the DBM
-appends ``.pag'' and ``.dir'' to each file.
+appends ".pag" and ".dir" to each file.
 
 </PARA><PARA>
 
@@ -3715,7 +3958,7 @@ The Network Information Service from Sun Microsystems Inc.
 
 </PARA><PARA>
 
-The <OPTION><REPLACEABLE>mapname</></> ``subtype'' passes knowledge
+The <OPTION><REPLACEABLE>mapname</></> "subtype" passes knowledge
 about which YP-map the query is to be done from.
 
 </PARA><PARA>
@@ -3732,7 +3975,7 @@ SleepyCat DB 1.x, 2.x or 3.x B-Tree database
 
 The <OPTION>-f</>-option defines the path of the database file,
 the SleepyCat DB does not append anything to the name.
-(This is true with versions 1.x and 2.x, version 3.x is not yet supported.)
+(This is true with versions 1.x, 2.x, and 3.x.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>bhash</></TERM><LISTITEM><PARA>
@@ -3743,13 +3986,13 @@ SleepyCat DB 1.x, 2.x or 3.x HASH database
 
 The <OPTION>-f</>-option defines the path of the database file,
 the SleepyCat DB does not append anything to the name.
-(This is true with versions 1.x and 2.x, version 3.x is not yet supported.)
+(This is true with versions 1.x, 2.x, and 3.x.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>selfmatch</></TERM><LISTITEM><PARA>
 
 Given address literal <EMPHASIS>without</> wrapping square brackets,
-this ``database'' decodes the address, and checks if presented IP
+this "database" decodes the address, and checks if presented IP
 address is one used by the system at the moment.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -3784,7 +4027,7 @@ The default is usually 10, depending on the database type.
 <VARLISTENTRY><TERM><OPTION>-b</></TERM><LISTITEM><PARA>
 
 If the key exists in the database, return the key 
-as the value. (``Boolean relation'')
+as the value. ("Boolean relation")
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-i</></TERM><LISTITEM><PARA>
@@ -3849,13 +4092,13 @@ FIXME! WRITEME! WRITE MORE!
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-%</></TERM><LISTITEM><PARA>
-We shall do positional parameter substitutions (``%0'' thru ``%9'')
+We shall do positional parameter substitutions ("%0" thru "%9")
 on database lookup result data. [XREF??]
 
 </PARA><PARA>
 The <COMMAND>zmailer newdb</> configuration file
 <FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
-``%'' to signal this aspect of relation wrapper generation.
+"%" to signal this aspect of relation wrapper generation.
  [XREF??]
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -3863,7 +4106,7 @@ The <COMMAND>zmailer newdb</> configuration file
 Actually this is <EMPHASIS>ignored</> if present, the
 <COMMAND>zmailer newdb</> configuration file
 <FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
-``:'' to signal certain aspects of relation wrapper generation.
+":" to signal certain aspects of relation wrapper generation.
  [XREF??]
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -3873,9 +4116,9 @@ Actually this is <EMPHASIS>ignored</> if present, the
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-On systems with {\tt USE\_MMAP} the ordered 
-and unordered databases are r/o mapped into memory, and for ordered 
-case, a special line-index is generated for speeding up the binary 
+On systems with <LITERAL>USE_MMAP</> the ordered, and unordered
+databases are r/o mapped into memory, and for ordered case,
+a special line-index is generated for speeding up the binary 
 search. (Makes less system calls that way.)
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -3890,14 +4133,17 @@ search. (Makes less system calls that way.)
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- rest <REPLACEABLE>object-reference</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>rest</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></ARG>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied lisp-object of 
-object-reference's <FUNCTION>cdr</> operation.
+Pointer to copied lisp-object of  object-reference's
+<LINK LINKEND="zmshref.cdr"><CITETITLE>
+<FUNCTION>cdr</></></LINK> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -3908,7 +4154,7 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the <LINK LINKEND="zmshref.cdr"><CITETITLE>
-<FUNCTION>cdr</></></LINK> command.
+<FUNCTION>cdr</></></LINK> command (at <XREF LINKEND="zmshref.cdr">).
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3946,9 +4192,9 @@ a simple string-object.
 
 The argument lisp-object contains a all ASCII digit characters, and is
 a simple string-object.
-</PARA><PARA>
 
-FIXME: Compare with ``returns'' below.
+</PARA><PARA>
+See the Notes below about this, too.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>NULL</TERM><LISTITEM><PARA>
@@ -3967,7 +4213,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The system has weird dichtomy on returning numeric vs. other results.
+The system has a weird dichtomy on returning numeric vs. other results.
 </PARA><PARA>
 
 Presume a function call with two different possible results,
@@ -4016,7 +4262,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-See notes of ``<EMPHASIS>return</>'' above.
+See notes of "<FUNCTION>return</>" above.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4031,12 +4277,15 @@ See notes of ``<EMPHASIS>return</>'' above.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt rfc822 messagefile}
+<CMDSYNOPSIS>
+  <COMMAND>rfc822</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>messagefile</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-{\tt status}
+status
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -4046,9 +4295,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This function controls the parsing and 
-processing of the message file in RFC822/976 format. It is 
-called by the {\tt process} function. 
+This function controls the parsing and processing of the message file
+in RFC822/976/2822 format.
+It is called by the  <LINK LINKEND="zmshref.process"><CITETITLE>
+<FUNCTION>process</></></LINK> function (at <XREF LINKEND="zmshref.process">).
+. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4063,7 +4314,9 @@ called by the {\tt process} function.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt rfc822date}
+<CMDSYNOPSIS>
+  <COMMAND>rfc822date</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -4071,7 +4324,8 @@ called by the {\tt process} function.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Side effect: <LITERAL>stdout</> gets current time string
+printed in RFC822/2822 format.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4085,7 +4339,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Prints the current time in RFC822 format. 
+Prints the current time in RFC822/2822 format.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4100,20 +4354,29 @@ Prints the current time in RFC822 format.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt rfc822syntax address}
+<CMDSYNOPSIS>
+  <COMMAND>rfc822syntax</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>address</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Given input matches RFC 822/976/2822 for "route-address"
+syntax specification.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
-Error.
+Error.  Given input is syntactically somehow invalid.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Argument count is not exactly 1. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4127,12 +4390,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This is a simple interface to the address 
-parser. If the command line argument is a syntactically valid 
-RFC822 address, this command is silent and returns 0 as exit 
-status. If there is a parse error, a verbose error message is 
-printed to {\tt stdout} and the function returns a non-0 
-exit status. 
+This is a simple interface to the address parser.
+If the command line argument is a syntactically valid RFC822/976/2822 address,
+this command is silent and returns 0 as status.
+If there is a parse error, a verbose error message is printed to
+<LITERAL>stdout</> and the function yields a non-zero return status.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4146,16 +4408,37 @@ exit status.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
- runas user function [arguments...]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>runas</>
+   <ARG CHOICE=PLAIN><REPLACEABLE>user</></ARG>
+   <ARG CHOICE=PLAIN><REPLACEABLE>function</></ARG>
+   <ARG REP=REPEAT><REPLACEABLE>arguments</></ARG>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
+Any of the values yielded by the executed "function", or:
+
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
+Internal evaluation of "function" did yield 0.
 
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
+
+Setting target uid failed.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Mandatory parameters missing. (Usage.)
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>abort</TERM><LISTITEM><PARA>
+
+Resetting target uid to system uid (root) failed.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4169,11 +4452,10 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Changes the current effective user id 
-of the {\em router} process to that given (which may be 
-numeric or an account name), then runs the specified function 
-with the specified arguments, then switches the effective 
-user id of the process back (to root). 
+Changes the current effective user id of the <EMPHASIS>router</>
+process to that given (which may be numeric or an account name),
+then runs the specified function with the specified arguments,
+then switches the effective user id of the process back (to root). 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4187,21 +4469,22 @@ user id of the process back (to root).
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt sender}
+<CMDSYNOPSIS>
+  <COMMAND>sender</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Is a sender address.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-Is not.
+Is not sender address.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4215,9 +4498,9 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-A boolean function that returns the value of 
-the statement ``executing a header rewriting function and the address 
-is a sender address in a message header''. 
+A boolean function that returns the value of the statement
+"executing a header rewriting function and the address 
+is a sender address in a message header". 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4232,93 +4515,112 @@ is a sender address in a message header''.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt set [-a -e -f -h -n -t -u -v -x -L -C -P -S -k -] variable}
+<CMDSYNOPSIS>
+  <COMMAND>set</>
+    <GROUP>
+      <ARG><OPTION>-a</></ARG>
+      <ARG><OPTION>-e</></ARG>
+      <ARG><OPTION>-f</></ARG>
+      <ARG><OPTION>-h</></ARG>
+      <ARG><OPTION>-n</></ARG>
+      <ARG><OPTION>-t</></ARG>
+      <ARG><OPTION>-u</></ARG>
+      <ARG><OPTION>-v</></ARG>
+      <ARG><OPTION>-x</></ARG>
+      <ARG><OPTION>-L</></ARG>
+      <ARG><OPTION>-C</></ARG>
+      <ARG><OPTION>-P</></ARG>
+      <ARG><OPTION>-S</></ARG>
+      <ARG><OPTION>-k</></ARG>
+    </GROUP>
+    <ARG><OPTION>-</></ARG>
+    <ARG><REPLACEABLE>variable</></ARG>
+</CMDSYNOPSIS>
 
-Without parameters {\tt set} prints variable values.
+Without parameters <FUNCTION>set</> prints variable values.
 
 
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied structure of {\tt car} 
-operation.
+Pointer to copied structure of <FUNCTION>car</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -a}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-a</></TERM><LISTITEM><PARA>
 
 Automatically export changed variables.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -e}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-e</></TERM><LISTITEM><PARA>
 
 Exit on error exit status of any command.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -f}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f</></TERM><LISTITEM><PARA>
 
 Disable filename generation (no globbing).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -h}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-h</></TERM><LISTITEM><PARA>
 
 Hash program locations.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n</></TERM><LISTITEM><PARA>
 
 Read commands but do not execute them.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -t}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-t</></TERM><LISTITEM><PARA>
 
 Read and execute one command only.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-u</></TERM><LISTITEM><PARA>
 
 Unset variables are error on substitution.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -v}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-v</></TERM><LISTITEM><PARA>
 
 Print shell input lines as they are read.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -x}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-x</></TERM><LISTITEM><PARA>
 
 Print commands as they are executed.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -L}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-L</></TERM><LISTITEM><PARA>
 
 Trace LEXER processing (sslWalker).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -C}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-C</></TERM><LISTITEM><PARA>
 
 Print branch and emit inputs (sslWalker).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -P}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-P</></TERM><LISTITEM><PARA>
 
 Trace execution (sslWalker).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -S}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-S</></TERM><LISTITEM><PARA>
 
 Print input buffers when used (sslWalker). 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -k}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-k</></TERM><LISTITEM><PARA>
 
 Not supported option.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-</></TERM><LISTITEM><PARA>
 
 Do nothing.
 
@@ -4343,21 +4645,23 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt shift [number]}
+<CMDSYNOPSIS>
+  <COMMAND>shift</COMMAND>
+    <ARG>number</ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Success.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
-Error.
+Error, out of parameters to shift.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4371,7 +4675,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Modifies caller's argument vector.
+Modifies caller's argument vector by shifting left one (or specified number)
+of argument(s) in current <LITERAL>ARGV</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4386,20 +4691,23 @@ Modifies caller's argument vector.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt sleep number}
+<CMDSYNOPSIS>
+  <COMMAND>sleep</COMMAND>
+    <ARG CHOICE=PLAIN><REPLACEABLE>number</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Did sleep a bit, does not tell is anybody interrupted the sleep.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Error.
+Missing mandatory integer argument. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4413,7 +4721,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+Does not tell if the sleep has been interrupted somehow.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4428,18 +4736,21 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt squirrel [-]event}
+<CMDSYNOPSIS>
+  <COMMAND>squirrel</>
+    <ARG CHOICE=PLAIN>[-]event</ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -4451,23 +4762,35 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-</></TERM><LISTITEM><PARA>
 
 Set flag value to 0.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {\(<\)}none>}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>(none)</TERM><LISTITEM><PARA>
 
 Set flag value to 1. 
 
+</PARA><PARA>
+
 The events are: 
-\begin{itemize}
-\item {\tt breakin}
-\item {\tt badheader}
-\item {\tt illheader}
-\item {\tt nochannel}
-\item {\tt nosender}
-\end{itemize}
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ <LITERAL>breakin</>
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ <LITERAL>badheader</>
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ <LITERAL>illheader</>
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ <LITERAL>nochannel</>
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ <LITERAL>nosender</>
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -4477,11 +4800,17 @@ The events are:
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Sets the kinds of events that cause a message 
-to be copied into the {\tt \$POSTOFFICE/postman/} directory. 
-Whether or not a `{\tt -}' is necessary for an event depends on 
-the current state of the event's flag. The usage message will 
-indicate what to do to toggle the event flag. 
+Sets the kinds of events that cause a message to be copied into
+the <FILENAME CLASS=DIRECTORY>$<ENVAR>POSTOFFICE</>/postman/</> directory. 
+Whether or not a "<LITERAL>-</>" is necessary for an event depends on 
+the current state of the event's flag.
+
+</PARA><PARA>
+The usage message will indicate what to do to toggle the event flag:
+<SCREEN>
+<PROMPT>z# </><USERINPUT>squirrel</>
+Usage: squirrel [ breakin | -badheader | illheader | nochannel | nosender ]
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4496,15 +4825,26 @@ indicate what to do to toggle the event flag.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt stability [on \verb/|/ off]}
+<CMDSYNOPSIS>
+  <COMMAND>stability</>
+    <GROUP>
+      <ARG><OPTION>on</></ARG>
+      <ARG><OPTION>off</></ARG>
+    </GROUP>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
+Did the work successfully.
 
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Bad parameters. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4518,12 +4858,13 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Determines whether the {\em router} will 
-process incoming messages in arrival order (when on), or in random 
-order determined by position in the router directory. The {\em router} 
-will by default do the first queue scan in stable mode, and subsequent 
-scans in unstable mode. The name of this command is the name for a 
-similar characteristic of sorting algorithms. 
+Determines whether the <EMPHASIS>router</> will process incoming messages
+in arrival order (when on), or in random order determined by position in
+the router directory.
+The <EMPHASIS>router</> will by default do the first queue scan in stable
+mode, and subsequent  scans in unstable mode.
+The name of this command is the name for a similar characteristic of sorting
+algorithms. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4532,11 +4873,13 @@ similar characteristic of sorting algorithms.
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.test2">
-<TITLE>``<FUNCTION>test</>'', ``<FUNCTION>[</>''</TITLE>
+<TITLE>"<FUNCTION>test</>", "<FUNCTION>[</>"</TITLE>
 
 <PARA>
-See: ``<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>[</></></>'',
-a.k.a. ``<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>test</></></>''
+See: "<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>[</></></>",
+a.k.a. "<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>test</></></>"
+at <XREF LINKEND="zmshref.test">.
+
 </PARA>
 
 </SECT2>
@@ -4548,20 +4891,28 @@ a.k.a. ``<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>test</></></>''
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt times }
+<CMDSYNOPSIS>
+  <COMMAND>times</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Prints to <LITERAL>stdout</> the spent usermode time for
+process itself, and to all of its children.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
-Error.
+Error in <FUNCTION>times</>(2) system call.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Usage error (no parameters allowed.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4575,7 +4926,14 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+Prints to <LITERAL>stdout</> the spent usermode time for
+process itself, and to all of its children.
+
+</PARA><PARA>
+Sample output:
+<SCREEN>
+    12m33s  22m59s
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4590,7 +4948,12 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt trace key1 ... keyN}
+<CMDSYNOPSIS>
+  <COMMAND>trace</>
+    <ARG CHOICE=PLAIN>key1 ... keyN</>
+  <COMMAND>untrace</>
+    <ARG CHOICE=PLAIN>key1 ... keyN</>
+</CMDSYNOPSIS>
 
 Enables tracing of the specified items. The valid keywords 
 are listed in the options below. 
@@ -4599,14 +4962,14 @@ are listed in the options below.
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Successful setting/clearing.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Error.
+Parameter name error. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4616,92 +4979,101 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt all}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>all</></TERM><LISTITEM><PARA>
 
-Turns on all tracing options. You only 
-do this to test the I/O capabilities of your system. 
+Turns on all tracing options.
+</PARA><PARA>
+
+You only do this to test the I/O capabilities of your system. 
+(<OPTION>rfc822</>, and <OPTION>regexp</> options generate
+<EMPHASIS>a lot of output!</>)
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt assign}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>assign</></TERM><LISTITEM><PARA>
 
 Prints shell variable assignments. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt bind}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bind</></TERM><LISTITEM><PARA>
 
-Prints various information from the 
-code that calls the DNS resolver. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt compare}</TERM><LISTITEM><PARA>
-
-Prints {\tt sift} statement 
-pattern-selector comparisons. 
+Prints various information from the code that calls the DNS resolver. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt db}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>compare</></TERM><LISTITEM><PARA>
 
-Prints database lookups, including cache 
-search and update information. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt final}</TERM><LISTITEM><PARA>
-
-Prints the message envelope information 
-after processing each message. 
+Prints <FUNCTION>*sift</> statement pattern-selector comparisons. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt functions}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>db</></TERM><LISTITEM><PARA>
 
-Prints shell function calls and 
-return values, with nesting indicated by indentation. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt matched}</TERM><LISTITEM><PARA>
-
-Prints {\tt sift} statement 
-pattern-selector matches. 
+Prints database lookups, including cache search and update information. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt on}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>except</></TERM><LISTITEM><PARA>
 
-Same as {\tt functions}. 
+Inverts the sense of what is being done; e.g.:
+<SCREEN>
+  trace all except rfc822 regexp
+</SCREEN>
+which is (nearly) exquivalent of:
+<SCREEN>
+  trace all
+  untrace rfc822 regexp
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt regexp}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>final</></TERM><LISTITEM><PARA>
+
+Prints the message envelope information after processing each message. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>functions</></TERM><LISTITEM><PARA>
+
+Prints shell function calls and return values,
+with nesting indicated by indentation. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>matched</></TERM><LISTITEM><PARA>
+
+Prints <FUNCTION>*sift</> statement pattern-selector matches. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>memory</></TERM><LISTITEM><PARA>
+
+Prints memory allocation information after each message. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>on</></TERM><LISTITEM><PARA>
+
+Same as <OPTION>functions</> -option. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>regexp</></TERM><LISTITEM><PARA>
 
 Prints regular expression matching execution. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt resolv}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>resolv</></TERM><LISTITEM><PARA>
 
-Turns on the {\tt RES\_DEBUG} flag in the 
-{\tt BIND} resolver library, and prints various information 
-from the code that calls the DNS resolver. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt rewrite}</TERM><LISTITEM><PARA>
-
-Prints the tokenized addresses sent through 
-the message header address rewriting functions. 
+Turns on the <LITERAL>RES_DEBUG</> flag in the <EMPHASIS>BIND</> resolver
+library, and prints various information from the code that calls
+the DNS resolver. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt router}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>rewrite</></TERM><LISTITEM><PARA>
 
-Prints the tokenized addresses sent through 
-the {\tt router} function. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt sequencer}</TERM><LISTITEM><PARA>
-
-Prints the procedural steps taken during 
-message processing. 
+Prints the tokenized addresses sent through the message header address
+rewriting functions. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt memory}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>router</></TERM><LISTITEM><PARA>
 
-Prints memory allocation information after 
-each message. 
+Prints the tokenized addresses sent through the <FUNCTION>router</> function. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>sequencer</></TERM><LISTITEM><PARA>
+
+Prints the procedural steps taken during message processing. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4710,6 +5082,19 @@ each message.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
+Authors most common "<FUNCTION>trace</>" incantation has been
+wrapped into standard script routine:
+
+<SCREEN>
+#|
+#|  I kept typing in this trace command so frequently, that eventually
+#|  I just had to make for it into a single command... /Matti Aarnio
+#|
+
+rtrace () {
+        trace all except rfc822 regexp
+}
+</SCREEN>
  
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -4725,15 +5110,20 @@ each message.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt trap [[script trap\_nro] ...]}
+<CMDSYNOPSIS>
+  <COMMAND>trap</>
+    <ARG REP=REPEAT>
+       <ARG><REPLACEABLE>script trap_nro</></ARG>
+    </ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Set successfully, or displayed successfully.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4747,8 +5137,18 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-If no parameters are given, {\tt trap} prints all 
-known traps.
+If no parameters are given, <FUNCTION>trap</> prints all known traps.
+
+</PARA><PARA>
+In all aspects this is quite alike any bourne-shell "<FUNCTION>trap</>"
+function.
+
+</PARA><PARA>
+Set, and unset a trap:
+<SCREEN>
+  trap "db flush aliasesdb ; log flushed aliases" 16
+  trap "" 16
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4763,15 +5163,21 @@ known traps.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt type [command ...]}
+<CMDSYNOPSIS>
+  <COMMAND>type</>
+    <ARG REP=REPEAT><REPLACEABLE>command</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
+Always returns this value.
+</PARA><PARA>
 
+The <LITERAL>stdout</> gets the report.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4785,7 +5191,28 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+<SCREEN>
+<PROMPT>z# </><USERINPUT>type trap</>
+trap is a shell builtin
+<PROMPT>z# </><USERINPUT>type foobar</>
+foobar not found
+<PROMPT>z# </><USERINPUT>foobar () {echo foo}</>
+<PROMPT>z# </><USERINPUT>type foobar</>
+foobar is a shell function
+<PROMPT>z# </><USERINPUT>type rfc822</>
+rfc822 is a shell builtin
+<PROMPT>z# </><USERINPUT>type process</>
+process is a shell function
+<PROMPT>z# </><USERINPUT>echo $?</>
+0
+<PROMPT>z# </><USERINPUT>type no-such-thing
+no-such-thing not found</>
+<PROMPT>z# </><USERINPUT>echo $?</>
+0
+<PROMPT>z# </><USERINPUT>type</>
+<PROMPT>z# </><USERINPUT>echo $?</>
+0
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4800,20 +5227,26 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt uid2login uid}
+<CMDSYNOPSIS>
+  <COMMAND>uid2login</>
+     <ARG CHOICE=PLAIN>uid</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
+Argument count ok, and "<REPLACEABLE>uid</>" begins with a digit.
+</PARA><PARA>
 
+The <LITERAL>stdout</> gets the username.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Error.
+Parameter error. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4827,10 +5260,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Prints the first account name associated with 
-a specified user id, if any, or {\tt uid\#uid} if no account 
-exists with that user id. It has the same side-effects as the 
-{\tt login2uid} function. 
+Prints the first account name associated with a specified numeric user id,
+if any, or "<REPLACEABLE>uid#uid</>" if no account exists with that user id.
+It has the same side-effects as the <LINK LINKEND="zmshref.login2uid">
+<CITETITLE><FUNCTION>login2uid</></></LINK> function
+(at <XREF LINKEND="zmshref.login2uid">).
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4845,13 +5279,27 @@ exists with that user id. It has the same side-effects as the
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt umask [octal-number-mask]}
+<CMDSYNOPSIS>
+  <COMMAND>umask</>
+    <ARG>octal-number-mask</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied structure of {\tt car} 
-operation.
+<VARIABLELIST>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
+
+Successfull printing of the octal value, or setting new umask(2) value.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Parameter error. (Usage.)
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -4861,7 +5309,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Without parameters default mask is 077.
+Without parameters the new default mask is 077, and old is printed.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4876,20 +5324,24 @@ Without parameters default mask is 077.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt unset [variable ...]}
+<CMDSYNOPSIS>
+  <COMMAND>unset</>
+    <ARG REP=REPEAT>variable</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Had enough parameters, executed something, and possibly
+complained something to "<LITERAL>stderr</>".
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Error.
+Missing mandatory (at least one) argument. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4903,7 +5355,15 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+This throws away named variables from all variable scopes.
+
+<SCREEN>
+<PROMPT>z# </><USERINPUT>echo $TERM</>
+xterm
+<PROMPT>z# </><USERINPUT>unset TERM</>
+<PROMPT>z# </><USERINPUT>echo "'$TERM'"</>
+''
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4918,22 +5378,31 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt untrace key1 ... keyN}
 
-Disables tracing of the specified items. 
+<CMDSYNOPSIS>
+  <COMMAND>trace</>
+    <ARG CHOICE=PLAIN>key1 ... keyN</>
+  <COMMAND>untrace</>
+    <ARG CHOICE=PLAIN>key1 ... keyN</>
+</CMDSYNOPSIS>
+
+Disables tracing of the specified items.
+This is inverse of <LINK LINKEND="zmshref.trace">
+<CITETITLE><FUNCTION>trace</></></LINK>
+(at <XREF LINKEND="zmshref.trace">).
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Successfull clearing/setting
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
 
-Error.
+Parameter name error. (Usage.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4942,12 +5411,16 @@ Error.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-See the {\tt trace} function for 
-valid keywords. 
+See the <LINK LINKEND="zmshref.trace">
+<CITETITLE><FUNCTION>trace</></></LINK>
+function (at <XREF LINKEND="zmshref.trace">) for valid keywords. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
+See the <LINK LINKEND="zmshref.trace">
+<CITETITLE><FUNCTION>trace</></></LINK>
+function (at <XREF LINKEND="zmshref.trace">) for valid keywords. 
   
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -4963,13 +5436,15 @@ valid keywords.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt user object-reference}
+<CMDSYNOPSIS>
+  <COMMAND>user</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>object-reference</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-The next-address (3rd) component of 
-and address quad.
+The next-address (3rd) component of and address quad.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -4979,7 +5454,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+This is essentially same as:
+<SCREEN>
+   $(cdr $(cdr $(cdr $addrquad)))
+</SCREEN>
+
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -4992,12 +5471,29 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt wait [pid]}
+<CMDSYNOPSIS>
+  <COMMAND>wait</>
+    <ARG><REPLACEABLE>pid</></ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-{\tt retcode}
+Besides of the return codes of processes being waited,
+this can yield:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
+
+no more processes
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Bad parameters. (Usage.)
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>

@@ -23,7 +23,7 @@ is in relation to them all.
 </PARA>
 
 
-<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsmtps.zmprocs>
+<FIGURE PGWIDE=1 FLOAT=1 ID=fig.zadmsmtps.zmprocs>
   <TITLE ID=figtit.zadmsmtps.zmprocs>ZMailer's processes; Smtpserver</TITLE>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
@@ -105,16 +105,19 @@ a connection.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-B</></><LISTITEM><PARA>
-The session is Batch-SMTP a.k.a. BSMTP type of session. Use of "-i" option is needed, when feeding the input batch file.
+The session is Batch-SMTP a.k.a. BSMTP type of session.
+Use of <QUOTE><OPTION>-i</></QUOTE> option is needed, when feeding
+the input batch file.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-i</></><LISTITEM><PARA>
-This is interactive session.  I/O is done thru
- <EMPHASIS ROLE=STRONG>stdin/stdout</>.
+This is interactive session.
+I/O is done thru <EMPHASIS ROLE=STRONG>stdin/stdout</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-v</></><LISTITEM><PARA>
-Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
+Verbose trace written to stdout for use in conjunktion with
+<QUOTE><OPTION>-i</></>, and <QUOTE><OPTION>-B</></>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-n</></><LISTITEM><PARA>
@@ -185,7 +188,7 @@ most of those possibly issued at the command line.
 Example configuration is is in figure <XREF LINKEND="fig.sample-smtpserver-cfg">.
 </PARA>
 
-<FIGURE ID="fig.sample-smtpserver-cfg" PGWIDE="0" FLOAT="1">
+<FIGURE ID="fig.sample-smtpserver-cfg" PGWIDE=0 FLOAT=1>
 <TITLE>Sample <FILENAME>smtpserver.conf</> file</TITLE>
 <PROGRAMLISTING>
 <![CDATA[
@@ -279,7 +282,8 @@ number of recipient addresses...)
 <VARLISTENTRY>
 <TERM><OPTION>MaxSameIpSource</> <REPLACEABLE>nn</></TERM>
 <LISTITEM><PARA>
-(Effective only on daemon-mode server &mdash; not on "-i", nor "-n" modes.)
+(Effective only on daemon-mode server &mdash; not on
+<QUOTE><OPTION>-i</></>, nor <QUOTE><OPTION>-n</></> modes.)
 Sometimes some systems set up multiple parallel connections to same
 host  (qmail ones especially, not that ZMailer has entirely clean
 papers on this - at least up to 2.99.X series), we won't accept
@@ -308,7 +312,7 @@ be able to get the TCP startup three-way handshake completed.
 Most modern systems can have this value upped to thousands to
 improve systems resiliency against malicious attacks, and most
 likely to provide complete immunity against the accidental
-"attack" by the failing network routing.
+<QUOTE>attack</> by the failing network routing.
 </PARA></LISTITEM></VARLISTENTRY>
 
 
@@ -344,19 +348,21 @@ FIXME! WRITEME!
 <TERM><OPTION>help</> <REPLACEABLE>'string'</></TERM>
 <LISTITEM><PARA>
 This one adds yet another string (no quotes are used) into those
-that are presented to the client when it asks for "HELP" in the
-SMTP session.
+that are presented to the client when it asks for <QUOTE>HELP</>
+in the SMTP session.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>PolicyDB</> <REPLACEABLE>dbtype dbpath</></TERM>
 <LISTITEM><PARA>
 This defines the database type, and file path prefix to the binary
-database containing policy processing information.  More of this
-below.  Actual binary database file names are formed by appending
-type specific suffixes to the path prefix.  For example NDBM
-database appends ".pag" and ".dir", while BSD-Btree appends only
-".db".  (And the latter has only one file, while the first has two.)
+database containing policy processing information.
+More of this below.
+Actual binary database file names are formed by appending type
+specific suffixes to the path prefix.
+For example NDBM database appends <QUOTE>.pag</> and <QUOTE>.dir</>,
+while BSD-Btree appends only <QUOTE>.db</>.
+(And the latter has only one file, while the first has two.)
 </PARA><PARA>
 For an operative overview, see <XREF LINKEND=zadm-smtpserver-policy-relaying>,
 and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-relaying>.
@@ -382,20 +388,20 @@ and for deeper details, see <XREF LINKEND=zref-smtpserver-content-filter>.
 </SECT2>
 
 <SECT2 ID="zadm-smtpserver-conf-ehlostyle">
-<TITLE><FILENAME>smtpserver.conf</>; ``EHLO-style options''</TITLE>
+<TITLE><FILENAME>smtpserver.conf</>; <QUOTE>EHLO-style options</QUOTE></TITLE>
 <INDEXTERM ID=zadm-smtps-smtpserver.conf-ehlostyle><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>EHLO-style options, admin</></>
 
 <PARA>
 All lines that are not comments, nor start with uppercase keyword
-``POLICY'' are ``EHLO-style patterns''.
+<QUOTE>POLICY</QUOTE> are <QUOTE>EHLO-style patterns</QUOTE>.
 This is the oldest form of configuring the <COMMAND>smtpserver</>, and
 as such, it can be seen...
 </PARA>
 
 <PARA>
 Behaviour is based on glob patterns matching the
-<EMPHASIS ROLE="BOLD">HELO/EHLO</> name given by a remote client.
-Lines beginning with a ``#'', or whitespace are ignored in the file,
+<EMPHASIS ROLE=BOLD>HELO/EHLO</> name given by a remote client.
+Lines beginning with a <QUOTE>#</QUOTE>, or whitespace are ignored in the file,
 and all other lines must consist of two tokens: a shell-style (glob) 
 pattern starting at the beginning of the line, whitespace, and a 
 sequence of style flags. The first matching line is used. As a 
@@ -410,7 +416,7 @@ The meanings of the style flag characters are as follow:
 <VARIABLELIST>
 
 <VARLISTENTRY><TERM><OPTION>f</></><LISTITEM><PARA>
-Check ``<EMPHASIS ROLE=STRONG>MAIL FROM</>'' addresses through online
+Check <QUOTE><EMPHASIS ROLE=STRONG>MAIL FROM</></QUOTE> addresses through online
 processing at the attached <COMMAND>router</> process
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -431,11 +437,11 @@ Allow execution <EMPHASIS ROLE=STRONG>EXPN</> command online at the attached
 
 <VARLISTENTRY><TERM><OPTION>R</></><LISTITEM><PARA>
 Require addresses to be in fully qualified (domained) form:
-``<EMPHASIS ROLE=STRONG>local@remote</>'' (strict 821)
+<QUOTE><EMPHASIS ROLE=STRONG>local@remote</></QUOTE> (strict 821)
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>S</></><LISTITEM><PARA>
 Allow Sloppy input for systems incapable to respect RFC 821
-properly; WinCE1.0 does: ``<EMPHASIS ROLE=STRONG>MAIL FROM:user@domain</>'' :-(
+properly; WinCE1.0 does: <QUOTE><EMPHASIS ROLE=STRONG>MAIL FROM:user@domain</></QUOTE> :-(
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -444,7 +450,7 @@ properly; WinCE1.0 does: ``<EMPHASIS ROLE=STRONG>MAIL FROM:user@domain</>'' :-(
 </SECT1>
 
 
-<SECT1 ID="zadm-smtpserver-policy-relaying">
+<SECT1 ID=zadm-smtpserver-policy-relaying>
 <TITLE>Policy Based Relaying Control</TITLE>
 <INDEXTERM ID=zadm-smtps-policy-relaying1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>relay policy filters</></>
 <INDEXTERM ID=zadm-smtps-policy-relaying2><PRIMARY>SMTP input</><SECONDARY>relay policy, admin</></>
@@ -468,31 +474,31 @@ of policy source files:
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/localnames</></>
- <ENTRY>(``= _localnames'')</>
+ <ENTRY>(<QUOTE>= _localnames</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.relay.manual</></>
- <ENTRY>(``= _full_rights'')</>
+ <ENTRY>(<QUOTE>= _full_rights</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.relay</></>
- <ENTRY>(``= _full_rights'')</>
+ <ENTRY>(<QUOTE>= _full_rights</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.mx.manual</></>
- <ENTRY>(``= _relaytarget'')</>
+ <ENTRY>(<QUOTE>= _relaytarget</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.mx</></>
- <ENTRY>(``= _relaytarget'')</>
+ <ENTRY>(<QUOTE>= _relaytarget</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.spam.manual</></>
- <ENTRY>(``= _bulk_mail'')</>
+ <ENTRY>(<QUOTE>= _bulk_mail</QUOTE>)</>
 </ROW>
 <ROW>
  <ENTRY><FILENAME>DB/smtp-policy.spam</></>
- <ENTRY>(``= _bulk_mail'')</>
+ <ENTRY>(<QUOTE>= _bulk_mail</QUOTE>)</>
 </ROW>
 </TBODY>
 </TGROUP>
@@ -537,15 +543,15 @@ due to ease of fakeing the reversed domain names):
 </PARA>
 
 <PARA>
-Server sets its internal ``<LITERAL>always_accept</>'' flag at the source IP
+Server sets its internal <QUOTE><LITERAL>always_accept</></QUOTE> flag at the source IP
 address tests before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
 </PARA>
 
 <PARA>
 Usage of domain names here is discouraged as there is no way to tell
-that domain ``<LITERAL>foo.bar</>'' here has different meaning than
-same domain elsewere &mdash; at ``<FILENAME>smtp-policy.mx</>,''
+that domain <QUOTE><LITERAL>foo.bar</></QUOTE> here has different meaning than
+same domain elsewere &mdash; at <QUOTE><FILENAME>smtp-policy.mx</>,</QUOTE>
 for example.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -560,14 +566,14 @@ that if recipient has MX to you, it would be ok&hellip;
 
 <PARA>
 You can substitute this knowledge with a fuzzy feeling by using
-``<LITERAL>acceptifmx -</>'' attribute at the generic boilerplate.
+<QUOTE><LITERAL>acceptifmx -</></QUOTE> attribute at the generic boilerplate.
 List here domain names, possibly suffixes:
 <SCREEN>
   mx-target.dom
   .mx-target.dom
 </SCREEN>
-The suffix (``<LITERAL>.mx-target.dom</>'') <EMPHASIS>does not</>
-match to the ``dot-less'' domain name: ``<LITERAL>mx-target.com</>'' !
+The suffix (<QUOTE><LITERAL>.mx-target.dom</></QUOTE>) <EMPHASIS>does not</>
+match to the <QUOTE>dot-less</QUOTE> domain name: <QUOTE><LITERAL>mx-target.com</></QUOTE> !
 </PARA>
 
 <PARA>
@@ -598,13 +604,13 @@ or recipients no matter what earlier analysis has shown.
 </VARIABLELIST>
 
 <PARA>
-At the ``<FILENAME>smtp-policy.src</>'' boiler-plate file there is one
+At the <QUOTE><FILENAME>smtp-policy.src</></QUOTE> boiler-plate file there is one
 particular section containing default setting statements.
-See figure <XREF LINKEND="fig.adm.smtp-policy-boiler"> for the salient
+See figure <XREF LINKEND=fig.adm.smtp-policy-boiler> for the salient
 details concerning this.
 </PARA>
 
-<FIGURE ID="fig.adm.smtp-policy-boiler" PGWIDE="0" FLOAT="1">
+<FIGURE ID="fig.adm.smtp-policy-boiler" PGWIDE=0 FLOAT=1>
 <TITLE>The <FILENAME>smtp-policy.src</> file default settings fragment</TITLE>
 <PROGRAMLISTING>
 <![CDATA[
@@ -620,7 +626,7 @@ details concerning this.
 #|
 #| == 1st alternate: No MX target usage, no DNS existence verify
 #|    Will accept for reception only those domains explicitely listed
-#|    in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do
+#|    in <QUOTE>smtp-policy.mx</QUOTE> and  <QUOTE>localnames</QUOTE>  files.  Will not do
 #|    verifications on validity/invalidity of source domains:&lt;foo@bar&gt;
 #
 # .             relaycustomer - relaytarget -
@@ -655,12 +661,12 @@ details concerning this.
 # [0.0.0.0]/0   senderokwithdns - acceptifdns -
 #
 #|
-#|  You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0
+#|  You may also add  <QUOTE>test-dns-rbl +</QUOTE>  attribute pair to [0.0.0.0]/0
 #|  of your choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL
 #|  system.
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
-#| the database with ``relaytarget +'' attribute.
+#| the database with <QUOTE>relaytarget +</QUOTE> attribute.
 #|
 #| ===========================
 #|
@@ -683,11 +689,11 @@ _rbl1 # Nothing at late phase
 #|
 #|  The Third RBL variant means that all target domains can all by
 #|  themselves choose if they use RBL to do source filtering.
-#|  The ``= _RBL1'' test *must* be added to all domain instances
+#|  The <QUOTE>= _RBL1</QUOTE> test *must* be added to all domain instances
 #|  where the check is wanted.
 #|  (Including the last-resort domain default of ".")
 #|  (Or inverting: If some recipient domain is *not* wanting RBL-type
-#|   tests, that domain shall have  ``test-rcpt-dns-rbl -'' attribute
+#|   tests, that domain shall have  <QUOTE>test-rcpt-dns-rbl -</QUOTE> attribute
 #|   pair given for it at the input datasets - consider smtp-policy.mx
 #|   file!)
 #|
@@ -697,7 +703,7 @@ _rbl1 # Nothing at late phase
 #|
 #| ===========================
 #|
-#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
+#| If your system has <QUOTE>whoson</QUOTE> server (see contrib/whoson-*.tgz),
 #| you can activate it by adding  'trust-whoson +' attribute pair to
 #| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
 #|
@@ -715,8 +721,10 @@ _rbl1 # Nothing at late phase
 
 <SECT1 ID="zadm-smtpserver-content-filter">
 <TITLE>Content Based Filtering</TITLE>
-<INDEXTERM ID=zadm-smtps-content-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters</></>
-<INDEXTERM ID=zadm-smtps-content-filtering2><PRIMARY>SMTP input</><SECONDARY>content filtering, admin</></>
+<INDEXTERM ID=zadm-smtps-content-filtering1>
+ <PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters</></>
+<INDEXTERM ID=zadm-smtps-content-filtering2>
+ <PRIMARY>SMTP input</><SECONDARY>content filtering, admin</></>
 
 <PARA>
 The ZMailer <EMPHASIS>can</> do also message content analysis with
@@ -726,7 +734,7 @@ expected by the email sender.)
 </PARA>
 
 <PARA>
-The program becomes active if PARAM entry ``contentfilter''  is set:
+The program becomes active if PARAM entry <QUOTE>contentfilter</QUOTE> is set:
 
 <PROGRAMLISTING>
 <![CDATA[
@@ -737,9 +745,9 @@ The program becomes active if PARAM entry ``contentfilter''  is set:
 </PARA>
 
 <PARA>
-More details are at the Reference part: <XREF LINKEND=zref-smtpserver-content-filter>.
+More details are at the Reference part:
+ <XREF LINKEND=zref-smtpserver-content-filter>.
 </PARA>
 
 </SECT1>
-
 </CHAPTER>

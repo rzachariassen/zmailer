@@ -2,48 +2,52 @@
 <TITLE>Security Issues</TITLE>
 
 <PARA>
-The intention of the security mechanisms is not to prevent address faking,
-but to control the privileges which are used to execute pipes, and
-accessing files (read, and write).
+The intention of the security mechanisms is not to prevent address
+faking, but to control the privileges which are used to execute pipes,
+and accessing files (read, and write).
 </PARA>
 
 <PARA>
 In addition of doing strict privilege control on who can do what,
 ZMailer has a concept of <EMPHASIS>trust</>, which shows as a group
-of accounts who can claim wildly ``fradulent'' data in their headers.
+of accounts who can claim wildly <QUOTE>fradulent</QUOTE> data in
+their headers.
 </PARA>
 
 <PARA>
 The <EMPHASIS>trusted</> accounts are those listed in the ZMailer group
-or the ``trusted'' variable in the system configuration
+or the <QUOTE>trusted</QUOTE> variable in the system configuration
 (<FILENAME>router.cf</>) file.
 </PARA>
 
 <PARA>
 Of course when one uses SMTP protocol to inject email, it is extremely
-easy to ``fake'' any source and destination envelope and visible addresses.
+easy to <QUOTE>fake</QUOTE> any source and destination envelope and
+visible addresses.
 </PARA>
 
 <PARA>
-Having local-parts that allow delivery to arbitrary files, or which can
-trigger execution of arbitrary programs, can clearly lead to a huge security
-problem.
-<COMMAND>sendmail</> does address this problem, but in a restrictive and
-unintuitive manner.  This aspect of ZMailer security has been designed to
-allow the privileges expected by common sense.
+Having local-parts that allow delivery to arbitrary files, or which
+can trigger execution of arbitrary programs, can clearly lead to
+a huge security problem.
+<COMMAND>sendmail</> does address this problem, but in a restrictive,
+and unintuitive manner.
+This aspect of ZMailer security has been designed to allow the privileges
+expected by common sense.
 </PARA>
 
 <PARA>
 The responsibility for implementing this kind of security is split between
-the <COMMAND>router</> and the <EMPHASIS>transport agent</> that delivers
+the <COMMAND>router</>, and the <EMPHASIS>transport agent</> that delivers
 a message to an address.
 Since it is the Transport Agent that must enforce the security, it needs
-some information to guide it.  Specifically, for each address it delivers
-to, some information about the ``<EMPHASIS>trustworthiness</>'' of that
-address is necessary so that the transport agent can determine which
-privileges it can assume when delivering for that destination.
-This information is determined by the <COMMAND>router</>, and passed
-to the transport agent in the message control file.
+some information to guide it.
+Specifically, for each address it delivers to, some information about
+the <QUOTE><EMPHASIS>trustworthiness</></QUOTE> of that address is necessary
+so that the transport agent can determine which privileges it can assume
+when delivering for that destination.
+This information is determined by the <COMMAND>router</>, and passed to
+the transport agent in the message control file.
 The specific measure of trustworthiness chosen by ZMailer, is simply
 a numeric user id (uid) value <EMPHASIS>representing the source of
 the address.</>
@@ -55,13 +59,14 @@ the destination addresses should obviously have no privileges
 on the local host (when mailing to a file or a program).
 Similarly, common sense would indicate that locally originated mail
 should have the same privileges as the originator.
-Based on an initial user id assigned from such considerations, the privilege
-attached to each address is modified by the attributes of the various alias
-files that contain expansions of it.
-The algorithm to determine the appropriate privilege is to use the user id
-of the owner of the alias file if and only if that file is not group or world
-writable, and the directory containing the file is owned by the same user
-and is likewise neither group nor world writable.
+Based on an initial user id assigned from such considerations,
+the privilege attached to each address is modified by the attributes
+of the various alias files that contain expansions of it.
+The algorithm to determine the appropriate privilege is to use
+the user id of the owner of the alias file if and only if that
+file is not group or world writable, and the directory containing
+the file is owned by the same user and is likewise neither group
+nor world writable.
 If any of these conditions do not hold, an unprivileged user id will
 be assigned as the privilege level of the address.
 </PARA>
@@ -69,14 +74,15 @@ be assigned as the privilege level of the address.
 <PARA>
 It is entirely up to the transport agent whether it will honour the
 privilege assignment of an address, and indeed in many cases it might not
-make sense (for example for outbound mail).  However, it is strongly
-recommended that appropriate measures are taken when a transport agent has
-no control over some action that may affect local files, security, or
-resources.
+make sense (for example for outbound mail).
+However, it is strongly recommended that appropriate measures are taken
+when a transport agent has no control over some action that may affect
+local files, security, or resources.
 </PARA>
 
 <PARA>
-The described algorithm is far from perfect. The obvious dangers are:
+The described algorithm is far from perfect.
+The obvious dangers are:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
  The grandparent directories, to the Nth degree, are ignored, and may

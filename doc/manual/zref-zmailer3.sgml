@@ -92,7 +92,7 @@ correspond to the return value of <FUNCTION>fclose(3)</>.
 The <FUNCTION>mail_priority</> variable has a default value of 0, 
 and is used on scanning Zmailer configuration variable 
 $<VARNAME>ROUTERDIRS</>, which tells alternate router directories
-under the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+under the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
 directory.
 At value 0, $<VARNAME>ROUTERDIRS</> variable is not used.
 At higher values, successive directory from $<VARNAME>ROUTERDIRS</> is taken. 
@@ -182,7 +182,7 @@ Then starts the message RFC-822 headers, and below it, the body.
 <VARIABLELIST>
 <VARLISTENTRY><TERM><VARNAME>FULLNAME</></><LISTITEM><PARA>
 variable defines textual fullname, 
-for example: ``Sample User''
+for example: <QUOTE>Sample User</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><VARNAME>PRETTYLOGIN</></><LISTITEM><PARA>
@@ -209,7 +209,7 @@ Example:
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><VARNAME>ROUTERDIRS</></><LISTITEM><PARA>
-defines a `:' separated list of alternate router directories.
+defines a <QUOTE>:</> separated list of alternate router directories.
 If these are defined at all, they must exist,  if alternate
 queueing priority mechanism is desired to be used. 
 Example:

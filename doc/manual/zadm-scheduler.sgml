@@ -13,7 +13,7 @@ is in relation to them all.
 </PARA>
 
 
-<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsch.zmprocs>
+<FIGURE PGWIDE=1 FLOAT=1 ID=fig.zadmsch.zmprocs>
   <TITLE ID=figtit.zadmsch.zmprocs>ZMailer's processes; Scheduler</TITLE>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
@@ -70,14 +70,15 @@ files in directories, as lookups for them become intolerably slow, the
 <COMMAND>scheduler</> has a subdirectory hashing mechanism.  Both
 <FILENAME CLASS=DIRECTORY>queue/</> and <FILENAME CLASS=DIRECTORY>transport/</>
 <EMPHASIS ROLE=BOLD>can</> be split to subdirectories at one or two levels
-with names of ``<LITERAL>A</>'' thru ``<LITERAL>Z</>''.
-See for the ``<OPTION>-H</>'' option of the <COMMAND>scheduler</> below.
+with names of <QUOTE><LITERAL>A</></> thru <QUOTE><LITERAL>Z</></>.
+See for the <QUOTE><OPTION>-H</></> option of the <COMMAND>scheduler</> below.
 </PARA>
 
 <PARA>
-The idea with the sub-directory hashes is to split the workset into as even
-subsets as possible, usually busy systems are run with ``<OPTION>-HH</>'' to
-have 26*26 sub-sub-directories into which the sets gets divided.
+The idea with the sub-directory hashes is to split the workset into
+as even subsets as possible, usually busy systems are run with
+<QUOTE><OPTION>-HH</></> to have 26*26 sub-sub-directories into which
+the sets gets divided.
 </PARA>
 
 
@@ -87,7 +88,7 @@ have 26*26 sub-sub-directories into which the sets gets divided.
 <TITLE>Principiles of scheduling: Threads</TITLE>
 
 <PARA>
-The <COMMAND>router</> produces recipients ``address quads'' which
+The <COMMAND>router</> produces recipients <QUOTE>address quads</> which
 consists of four components:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Channel</PARA></LISTITEM>
@@ -117,7 +118,7 @@ is the collection of all threads within same <EMPHASIS>scheduler</>
 See <XREF LINKEND=zadm-scheduler-scheduler.conf>.
 </PARA>
 
-<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsch.threads>
+<FIGURE PGWIDE=1 FLOAT=1 ID=fig.zadmsch.threads>
   <TITLE ID=figtit.zadmsch.threads>Scheduler's Threads/Thread Groups</TITLE>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
@@ -156,7 +157,7 @@ which control when a given channel+host pair (thread) is NOT taken
 into processing:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM><LITERAL>MaxTA</>:   (Set in "*/*" clause)</TERM>
+<VARLISTENTRY><TERM><LITERAL>MaxTA</>:   (Set in <QUOTE>*/*</> clause)</TERM>
 <LISTITEM>
 <PARA>
  GLOBAL parameter limiting the number of transport-agent processes
@@ -171,15 +172,15 @@ into processing:
 <PARA>
  The scheduler detects the max number of FDs allowed for a process,
  and analyzing how many FDs each TA interface will need -- plus
- reserving 10 FDs for the itself, result is ``probed maxkids''.
+ reserving 10 FDs for the itself, result is <QUOTE>probed maxkids</>.
 </PARA>
 </LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><LITERAL>MaxChannel</>: (default: ``probed maxkids'')</>
+<VARLISTENTRY><TERM><LITERAL>MaxChannel</>: (default: <QUOTE>probed maxkids</>)</>
 <LISTITEM>
 <PARA>
  Selector clause specific value limiting how many transport-agent
- processes can be running on which the ``channel'' part is the same.
+ processes can be running on which the <QUOTE>channel</> part is the same.
  You may specify dis-similar values for these as well.  For example
  you may use value '50' for all your 'smtp' channel entries, except
  that you want always to guarantee at least five more for your own
@@ -192,13 +193,13 @@ into processing:
 </SCREEN>
 
 <PARA>
- If the sum of all ``maxchannel'' values in different channels exceeds
- that of ``maxta'', then ``maxta'' value will limit the amount of work
- done in extreme load situations.
+ If the sum of all <QUOTE>maxchannel</> values in different channels
+ exceeds that of <QUOTE>maxta</>, then <QUOTE>maxta</> value will limit
+ the amount of work done in extreme load situations.
 </PARA>
 </LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><LITERAL>MaxRing</>: (default: ``probed maxkids'')</>
+<VARLISTENTRY><TERM><LITERAL>MaxRing</>: (default: <QUOTE>probed maxkids</>)</>
 <LISTITEM>
 <PARA>
  This limits the number of parallel transport agents within each
@@ -212,7 +213,7 @@ into processing:
 <LISTITEM>
 <PARA>
  This limits the number of parallel transport agents within each
- thread; that is, using higher value than default ``1'' will allow
+ thread; that is, using higher value than default <QUOTE>1</> will allow
  running more than one TA for the jobs at the thread.
 </PARA>
 
@@ -229,7 +230,7 @@ into processing:
 <LISTITEM>
 <PARA>
  This tells how many job specifiers to feed to the TA when
- the TA process state is ``STUFFING''  Because the scheduler
+ the TA process state is <QUOTE>STUFFING</>  Because the scheduler
  is a bit sluggish to spin around to spot active TAs, it does
  make sense to feed more than one task to a TA, and then wait
  for the results.
@@ -247,7 +248,7 @@ into processing:
 <TITLE>The <FILENAME>scheduler.conf</> file</TITLE>
 
 <PARA>
-Any line starting with a ``<LITERAL>#</>'' character is assumed to be
+Any line starting with a <QUOTE><LITERAL>#</></> character is assumed to be
 a comment line, and is ignored, as are empty lines.
 All other lines must follow a rigid format. 
 </PARA>
@@ -348,7 +349,7 @@ by the <COMMAND>router</> configuration file.
 
 <PARA>
 Empty lines, and lines whose first non-whitespace character is
-``#'', are ignored.
+<QUOTE>#</>, are ignored.
 </PARA>
 
 <PARA>
@@ -364,35 +365,38 @@ and semantics are:
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>interval</> (1m)</TERM><LISTITEM><PARA>
 specifies the primary retry interval, which determines how frequently a 
-transport agent should be scheduled for an address. The value is a delta
-time specification. This value, and the retries value mentioned below, 
-are combined to determine the interval between each retry attempt.
+transport agent should be scheduled for an address.
+The value is a delta time specification.
+This value, and the retries value mentioned below, are combined to
+determine the interval between each retry attempt.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>idlemax</></><LISTITEM><PARA>
 When a transport agent runs out of jobs, they are moved
-to ``idle pool'', and if a transport agent spends more than idlemax
+to <QUOTE>idle pool</>, and if a transport agent spends more than idlemax
 time in there, it is terminated.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>expiry</> (3d)</TERM><LISTITEM><PARA>
 specifies  the  maximum age of an address in the scheduler 
 queue before  a repeatedly  deferred  address  is
-bounced with an expiration error.  The actual report is
-produced when all addresses have been processed.
+bounced with an expiration error.
+The actual report is produced when all addresses have been processed.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>retries</> (1 1 2 3 5 8 13 21 34)</TERM><LISTITEM><PARA>
-specifies the retry interval policy  of the scheduler 
-for an address. The value must be a sequence of positive integers, these 
-being multiples of the primary interval  before  a  retry is scheduled. 
+<VARLISTENTRY><TERM><OPTION>retries</> (1 1 2 3 5 8 13 21 34)</TERM>
+<LISTITEM><PARA>
+specifies the retry interval policy  of the scheduler  for an address.
+The value must be a sequence of positive integers, these being multiples
+of the primary interval before a retry is scheduled. 
 The scheduler starts by going through the sequence as an  address  is 
-repeatedly deferred. When the end of the sequence is reached, the scheduler 
-will jump into the sequence at a random  spot and continue towards the end.  
+repeatedly deferred.
+When the end of the sequence is reached, the scheduler will jump into
+the sequence at a random  spot and continue towards the end.  
 This allows various retry strategies to be specified easily:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>
-brute force (or ``jackhammer'')
+brute force (or <QUOTE>jackhammer</>)
 </TERM><LISTITEM><PARA>
 <USERINPUT>retries=0</>
 </PARA></LISTITEM></VARLISTENTRY>
@@ -445,55 +449,53 @@ succeed at 120.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxchannel</> (0)</TERM><LISTITEM><PARA>
-if retrying an address would cause the number of 
-simultaneously  active  transport agents processing mail for
-the same channel to exceed  the  specified  value,  the
-retry  is  postponed.  The check is repeated frequently
-so the address may be retried as soon as possible after
-the  scheduled  retry  interval.   If the value is 0, a
-value of 1000 is used instead.
+if retrying an address would cause the number of simultaneously
+active  transport agents processing mail for the same channel to exceed
+the  specified  value,  the retry  is  postponed.
+The check is repeated frequently so the address may be retried as soon
+as possible after the  scheduled  retry  interval.
+If the value is 0, a value of 1000 is used instead.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxring</> (0)</TERM><LISTITEM><PARA>
-Recipients are groupped into ``threads'',  and  similar
-threads  are groupped into ``thread-rings'', where the same
-transport agent can be switched over from one recipient
-to another.  This defines how many transport agents can
-be running at any time at the ring.
+Recipients are groupped into <QUOTE>threads</>,  and  similar threads
+are groupped into <QUOTE>thread-rings</>, where the same transport agent
+can be switched over from one recipient to another.
+This defines how many transport agents can be running at any time at the ring.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>skew</> (5)</TERM><LISTITEM><PARA>
 is the maximum number of retries before the retry  time
 is aligned to a standard boundary (seconds since epoch,
-modulo primary interval).  The lower this number (1  is
-lowest), the faster the alignment is done.  The purpose
-of this alignment is to ensure that eventually a single
-transport agent invokation will be able to process 
-destination addresses that arrived randomly at the  scheduler.
+modulo primary interval).
+The lower this number (1  is lowest), the faster the alignment is done.
+The purpose of this alignment is to ensure that eventually a single
+transport agent invokation will be able to process destination addresses
+that arrived randomly at the  scheduler.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>user</> (root)</TERM><LISTITEM><PARA>
 is  the  user  id  of  a transport agent processing the
-address.  The value is either numeric  (a  uid)  or  an
-account name.
+address.
+The value is either numeric  (a  uid)  or  an account name.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>group</> (daemon)</TERM><LISTITEM><PARA>
 is  the  group  id  of a transport agent processing the
-address.  The value is either  numeric  (a  gid)  or a
-group name.
+address.
+The value is either  numeric  (a  gid)  or a group name.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>command</> (smtp -srl ${LOGDIR}/smtp ${host}</TERM><LISTITEM><PARA>
 is the command line used to start a transport agent to process the address.
 The program pathname is specified relative to the
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/ta/</> directory.
-The string ``${channel}'' is replaced by the current matched channel,
-and ``${host}'' is replaced by the current matched host, from
-the destination address, and ``${<VARNAME>LOGDIR</>}'' substitutes ZENV
+<FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/ta/</> directory.
+The string <QUOTE>${channel}</> is replaced by the current matched channel,
+and <QUOTE>${host}</> is replaced by the current matched host, from
+the destination address, and <QUOTE>${<VARNAME>LOGDIR</>}</> substitutes ZENV
 variable <VARNAME>LOGDIR</> value there.
 </PARA><PARA>
-It is strongly recommended that the ``<LITERAL>${host}</>'' is not to be
+It is strongly recommended that the <QUOTE><LITERAL>${host}</></> is not to be
 used on command definition, as it limits the recyclability of the idled
 transporter.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -503,7 +505,7 @@ is a keyword (with no associated value which tells the <COMMAND>scheduler</>
 that the transport agent specified in the command will only process
 destination addresses that match the first destination channel it encounters.
 </PARA><PARA>
-This is automatically set when the string ``<LITERAL>${channel}</>''
+This is automatically set when the string <QUOTE><LITERAL>${channel}</></>
 occurs in the command, but may also be specified manually.
 This is rarely used.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -551,8 +553,8 @@ address have picked up the parameters set here.
 
 <PARA>
 The third clause (error) has an implicit host wildcard  of
-``*'',  so  it  would  match  the same as specifying <EMPHASIS>error/*</>
-would have.
+<QUOTE>*</>,  so  it  would  match  the same as specifying
+<EMPHASIS>error/*</> would have.
 </PARA>
 
 <PARA>
@@ -567,7 +569,7 @@ within the TORONTO.EDU and UTORONTO.CA organization (the two are parallel
 domains).
 At most 10 deliveries to the <EMPHASIS>smtp</> channel may be concurrently
 active, and at most 2 for all possible hosts within TORONTO.EDU.
-If ``$host'' is mentioned in the command specification, the
+If <QUOTE>$host</> is mentioned in the command specification, the
 <EMPHASIS>transport agent</> will only be told about the message control  
 files that indicate SMTP delivery to a particular host.
 The actual host is picked at random from the current choices, to avoid

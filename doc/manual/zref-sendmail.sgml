@@ -2,7 +2,7 @@
 <TITLE><COMMAND>Sendmail</> Reference</TITLE>
 
 <PARA>
-This ``<COMMAND>sendmail</>'' program is an emulation of the original
+This <QUOTE><COMMAND>sendmail</></> program is an emulation of the original
 <APPLICATION>sendmail</> interface. It provides all the original options
 that make sense to support in the context of ZMailer.
 This is not intended to be the normal user interface to
@@ -78,117 +78,141 @@ Usage: sendmail [sendmail options] [recipient addresses]
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>Parameters:</TERM>
+<LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION>-bm</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bm</OPTION></TERM>
+<LISTITEM><PARA>
 asks <COMMAND>sendmail</> to deliver mail, which it does anyway. 
 This option has no effect.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-bs</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bs</OPTION></TERM>
+<LISTITEM><PARA>
 will start a SMTP server reading from <LITERAL>STDIN</>. 
 This causes the <COMMAND>smtpserver(8)</> program to be executed.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-bd</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bd</OPTION></TERM>
+<LISTITEM><PARA>
 starts the <COMMAND>router(8)</> and <COMMAND>scheduler(8)</>
 programs to emulate <APPLICATION>sendmail</>'s daemon mode.
 This is <EMPHASIS ROLE=BOLD>not</> a recommended method to start these
 programs, instead use <COMMAND>zmailer(1)</> script.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-bt</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bt</OPTION></TERM>
+<LISTITEM><PARA>
 runs the <COMMAND>router(8)</> in interactive mode for testing.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-bu</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bu</OPTION></TERM>
+<LISTITEM><PARA>
 runs <COMMAND>newaliases(8)</> to rebuild the alias file database.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-bp</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-bp</OPTION></TERM>
+<LISTITEM><PARA>
 runs <COMMAND>mailq(1)</> to print the mail transport queue status.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-C configfile</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-C configfile</OPTION></TERM>
+<LISTITEM><PARA>
 specifies the <COMMAND>router(8)</> configuration file.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-E</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-E</OPTION></TERM>
+<LISTITEM><PARA>
 indicates the origin of this message is an insecure channel.
 This should be used when <COMMAND>sendmail</> is used to submit messages
 coming in from outside the local machine, to avoid security problems during
 message processing.
 This flag ensures the message will have no privileges even if the current
-userid is ``trusted''.
+userid is <QUOTE>trusted</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-f address</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f address</OPTION></TERM>
+<LISTITEM><PARA>
 specifies the sender address.
 This is the default originator address if there is no
-``<LINK LINKEND=RFC822.FROM>From:</>'' headerin the message. 
-It becomes the ``<LINK LINKEND=RFC822.FROM>Sender:</>'' address otherwise.
-In either case if the current userid is not ``trusted'' by the mailer,
+<QUOTE><LINK LINKEND=RFC822.FROM>From:</></> headerin the message. 
+It becomes the <QUOTE><LINK LINKEND=RFC822.FROM>Sender:</></> address
+otherwise.
+In either case if the current userid is not <QUOTE>trusted</> by the mailer,
 it is free to ignore both this option and any header information to ensure
 properly authenticated originator information.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-F fullname</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-F fullname</OPTION></TERM>
+<LISTITEM><PARA>
 specifies the full name of the (local) sender.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-i</OPTION></TERM><LISTITEM><PARA>
-tells <COMMAND>sendmail</> to not use a period (``.'') on a line by itself
-as a message terminator, only the end of file will terminate the message.
+<VARLISTENTRY><TERM><OPTION>-i</OPTION></TERM>
+<LISTITEM><PARA>
+tells <COMMAND>sendmail</> to not use a period (<QUOTE>.</>) on
+a line by itself as a message terminator, only the end of file
+will terminate the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-m</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-m</OPTION></TERM>
+<LISTITEM><PARA>
 asks the mailer not to ignore the originator in the addressee list.
 This is default behaviour, so this option has no effect.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-N notify</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-N notify</OPTION></TERM>
+<LISTITEM><PARA>
 sets Delivery-Status-Notification notify parameter to be:
 <OPTION>NEVER</>, or any combination of: <OPTION>SUCCESS</>, 
 <OPTION>FAILURE</>, <OPTION>DELAY</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-oi</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-oi</OPTION></TERM>
+<LISTITEM><PARA>
 is like <OPTION>-i</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-oQ postoffice</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-oQ postoffice</OPTION></TERM>
+<LISTITEM><PARA>
 specifies an alternate <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
 directory.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-q</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-q</OPTION></TERM>
+<LISTITEM><PARA>
 asks for queue processing.
 This option has no effect.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-Q retmode</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-Q retmode</OPTION></TERM>
+<LISTITEM><PARA>
 sets Delivery-Status-Notification parameter to be either of:
 <OPTION>FULL</>, <OPTION>HDRS</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-r address</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-r address</OPTION></TERM>
+<LISTITEM><PARA>
 is like <OPTION>-f</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-t</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-t</OPTION></TERM>
+<LISTITEM><PARA>
 scans header for recipient addresses if none are specified on the command line.
 This is also the default behaviour, so this option has no effect.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-v</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-v</OPTION></TERM>
+<LISTITEM><PARA>
 will report the progress of the message after it has been submitted.
 The <COMMAND>sendmail</> process will write verbose log information to
 the <LITERAL>STDERR</> stream until the <COMMAND>scheduler</> deletes
 the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-V envid</OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-V envid</OPTION></TERM>
+<LISTITEM><PARA>
 sets Delivery-Status-Notification parameter <OPTION>ENVID</>
 to be any arbitrary <EMPHASIS>[xtext]</> string.
 </PARA></LISTITEM></VARLISTENTRY>

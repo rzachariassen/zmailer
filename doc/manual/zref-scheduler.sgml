@@ -21,16 +21,16 @@ of messages in ZMailer.
 
 <PARA>
 The <COMMAND>router</> creates message control files in the
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
 directory.
 These refer to  the original message files in the
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/queue/</>
 directory.
 </PARA>
 
 <PARA>
 The <COMMAND>scheduler</> reads each message control file from
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>,
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>,
 translates the contained message and destination information into
 internal data structures.
 </PARA>
@@ -49,9 +49,9 @@ to process.
 When all the destination addresses in a message have been processed,
 the <COMMAND>scheduler</> performs error reporting tasks if any,
 and then deletes the message control file in
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</> and 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</> and 
 the original message file in
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>.
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/queue/</>.
 </PARA>
 
 <PARA>
@@ -74,7 +74,7 @@ the reports of the <COMMAND>scheduler</>.
 
 <PARA>
 Two types of reports are produced:
-<ORDEREDLIST NUMERATION="ARABIC">
+<ORDEREDLIST NUMERATION=ARABIC>
 <LISTITEM><PARA>
  Error messages caused by unsuccessful delivery of a message are appended
 to its message control file.
@@ -126,13 +126,15 @@ run as a daemon, usually used after -v to log daemon activity
 in great detail.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-E <REPLACEABLE>newentsmax</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-E <REPLACEABLE>newentsmax</></OPTION></TERM>
+<LISTITEM><PARA>
 when globbing new tasks from the directory, pick only first
 <OPTION><REPLACEABLE>newentsmax</></> of them, and leave rest
 for a latter scan run.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-f <REPLACEABLE>configfile</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f <REPLACEABLE>configfile</></OPTION></TERM>
+<LISTITEM><PARA>
 overrides the default configuration file
 <FILENAME>$<VARNAME>MAILSHARE</>/scheduler.cf</>.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -146,8 +148,8 @@ Freeze -- don't actually run anything, just do queue scanning.
 Use multi-level hashing at the spool directories.
 This will efficiently reduce the lengths of the scans at the directories
 to find some arbitrary file in them.
-One ``<OPTION>H</>'' means <EMPHASIS>single level hashing</>,
-two ``<OPTION>HH</>'' mean <EMPHASIS>dual level hashing</>.
+One <QUOTE><OPTION>H</></> means <EMPHASIS>single level hashing</>,
+two <QUOTE><OPTION>HH</></> mean <EMPHASIS>dual level hashing</>.
 <EMPHASIS>Hash</> is directory which name is single upper case alphabet (A-Z).
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -155,45 +157,51 @@ two ``<OPTION>HH</>'' mean <EMPHASIS>dual level hashing</>.
 run interactively, i.e., not as a daemon.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>statisticslog</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>statisticslog</></OPTION></TERM>
+<LISTITEM><PARA>
 starts the appending of delivery statistics information (ASCII form)
 into given file.  No default value.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>logfile</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>logfile</></OPTION></TERM>
+<LISTITEM><PARA>
 overrides the default log file location 
 <FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-n</OPTION></TERM><LISTITEM><PARA>
-Toggles the configuration flag called ``default_full_content'', which defines
-what will be ``DSN RET'' parameter assumed value in case the originator didn't
-supply that parameter.
+Toggles the configuration flag called <QUOTE>default_full_content</>,
+which defines what will be <QUOTE>DSN RET</> parameter assumed value
+in case the originator didn't supply that parameter.
 </PARA><PARA>
-The default behaviour is similar to RET=FULL, while usage of this option is
-equivalent of  RET=HDRS.
+The default behaviour is similar to <QUOTE>RET=FULL</>, while usage
+of this option is equivalent of <QUOTE>RET=HDRS</>.
 </PARA><PARA>
 This option does not override originator supplied DSN RET parameter value.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-N <REPLACEABLE>transmaxfno</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-N <REPLACEABLE>transmaxfno</></OPTION></TERM>
+<LISTITEM><PARA>
 sets how many filehandles are allocated for the <COMMAND>scheduler</>'s
 started children (if the system has adjustable resources.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-p <REPLACEABLE>channel/host</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-p <REPLACEABLE>channel/host</></OPTION></TERM>
+<LISTITEM><PARA>
 A debug option for running selectively some thread under a single instance
 of the scheduler.
 </PARA><PARA>
-Use this option with ``<OPTION>-v</>''.
+Use this option with <QUOTE><OPTION>-v</></>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postoffice</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postoffice</></OPTION></TERM>
+<LISTITEM><PARA>
 specifies an alternate <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
  directory.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-q <REPLACEABLE>rendezvous</></OPTION></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-q <REPLACEABLE>rendezvous</></OPTION></TERM>
+<LISTITEM><PARA>
 the rendezvous between machines without TCP/IP networking,
 </PARA><PARA>
 <COMMAND>Scheduler</> and <COMMAND>mailq(1)</> is done using a well-known
@@ -204,7 +212,7 @@ This option overrides the default location for this special file, either
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-Q</OPTION></TERM><LISTITEM><PARA>
-The ``<OPTION>Q</>'-mode, don't output the old style data into
+The <QUOTE><OPTION>Q</></>-mode, don't output the old style data into
 the queue querier, only the new-style one.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -232,7 +240,8 @@ the transporters.
 </VARIABLELIST>
 
 
-<SECT1 ID="zref-scheduler-scheduler.conf-language"><TITLE>Configuration Language</TITLE>
+<SECT1 ID="zref-scheduler-scheduler.conf-language">
+<TITLE>Configuration Language</TITLE>
 
 <SCREEN>
 \index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
@@ -258,7 +267,8 @@ There are two kinds of clauses:
 </ITEMIZEDLIST>
 </PARA>
 
-<SECT2 ID="zref-scheduler-param-entries"><TITLE>PARAM-entries</TITLE>
+<SECT2 ID="zref-scheduler-param-entries">
+<TITLE>PARAM-entries</TITLE>
 
 <PARA>
 There are three kinds of PARAM entries, all of them start at the column
@@ -291,10 +301,11 @@ file; more at <XREF LINKEND="zref-scheduler-scheduler.auth">.
 
 <PARA>
 The <EMPHASIS>PARAMmailqsock</> defines non-standard socket for the MAILQv2,
-the default is ``TCP:174'' meaning local host binding on wild-card address,
-and port 174 of TCP.  Other ports and protocols can be set.
-<EMPHASIS>The <COMMAND>mailq</> tool will <EMPHASIS ROLE="BOLD">not</> parse
- this file to know where to connect.</EMPHASIS>
+the default is <QUOTE>TCP:174</> meaning local host binding on wild-card
+address, and port 174 of TCP.
+Other ports and protocols can be set.
+<EMPHASIS>The <COMMAND>mailq</> tool will <EMPHASIS ROLE=BOLD>not</> parse
+this file to know where to connect.</EMPHASIS>
 </PARA>
 
 <PARA>
@@ -348,9 +359,9 @@ A selection pattern (in shell style) that is matched against the
 </PARA>
 
 <PARA>
-If the selection pattern does not contain a ``/'', it is assumed to be
+If the selection pattern does not contain a <QUOTE>/</>, it is assumed to be
 a channel pattern and the host pattern is assumed to be the wildcard
-``*''.
+<QUOTE>*</>.
 </PARA>
 
 </SECT2>
@@ -376,21 +387,21 @@ contents of the next non-empty clause will be used.
 The typical configuration file will contain the following clauses:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
- a clause matching all addresses (using the pattern ``*/*'')
+ a clause matching all addresses (using the pattern <QUOTE>*/*</>)
  that sets up default values.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
- a clause matching the local delivery channel (usually ``local'').
+ a clause matching the local delivery channel (usually <QUOTE>local</>).
 </PARA></LISTITEM>
 <LISTITEM><PARA>
- a clause matching the deferred delivery channel (usually ``hold'').
+ a clause matching the deferred delivery channel (usually <QUOTE>hold</>).
 </PARA></LISTITEM>
 <LISTITEM><PARA>
- a clause matching the error reporting channel (usually ``error'').
+ a clause matching the error reporting channel (usually <QUOTE>error</>).
 </PARA></LISTITEM>
 <LISTITEM><PARA>
  clauses specific to the other channels known by the <COMMAND>router</>,
-  for example, ``smtp'' and ``uucp''.
+  for example, <QUOTE>smtp</> and <QUOTE>uucp</>.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 </PARA>
@@ -401,7 +412,7 @@ the <COMMAND>router</> configuration file.
 </PARA>
 
 <PARA>
-Empty lines, and lines whose first non-whitespace character is ``#'',
+Empty lines, and lines whose first non-whitespace character is <QUOTE>#</>,
 are ignored.
 </PARA>
 
@@ -434,7 +445,7 @@ Oldest first.
 is a keyword (with no associated value) that tells the <COMMAND>scheduler</>
 that the transport agent specified in the command will only process destination
 addresses that match the first destination channel it encounters.
-This is automatically set when the string ``<OPTION>$channel</>'' occurs
+This is automatically set when the string <QUOTE><OPTION>$channel</></> occurs
 in the command, but may also be specified manually by this keyword.
 This is rarely used.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -445,15 +456,17 @@ is the command line used to start a transport agent to process the address.
 The program pathname is specified relative to the
   <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/ta/</> directory.
 </PARA><PARA>
-The string ``<OPTION>$channel</>'' is replaced by the current matched channel,
-and ``<OPTION>$host</>'' replaced by the current matched host, from
-the destination address.
+The string <QUOTE><OPTION>$channel</></> is replaced by the current matched
+channel, and <QUOTE><OPTION>$host</></> replaced by the current matched host,
+from the destination address.
+
 </PARA><PARA>
-It is strongly recommended that the ``<OPTION>$host</>'' is not to be used
-on a command definition, as it limits the usability of idled transporter.
+It is strongly recommended that the <QUOTE><OPTION>$host</></>
+is not to be used on a command definition, as it limits the re-usability
+of idled transporter.
 </PARA><PARA>
-It is possible to place environment-string setting statements into the
-beginning of the line:
+It is possible to place environment-string setting statements into
+the beginning of the line:
 <SCREEN>
   command="MALLOC_DEBUG_=1 OTHER=var cmdname cmdparams"
 </SCREEN>
@@ -518,7 +531,7 @@ Ask system for maximum number of file descriptors the scheduler's
 child can have.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
-Substract ``30'' from resulting count.
+Substract <QUOTE>30</> from resulting count.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
 If child communication channel needs two file descriptors
@@ -527,7 +540,7 @@ divide the leftover count by two.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
 Result is the maximum number of TAs which document elsewere
-refers as ``1000''.
+refers as <QUOTE>1000</>.
 </PARA></LISTITEM>
 </ORDEREDLIST>
 </PARA></FOOTNOTE> is used instead.
@@ -535,13 +548,14 @@ refers as ``1000''.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxthr=nn</> (1)</TERM><LISTITEM><PARA>
-This limits the number of parallel transport agents within each thread; that
-is, using higher value than default ``1''
+This limits the number of parallel transport agents within each thread;
+that is, using higher value than default <QUOTE>1</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>nice=nn</></TERM><LISTITEM><PARA>
 Defines <EMPHASIS>relative</> priority value for transport-agent process.
-Default is not to use this.   Value range in between -40 to 40.
+Default is not to use this.
+Value range in between -40 to 40.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>overfeed=nnn</OPTION> (0)</TERM><LISTITEM><PARA>
@@ -575,7 +589,8 @@ That is, retry once in a day.
 Placeholder for DELAYED reporting mechanism.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>retries="n n n"</> (1 1 2 3 4 8 13 21 34)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>retries="n n n"</> (1 1 2 3 4 8 13 21 34)</TERM>
+<LISTITEM><PARA>
 specifies the retry interval policy of the <COMMAND>scheduler</> for
 an address.
 The value must be a sequence of positive integers, these being multiples
@@ -680,18 +695,18 @@ uucp/*  maxchannel=5 command="sm -c $channel uucp"
 </PARA>
 
 <PARA>
-The first clause (``*/*'') sets up default values for all
+The first clause (<QUOTE>*/*</>) sets up default values for all
 addresses. There is no command specification, so clause matching
 will continue after address have picked up the parameters set here.
 </PARA>
 
 <PARA>
-The third clause (``error'') has an implicit host wildcard of `*', 
-so it would match the same as specifying ``error/*'' would have.
+The third clause (<QUOTE>error</>) has an implicit host wildcard of `*', 
+so it would match the same as specifying <QUOTE>error/*</> would have.
 </PARA>
 
 <PARA>
-The fifth clause (``smtp/*.toronto.edu'') has no further components 
+The fifth clause (<QUOTE>smtp/*.toronto.edu</>) has no further components 
 so it selects the components of the following non-empty clause (the sixth).
 </PARA>
 
@@ -700,9 +715,9 @@ Both the fifth and sixth clauses are specific to address destinations
 within the TORONTO.EDU and UTORONTO.CA organization (the two are parallel
 domains). At most 10 deliveries to the smtp channel may be concurrently
 active, and at most 2 for all possible hosts within TORONTO.EDU.
-If ``$host'' is mentioned in the command specification, the transport agent
-will only be told about the message control files that indicate SMTP delivery
-to a particular host.
+If <QUOTE>$host</> is mentioned in the command specification,
+the transport agent will only be told about the message control files
+that indicate SMTP delivery to a particular host.
 The actual host is picked at random from the current choices, to avoid
 systematic errors leading to a deadlock of any queue. 
 </PARA>
@@ -722,7 +737,7 @@ Max number of transporter processes under the <COMMAND>scheduler</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxchannel=nn</OPTION></TERM><LISTITEM><PARA>
-Max number of processes with this same ``channel''.
+Max number of processes with this same <QUOTE>channel</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxring=nn</OPTION></TERM><LISTITEM><PARA>
@@ -757,11 +772,11 @@ a bit sluggish, thus with this we can keep the transporters busy.
 The file whose default boilerplate is shown at
 <XREF LINKEND="fig.ref.scheduler.auth.file"> is able to
 control what kind of things (and who, of those who know shared secrets) can
-ask the scheduler to do via the so called ``MAILQv2'' protocol.
+ask the scheduler to do via the so called <QUOTE>MAILQv2</> protocol.
 </PARA>
 
 <FIGURE ID="fig.ref.scheduler.auth.file" PGWIDE=1 FLOAT=1>
-<TITLE>Sample of ``<FILENAME>scheduler.auth</FILENAME>'' file</TITLE>
+<TITLE>Sample of <QUOTE><FILENAME>scheduler.auth</FILENAME></> file</TITLE>
 <SCREEN>
 #
 # APOP-like authentication control file for the ZMailer scheduler.
@@ -801,16 +816,15 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 </FIGURE>
 </SECT1>
 
-<SECT1 ID=zref-scheduler-mailq-cmd>
-<TITLE><COMMAND>mailq</></TITLE>
+<SECT1 ID=zref-scheduler-mailq-protocol-1>
+<TITLE><COMMAND>mailq</> protocol v.1</TITLE>
 
 <PARA>FIXME! FIXME!</PARA>
 
 <PARA>
-Upon  accepting a  TCP  connection on the MAILQ port (TCP
-port 174), the scheduler dumps data to the TCP  stream  in
-the  following  format  and immediately closes the connec-
-tion.
+Upon accepting a TCP connection on the MAILQ port (TCP port 174),
+the scheduler dumps data to the TCP stream in the following format
+and immediately closes the connection.
 </PARA>
 
 <PARA>
@@ -825,7 +839,7 @@ data in id-dependent format&lt;close&gt;
 The first line (all bytes up to an ASCII LF character,
 octal 12) is used to identify the syntax of all bytes fol-
 lowing the line terminator LF.  The first 8 characters  of
-the first line are ``version'' as a check that this is
+the first line are <QUOTE>version</> as a check that this is
 indeed a MAILQ port server that has been reached, the
 remaining  bytes are the real data format identification.
 The data is interpreted according to that format until the
@@ -834,7 +848,7 @@ terminating connection close.
 
 <PARA>
 Format identifiers should be registered with the author.
-The only one currently defined is ``zmailer 1.0''.
+The only one currently defined is <QUOTE>zmailer 1.0</>.
 For that data format, the syntax of the data following the first LF is:
 <SCREEN>
 Vertices:\n
@@ -848,48 +862,50 @@ Hosts:\n
 
 <PARA>
 Where:
-\begin{description}
-\item[] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM><LITERAL>\n</></TERM>
+<LISTITEM><PARA>
+ is an ASCII linefeed
 
-\begin{verbatim}
-\n
-\end{verbatim}
-/ is an ASCII linefeed
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>\t</></TERM>
+<LISTITEM><PARA>
+is an ASCII tab
 
-\item[] \mbox{}
-
-\begin{verbatim}
-\t
-\end{verbatim}
-/ is an ASCII tab
-
-\item[key] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>key</></TERM>
+<LISTITEM><PARA>
 is an unsigned decimal number
 
-\item[msg-file] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>msg-file</></TERM>
+<LISTITEM><PARA>
 is a contiguous string (it is the message file name relative 
 to a known directory)
 
-\item[n-addrs] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>n-addrs</></TERM>
+<LISTITEM><PARA>
 is an unsigned decimal number (number of addresses)
 
-\item[off1...offN] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>off1...offN</></TERM>
+<LISTITEM><PARA>
 are unsigned decimal numbers (address byte offsets)
 
-\item[text] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>text</></TERM>
+<LISTITEM><PARA>
 is a string not containing an ASCII linefeed (status message)
 
-\item[word] \mbox{}
-
-is a contiguous string (a ``contiguous string'' is a sequence of 
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><LITERAL>word</></TERM>
+<LISTITEM><PARA>
+is a contiguous string (a <QUOTE>contiguous string</> is a sequence of 
 printable non-space characters
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </PARA>
 
 <PARA>
@@ -910,11 +926,18 @@ relay1.cs.net:&gt;312192
 </PARA>
 
 <PARA>
-This is sufficient information to be able to reconstruct the transport queues
-as seen by the scheduler process, and to find more information than what is
-shown here by actually looking up the message control and data files referred
-to.
+This is sufficient information to be able to reconstruct
+the transport queues as seen by the scheduler process,
+and to find more information than what is shown here by
+actually looking up the message control and data files referred to.
 </PARA>
+
+</SECT1>
+
+<SECT1 ID=zref-scheduler-mailq-protocol-2>
+<TITLE><COMMAND>mailq</> protocol v.2</TITLE>
+
+<PARA>FIXME! FIXME!</PARA>
 
 </SECT1>
 
@@ -976,12 +999,12 @@ Any other format (as might be produced by subprocesses) is passed
 to standard output for logging in the scheduler log.
 The <EMPHASIS>retryat</> response will assume the first word of the text
 is a numeric parameter, either an incremental time in seconds if prefixed
-by ``+'', or otherwise an absolute time in seconds since UNIX epoch.
+by <QUOTE>+</>, or otherwise an absolute time in seconds since UNIX epoch.
 </PARA>
 
 <PARA>
 The exit status is a code from
-<FILENAME CLASS="HEADERFILE">&lt;sysexits.h&gt;</>.
+<FILENAME CLASS=HEADERFILE>&lt;sysexits.h&gt;</>.
 </PARA>
 
 </SECT1>
