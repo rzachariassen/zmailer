@@ -556,8 +556,8 @@ static void logstat(vp,reason)
 	if (!statuslog) return;
 
 	mytime(&now);
-	sfprintf(statuslog, "%ld %s %ld %ld %s %s/%s\n",
-		 (long)vp->cfp->mtime, vp->cfp->mid,
+	sfprintf(statuslog, "%s %ld %ld %s %s/%s\n",
+		 vp->cfp->spoolid,
 		 (long)(vp->cfp->envctime - vp->cfp->mtime),
 		 (long)(now - vp->cfp->envctime), reason,
 		 vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);

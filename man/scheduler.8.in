@@ -920,6 +920,7 @@ syslogged data relating to this diagnostics instance.
 The statistics log reports condenced performance oriented information
 in following format:
 .PP
+.B "Old format:"
 .PP
 .TS
 l c r r c l.
@@ -931,12 +932,28 @@ timestamp	fileid	dt1	dt2	state	$channel/$host
 \fC812876559	90401-1	 0	21	ok	smtp/utu.fi\fR
 .TE
 .PP
+.B "New format:"
+.PP
+.TS
+l r r c l.
+spoolid	dt1	dt2	state	$channel/$host
+\fCS258367AbTCLWiT	 0	5	ok	usenet/\-\fR
+\fCS258367AbTCLWiT	 0	7	ok	usenet/\-\fR
+\fCS258387AbTCLWiT	 0	1	ok	local/gopher\-admin\fR
+\fCS258397AbTCLWiT	 0	5	ok	smtp/funet.fi\fR
+\fCS258467AbTCLWiT	 0	21	ok	smtp/utu.fi\fR
+.TE
+.PP
 .PP
 where the fields are:
 .PP
 .PP
+.IP spoolid
+Spoolid (encoded inode and spool file mtime), which can be used
+to correlate with syslogged data with these same ids.
+.PP
 .IP timestamp
-The original spoolfile ctime (creation time) stamp in decimal.
+The original spoolfile ctime (modification time) stamp in decimal.
 .PP
 .IP fileid
 Spoolfile name after the router has processed it
