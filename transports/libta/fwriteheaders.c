@@ -51,29 +51,52 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	if (chunkbufp) {
 	  for ( ; *msgheaders; ++msgheaders ) {
 	    char *s = *msgheaders;
+	    char *p;
 	    int linelen = strlen(s);
-	    int tabsiz = 0;
-	    if (*WriteTabs == '0')
-	      /* Expand TABs to SPACEs */
-	      while (*s == '\t' && linelen > 0) {
-		++s; --linelen; tabsiz += 8;
+
+	    if (*WriteTabs == '0') {
+	      /* Expand line TABs */
+	      int col = 0;
+	      for (; linelen > 0; --linelen, ++s) {
+		if (*s == '\t')
+		  col += 8 - (col & 7);
+		else
+		  ++col;
 	      }
+	      linelen = col;
+	    }
 
 	    if (*chunkbufp == NULL)
 	      /* Actually the SMTP has already malloced a block */
-	      *chunkbufp = malloc(hsize+linelen+tabsiz+newlinelen);
+	      *chunkbufp = malloc( hsize + linelen + newlinelen );
 	    else
-	      *chunkbufp = realloc(*chunkbufp,hsize+linelen+tabsiz+newlinelen);
+	      *chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
 	    if (*chunkbufp == NULL) return -1;
 
-	    if (tabsiz) {
-	      memset( hsize + (*chunkbufp), ' ', tabsiz);
-	      hsize   += tabsiz;
+	    p = hsize + (*chunkbufp);
+
+	    if (*WriteTabs == '0') {
+	      /* Expand line TABs */
+	      int col = 0;
+	      for (; linelen > 0; --linelen, ++s) {
+		if (*s == '\t') {
+		  int c2 = col + 8 - (col & 7);
+		  while (col < c2) {
+		    *p++ = ' ';
+		    ++col;
+		  }
+		} else {
+		  ++col;
+		  *p++ = *s;
+		}
+	      }
 	    }
+
 	    if (linelen > 0)
-	      memcpy( hsize + (*chunkbufp), s, linelen);
+	      memcpy( p, s, linelen);
 	    hsize += linelen;
-	    memcpy( hsize + (*chunkbufp), newline, newlinelen );
+	    p     += linelen;
+	    memcpy( p, newline, newlinelen );
 	    hsize += newlinelen;
 	  }
 	} else {
@@ -85,21 +108,31 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 				 dot -- though it should NEVER occur
 				 in the headers, but better safe than
 				 sorry.. */
-	    if (*WriteTabs == '0')
-	      /* Expand line start TABs */
-	      while (linelen > 0 && *s == '\t') {
-		--linelen; ++s;
-		if (fwrite("        ", 1, 8, fp) != 8)
-		  return -1;
+	    if (*WriteTabs == '0') {
+	      /* Expand line TABs */
+	      int col = 0;
+	      for (; linelen > 0 && !ferror(fp); --linelen, ++s) {
+		if (*s == '\t') {
+		  int c2 = col + 8 - (col & 7);
+		  while (col < c2) {
+		    putc(' ', fp);
+		    ++col;
+		  }
+		} else {
+		  putc(*s, fp);
+		  ++col;
+		}
 	      }
+	    }
 
-	    /* Write the rest */
+	    /* Write the rest (or all) */
 	    if (linelen > 0)
 	      if (fwrite(s, 1, linelen, fp) != linelen)
 		return -1;
 
 	    hsize += linelen;
-	    if (fwrite(newline, 1, newlinelen, fp) != newlinelen) {
+	    if (ferror(fp) ||
+		fwrite(newline, 1, newlinelen, fp) != newlinelen) {
 	      return -1;
 	    }
 	    ++msgheaders;

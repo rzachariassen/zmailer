@@ -1,5 +1,8 @@
 2000-01-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
+	    Do proper TAB-expand in entire header strings, if so directed.
+
 	* utils/mxverify/*
 	    Made it as stand-alone as possible; it still uses ZMailer's
 	    configuration system, but does not need rest of the system

@@ -1122,7 +1122,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		  " smtp_sfwrite() to write %d bytes\n", (int)len);
 #endif
 
-	while (len > 0) {
+	while (len > 0 && !sferror(sfp)) {
 
 #ifdef HAVE_OPENSSL
 	  if (SS->sslmode) {
@@ -1207,7 +1207,6 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	      if (r == 0) {
 		/* TIMEOUT!  Uarrgh!! */
-		rr = -1; /* Zap the write-count! We are to FAIL! */
 		gotalarm = 1; 
 		sfp->flags |= SF_ERROR; /* Ensure the error treatment.. */
 		e = ETIMEDOUT;
