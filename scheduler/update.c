@@ -796,8 +796,6 @@ static int u_deferall(proc, vp, index, inum, offset, notary, message)
 	   states around! */
 
 	--vp->attempts; /* Did attempt this vertex! */
-	if (vp->thread)
-	  vp->thread->attempts -= 1; /* and on this thread too! */
 
 	index = -1;
 
@@ -827,8 +825,7 @@ static int u_deferall(proc, vp, index, inum, offset, notary, message)
 
 	  /* Artificially "attempt" processing of these vertices ! */
 	  ++vp->attempts; /* Did attempt this vertex! */
-	  if (vp->thread)
-	    vp->thread->attempts += 1; /* and on this thread too! */
+	  /* Don't count on the thread! */
 
 	  /* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferall %s\n",
 	     vp->cfp->logident, inum, offset, notary,
