@@ -2,6 +2,12 @@
 
 	* transports/smtp/smtp.c, transports/smtp/getmxrr.c,
 	  transports/smtp/smtp.h:
+	    Third round, completing processing also in cases,
+	    where target domain is not the same as to what is
+	    being used for connection forming.
+	
+	* transports/smtp/smtp.c, transports/smtp/getmxrr.c,
+	  transports/smtp/smtp.h:
 	    - getmxrr() -- prepared for further refinements
 	      of CNAME cache related lookups.
 	    - add_cname_cache(), cname_lookup() -- two interfaces
