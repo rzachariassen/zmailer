@@ -1,12 +1,10 @@
 %% \chapter{Build and Install}
 
-\begin{multicols}{2}
-
 This section describes how to build and install ZMailer.
 
 {\bf Tip:} Consider joining the ZMailer user-community email list.
 It is the place to meet the Gurus, in case you have problems.
-See the {\tt Overview} file in the source distribution for more
+See the ``{\tt Overview}'' file in the source distribution for more
 information.
 
 \section{Environment issues}%
@@ -28,6 +26,7 @@ originate yourself, an instance of nameserver is able to cache
 replies it receives from the network, and thus be able to faster
 yield replies for repeated questions.}
 
+\begin{multicols}{2}
 
 \section{Autoconfiguration}%
 \index{build!autoconfiguration}%
@@ -218,7 +217,8 @@ binary back to {\tt /usr/lib/sendmail}.
 
 (You may also need to do some magics with system startup scripts
 in case you are running SysV-style init. BSD {\tt /etc/rc.local}
-does need its own gymnastics too.)
+does need its own gymnastics too.
+Sample SysV-init script is at file: ``{\tt proto/zmailer.init.sh}.'')
 
 A sort of method to quickly handle your sendmail queue is to
 start ZMailer's SMTP server, reconfigure the old sendmail to
@@ -252,7 +252,7 @@ All programs are stored into  {\tt \$MAILBIN/}, and {\tt \$MAILBIN/ta/}, and
 possible older binaries are saved into ``bak'' subdirectories.
 This step should be non-destructive (anything replaced will be
 saved in a ``bak'' directory, and {\sf for some customizable files, if
-they exist new versions won't replace them}).
+they exist, new versions won't replace them}).
 
 {\bf\Large ?!}
 If this is not a from-scratch installation, be aware that the install
@@ -422,27 +422,15 @@ in {\tt /usr/local/sbin}.
 The provided skeleton aliases file on purpose contains syntax errors,
 so you are reminded to change the contents.
 
-The aliases database is rebuilt using the {\tt \$MAILBIN/newaliases} script.
-This can be invoked in several ways:
-\begin{itemize}
-\item
- directly as a command, if you have {\tt /usr/ucb/newaliases}
- symlinked properly
-\item
- by {\tt zmailer newaliases}
-\item
- by {\tt sendmail -bi} if the ZMailer {\tt sendmail} replacement is installed.
-\end{itemize}
-
 Choose one of the following methods to rebuild the database:
-\begin{alltt}\medskip\small\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
 # $MAILBIN/newaliases
 # $MAILBIN/zmailer newaliases
 # /usr/lib/sendmail -bi
 # /usr/bin/newaliases
 \medskip\hrule\medskip\end{alltt}
 
-If there are errors, correct them in the {\tt \$MAILVAR/db/aliases} file
+If there are errors, correct them in the ``{\tt aliases}'' file,
 and repeat the command until the alias database has been initialized.
 The final message should look something like:
 \begin{alltt}\medskip\scriptsize\hrule\medskip
@@ -469,16 +457,27 @@ subdomain.
 
 With the sample config files for Zmailer-2.98, and latter,
 this {\tt localnames} is actually a mapping of those various names to
-the desired forms of the canonic name, thus an example:
-\begin{alltt}\medskip\hrule\small\medskip
-astro.utu.fi        astro.utu.fi
-oj287               astro.utu.fi
-oj287.astro.utu.fi  oj287.astro.utu.fi
-oj287.utu.fi        astro.utu.fi
-sirius              sirius.utu.fi
-sirius.astro.utu.fi sirius.utu.fi
-sirius.utu.fi       sirius.utu.fi
+the desired forms of the canonic name, thus an example as seen
+in figure \vref{fig:inst:localnames}
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+#
+# Left:  input name
+# Right: what is wanted to be shown out
+#
+# List here {\bf all} names for the system
+#
+astro.utu.fi         astro.utu.fi
+oj287                astro.utu.fi
+oj287.astro.utu.fi   oj287.astro.utu.fi
+oj287.utu.fi         astro.utu.fi
+sirius               sirius.utu.fi
+sirius.astro.utu.fi  sirius.utu.fi
+sirius.utu.fi        sirius.utu.fi
 \medskip\hrule\medskip\end{alltt}
+\caption{\label{fig:inst:localnames}Samle ``{\tt localnames}'' file}
+\end{figure*}
 
 In certain cases the router is able to deduce some of the names,
 {\em however smtpserver anti-relay policy compiler will not be able
@@ -490,22 +489,34 @@ really is accepted.
 
 Compile this into runtime binary database with command:
 \begin{alltt}\medskip\hrule\medskip
-    zmailer new-localnames
+  zmailer new-localnames
 \medskip\hrule\medskip\end{alltt}
 (fall-back method is sequential rescan of the text file)
 
 \subsubsection{{\tt \$MAILVAR/db/routes} file}
 
-Add any UUCP neighbours or other special cases to this file.  For
-example (remember to keep the entries sorted):
-\begin{alltt}\medskip\hrule\small\medskip
-.toronto.ca     error!err.wrongname
-.toronto.cdn    error!err.wrongname
-alberta         uucp!alberta
-atina           smtp![140.191.2.2]
-calgary         smtp!cs-sun-fsa.cpsc.ucalgary.ca
-icnucevm.bitnet smtp!icnucevm.cnuce.cnr.it
-\medskip\hrule\end{alltt}
+Add any UUCP neighbours or other special cases to this file.
+For an example see figure \vref{fig:inst:routes}.
+
+You can compile the file into binary database with command:
+\begin{alltt}\medskip\hrule\medskip
+  zmailer new-routes
+\medskip\hrule\medskip\end{alltt}
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+#
+# ``routes'' mapping file
+#
+.toronto.ca      error!err.wrongname
+.toronto.cdn     error!err.wrongname
+alberta          uucp!alberta
+atina            smtp![140.191.2.2]
+calgary          smtp!cs-sun-fsa.cpsc.ucalgary.ca
+icnucevm.bitnet  smtp!icnucevm.cnuce.cnr.it
+\medskip\hrule\end{alltt}\medskip
+\caption{\label{fig:inst:routes}Sample of ``{\tt routes}'' file}
+\end{figure*}
 
 \subsubsection{{\tt \$MAILVAR/db/fqdnaliases} file}
 
@@ -534,8 +545,8 @@ have the ``{\tt routes}'' entry (see above) to declare something suitable:
 .domain1  error!nosuchuser
 \medskip\hrule\medskip\end{alltt}
 
-which combined with the {\tt fqdnalias} method will let
-{\tt postmaster@domain1} to exist, and report error on all others.
+which combined with the ``{\tt fqdnalias}'' method will let
+``{\tt postmaster@domain1}'' to exist, and report error on all others.
 
 Choose one of the following methods to rebuild the database:
 \begin{alltt}\medskip\hrule\small\medskip
@@ -546,7 +557,7 @@ or
 # $MAILBIN/zmailer newfqdnaliases
 \medskip\hrule\medskip\end{alltt}
 
-If there are errors, correct them in the {\tt \$MAILVAR/db/fqdnaliases} file
+If there are errors, correct them in the ``{\tt fqdnaliases}'' file,
 and repeat the command until the alias database has been initialized.
 The final message looks similar to that of the ordinary aliases case.
 
@@ -594,29 +605,34 @@ mailq   174/tcp  # Mailer transport queue
 The location of the {\tt scheduler.conf} on running system is
 {\tt \$MAILSHARE/scheduler.conf}
 
-For normal operations the current sample {\tt scheduler.conf}%
-\index{\tt scheduler.conf} file is quite sufficient, but in case
-you want to do something unusual, like using {\tt procmail} for
-local delivery.
+For normal operations of the system the current sample
+of ``{\tt scheduler.conf}''\index{\tt scheduler.conf} file
+is quite sufficient, but in case you want to do something
+unusual, like using {\tt procmail} for local delivery,
+do read on.
 
-Following is extract from the sample  {\tt scheduler.conf}-file,
-here are some salient points:
-\begin{alltt}\medskip\hrule\scriptsize\medskip
+In the figure \vref{fig:inst:scheduler1} there are some salient
+points about tuning the ``{\tt local}'' channel behaviour.
+
+\begin{figure*}
+\begin{alltt}\medskip\hrule\medskip
 local/*
- interval=5m
- idlemax=9m
- expiry=3d
- # want 20 channel slots, but only one HOST
- maxchannel=15
- maxring=5
- # Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
- # conversion on flight!
- command="mailbox -8"
- # Or with PROCMAIL as the local delivery agent:
- #command="sm -8c $channel procm"
- # Or with CYRUS server the following might do:
- #command="sm -8c $channel cyrus"
+    interval=5m
+    idlemax=9m
+    expiry=3d
+    # want 20 channel slots, but only one HOST
+    maxchannel=15
+    maxring=5
+    # Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+    # conversion on flight!
+    command="mailbox -8"
+    # Or with PROCMAIL as the local delivery agent:
+    #command="sm -8c $channel procm"
+    # Or with CYRUS server the following might do:
+    #command="sm -8c $channel cyrus"
 \medskip\hrule\medskip\end{alltt}
+\caption{\label{fig:inst:scheduler1}Sample of ``{\tt scheduler.conf}'' passage for ``{\tt local/*}'' selector}
+\end{figure*}
 
 There are three variants of the ``{\tt command=}'' entry:
 \begin{description}
@@ -656,14 +672,25 @@ for things like:
 For more information, see chapter \vref{smconfig}.
 
 
-\subsection{The {\tt smtpserver.conf}, and smtp-policy databases}
+\subsection{The ``{\tt smtpserver.conf}'', and smtp-policy databases}
+\index{smtpserver!{\tt smtpserver.conf}-file}
 
-{\em\large TO BE WRITTEN}
+These take care of such a things as preventing relay-hijack type
+of abuse of your system.
 
-In the mean time, see administration section about the same topic.
-
-Basically you want to install the boilerplates and tool scripts,
+Basically you want to install the boilerplates and the tool scripts,
 edit them a bit, and run {\em policy-builder.sh} script.
+For further details on this, see chapter \vref{adm:smtp_policy_filtering}.
+
+In {\em smtpserver} front you may need to lower the strict standards
+of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
+addresses -- ones without any sort of domain name in them.
+
+Another thing to allow is (sigh) MS-Windows-CE 1.0/2.0 gadgets with
+their totally broken SMTP sending system.
+
+Both of these things are handled by ``EHLO-style options'' described
+at chapter \vref{adm:smtpserver:ehlostyle}
 
 \subsection{Bootup Scripts}
 
@@ -703,23 +730,36 @@ and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
 
 \subsection{Crontab}
 
-Add the following entry (or equivalent) to your {\tt crontab}:
-\begin{alltt}\medskip\hrule\small\medskip
-28 0,8,16 * * * . /etc/zmailer.conf ; \verb/\/
-            $MAILBIN/zmailer resubmit
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+# Two ZMailer related root's CRONTAB entries:
+28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
+7  4      * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
+# {\rm This third one will not per default be installed into your system}
+0  0      * * * . /etc/zmailer.conf ; $MAILBIN/rotate-logs.sh
 \medskip\hrule\end{alltt}\medskip
+\caption{\label{fig:inst:crontab}ZMailer related crontab entries for root user}
+\end{figure*}
 
-
-This will resubmit messages that have been deferred with no
-useful processing possible at time of deferral.  Adjust the
+See figure \vref{fig:inst:crontab} for two crontab entires for
+the root to run.  There are three entries:
+\begin{enumerate}
+\item
+This will ``{\tt resubmit}'' messages that have been deferred with
+no useful processing possible at time of deferral.  Adjust the
 resubmission interval to suit your environment.
+{\em Having files in ``deferred'' state is a sign of troubles!
+Always investigate!}
 
-You may also want to regularly clean out the {\tt \$POSTOFFICE/public}
-and {\tt \$POSTOFFICE/postman} directories:
-\begin{alltt}\medskip\hrule\small\medskip
-7 4 * * * . /etc/zmailer.conf ; \verb/\/
-          $MAILBIN/zmailer cleanup
-\medskip\hrule\end{alltt}\medskip
+\item
+This ``{\tt cleanup}'' is to regularly clean out
+the ``{\tt \$POSTOFFICE/public}'', and ``{\tt \$POSTOFFICE/postman}''
+directories.
+
+\item
+The automatic logfile trimmer/rotater is a good idea to have, but
+you need to customize it for your environment.  More of that below.
+\end{enumerate}
 
 You may want to hardwire the location of the zmailer script.
 

@@ -201,6 +201,8 @@ for deeper details, see \vref{ref:smtp_policy_filtering}.
 
 
 \subsubsection{{\tt smtpserver.conf}; ``EHLO-style options''}
+\index{smtpserver!{\tt smtpserver.conf}; ``EHLO-style options''}
+\label{adm:smtpserver:ehlostyle}
 
 All lines that are not comments, nor start with uppercase keyword
 ``POLICY'' are ``EHLO-style patterns''.
@@ -219,6 +221,23 @@ which case the remainder of the line is a failure comment message
 to print at the client. This configuration capability is intended 
 as a way to control misbehaving client software or mailers.
 
+The meanings of the style flag characters are as follow:
+\begin{description}
+\item[f]\mbox{}\\
+Check {\tt MAIL FROM} addresses through online processing in router
+\item[t]\mbox{}\\
+Check {\tt RCPT TO} addresses through online processing in router
+\item[v]\mbox{}\\
+Allow execution of {\tt VRFY} command online at attached router
+\item[e]\mbox{}\\
+Allow execution {\tt EXPN} command online at attached router
+\item[R]\mbox{}\\
+Require addresses to be in fully qualified (domained) form:
+``{\tt local@remote}'' (strict 821)
+\item[S]\mbox{}\\
+Allow Sloppy input for systems incapable to respect RFC 821
+properly; WinCE1.0 does: ``{\tt MAIL FROM:user@domain}'' :-(
+\end{description}
 
 
 
@@ -349,7 +368,7 @@ details concerning these details.
 #|
 #| {\rm Default handling boilerplates:}
 #|
-#|   {\em "We are not relaying between off-site hosts, except when ..."}
+#|   {\rm\em "We are not relaying between off-site hosts, except when ..."}
 #|
 #| {\bf You MUST uncomment one of these default-defining pairs, or the blocking}
 #| {\bf of relay hijack will not work at all !}
@@ -374,7 +393,7 @@ details concerning these details.
 #|    {\rm reason have given open permissions for people to use their server}
 #|    {\rm as MX backup for their clients, but don't know all domains valid}
 #|    {\rm to go thru...  Substitutes accurate data to user's whimsical DNS}
-#|    {\rm maintenance activities.  Vulnerable to inbound resource abuse.}
+#|    {\rm maintenance activities.  Vulnerable to inbound MX resource abuse.}
 
 .               relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0     relaycustomer - acceptifmx - senderokwithdns +
@@ -388,11 +407,11 @@ details concerning these details.
 # [0.0.0.0]/0   senderokwithdns - acceptifdns -
 #
 #|
-#|  {\em You may also add  `test-dns-rbl +'  attribute pair to [0.0.0.0]/0 of your}
-#|  {\em choice to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.}
+#|  {\rm\em You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0 of your}
+#|  {\rm\em choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL system.}
 #|
 #| {\bf These rules mean that locally accepted hostnames MUST be listed in}
-#| {\bf the database with ``'relaytarget +'' attribute.}
+#| {\bf the database with ``relaytarget +'' attribute.}
 #|
 #|-----------
 ...
