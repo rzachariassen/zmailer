@@ -306,8 +306,6 @@ pick_next_thread(proc)
 	struct threadgroup  *thg  = proc->thg;
 	int once;
 
-	proc->pthread = NULL;
-
 	if (thg->cep->flags & CFG_QUEUEONLY)
 	  return 0; /* We are QUEUE ONLY group, no auto-switch! */
 
@@ -388,20 +386,16 @@ pick_next_thread(proc)
 }
 
 
-static void delete_thread __((struct thread *, int));
-static void
-delete_thread(thr, ok)
+void
+delete_thread(thr)
      struct thread *thr;
-     int ok;
 {
 	/* Unlink this thread from thread-chain, and thread
 	   group.  Decrement thread-group count		    */
 
 	struct threadgroup *thg = thr->thgrp;
 
-	if (thr->thrkids > 0)
-	  sfprintf(sfstderr,"delete_thread(thr=%p) thrkids=%d proc=%p\n",
-		   thr, thr->thrkids, thr->proc);
+	if (thr->thrkids || thr->jobs) return;
 
 	if (verbose)
 	  sfprintf(sfstderr,"delete_thread(%p:%s/%s) (thg=%p) jobs=%d\n",
@@ -410,39 +404,9 @@ delete_thread(thr, ok)
 	free(thr->channel);
 	free(thr->host);
 
-	if (thr->jobs != 0) {
-	  sfprintf(sfstderr," DELETE_THREAD() WITH JOBS=%d\n",thr->jobs);
-	  abort(); /* Delete only when no vertices */
-	}
-
 	/* Unlink us from the thread time-chain */
 	/* ... and thread-group-ring */
 	_thread_timechain_unlink(thr);
-
-	if (thr->proc) {
-	  /* If this thread has a process(es), we detach it(them)! */
-	  struct procinfo *proc = thr->proc;
-
-	  for (;proc; proc = proc->pnext) {
-#if 0
-	    sfprintf(sfstderr,"delete_thread() thr->proc=%p pid=%d\n",
-		     proc, proc->pid);
-#endif
-	    proc->pthread = NULL;
-	  }
-
-	  /* These are handled by  transport.c:reclaim():
-	     thr->proc->ho = NULL;
-	     thr->proc->ch = NULL;
-	  */
-	}
-
-	/* If threads count goes zero.. */
-
-	if (verbose)
-	  sfprintf(sfstderr,"delete_thread() thr->proc=%p pid=%d OF=%d\n",
-		   thr->proc, thr->proc ? (int)thr->proc->pid : 0,
-		   thr->proc ? thr->proc->overfed : 0);
 
 memset(thr, 0x55, sizeof(*thr));
 
@@ -725,7 +689,7 @@ web_detangle(vp, ok)
 	/* The thread can now be EMPTY! */
 
 	if (thr && (thr->thvertices == NULL))
-	  delete_thread(thr, ok);
+	  delete_thread(thr);
 }
 
 static int vtx_mtime_cmp __((const void *, const void *));
@@ -1102,7 +1066,7 @@ pick_next_vertex(proc)
 /*
  * The  thread_reschedule()  updates threads time-chain to match the
  * new value of wakeup for the  doagenda()  to latter use.
- * Return 0 for destroyed THREAD, 1 for existing thread.
+ * Return 0 for DESTROYED thread, 1 for EXISTING thread.
  */
 
 int
@@ -1545,14 +1509,12 @@ void thread_report(fp,mqmode)
 		thr->proc->pthread == thr) {
 
 	      int thrprocs = 0;
-	      struct procinfo *proc = thr->proc;
+	      struct procinfo *proc;
 
-	      proc = thr->proc;
-	      while (proc) {
+	      for (proc = thr->proc; proc; proc = proc->pnext) {
 		++procs;
 		++thrprocs;
 		++thrkidsum;
-		proc = proc->pnext;
 	      }
 
 	      if (mqmode & MQ2MODE_FULL) {

@@ -418,10 +418,11 @@ ta_hungry(proc)
 	     This TA may have other things to poke at! */
 
 	  thr0 = proc->pthread;
+	  proc->pthread = NULL;
 
 	  /* Disconnect the previous thread from the proc. */
 
-	  proc->pthread = NULL;
+	  thr0->thrkids -= 1;
 
 	  if (thr0 && thr0->proc == proc) /* Thread Process Chain Leader */
 	      thr0->proc = proc->pnext;
@@ -431,25 +432,15 @@ ta_hungry(proc)
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
 	  proc->pnext = proc->pprev = NULL;
 
-	  if (thr0) {
-	    thr0->thrkids -= 1;
-
-	    /* Possibly also reschedule the thread (if last thrkid!) */
-	    if (!thread_reschedule(thr0, 0, -1)) {
-	      /* THR0 is now destroyed! */
-	      thr0 = NULL;
-	    }
-	  }
-
 	  /* Next: either the thread changes, or
-	     the process moves into IDLE state */
+	     the process moves into IDLE state. */
 
-	  proc->pthread = thr0; /* old thread for picker control info; will
-				   be NULLed at exit, if no successfull job
-				   pickup. */
 	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
 	    /* We have WORK !  We are reconnected to the new thread! */
+
+	    if (thr0 && thread_reschedule(thr0, 0, -1))
+	      delete_thread(thr0);
 
 	    if (verbose)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
@@ -465,6 +456,8 @@ ta_hungry(proc)
 	    return;
 	  }
 
+	  /* proc->pthread == NULL  now */
+	  /* thr0->thrkids has been decremented */
 	  /* No work in sight, queue up '#idle\n' string. */
 
 	  if (thr0) {
@@ -473,10 +466,10 @@ ta_hungry(proc)
 	     now join back so that IDLE will disconnect us... */
 
 	    proc->pthread = thr0;
-	    proc->pthread->thrkids += 1;
-	    proc->pnext = proc->pthread->proc;
+	    thr0->thrkids += 1;
+	    proc->pnext   = thr0->proc;
 	    if (proc->pnext) proc->pnext->pprev = proc;
-	    proc->pthread->proc = proc;
+	    thr0->proc = proc;
 	  }
 
 	  if ((proc->cmdlen + 7) >= proc->cmdspc) {
@@ -509,13 +502,15 @@ ta_hungry(proc)
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
 	  proc->pnext = proc->pprev = NULL;
 
-	  if (proc->pthread) {
+	  thr0 = proc->pthread;
+	  if (thr0) {
 
-	    if (proc->pthread->proc == proc) /* Was chain head */
-	      proc->pthread->proc = proc->pnext;
-
-	    proc->pthread->thrkids -= 1;
 	    proc->pthread = NULL;
+
+	    if (thr0->proc == proc) /* Was chain head */
+	      thr0->proc = proc->pnext;
+
+	    thr0->thrkids -= 1;
 	  }
 
 	  proc->pnext = proc->thg->idleproc;
@@ -526,6 +521,9 @@ ta_hungry(proc)
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
 	  
+	  if (thr0 && thread_reschedule(thr0, 0, -1))
+	    delete_thread(thr0);
+
 	  return;
 
 	default: /* CFSTATE_ERROR: "0" */
@@ -944,7 +942,9 @@ if (verbose)
 	  proc->pthread->thrkids -= 1;
 
 	  /* Conditionally reschedule the thread */
-	  thread_reschedule(proc->pthread,0,-1);
+	  if (thread_reschedule(proc->pthread,0,-1))
+	    /* possibly need to delete it too! */
+	    delete_thread(proc->pthread);
 
 	  proc->pthread = NULL;
 

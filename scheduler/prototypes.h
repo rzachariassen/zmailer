@@ -118,6 +118,7 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 /* threads.c */
 extern struct thread *thread_head, *thread_tail;
 extern void  delete_threadgroup __((struct threadgroup *thgp));
+extern void delete_thread __((struct thread *));
 extern void  thread_linkin __((struct vertex *cp, struct config_entry *cep, int cfgid, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
 extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
