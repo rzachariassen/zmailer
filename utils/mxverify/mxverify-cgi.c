@@ -2,7 +2,7 @@
  *  mxverify-cgi  -- a ZMailer associated utility for doing web-based
  *                   analysis of ``is my incoming email working properly ?''
  *
- *  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000, 2001
+ *  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000, 2001, 2003
  *
  *  This program plays fast&loose with HTTP/CGI interface, and presumes
  *  quite exactly the <FORM ... > stuff that is present in the file
@@ -28,6 +28,9 @@ int timeout_tcpr = 60; /* 60 seconds for responses  */
 
 int plaintext = 0;
 int conn_ok   = 0;
+
+int use_ipv6 = 1;
+
 
 /* Input by 'GET' method, domain-name at CGI URL */
 
@@ -87,118 +90,6 @@ void htmlprintf(const char *fmt, ...)
 
 
 extern int mxverifyrun();
-
-int main(argc, argv)
-int argc;
-char *argv[];
-{
-  char *getstr = getenv("QUERY_STRING");
-  /* We PRESUME that in all conditions our input is of
-     something which does not need decoding... */
-
-  int err = 0;
-
-  SIGNAL_HANDLE(SIGPIPE, SIG_DFL);
-
-
-  if (!getstr) err = 1;
-  if (!getstr) getstr = "--DESTINATION-DOMAIN-NOT-SUPPLIED--";
-
-  if (!err) {
-    char *s = strchr(getstr, '&');
-    if (s) *s = 0;
-    if (strncasecmp(getstr,"DOMAIN=",7)==0) {
-      getstr += 7;
-    } else
-      err = 1;
-  }
-
-  if (argc == 3) {
-    if (strcmp(argv[1],"-domain") == 0) {
-      err = 0;
-      getstr = argv[2];
-      plaintext = 1;
-    }
-  }
-
-  if (!err) {
-    char *s, *p;
-    /* Turn '+' to space */
-    while ((s = strchr(getstr,'+')) != NULL) *s = ' ';
-    p = s = getstr;
-    while (*s) {
-      if (*s == '%') {
-	/* '%HH' -> a char */
-	int c1 = *++s;
-	int c2 = 0;
-	if ('0' <= c1 && c1 <= '9')
-	  c1 = c1 - '0';
-	else if ('A' <= c1 && c1 <= 'F')
-	  c1 = c1 - 'A' + 10;
-	else if ('a' <= c1 && c1 <= 'f')
-	  c1 = c1 - 'a' + 10;
-	else
-	  err = 1;
-	if (*s) c2 = *++s;
-	if ('0' <= c2 && c2 <= '9')
-	  c2 = c2 - '0';
-	else if ('A' <= c2 && c2 <= 'F')
-	  c2 = c2 - 'A' + 10;
-	else if ('a' <= c2 && c2 <= 'f')
-	  c2 = c2 - 'a' + 10;
-	else
-	  err = 1;
-	if (!err) {
-	  c1 <<= 4;
-	  c1 |= c2;
-	  if (c1 < ' ' || c2 >= 127)
-	    err = 1;
-	}
-	if (!err)
-	  *p++ = c1;
-	if (*s) ++s;
-	continue;
-      }
-      /* Anything else, just copy.. */
-      *p++ = *s++;
-    }
-    *p = 0;
-  }
-
-  setvbuf(stdout, NULL, _IOLBF, 0);
-  setvbuf(stderr, NULL, _IOLBF, 0);
-
-  if (!plaintext) {
-    fprintf(stdout, "Content-Type: TEXT/HTML\nPragma: no-cache\n\n");
-    fprintf(stdout, "\n");
-  }
-  htmlprintf("<HTML><HEAD><TITLE>MX-VERIFY-CGI run for ``%s''</TITLE></HEAD>\n", getstr);
-  if (!plaintext) {
-    fprintf(stdout, "<BODY BGCOLOR=WHITE TEXT=BLACK LINK=#0000EE VLINK=#551A8B ALINK=RED>\n\n");
-
-    htmlprintf("<H1>MX-VERIFY-CGI run for ``%s''</H1>\n", getstr);
-    fprintf(stdout, "<P><HR>\n");
-  }
-
-  if (!err)
-    err = mxverifyrun(getstr);
-  else {
-    if (plaintext) {
-      fprintf(stdout, "\n\nSorry, NO MX-VERIFY-CGI run with this input!\n");
-      exit(EX_USAGE);
-    }
-    fprintf(stdout, "<P>\n");
-    fprintf(stdout, "Sorry, NO MX-VERIFY-CGI run with this input!<P>\n");
-  }
-  if (!plaintext) {
-    fprintf(stdout, "<P><HR></BODY></HTML>\n");
-  }
-
-  if ((err & 127) == 0 && err != 0) err = 1; /* Make sure that after an exit()
-						the caller will see non-zero
-						exit code. */
-  return err;
-}
 
 
 #include <sysexits.h>
@@ -1074,25 +965,27 @@ int testmxsrv(thatdomain, hname)
 	i = getaddrinfo(hname, "0", &req, &ai);
 
 #if defined(AF_INET6) && defined(INET6)
-	memset(&req, 0, sizeof(req));
-	req.ai_socktype = SOCK_STREAM;
-	req.ai_protocol = IPPROTO_TCP;
-	req.ai_flags    = AI_CANONNAME;
-	req.ai_family   = AF_INET6;
+	if (use_ipv6) {
+	  memset(&req, 0, sizeof(req));
+	  req.ai_socktype = SOCK_STREAM;
+	  req.ai_protocol = IPPROTO_TCP;
+	  req.ai_flags    = AI_CANONNAME;
+	  req.ai_family   = AF_INET6;
 
-	i2 = getaddrinfo(hname, "0", &req, &ai2);
+	  i2 = getaddrinfo(hname, "0", &req, &ai2);
 
-	if (i2 == 0 && i != 0) {
-	  /* IPv6 address, but no IPv4 address ? */
-	  i = i2;
-	  ai = ai2;
-	  ai2 = NULL;
-	}
-	if (ai2 && ai) {
-	  /* BOTH ?!  Catenate them! */
-	  a = ai;
-	  while (a && a->ai_next) a = a->ai_next;
-	  if (a) a->ai_next = ai2;
+	  if (i2 == 0 && i != 0) {
+	    /* IPv6 address, but no IPv4 address ? */
+	    i = i2;
+	    ai = ai2;
+	    ai2 = NULL;
+	  }
+	  if (ai2 && ai) {
+	    /* BOTH ?!  Catenate them! */
+	    a = ai;
+	    while (a && a->ai_next) a = a->ai_next;
+	    if (a) a->ai_next = ai2;
+	  }
 	}
 #endif
 
@@ -1198,4 +1091,139 @@ int mxverifyrun(thatuser)
 	}
 
 	return rc;
+}
+
+
+
+
+int main(argc, argv)
+int argc;
+char *argv[];
+{
+  char *getstr = getenv("QUERY_STRING");
+  /* We PRESUME that in all conditions our input is of
+     something which does not need decoding... */
+
+  int err = 0;
+
+  SIGNAL_HANDLE(SIGPIPE, SIG_DFL);
+
+
+#if defined(AF_INET6) && defined(INET6)
+  {
+    int sk = socket(AF_INET6, SOCK_STREAM, 0);
+    if (sk > 0) close(sk);
+    if (sk < 0)
+      use_ipv6 = 0; /* No go :-(  Can't create IPv6 socket */
+  }
+#endif
+
+  res_init();
+#ifdef RES_USE_INET6
+#if defined(AF_INET6) && defined(INET6)
+  if (!use_ipv6)
+    _res.options &= ~RES_USE_INET6;
+#else
+  _res.options &= ~RES_USE_INET6;
+#endif
+#endif
+
+
+  if (!getstr) err = 1;
+  if (!getstr) getstr = "--DESTINATION-DOMAIN-NOT-SUPPLIED--";
+
+  if (!err) {
+    char *s = strchr(getstr, '&');
+    if (s) *s = 0;
+    if (strncasecmp(getstr,"DOMAIN=",7)==0) {
+      getstr += 7;
+    } else
+      err = 1;
+  }
+
+  if (argc == 3) {
+    if (strcmp(argv[1],"-domain") == 0) {
+      err = 0;
+      getstr = argv[2];
+      plaintext = 1;
+    }
+  }
+
+  if (!err) {
+    char *s, *p;
+    /* Turn '+' to space */
+    while ((s = strchr(getstr,'+')) != NULL) *s = ' ';
+    p = s = getstr;
+    while (*s) {
+      if (*s == '%') {
+	/* '%HH' -> a char */
+	int c1 = *++s;
+	int c2 = 0;
+	if ('0' <= c1 && c1 <= '9')
+	  c1 = c1 - '0';
+	else if ('A' <= c1 && c1 <= 'F')
+	  c1 = c1 - 'A' + 10;
+	else if ('a' <= c1 && c1 <= 'f')
+	  c1 = c1 - 'a' + 10;
+	else
+	  err = 1;
+	if (*s) c2 = *++s;
+	if ('0' <= c2 && c2 <= '9')
+	  c2 = c2 - '0';
+	else if ('A' <= c2 && c2 <= 'F')
+	  c2 = c2 - 'A' + 10;
+	else if ('a' <= c2 && c2 <= 'f')
+	  c2 = c2 - 'a' + 10;
+	else
+	  err = 1;
+	if (!err) {
+	  c1 <<= 4;
+	  c1 |= c2;
+	  if (c1 < ' ' || c2 >= 127)
+	    err = 1;
+	}
+	if (!err)
+	  *p++ = c1;
+	if (*s) ++s;
+	continue;
+      }
+      /* Anything else, just copy.. */
+      *p++ = *s++;
+    }
+    *p = 0;
+  }
+
+  setvbuf(stdout, NULL, _IOLBF, 0);
+  setvbuf(stderr, NULL, _IOLBF, 0);
+
+  if (!plaintext) {
+    fprintf(stdout, "Content-Type: TEXT/HTML\nPragma: no-cache\n\n");
+    fprintf(stdout, "\n");
+  }
+  htmlprintf("<HTML><HEAD><TITLE>MX-VERIFY-CGI run for ``%s''</TITLE></HEAD>\n", getstr);
+  if (!plaintext) {
+    fprintf(stdout, "<BODY BGCOLOR=WHITE TEXT=BLACK LINK=#0000EE VLINK=#551A8B ALINK=RED>\n\n");
+
+    htmlprintf("<H1>MX-VERIFY-CGI run for ``%s''</H1>\n", getstr);
+    fprintf(stdout, "<P><HR>\n");
+  }
+
+  if (!err)
+    err = mxverifyrun(getstr);
+  else {
+    if (plaintext) {
+      fprintf(stdout, "\n\nSorry, NO MX-VERIFY-CGI run with this input!\n");
+      exit(EX_USAGE);
+    }
+    fprintf(stdout, "<P>\n");
+    fprintf(stdout, "Sorry, NO MX-VERIFY-CGI run with this input!<P>\n");
+  }
+  if (!plaintext) {
+    fprintf(stdout, "<P><HR></BODY></HTML>\n");
+  }
+
+  if ((err & 127) == 0 && err != 0) err = 1; /* Make sure that after an exit()
+						the caller will see non-zero
+						exit code. */
+  return err;
 }
