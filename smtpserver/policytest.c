@@ -1980,6 +1980,7 @@ static int pt_rcptto(state, str, len)
 {
     const unsigned char *at;
     int localdom, relayable = 0;
+    int loopbreak = 20;
 
     if (state->always_reject) return -1;
     if (state->sender_reject) return -2;
@@ -2105,11 +2106,18 @@ static int pt_rcptto(state, str, len)
       const unsigned char *phack, *phack2;
       int llen;
 
+      --loopbreak;
+      if (loopbreak <= 0) {
+	type(NULL,0,NULL,"pt_rcptto('%.*s') loop break reached",
+	     len, str);
+	return -1;
+      }
+
       llen = (at - str);
 
       /* How about '!' ??? */
       phack = find_nonqchr(str, '!', llen);
-      if (phack != NULL && percent_accept < 0) {
+      if (phack && percent_accept < 0) {
 	/* Bang-path from left to right... */
 	/* ... each component from str to phack-1 */
 	/* state->request initialization !! */
@@ -2161,7 +2169,7 @@ static int pt_rcptto(state, str, len)
 	continue;
       }
 
-      if (phack != NULL && percent_accept < 0) {
+      if (phack && percent_accept < 0) {
 	return -2; /* Reject the percent kludge */
       }
 
@@ -2242,11 +2250,26 @@ static int pt_rcptto(state, str, len)
 	     (int)(len - (1 + at - str)), at+1, rc, state->islocaldomain);
 
       if (state->islocaldomain) {
+	const unsigned char *phack;
+	int llen = (at - str);
+
 	/* Simulate proper 'localnames' listing for this domain! */
 	if (state->values[P_A_LocalDomain])
 	  free(state->values[P_A_LocalDomain]);
 	state->values[P_A_LocalDomain] = strdup("+");
-	goto process_local_domain;
+
+	/* Hmm..  Recognize if we need to spin-back to %-hack, or !-hack */
+
+	phack = find_nonqchr(str, '!', llen);
+	if (phack)
+	  goto process_local_domain;
+	phack = find_nonqchr(str, '%', llen);
+	if (phack)
+	  goto process_local_domain;
+
+	/* Ok, local, but not %-hack or !-hack, let it fall thru to
+	   accept-if-mx */
+
       }
 
       PICK_PA_MSG(P_A_ACCEPTifMX);
