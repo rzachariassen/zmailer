@@ -179,9 +179,8 @@ forms:	FRC
 	if [ ! -d "$$FORMSDIR/bak" ]; then \
 		$(MKDIR) "$$FORMSDIR/bak" ; \
 	fi ; \
-	cd $(srcdir)/forms; \
-	files=`ls ????*`; cd .. ; \
-	for file in ????* ; \
+	cd $(srcdir); \
+	for file in forms/????* ; \
 	do \
 		name="`basename $$file`" ; \
 		if [ "$$name" != bak -a -f "$$FORMSDIR/$$name" ]; then \
@@ -189,8 +188,8 @@ forms:	FRC
 			mv -f $$FORMSDIR/$$name $$FORMSDIR/bak/$$name ; \
 		fi ; \
 		if [ "$$name" != bak ]; then \
-			echo $(INSTALL) -m 644 files/$$file $$FORMSDIR/$$name ; \
-			$(INSTALL) -m 644 files/$$file $$FORMSDIR/$$name ; \
+			echo $(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
+			$(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
 		fi ; \
 	done
 
