@@ -31,9 +31,9 @@ clean:
 distclean:
 	rm -f Makefile
 
-pkgs:	pkgs-01
+pkgs:	pkgs-01 pkgs-02
 
-pkgs-01:
+pkgs-01:	# DIRECTORIES, BINARIES
 	. $(ZCONF) ; \
 	(echo "i pkginfo"; \
 	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
@@ -41,13 +41,13 @@ pkgs-01:
 	 echo .$$ZCONFIG ; \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
-	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
+	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb ! -type d -print ; \
 	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ; \
+	 find usr/man ! -type d -print ; \
 	 echo $(RMAILPATH)|sed -e 's!^/!!' ; \
 	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
@@ -56,5 +56,24 @@ pkgs-01:
 		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
 			{print}' \
 		> proto
-	cat pkginfo.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
+	cat pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
+	pkgmk -o -f proto
+
+pkgs-02:	# CONFIGURATION FILES, FORMS, ...
+	. $(ZCONF) ; \
+	(echo "i pkginfo"; \
+	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
+	 cd $(prefix)/; ( \
+	 echo .$$ZCONFIG ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
+	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
+	  ) \
+		| sort | uniq | pkgproto ) | \
+		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next} \
+		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
+			{print}' \
+		> proto
+	cat pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
 	pkgmk -o -f proto

@@ -1,0 +1,6 @@
+PKG=ZMailer
+NAME=ZMailer configuration, forms, et.al. customizable files
+ARCH=sparc
+VERSION=%VERSION%
+CATEGORY=system
+CLASSES=none
