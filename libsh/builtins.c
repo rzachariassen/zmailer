@@ -383,9 +383,9 @@ sh_lreplace(avl, il)
 	char *fieldname;
 
 	const char *lreplace_usage =
-	  "Usage: %s variable-name fieldidx $new_value\n"
-"    where 'fieldidx' can be 1) numeric for index in a list (0..),\n"
-"    or 2) key/value list's key name\n";
+	  "Usage: %s variable-name fieldidx $new_value\n\
+    where 'fieldidx' can be 1) numeric for index in a list (0..),\n\
+    or 2) key/value list's key name\n";
 
 	key = cdar(avl);
 	if (key == NULL 

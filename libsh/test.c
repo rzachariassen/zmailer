@@ -176,6 +176,12 @@ strng(avp, i)
 	return (i ? (!len) : len);
 }
 
+#ifdef HAVE_LSTAT
+#if defined(sun) && !defined(__SVR4__)
+extern int lstat(/*const char *, struct stat* */);
+#endif
+#endif
+
 STATIC struct flags {
 	char	flag;
 	int	(*func)();
