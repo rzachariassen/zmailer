@@ -1584,6 +1584,7 @@ int insecure;
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
+#if 0 /* NO MORE TCP-WRAPPER AT SMTPSERVER -- USE POLICY CODE! */
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
     if (use_tcpwrapper && netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {
@@ -1595,6 +1596,7 @@ int insecure;
 	sleep(2);
 	exit(0);
     }
+#endif
 #endif
 
     if (SS->reject_net) {

@@ -1,5 +1,9 @@
 2000-01-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    Killed 'HAVE_TCPD_H' code from these files; using
+	    smtpserver's policy database is better -- way better..
+
 	* transports/smtp/smtp.c, include/libz.h, lib/parseintv.c,
 	  lib/Makefile.in, scheduler/readconfig.c:
 	    - Moved  parse_interval()  into library (from scheduler).

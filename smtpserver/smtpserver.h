@@ -419,9 +419,12 @@ extern int  Z_pending __(( SmtpState * ));
 extern int  Z_write   __(( SmtpState *, const void *, int ));
 extern int  Z_read    __(( SmtpState *, void *, int ));
 
+#if 0 /* NOT ANYMORE! */
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 extern int wantconn __((int sock, char *prgname));
 #endif
+#endif
+
 extern char *rfc822date __((time_t *));
 
 #ifdef HAVE_STDARG_H		/* Fwd declaration */
