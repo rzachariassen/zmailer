@@ -547,6 +547,7 @@ static int rc_command(key, arg, ce)
 	  for (av = &ce->argv[0]; *av != NULL; ++av)
 	    if (strcmp(*av, replchannel) == 0) {
 	      ce->flags |= CFG_BYCHANNEL;
+#if 0
 	      cp = ce->channel;
 	      while (cp && !(*cp == '[' || *cp == '{' ||
 			     *cp == '*' || *cp == '?')) ++cp;
@@ -554,6 +555,7 @@ static int rc_command(key, arg, ce)
 		ce->flags |= CFG_WITHHOST; /* Well, sort of..
 					      Channel-part is wild-card, thus
 					      it is also very restrictive.. */
+#endif
 	      break;
 	    }
 	}
