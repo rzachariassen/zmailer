@@ -1085,6 +1085,7 @@ deliver(SS, dp, startrp, endrp)
 	struct rcpt *more_rp = NULL;
 	char **chunkptr = NULL;
 	char *chunkblk = NULL;
+	int early_bdat_sync = 0;
 
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
@@ -1323,10 +1324,19 @@ deliver(SS, dp, startrp, endrp)
 
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
-	  /* Now it is time to do synchronization .. */
-	  if (SS->smtpfp) {
+
+	  /* Sometimes it MIGHT make sense to sync incoming
+	     status data.    When and how ? */
+
+	  if (!pipelining ||
+	      (startrp->desc->msgsizeestimate >= CHUNK_MAX_SIZE))
+	    early_bdat_sync = 1;
+
+	  if (SS->smtpfp && early_bdat_sync) {
+	    /* Now is time to do synchronization .. */
 	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
 	  }
+
 	  if (r != EX_OK) {
 	    /* XX:
 	       #error  Uncertain of what to do ...
@@ -1393,7 +1403,8 @@ deliver(SS, dp, startrp, endrp)
 	  /* Successes are reported AFTER the DATA-transfer is ok */
 	} else {
 	  /* Non-PIPELINING sync mode */
-	  if ((r = smtpwrite(SS, 1, "DATA", 0, NULL)) != EX_OK) {
+	  r = smtpwrite(SS, 1, "DATA", 0, NULL);
+	  if (r != EX_OK) {
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
 	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
@@ -3389,27 +3400,48 @@ smtp_sync(SS, r, nonblocking)
 		      logtag(), SS->pipebufsize,(int)(s-SS->pipebuf),(int)(eol-SS->pipebuf));
 	  } else { /* No newline.. Read more.. */
 	    int en;
-	    err = select_sleep(infd, timeout);
-	    en = errno;
-	    if (debug && logfp)
-	      fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",
-		      logtag(),infd,timeout,err);
-	    if (err < 0) {
-	      if (logfp)
-		fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
-	      if (SS->verboselog)
-		fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
-	      break;
+	    if (nonblocking) {
+	      err = 0;
+	    } else {
+	      err = select_sleep(infd, timeout);
+	      en = errno;
+	      if (debug && logfp)
+		fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",
+			logtag(),infd,timeout,err);
+	      if (err < 0) {
+		if (logfp)
+		  fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
+		if (SS->verboselog)
+		  fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
+		break;
+	      }
 	    }
+	    
 	  reread_line:
-	    len = read(infd,buf,sizeof(buf));
-	    err = errno;
+	    if (nonblocking) {
+	      int oldflags = fd_nonblockingmode(infd);
+
+	      len = read(infd,buf,sizeof(buf));
+	      err = errno;
+
+	      if (oldflags >= 0)
+		fcntl(infd, F_SETFL, oldflags);
+
+	    } else {
+	      len = read(infd,buf,sizeof(buf));
+	      err = errno;
+	    }
 	    
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
-	      if (err == EINTR || err == EAGAIN)
-		goto reread_line;
+	      if (nonblocking) {
+		if (err == EINTR || err == EAGAIN)
+		  break; /* XX: return ?? */
+	      } else {
+		if (err == EINTR || err == EAGAIN)
+		  goto reread_line;
+	      }
 	      /* XX: what to do with the error ? */
 	      if (logfp)
 		fprintf(logfp,"%s#\tRemote gave error %d (%s) while %d responses missing\n",

@@ -58,7 +58,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	address=$(canonicalize "$address")
 
-	ssift "$address" in
+	tsift "$address" in
 #	<in%>(.*)
 #		return (((error vms-in-pros "in%\1" $A))) ;;
 #	(.*)<@(.+)\.uucp>(.*)
@@ -135,7 +135,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 			domain="$mydomain"
 		fi
 		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# strip trash & retry
-	tfiss
+	tfist
 
 #log "BITNET name=$bitnetname, address=$address"
 	case $bitnetname in
@@ -151,7 +151,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 	# resolve names to routes, get actual channel
 	# name mostly from external database
 
-	ssift "$address" in
+	tsift "$address" in
 	(.*)<@(.+)>(.*)	
 #log "neighbourg test: domain: \2, addr: $address"
 		address="\1$plustail@\2\3"
@@ -252,7 +252,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		tmp=(local "$origaddr" "$address$plustail" $A)
 		return $(routeuser $tmp "$domain")
 		;;
-	tfiss
+	tfist
 }	# end of rrouter
 
 routes_spec (domain, address, A) {

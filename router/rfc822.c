@@ -1295,7 +1295,15 @@ sequencer(e, file)
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
 				QCHANNEL(e->e_from_trusted) =
-					strnsave(t->t_pname, TOKENLEN(t));
+				  strnsave(t->t_pname, TOKENLEN(t));
+				if (TOKENLEN(t) == 5 &&
+				    strncmp(t->t_pname,"error",5)==0) {
+				  /* Ok, "channel error", we turn this
+				     stuff over to "<>" address.. */
+				  t = makeToken("<>", 2);
+				  t->t_type = Atom;
+				  p->p_tokens = t;
+				}
 			} else {
 				/*
 				 * No origination channel, or channel

@@ -17,9 +17,12 @@ provide canonicalize
 canonicalize (address) {
 	address="$(dequote \"$address\")"
 #
-# We need string shift to detect '|' because '|' is not RFC822 special
+# We need string ssift to detect '|' because '|' is not RFC822 special
 #
 	ssift "$address" in
+	(/.+)@(.+)
+		break	# /S=R.SCHNEIDER/OU1=S28A@MHS-FSWA.ATTMAIL.COM
+		;;
 	((\|.+)|(/.+)|(:include:.+))		# unqouted pipes and files
 		echo "$address"			# pass through
 		return
@@ -122,6 +125,9 @@ canonical (host) {
 #	the router, or will you let the SMTP transport agents to handle
 #	such things in much more parallel fashion as they can under the
 #	scheduler.  If you want to do the holding, use $(canon ..) version.
+#
+#	If you don't do $(canon ..), this MTA will not rewrite remote
+#	hostname CNAME mappings.  (Which IMO isn't all that bad [mea])
 #
 
 #	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"

@@ -1,3 +1,19 @@
+1998-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p10-s10
+
+	* proto/cf/canon.cf, proto/cf/rrouter.cf:
+	    Modifications on canonicalize() routines so that
+	    X.400 gateway address of type:  /foo/bar@gate.way
+	    will go thru unharmed.
+	
+	* router/rfc822.c:
+	    If there is no "From:" header, and the source
+	    channel is "error", create a "From: <>" header.
+	    At the same time the source ENVELOPE rewrites
+	    itself to be   postmaster@local.host.name  (hmm..)
+
 1998-02-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
@@ -5,6 +21,13 @@
 	    twice wasn't prepared for a thing, and thus in some
 	    cases (all cases?) syncing after BDAT didn't quite
 	    work ok.
+
+	* proto/cf/rrouter.cf:
+	    "lotusgw!" routes_spec() tag -- exact details are
+	    in state of flux, but this is for Telecom Finland
+	    operations.  Apparently suitable pre-routing at
+	    smart MTAs can help a lot with system performance
+	    at lotus-smtp-gateways.
 
 1998-02-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
