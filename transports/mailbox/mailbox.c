@@ -52,6 +52,7 @@
 #include "libz.h"
 #include "ta.h"
 #include "splay.h"
+#include "sieve.h"
 
 #ifdef  HAVE_WAITPID
 # include <sys/wait.h>
@@ -321,12 +322,14 @@ extern char *exists __((const char *, const char *, struct rcpt *));
 extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
-extern void program __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
 extern FILE *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file));
 extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, FILE *fp, const char *file, int ismime));
 extern char **environ;
 extern int writebuf __((struct writestate *, const char *buf, int len));
 extern int writemimeline __((struct writestate *, const char *buf, int len));
+
+
+extern void program __((struct ctldesc *dp, struct rcpt *rp, const char *cmdbuf, const char *usernam, const char *timestring, int pipeuid));
 
 static int do_return_receipt_to = 0;
 static void  return_receipt __((struct ctldesc *dp, const char *retrecpaddr, const char *uidstr));
@@ -943,6 +946,20 @@ const char *file;
  *	     errors and requests for further processing in the structure
  */
 
+#ifndef __STDC__
+extern void store_to_file();
+#else
+extern void store_to_file(struct ctldesc *dp, struct rcpt *rp,
+			  const char *file, int ismbox, const char *usernam,
+			  struct stat *st, uid_t uid,
+#if	defined(HAVE_SOCKET)
+			  struct biffer *nbp,
+#endif
+			  time_t starttime,
+			  const char *timestring
+			  );
+#endif
+
 void
 deliver(dp, rp, usernam, timestring)
 	struct ctldesc *dp;
@@ -953,7 +970,6 @@ deliver(dp, rp, usernam, timestring)
 	register const char **maild;
 	int fdmail;
 	uid_t uid;
-	FILE *fp;
 	int hasdir;
 	struct stat st, s2;
 	const char *file = NULL;
@@ -968,24 +984,26 @@ deliver(dp, rp, usernam, timestring)
 #endif
 	const char *unam = usernam;
 	struct passwd *pw = NULL;
-	const char *mboxlocks = getzenv("MBOXLOCKS");
-	const char *filelocks = NULL;
-	const char *locks     = NULL;
-	time_t starttime, endtime;
+	time_t starttime;
 
 	time(&starttime);
 	notary_setxdelay(0); /* Our initial speed estimate is
 				overtly optimistic.. */
 
-	if (mboxlocks == NULL || *mboxlocks == 0 )
-	  mboxlocks = MBOXLOCKS_default;
+	if (sscanf(rp->addr->misc,"%d",&uid) != 1) {
+	  char buf[1000];
+	  if (verboselog) {
+	    fprintf(verboselog,"mailbox: User recipient address privilege code invalid (non-numeric!): '%s'\n",rp->addr->misc);
+	  }
+	  sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [non-numeric!]: '%.200s')", rp->addr->misc);
+	  notaryreport(NULL,"failed",
+		       "5.3.0 (User address recipient privilege code invalid)",
+		       buf);
+	  DIAGNOSTIC(rp, usernam, EX_SOFTWARE,
+		     "Non-numeric recipient privilege code: \"%s\"", rp->addr->misc);
+	  return;
+	}
 
-	if ((filelocks = strchr(mboxlocks,':')))
-	  ++filelocks;
-	else
-	  filelocks = "";
-
-	uid  = atol(rp->addr->misc);
 	plus = strchr(usernam,'+');
 	switch (*usernam) {
 	case TO_PIPE:		/* pipe to program */
@@ -1003,11 +1021,12 @@ deliver(dp, rp, usernam, timestring)
 		       "mail to program disallowed", 0);
 	    return;
 	  }
-	  program(dp, rp, usernam, timestring);
+	  program(dp, rp, usernam, "", timestring, uid);
 	  /* DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
 	     "mailing to programs (%s) is not supported",
 	     rp->addr->user); */
 	  return;
+
 	case TO_FILE:		/* append to file */
 
 	  /* Solaris has "interesting" /dev/null -- it is a symlink
@@ -1271,6 +1290,99 @@ deliver(dp, rp, usernam, timestring)
 	  return;			/* setupuidgid sets status */
 	}
 
+	if (ismbox) {
+
+	  struct sieve sv;
+	  memset(&sv,0,sizeof(sv));
+	  sv.pw       = pw;
+	  sv.uid      = uid;
+	  sv.username = usernam;
+
+	  if (sieve_start(&sv) == 0) {
+	    for (;
+		 sv.state != 0;
+		 sieve_iterate(&sv)) {
+
+	      /* XX: SIEVE PROCESSOR/ITERATOR */
+	      int cmd = sieve_command(&sv);
+
+	      switch(cmd) {
+	      case SIEVE_RUNPIPE:
+		program(dp, rp, sv.pipecmdbuf, usernam, timestring, sv.pipeuid);
+		break;
+	      case SIEVE_USERSTORE:
+		store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
+#ifdef HAVE_SOCKET
+			      nbp,
+#endif
+			      starttime, timestring );
+		break;
+	      case SIEVE_DISCARD:
+		/* This happens only ONCE per recipient, if ever */
+		notaryreport(rp->addr->user,"delivery",
+			     "2.2.0 (Discarded successfully)",
+			     "x-local; 250 (Discarded successfully)");
+		DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
+		break;
+	      }
+	    }
+	    /* Cleanup of sieve processor */
+	    sieve_end(&sv);
+	  }
+	  
+	} else {
+
+	  store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
+#ifdef HAVE_SOCKET
+			nbp,
+#endif
+			starttime, timestring );
+	}
+
+	/* [Thomas Knott]  "Return-Receipt-To:" */
+	if (do_return_receipt_to) {
+	  retrecptaddr = find_return_receipt_hdr(rp);
+	  if (retrecptaddr != NULL)
+	    return_receipt(dp,retrecptaddr,rp->addr->misc);
+	}
+}
+
+void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
+#ifdef HAVE_SOCKET
+		   nbp,
+#endif
+		   starttime,
+		   timestring
+		   )
+struct ctldesc *dp;
+struct rcpt *rp;
+const char *file, *usernam;
+int ismbox;
+struct stat *st;
+uid_t uid;
+#ifdef HAVE_SOCKET
+struct biffer *nbp;
+#endif
+time_t starttime;
+const char *timestring;
+{
+	int fdmail;
+	struct stat s2;
+	FILE *fp;
+	const char *mboxlocks = getzenv("MBOXLOCKS");
+	const char *filelocks = NULL;
+	const char *locks     = NULL;
+	time_t endtime;
+
+	if (mboxlocks == NULL || *mboxlocks == 0 )
+	  mboxlocks = MBOXLOCKS_default;
+
+	if ((filelocks = strchr(mboxlocks,':')))
+	  ++filelocks;
+	else
+	  filelocks = "";
+
+
 	if (verboselog)
 	  fprintf(verboselog,
 		  "To open a file with euid=%d egid=%d file='%s'\n",
@@ -1316,7 +1428,7 @@ deliver(dp, rp, usernam, timestring)
 	    setrootuid(rp);
 	    return;
 	}
-	if (st.st_ino != s2.st_ino || st.st_dev != s2.st_dev ||
+	if (st->st_ino != s2.st_ino || st->st_dev != s2.st_dev ||
 	    s2.st_nlink != 1) {
 	    notaryreport(file,"failed",
 			 "5.4.5 (Lost race for mailbox file)",
@@ -1331,7 +1443,7 @@ deliver(dp, rp, usernam, timestring)
 	alarm(180); /* Set an timed interrupt coming to us to break
 		       overlengthy file lock acquisition.. */
 
-	if (!S_ISREG(st.st_mode))
+	if (!S_ISREG(st->st_mode))
 	  /* don't lock non-files */;
 	else {
 
@@ -1438,7 +1550,7 @@ deliver(dp, rp, usernam, timestring)
 
 	fp = putmail(dp, rp, fdmail, "a+", timestring, file);
 	
-	if (S_ISREG(st.st_mode)) {
+	if (S_ISREG(st->st_mode)) {
 
 	  /* Previously acquired locks need to be released,
 	     preferrably in reverse order */
@@ -1499,22 +1611,16 @@ deliver(dp, rp, usernam, timestring)
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
-	} else
+	} else {
 	  close(fdmail);
 #if	defined(HAVE_SOCKET)
-	if (fp) {
-	  if (nbp != NULL) /* putmail() has produced a DIAGNOSTIC */
-	    nbp->offset = -1;
+	  if (fp) {
+	    if (nbp != NULL) /* putmail() has produced a DIAGNOSTIC */
+	      nbp->offset = -1;
 	}
 #endif	/* BIFF || RBIFF */
-
-	/* [Thomas Knott]  "Return-Receipt-To:" */
-	if (do_return_receipt_to) {
-	  retrecptaddr = find_return_receipt_hdr(rp);
-	  if (retrecptaddr != NULL)
-	    return_receipt(dp,retrecptaddr,rp->addr->misc);
 	}
-
+	
 	return;
 }
 
@@ -1792,14 +1898,15 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 }
 
 void
-program(dp, rp, user, timestring)
+program(dp, rp, cmdbuf, user, timestring, uid)
 	struct ctldesc *dp;
 	struct rcpt *rp;
+	const char *cmdbuf;
 	const char *user;
 	const char *timestring;
+	int uid;
 {
 	int i, pid, in[2], out[2];
-	int uid = -1;
 	int gid = -1;
 	const char *env[20], *s;
 	char buf[8192], *cp, *cpe;
@@ -1826,18 +1933,6 @@ program(dp, rp, user, timestring)
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
-	if (sscanf(rp->addr->misc,"%d",&uid) != 1) {
-	  if (verboselog) {
-	    fprintf(verboselog,"mailbox: User recipient address privilege code invalid (non-numeric!): '%s'\n",rp->addr->misc);
-	  }
-	  sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [non-numeric!]: '%.200s')", rp->addr->misc);
-	  notaryreport(NULL,"failed",
-		       "5.3.0 (User address recipient privilege code invalid)",
-		       buf);
-	  DIAGNOSTIC(rp, user, EX_SOFTWARE,
-		     "Bad privilege for a pipe \"%s\"", rp->addr->misc);
-	  return;
-	}
 	pw = getpwuid(uid);
 	if (pw == NULL) {
 
@@ -1856,7 +1951,10 @@ program(dp, rp, user, timestring)
 	  sprintf(cp, "HOME=%.500s", pw->pw_dir);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
-	  sprintf(cp, "USER=%.100s", pw->pw_name);
+	  if (user[0] == 0)
+	    sprintf(cp, "USER=%.100s", pw->pw_name);
+	  else
+	    sprintf(cp, "USER=%.100s", user);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}

@@ -1,3 +1,10 @@
+1998-06-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/sieve.c, transports/mailbox/mailbox.c,
+	  include/sieve.h, transports/mailbox/Makefile.in:
+	      Hooks for 'SIEVE' things; ways for the user to define
+	      message arrival time filtering.
+
 1998-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* contrib/spamlist.py, utils/policy-builder.sh.in:
