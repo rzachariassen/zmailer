@@ -2062,7 +2062,7 @@ smtpconn(SS, host, noMX)
 	  /* Cleanup of the MXH array */
 	  for (i = 0; i < MAXFORWARDERS; ++i) {
 	    if (SS->mxh[i].host != NULL)
-	      free(SS->mxh[i].host);
+	      free(SS->mxh[i].host); /* memset() below clears these pointers */
 	    if (SS->mxh[i].ai != NULL)
 	      freeaddrinfo(SS->mxh[i].ai);
 	  }
@@ -2521,6 +2521,7 @@ makeconn(SS, ai, ismx)
 
 	    /* For possible reconnect */
 	    if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
+	    SS->ai.ai_canonname = NULL;
 	    memcpy(&SS->ai, ai, sizeof(*ai));
 	    memset(&SS->ai_addr, 0, sizeof(SS->ai_addr));
 	    if (ai->ai_family == AF_INET)
@@ -3179,16 +3180,18 @@ void
 smtp_flush(SS)
 	SmtpState *SS;
 {
+	int i;
+
 	SS->pipebufsize = 0;
 	if (SS->pipebuf == NULL) {
 	  SS->pipebufspace = 240;
 	  SS->pipebuf = malloc(SS->pipebufspace);
 	  if (! SS->pipebuf) zmalloc_failure = 1;
 	}
-	for (;SS->pipeindex > 0; --SS->pipeindex) {
-	  if (SS->pipecmds[SS->pipeindex-1])
-	    free(SS->pipecmds[SS->pipeindex-1]);
-	  SS->pipecmds[SS->pipeindex-1] = NULL;
+	for (i = 0; i < SS->pipeindex; ++i) {
+	  if (SS->pipecmds[i])
+	    free(SS->pipecmds[i]);
+	  SS->pipecmds[i] = NULL;
 	}
 	SS->pipeindex   = 0;
 	SS->pipereplies = 0;
@@ -3831,15 +3834,6 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	    }
 	  } /* end if 'code' interpretation */
 
-	  if (! nonblocking) {
-	    if (SS->pipecmds[idx] != NULL)
-	      free(SS->pipecmds[idx]);
-	    else
-	      if (logfp && idx > 0)
-		fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
-	    SS->pipecmds[idx] = NULL;
-	  }
-
 	  /* Now compress away that processed dataset */
 	  if (eol > SS->pipebuf) {
 	    int sz = eol - SS->pipebuf;
@@ -3851,14 +3845,6 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	  }
 
 	} /* for(..; idx < SS->pipeindex ; ..) */
-
-	if (! nonblocking) {
-	  for (idx = 0; idx < SS->pipeindex; ++idx) {
-	    if (SS->pipecmds[idx] != NULL)
-	      free(SS->pipecmds[idx]);
-	    SS->pipecmds[idx] = NULL;
-	  }
-	}
 
 	rc = EX_OK;
 	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
@@ -3920,10 +3906,8 @@ SmtpState *SS;
 	    while (SS->pipebufspace < (SS->pipebufsize+r+2))
 	      SS->pipebufspace <<= 1;
 
-	    if (SS->pipebuf == NULL)
-	      SS->pipebuf = malloc(SS->pipebufspace);
-	    else
-	      SS->pipebuf = realloc(SS->pipebuf,SS->pipebufspace);
+	    /* malloc(size) == realloc(NULL,size) */
+	    SS->pipebuf = realloc(SS->pipebuf,SS->pipebufspace);
 	    if (! SS->pipebuf) zmalloc_failure = 1;
 
 	    if (SS->pipebuf)
@@ -3950,20 +3934,16 @@ smtppipestowage(SS, strbuf, syncrp)
 {
 	if (SS->pipespace <= SS->pipeindex + 2) {
 	  SS->pipespace += 8;
-	  if (SS->pipecmds == NULL) {
-	    SS->pipecmds  = (char**)malloc(SS->pipespace * sizeof(char*));
-	    SS->pipercpts = (struct rcpt **)malloc(SS->pipespace *
-						   sizeof(struct rcpt*));
-	    SS->pipestates = (int*)malloc(SS->pipespace * sizeof(int));
-	  } else {
-	    SS->pipecmds  = (char**)realloc((void**)SS->pipecmds,
-					    SS->pipespace * sizeof(char*));
-	    SS->pipercpts = (struct rcpt **)realloc((void**)SS->pipercpts,
-						    SS->pipespace *
-						    sizeof(struct rcpt*));
-	    SS->pipestates  = (int*)realloc((void*)SS->pipestates,
-					    SS->pipespace * sizeof(int));
-	  }
+
+	  /* realloc(NULL,size) == malloc(size) */
+
+	  SS->pipecmds  = (char**)realloc((void*)SS->pipecmds,
+					  SS->pipespace * sizeof(char*));
+	  SS->pipercpts = (struct rcpt **)realloc((void*)SS->pipercpts,
+						  SS->pipespace *
+						  sizeof(struct rcpt*));
+	  SS->pipestates  = (int*)realloc((void*)SS->pipestates,
+					  SS->pipespace * sizeof(int));
 	}
 
 	SS->pipecmds  [SS->pipeindex] = strbuf ? strdup(strbuf) : NULL;
@@ -4227,7 +4207,7 @@ rightmx(spec_host, addr_host, cbparam)
 	  freeaddrinfo(SS->mxh[i].ai);
 	  SS->mxh[i].ai = NULL;
 	  free(SS->mxh[i].host);
-	  SS->mxh[i++].host = NULL;
+	  SS->mxh[i].host = NULL;
 	}
 	return 0;
 }
