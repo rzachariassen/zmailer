@@ -83,6 +83,10 @@ time_t now;
 extern time_t retryat_time;	/* diagnostic() thing */
 
 
+static void tcpstream_nagle   __((int fd));
+static void tcpstream_denagle __((int fd));
+
+
 time_t starttime, endtime;
 
 
@@ -1633,6 +1637,13 @@ deliver(SS, dp, startrp, endrp)
 	time(&body_start); /* "DATA" issued, and synced */
 
 
+	if (SS->smtpfp) {
+#ifdef HAVE_OPENSSL
+	  if (!SS->sslmode)
+#endif /* - HAVE_OPENSSL */
+	    tcpstream_nagle(sffileno(SS->smtpfp));
+	}
+
 	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
 				  convertmode, 0, chunkblkptr);
 
@@ -1684,6 +1695,7 @@ deliver(SS, dp, startrp, endrp)
 
 	if (SS->hsize < 0) {
 	  int r = EX_TEMPFAIL;
+	  if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
 	  for (rp = startrp; rp != endrp; rp = rp->next)
 	    if (rp->lockoffset) {
 	      time(&endtime);
@@ -1724,6 +1736,7 @@ deliver(SS, dp, startrp, endrp)
 
 	if (r != EX_OK) {
 	  time(&endtime);
+	  if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
 	  notary_setxdelay((int)(endtime-starttime));
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
 	    if (rp->lockoffset) {
@@ -1786,13 +1799,12 @@ deliver(SS, dp, startrp, endrp)
 	     culprit.. [mea] 2002-Jun-25
 
 	     Of course this separation might not survive possible
-	     packet retransmission, and nagle-merge... */
+	     packet retransmission, and nagle-re-merge... */
 
 	  report(SS, "DATA-flush (wait)");
 	  if (SS->smtpfp) sfsync(SS->smtpfp);
-	  /* To prevent the system internal auto-nagle from
-	     combining two successive writes, sleep a bit here! */
-	  sleep(1);
+	  if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
+
 
 	  report(SS, "DATA-dot wait");
 	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
@@ -3333,6 +3345,8 @@ int bdat_flush(SS, lastflg)
 	volatile int r;   /* longjmp() globber danger */
 	char lbuf[80];
 
+	if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
+
 	if (lastflg)
 	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
 	else
@@ -3342,8 +3356,9 @@ int bdat_flush(SS, lastflg)
 
 	r = smtpwrite(SS, 1, lbuf, 1 /* ALWAYS "pipeline" */, NULL);
 
-	if (r != EX_OK)
+	if (r != EX_OK) {
 	  return r;
+	}
 
 	for ( pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp); ) {
 
@@ -4503,4 +4518,46 @@ void getdaemon()
 
 	if (!pw) daemon_uid = 0; /* Let it be root, if nothing else */
 	else     daemon_uid = pw->pw_uid;
+}
+
+
+
+static void tcpstream_nagle(fd)
+     int fd;
+{
+	if (fd < 0) return;
+
+#ifdef TCP_CORK
+	int i = 1, r;
+	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
+#else
+#ifdef TCP_NOPUSH
+	int i = 1, r;
+	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
+#else
+	/* No method at hand if neither of above.. */
+#endif
+#endif
+}
+
+static void tcpstream_denagle(fd)
+     int fd;
+{
+	if (fd < 0) return;
+
+#ifdef TCP_CORK
+	int i = 0, r;
+	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
+	if (r < 0)
+	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#else
+#ifdef TCP_NOPUSH
+	int i = 0, r;
+	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
+	if (r < 0)
+	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#else
+	sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#endif
+#endif
 }

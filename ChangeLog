@@ -1,5 +1,10 @@
 2002-07-05  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c:
+	    An attempt to create a smart way (at least at Linux and at some
+	    BSD's) to de-nagle tcp streams in high-performance manner.
+	    Low-performance de-nagle is:  sleep(1) ...
+
 	* configure.in, acconfig.h, aclocal.m4:
 	    Updates to remove couple of deprecated features, adding
 	    third parameters (often also second) to AC_DEFINE() macroes.
@@ -17,7 +22,7 @@
 	
 	* router/libdb/gdbm.c, configure.in:
 	    Similar code work to SleepyCat DB for GDBM.
-	    Testing for library having   gdbm_fdesk()   function.
+	    Testing for library having   gdbm_fdesc()   function.
 
 	* router/db.c, router/function.c, router/prototypes.h,
 	  router/libdb/search.h:
