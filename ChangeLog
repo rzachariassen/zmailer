@@ -1,3 +1,37 @@
+1999-12-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/policy-builder.sh.in:
+	    Add some comments to the generated  smtp-policy.dat  file
+	    about which source section (file) is beginning..
+	    Add some comments to the generated  smtp-policy.dat  file
+	    about which source section (file) is beginning..
+
+	* Makefile.in, configure.in, sfio/Makefile.in, sfio/README,
+	  sfio/src/lib/sfio/makefile{,.in}, include/ta.h:
+	    Autoconfigure key parts of the  SFIO  library make system
+	    to fit ZMailer environment.  Use  SFIO  stuff at Transport
+	    Agents.
+
+	* transports/libta/{,f}writeheaders.c, transports/libta/Makefile.in,
+	  transports/errormail/errormail.c, transports/hold/hold.c,
+	  transports/sm/sm.c, transports/mailbox/mailbox.c:
+	    Renamed former  writeheaders()  to be  fwriteheaders().
+
+	* transports/libta/swriteheaders.c, transports/libra/Makefile.in,
+	  transports/smtp/Makefile.in, transports/smtp/smtp.c:
+	    Created modified version of  writeheaders(), namely
+	    swriteheaders() which instead of 'FILE *' has 'Sfio_t *'
+	    as its 'fp' parameter.  Using that at smtp.c
+
+	* transports/smtp/Makefile.in, transports/smtp/smtp.c,
+	  transports/smtp/appendlet.c, transports/smtp/smtp.h:
+	    Split up the big monolithic  smtp.c  a bit:
+		 608   16378 transports/smtp/appendlet.c
+		4182  112512 transports/smtp/smtp.c
+		 410   12057 transports/smtp/smtp.h
+	    Further smarts at the transport-time conversions will
+	    go into the  appendlet.c  alone..
+	
 1999-11-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/Makefile.in, router/daemonsub.c, router/functions.c,

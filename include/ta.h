@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  */
 /*
- *	A plenty of changes, copyright Matti Aarnio 1990-1995
+ *	A plenty of changes, copyright Matti Aarnio 1990-1999
  */
 
 #ifndef _Z_TA_H_
@@ -12,6 +12,13 @@
 #ifdef HAVE_CONFIG_H
 #include "hostenv.h"
 #endif
+
+#include <stdio.h>
+#ifndef FILE /* Some systems don't have this as a MACRO.. */
+# define FILE FILE
+#endif
+#include <sfio.h>
+
 
 struct taddress {
 	struct taddress	*link;		/* next sender / sender for this rcpt */
@@ -215,8 +222,10 @@ extern int headers_to_mime2 __((struct rcpt *rp, const char *defcharset, FILE *v
 extern int headers_need_mime2 __(( struct rcpt *rp ));
  
 
-/* writeheaders.c: */
-extern int writeheaders __((struct rcpt *rp, FILE *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
+/* fwriteheaders.c: */
+extern int fwriteheaders __((struct rcpt *rp, FILE *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
+/* swriteheaders.c: */
+extern int swriteheaders __((struct rcpt *rp, Sfio_t *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
 
 /* buildbndry.c: */
 extern char *mydomain __((void));

@@ -31,7 +31,6 @@
 #define DefCharset "ISO-8859-1"
 
 #include "hostenv.h"
-#include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <pwd.h>
@@ -44,13 +43,15 @@
 #include <unistd.h> /* F_LOCK is there at some systems.. */
 #endif
 #include <string.h>
+
+#include "ta.h"
+
 #include "mail.h"
 #include "zsyslog.h"
 #include "zmsignal.h"
 
 #include "zmalloc.h"
 #include "libz.h"
-#include "ta.h"
 #include "splay.h"
 #include "sieve.h"
 
@@ -1835,7 +1836,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	/* Add the From_ line and print out the header */
 
 	if (fprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
-	    || writeheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
+	    || fwriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
 	  failed = 1;
 
 	if (!failed && rp->orcpt) {
@@ -2412,7 +2413,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	    *filep = emalloc(2048);
 	    if (fmtmbox(*filep,2048,*maild,uname,pw)) {
 	      (*filep)[70]='\0';
-	      strcat(filep,"...");
+	      strcat(*filep,"...");
 	      notaryreport(rp->addr->user, "failed",
 		       "5.3.1 (too long path for user spool mailbox file)",
 		       "x-local; 566 (too long path for user spool mailbox file)");
@@ -3408,7 +3409,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 
 	rp = dp->recipients;
 	/* write the (new) headers with local "Received:"-line.. */
-	writeheaders(rp, mfp, "\n", 0, 0, NULL);
+	fwriteheaders(rp, mfp, "\n", 0, 0, NULL);
 	fprintf(mfp, "\n");
 
 	fprintf(mfp, "--%s--\n", boundarystr);

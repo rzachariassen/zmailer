@@ -9725,6 +9725,7 @@ trap 'rm -fr `echo "Makefile
 	transports/expirer/Makefile	transports/expirer/manual-expirer \
 	compat/Makefile			compat/rmail/Makefile		\
 	compat/sendmail/Makefile					\
+	sfio/Makefile			sfio/src/lib/sfio/makefile	\
 	lib/Makefile			libc/Makefile			\
 	libident/Makefile		libs/Makefile			\
 	libsh/Makefile			libmalloc/Makefile		\
@@ -9908,6 +9909,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	transports/expirer/Makefile	transports/expirer/manual-expirer \
 	compat/Makefile			compat/rmail/Makefile		\
 	compat/sendmail/Makefile					\
+	sfio/Makefile			sfio/src/lib/sfio/makefile	\
 	lib/Makefile			libc/Makefile			\
 	libident/Makefile		libs/Makefile			\
 	libsh/Makefile			libmalloc/Makefile		\

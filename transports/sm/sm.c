@@ -7,7 +7,6 @@
 #define DefCharset "ISO-8859-1"
 
 #include "hostenv.h"
-#include <stdio.h>
 #include <ctype.h>
 #include <pwd.h>
 #include "zmsignal.h"
@@ -15,10 +14,10 @@
 #include <sys/file.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include "ta.h"
 #include "mail.h"
 #include "zmalloc.h"
 #include "zsyslog.h"
-#include "ta.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -713,15 +712,15 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  append_header(startrp,"Return-Path: <%.999s>", uu);
 	}
 	if (mp->flags & MO_CRLF) {
-	  writeheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
+	  fwriteheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
 	  fprintf(tafp, "\r\n");
 	} else {
-	  writeheaders(startrp, tafp, "\n",   convertmode, maxwidth, NULL);
+	  fwriteheaders(startrp, tafp, "\n",   convertmode, maxwidth, NULL);
 	  fprintf(tafp, "\n");
 	}
 
 	if (verboselog) {
-	  writeheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
+	  fwriteheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
 	  fprintf(verboselog, "\n");
 	}
 

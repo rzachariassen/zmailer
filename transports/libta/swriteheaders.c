@@ -12,17 +12,19 @@
  *	(will do it with MIME-2 code -- always in 80 chars..)
  */
 
+/* This has a CLOSE cousin:  fwriteheaders()
+   with difference of only the fp argument!  */
+
 #include "hostenv.h"
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "zmalloc.h"
 #include "ta.h"
 
 int
-writeheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
+swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	struct rcpt *rp;
-	FILE *fp;
+	Sfio_t *fp;
 	const char *newline;
 	int convertmode, maxwidth;
 	char ** chunkbufp;
@@ -54,18 +56,18 @@ writeheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	    hsize += newlinelen;
 	  }
 	} else {
-	  while (*msgheaders && !ferror(fp)) {
+	  while (*msgheaders && !sferror(fp)) {
 	    int linelen = strlen(*msgheaders);
 	    if (**msgheaders == '.')
-	      putc('.',fp); /* ALWAYS double-quote the begining
-			       dot -- though it should NEVER occur
-			       in the headers, but better safe than
-			       sorry.. */
-	    if (fwrite(*msgheaders,1,linelen,fp) != linelen) {
+	      sfputc(fp,'.'); /* ALWAYS double-quote the begining
+				 dot -- though it should NEVER occur
+				 in the headers, but better safe than
+				 sorry.. */
+	    if (sfwrite(fp, *msgheaders, linelen) != linelen) {
 	      return -1;
 	    }
 	    hsize += linelen;
-	    if (fwrite(newline,1,newlinelen,fp) != newlinelen) {
+	    if (sfwrite(fp, newline, newlinelen) != newlinelen) {
 	      return -1;
 	    }
 	    ++msgheaders;
@@ -73,7 +75,7 @@ writeheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	}
 #if 0 /* CHANGE: All transport agents must now write the blank line
 	         separating headers, and the messagebody! */
-	if (fwrite(newline,1,newlinelen,fp) != newlinelen)
+	if (sfwrite(fp, newline, newlinelen) != newlinelen)
 		return -1;
 	hsize += newlinelen;
 #endif

@@ -1799,6 +1799,7 @@ AC_OUTPUT(Makefile
 	transports/expirer/Makefile	transports/expirer/manual-expirer \
 	compat/Makefile			compat/rmail/Makefile		\
 	compat/sendmail/Makefile					\
+	sfio/Makefile			sfio/src/lib/sfio/makefile	\
 	lib/Makefile			libc/Makefile			\
 	libident/Makefile		libs/Makefile			\
 	libsh/Makefile			libmalloc/Makefile		\

@@ -4,176 +4,7 @@
  *	Copyright 1991-1999 by Matti Aarnio -- modifications, including MIME
  */
 
-#define	RFC974		/* If BIND, check that TCP SMTP service is enabled */
-
-#define	TIMEOUT		(5*60)	/* timeout in seconds, per exchange */
-#define ALARM_BLOCKSIZE (6*560) /* less than 'smtp_bufsize' */
-#define ALARM_DOTTOOK   (60*60)
-			/* RFC 1123 recommends:
-			     - Initial 220: 5 minutes
-			     - MAIL, RCPT : 5 minutes
-			     - DATA initialization (until "354.."): 2 minutes
-			     - While writing data, a block
-			       at the time: 3 minutes  (How large a block ?)
-			     - From "." to "250 OK": 10 minutes
-
-			   I think we simplify:  5 minutes each, except "."
-			   to "250 ok" which is 60 (!) minutes. (sendmail's
-			   default value.)
-			   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
-
-			 */
-
-#define DefCharset "ISO-8859-1"
-
-
-#define CHUNK_MAX_SIZE 64000
-
-#define DO_CHUNKING 1
-
-
-#include "hostenv.h"
-#include <stdio.h>
-#ifdef linux_xx
-#define __USE_BSD 1
-#endif
-#include <ctype.h>
-#include <errno.h>
-#include <pwd.h>
-#include "zmsignal.h"
-#include <sysexits.h>
-/* #include <strings.h> */ /* poorly portable.. */
-#ifdef HAVE_STDARG_H
-# include <stdarg.h>
-#else
-# include <varargs.h>
-#endif
-#include <fcntl.h>
-#include <sys/file.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <setjmp.h>
-#include <string.h>
-
-#include "mail.h"
-#include "zsyslog.h"
-#include "ta.h"
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-#include <netdb.h>
-#ifndef EAI_AGAIN
-# include "netdb6.h"
-#endif
-
-#include "zmalloc.h"
-#include "libz.h"
-#include "libc.h"
-
-#include "dnsgetrr.h"
-
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#ifdef NOERROR
-#undef NOERROR		/* Several SysV-streams using systems have NOERROR,
-			   which is not the same as  <arpa/nameser.h> has! */
-#endif
-#include <arpa/nameser.h>
-#include <resolv.h>
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16	/* Text strings */
-#endif
-#ifndef T_RP
-# define T_RP 17	/* Responsible person */
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18	/* AFS cell database */
-#endif
-#ifndef T_X25
-# define T_X25 19	/* X.25 calling address */
-#endif
-#ifndef T_ISDN
-# define T_ISDN 20	/* ISDN calling address */
-#endif
-#ifndef T_RT
-# define T_RT 21	/* router */
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22	/* NSAP address */
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23	/* reverse NSAP lookup (depreciated) */
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200		/* Shuffle addresses */
-#endif
-
-
-
-#ifndef	SEEK_SET
-#define	SEEK_SET	0
-#endif	/* SEEK_SET */
-#ifndef SEEK_CUR
-#define SEEK_CUR   1
-#endif
-#ifndef SEEK_XTND
-#define SEEK_XTND  2
-#endif
-
-#ifndef	IPPORT_SMTP
-#define	IPPORT_SMTP	25
-#endif 	/* IPPORT_SMTP */
-
-#define	PROGNAME	"smtpclient"	/* for logging */
-#define	CHANNEL		"smtp"	/* the default channel name we deliver for */
-
-#ifndef	MAXHOSTNAMELEN
-#define	MAXHOSTNAMELEN 64
-#endif	/* MAXHOSTNAMELEN */
-
-#define MAXFORWARDERS	128	/* Max number of MX rr's that can be listed */
-
-#define GETADDRINFODEBUG	0 /* XXX: Only w/ bundled libc/getaddrinfo.c */
-#define GETMXRRDEBUG		1
-
+#include "smtp.h"
 
 char *defcharset;
 char myhostname[MAXHOSTNAMELEN+1];
@@ -218,193 +49,13 @@ int D_alloc = 0;		/* Memory usage debug */
 int no_pipelining = 0;		/* In case the system just doesn't cope with it */
 int prefer_ip6 = 1;
 
-static const char FAILED[] = "failed";
-
-#ifdef	lint
-#undef	putc
-#define	putc	fputc
-#endif	/* lint */
-
-/* Extended SMTP flags -- can downgrade from 8-bit to 7-bit while in transport
-   IF  MIME-Version: is present, AND Content-Transfer-Encoding: 8BIT
-   For selected "force_8bit" remotes can also DECODE Q-P MIME MSGS! */
-/* If there is header:  Content-Conversion: prohibited
-   DO NOT do conversions no matter what
-   (even when it violates the protocol..) */
-
-/* Following options can be declared in ESMTP  EHLO response  */
-#define ESMTP_SIZEOPT    0x0001 /* RFC 1427/1653/1870 */
-#define ESMTP_8BITMIME   0x0002 /* RFC 1426/1652 */
-#define ESMTP_DSN        0x0004 /* RFC 1891	 */
-#define ESMTP_PIPELINING 0x0008 /* RFC 1854/2197 */
-#define ESMTP_ENHSTATUS  0x0010 /* RFC 2034	 */
-#define ESMTP_CHUNKING   0x0020 /* RFC 1830	 */
-
-
-# ifdef RFC974
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-struct mxdata {
-	msgdata		*host;
-	int		 pref;
-	time_t		 expiry;
-	struct addrinfo *ai;
-};
-# endif /* RFC974 */
-
-typedef struct {
-  int  ehlo_capabilities;	/* Capabilities of the remote system */
-  int  esmtp_on_banner;
-  int  within_ehlo;
-  int  main_esmtp_on_banner;
-  int  servport;
-  int  literalport;
-  int  firstmx;			/* error in smtpwrite("HELO"..) */
-# ifdef RFC974
-  int  mxcount;
-  struct mxdata mxh[MAXFORWARDERS];
-# endif /* RFC974 */
-  int  smtp_bufsize;		/* Size of the buffer; this should be large
-				   enough to contain MOST cases of pipelined
-				   SMTP information, AND still fit within
-				   roundtrip TCP buffers */
-  int  smtp_outcount;		/* we used this much.. */
-  int  block_written;		/* written anything in async phase */
-  long ehlo_sizeval;
-  int  rcpt_limit;		/* Number of recipients that can be sent on
-				   one session.. */
-
-  FILE *smtpfp;			/* FILE* to the remote host           */
-  char *smtphost;		/* strdup()ed name of the remote host */
-  char *myhostname;		/* strdup()ed name of my outbound interface */
-
-  FILE *verboselog;		/* verboselogfile */
-
-  int hsize;			/* Output state variables */
-  int msize;
-
-  int pipelining;		/* Are we pipelining ? */
-  int pipebufsize;		/* Responce collection buffering */
-  int pipebufspace;
-  char *pipebuf;
-  int pipeindex;		/* commands associated w/ those responses */
-  int pipespace;
-  int pipereplies;		/* Replies handled so far */
-  char **pipecmds;
-  struct rcpt **pipercpts;	/* recipients -""- */
-
-  int rcptcnt;			/* PIPELINING variables */
-  int rcptstates;
-#define RCPTSTATE_OK  0x01 /* At least one OK   state   */
-#define RCPTSTATE_400 0x02 /* At least one TEMP failure */
-#define RCPTSTATE_500 0x04 /* At least one PERM failure */
-#define FROMSTATE_400 0x08 /* MAIL FROM --> 4XX code */
-#define FROMSTATE_500 0x10 /* MAIL FROM --> 5XX code */
-#define DATASTATE_OK  0x20 /* DATA/BDAT --> 2/3XX code */
-#define DATASTATE_400 0x40 /* DATA/BDAT --> 4XX code */
-#define DATASTATE_500 0x80 /* DATA/BDAT --> 5XX code */
-  int state;
-  int alarmcnt;
-  int column;
-  int lastch;
-  int chunking;
-
-  char *chunkbuf;		/* CHUNKING, RFC-1830 */
-  int   chunksize, chunkspace;
-
-  char remotemsg[2*BUFSIZ];
-  char remotehost[MAXHOSTNAMELEN+1];
-  char *mailfrommsg;
-  char ipaddress[200];
-
-  struct addrinfo ai;		/* Lattest active connection */
-  union {
-    struct sockaddr_in  v4;
-#if defined(AF_INET6) && defined(INET6)
-    struct sockaddr_in6 v6;
-#endif
-  } ai_addr;
-  int ismx;
-
-  char stdinbuf[8192];
-  int  stdinsize; /* Available */
-  int  stdincurs; /* Consumed  */
-} SmtpState;
-
+const char *FAILED = "failed";
 time_t now;
 
-extern int errno;
-#ifndef MALLOC_TRACE
-extern void * emalloc __((size_t));
-extern void * erealloc __((void *, size_t));
-#endif
-/*
-   extern int  atoi __((char*));
-   extern long atol __((char*));
- */
-extern char *strerror();
-#ifndef strchr
-extern char *strchr();
-extern char *strrchr();
-#endif
-extern char *dottedquad();
-extern char *optarg;
-extern int optind;
 
-extern char **environ;
+time_t starttime, endtime;
 
-extern int deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp));
-extern int writebuf   __((SmtpState *SS, const char *buf, int len));
-extern int writemimeline __((SmtpState *SS, const char *buf, int len, int cvtmode));
-extern int appendlet  __((SmtpState *SS, struct ctldesc *dp, int convertmode));
-extern int smtpopen   __((SmtpState *SS, const char *host, int noMX));
-extern int smtpconn   __((SmtpState *SS, const char *host, int noMX));
-extern int smtp_ehlo  __((SmtpState *SS, const char *strbuf));
-extern int ehlo_check __((SmtpState *SS, const char *buf));
-extern void smtp_flush __((SmtpState *SS));
-extern int smtp_sync  __((SmtpState *SS, int, int));
-extern int smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
-extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
-
-extern int check_7bit_cleanness __((struct ctldesc *dp));
-extern void notarystatsave __((SmtpState *SS, char *smtpstatline, char *status));
-
-extern int makeconn  __((SmtpState *SS, struct addrinfo *, int));
-extern int makereconn __((SmtpState *SS));
-extern int vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
-#ifdef	BIND
-extern int rightmx  __((const char*, const char*, void*));
-extern int h_errno;
-extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
-# ifdef RFC974
-extern int getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
-# endif /* RFC974 */
-#endif	/* BIND */
-extern int matchroutermxes __((const char*, struct taddress*, void*));
-extern RETSIGTYPE sig_pipe __((int));
-extern RETSIGTYPE sig_alarm __((int));
-extern int getmyhostname();
-extern void stashmyaddresses();
-extern void getdaemon();
-extern int  has_readable __((int));
-extern int  bdat_flush __((SmtpState *SS, int lastflg));
-extern void smtpclose __((SmtpState *SS));
-extern void pipeblockread __((SmtpState *SS));
-
-#if defined(HAVE_STDARG_H) && defined(__STDC__)
-extern void report __((SmtpState *SS, char *fmt, ...));
-#else
-extern void report();
-#endif
-
-static time_t starttime, endtime;
-
-static char *logtag()
+char *logtag()
 {
 	static char buf[30];
 	static int logcnt = 0;
@@ -496,7 +147,7 @@ char *
 ssfgets(buf, bufsiz, inpfp, SS)
 char *buf;
 int bufsiz;
-FILE *inpfp;
+Sfio_t *inpfp;
 SmtpState *SS;
 {
 	struct timeval tv;
@@ -509,7 +160,7 @@ SmtpState *SS;
 
 	
 	tmout = now + 3*60;
-	infd = FILENO(inpfp);
+	infd = sffileno(inpfp);
 
 
 	s = buf;
@@ -703,8 +354,7 @@ main(argc, argv)
 	    checkmx = 1;
 #else  /* !BIND */
 	    ++errflg;
-	    fprintf(stderr,
-		    "%s: -e unavailable, no nameserver support!\n",
+	    fprintf(stderr, "%s: -e unavailable, no nameserver support!\n",
 		    progname);
 #endif /* BIND */
 	    break;
@@ -747,9 +397,7 @@ main(argc, argv)
 	    break;
 	  case 'T':		/* specify Timeout in seconds */
 	    if ((timeout = atoi(optarg)) < 5) {
-	      fprintf(stderr,
-		      "%s: illegal timeout: %d\n",
-		      argv[0], timeout);
+	      fprintf(stderr, "%s: illegal timeout: %d\n", argv[0], timeout);
 	      ++errflg;
 	    }
 	    break;
@@ -871,9 +519,9 @@ main(argc, argv)
 	  idle = 0; skip_host = 0;
 	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (logfp) {
+	  if (logfp)
 	    fprintf(logfp,"%s#\tjobspec: %s",logtag(),filename);
-	  }
+
 	  if (strcmp(filename, "#idle\n") == 0) {
 	    idle = 1;
 	    continue; /* XX: We can't stay idle for very long, but.. */
@@ -981,9 +629,8 @@ main(argc, argv)
 	/* Close the channel -- if it is open anymore .. */
 	if (SS.smtpfp) {
 	  smtpclose(&SS);
-	  if (logfp) {
+	  if (logfp)
 	    fprintf(logfp, "%s#\t(closed SMTP channel - final close)\n", logtag());
-	  }
 	}
 
 	if (SS.verboselog != NULL)
@@ -1305,7 +952,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    sleep(10); /* After a sleep of 10 seconds, if we find that
 			  we have some new input, do close the connection */
-	    if (has_readable(FILENO(SS->smtpfp))) {
+	    if (has_readable(sffileno(SS->smtpfp))) {
 	      /* Drain the input, and then close the channel */
 	      (void) smtpwrite(SS, 1, NULL, 0, NULL);
 	      smtpclose(SS);
@@ -1542,8 +1189,8 @@ deliver(SS, dp, startrp, endrp)
 
 	SS->hsize = -1;
 	if (!(chunkptr && !chunkblk))
-	  SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
-				   convertmode, 0, chunkptr);
+	  SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
+				    convertmode, 0, chunkptr);
 
 	if (SS->hsize >= 0 && chunkblk) {
 
@@ -1557,9 +1204,9 @@ deliver(SS, dp, startrp, endrp)
 
 	} else if (SS->hsize >= 0) {
 
-	  fprintf(SS->smtpfp, "\r\n");
-	  /* fflush(SS->smtpfp); */
-	  if (ferror(SS->smtpfp))
+	  sfprintf(SS->smtpfp, "\r\n");
+	  /* sfsync(SS->smtpfp); */
+	  if (sferror(SS->smtpfp))
 	    SS->hsize = -1;
 
 	}
@@ -1620,7 +1267,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    /* First close the socket so that no FILE buffered stuff
 	       can become flushed out anymore. */
-	    close(FILENO(SS->smtpfp));
+	    close(sffileno(SS->smtpfp));
 	    /* Now do all normal FILE close things -- including
 	       buffer flushes... */
 	    smtpclose(SS);
@@ -1675,7 +1322,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp && gotalarm) {
 	    /* First close the socket so that no FILE buffered stuff
 	       can become flushed out anymore. */
-	    close(FILENO(SS->smtpfp));
+	    close(sffileno(SS->smtpfp));
 	    /* Now do all normal FILE close things -- including
 	       buffer flushes... */
 	    smtpclose(SS);
@@ -1738,539 +1385,6 @@ deliver(SS, dp, startrp, endrp)
 	if (SS->chunkbuf) free(SS->chunkbuf);
 
 	return r;
-}
-
-/*
- * appendlet - append letter to file pointed at by fd
- */
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-static char let_buffer[BUFSIZ*8];
-#endif
-
-int
-appendlet(SS, dp, convertmode)
-	SmtpState *SS;
-	struct ctldesc *dp;
-	int convertmode;
-{
-	/* `convertmode' controls the behaviour of the message conversion:
-	     _CONVERT_NONE (0): send as is
-	     _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-	     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-	     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
-	 */
-
-	register int i, rc;
-	int lastwasnl = 0;
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	volatile int bufferfull = 0;
-	char iobuf[BUFSIZ];
-	FILE *mfp = NULL;
-#endif
-
-	jmp_buf oldalarmjmp;
-	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
-
-	SS->state  = 1;
-	SS->column = -1;
-	SS->alarmcnt = ALARM_BLOCKSIZE;
-	SS->lastch = '\n'; /* WriteMIMELine() can decode-QP and then the
-			      "lastwasnl" is no longer valid .. */
-
-	/* AlarmJmp wraps the  appendlet()  to an all encompasing
-	   wrapping which breaks out of the lower levels if the
-	   timer does not get reset.. */
-
-	alarm(timeout);
-
-	if (setjmp(alarmjmp) == 0) {
-
-	  gotalarm = 0;
-	  /* fflush(SS->smtpfp); */
-
-	} else {
-	  /*  Alarm jumped here! */
-
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	  alarm(0);
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-#define MFPCLOSE	if (mfp != NULL) {	\
-			  i = dup(dp->msgfd);	\
-			  fclose(mfp);		\
-			  dup2(i,dp->msgfd);	\
-			  close(i);		\
-			}
-#else
-#define MFPCLOSE
-#endif
-
-	  if (statusreport)
-	    report(SS,"DATA %d/%d (%d%%)",
-		   SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	  sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
-		  SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	  return EX_IOERR;
-
-	}
-
-	/* Makeing sure we are properly positioned
-	   at the begin of the message body */
-
-	if (lseek(dp->msgfd, (off_t)dp->msgbodyoffset, SEEK_SET) < 0L)
-	  warning("Cannot seek to message body! (%m)", (char *)NULL);
-
-	lastwasnl = 1;	/* we are guaranteed to have a \n after the header */
-	if (convertmode == _CONVERT_NONE) {
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  const char *let_buffer = dp->let_buffer + dp->msgbodyoffset;
-	  i = dp->let_end - dp->let_buffer - dp->msgbodyoffset;
-#else /* !HAVE_MMAP */
-	  while (1) {
-	    /* Optimization:  If the buffer has stuff in it due to
-	       earlier read in some of the check algorithms, we use
-	       it straight away: */
-	    if (readalready == 0)
-	      i = read(dp->msgfd, let_buffer, sizeof(let_buffer));
-	    else
-	      i = readalready;
-
-	    if (i == 0)
-	      break;
-	    if (i < 0) {
-	      strcpy(SS->remotemsg,
-		     "smtp; 500 (Read error from message file!?)");
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	      return EX_IOERR;
-	    }
-#endif /* !HAVE_MMAP */
-	    lastwasnl = (let_buffer[i-1] == '\n');
-	    rc = writebuf(SS, let_buffer, i);
-	    if (statusreport)
-	      report(SS,"DATA %d/%d (%d%%)",
-		     SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	    /* We NEVER get timeouts here.. We get anything else.. */
-	    if (rc != i) {
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	      if (gotalarm) {
-		sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
-			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-		return EX_IOERR;
-	      }
-	      sprintf(SS->remotemsg,
-		      "smtp; 500 (msgbuffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
-		      strerror(errno),
-		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      return EX_IOERR;
-	    }
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    if (readalready > 0)
-	      break;
-	  }
-#endif
-	  alarm(0);
-
-	  /* End of "NO CONVERSIONS" mode, then ... */
-	} else {
-	  /* ... various esoteric conversion modes:
-	     We are better to feed writemimeline() with
-	     LINES instead of blocks of data.. */
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  /* Classical way to read in things */
-
-	  mfp = fdopen(dp->msgfd,"r");
-	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
-	  bufferfull = 0;
-#else /* HAVE_MMAP */
-	  const char *s = dp->let_buffer + dp->msgbodyoffset;
-#endif
-
-	  /* we are assuming to be positioned properly
-	     at the start of the message body */
-	  lastwasnl = 0;
-	  for (;;) {
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    i = cfgets(let_buffer, sizeof(let_buffer), mfp);
-	    if (i < 0)
-	      break;
-	    /* It MAY be malformed -- if it has a BUFSIZ*8 length
-	       line in it, IT CAN'T BE MIME  :-/		*/
-	    lastwasnl = (let_buffer[i-1] == '\n');
-#else /* HAVE_MMAP */
-	    const char *let_buffer = s, *s2 = s;
-	    if (s >= dp->let_end) break; /* EOF */
-	    i = 0;
-	    while (s2 < dp->let_end && *s2 != '\n')
-	      ++s2, ++i;
-	    if ((lastwasnl = (*s2 == '\n')))
-	      ++s2, ++i;
-	    s = s2;
-#endif
-	    /* XX: Detect multiparts !! */
-
-	    /* Ok, write the line -- decoding QP can alter the "lastwasnl" */
-	    rc = writemimeline(SS, let_buffer, i, convertmode);
-
-	    /* We NEVER get timeouts here.. We get anything else.. */
-	    if (rc != i) {
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	      sprintf(SS->remotemsg,
-		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
-		      strerror(errno),
-		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      alarm(0);
-	      MFPCLOSE
-	      return EX_IOERR;
-	    }
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    s = s2; /* Advance one linefull.. */
-#endif
-	  } /* End of line loop */
-	  alarm(0);
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  if (i == EOF && !feof(mfp)) {
-	    strcpy(SS->remotemsg, "500 (Read error from message file!?)");
-	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	    MFPCLOSE
-	    return EX_IOERR;
-	  }
-	  MFPCLOSE
-#endif
-	} /* ... end of conversion modes */
-
-	/* we must make sure the last thing we transmit is a CRLF sequence */
-	if (!lastwasnl || SS->lastch != '\n') {
-	  alarm(timeout);
-	  if (writebuf(SS, "\n", 1) != 1) {
-	    alarm(0);
-	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	    if (gotalarm) {
-	      sprintf(SS->remotemsg,"500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
-		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      return EX_IOERR;
-	    }
-	    sprintf(SS->remotemsg,
-		    "500 (msgbuffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
-		    strerror(errno),
-		    SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    if (bufferfull > 1) readalready = 0;
-#endif
-	    return EX_IOERR;
-	  }
-	}
-	alarm(0);
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	if (bufferfull > 1)	/* not all in memory, need to reread */
-	  readalready = 0;
-#endif
-#if 0
-	alarm(timeout);
-	if (fflush(SS->smtpfp) != 0) {
-	  alarm(0);
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	  return EX_IOERR;
-	}
-	alarm(0);
-#endif
-	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-
-	return EX_OK;
-}
-
-
-#ifdef DO_CHUNKING
-
-extern int ssputc __(( SmtpState *, int, FILE * ));
-
-int
-ssputc(SS, ch, fp)
-     SmtpState *SS;
-     int ch;
-     FILE *fp;
-{
-  if (SS->chunkbuf == NULL) {
-    putc(ch, fp);
-    if (ferror(fp)) return EOF;
-    return 0;
-  }
-  if (SS->chunksize >= CHUNK_MAX_SIZE) {
-    if (bdat_flush(SS, 0) != EX_OK) /* Not yet the last one! */
-      return EOF;
-  }
-  if (SS->chunksize >= SS->chunkspace) {
-    SS->chunkspace <<= 1; /* Double the size */
-    SS->chunkbuf = realloc(SS->chunkbuf, SS->chunkspace);
-    if (SS->chunkbuf == NULL)
-      return EOF;
-  }
-  SS->chunkbuf[SS->chunksize] = ch;
-  SS->chunksize += 1;
-  return 0;
-}
-
-#else
-
-#define ssputc(SS,ch,fp) putc((ch),(fp))
-
-#endif
-
-
-#if 0
-# define VLFPRINTF(x) if(SS->verboselog)fprintf x
-#else
-# define VLFPRINTF(x)
-#endif
-/*
- * Writebuf() is like write(), except all '\n' are converted to "\r\n"
- * (CRLF), and the sequence "\n." is converted to "\r\n..".
- * writebuf() has a cousin: writemimeline(), which does some more esoteric
- * conversions on flight..
- */
-int
-writebuf(SS, buf, len)
-	SmtpState *SS;
-	const char *buf;
-	int len;
-{
-	FILE *fp = SS->smtpfp;
-	register const char *cp;
-	register int n;
-	register int state;
-	int alarmcnt;
-
-	state  = SS->state;
-	alarmcnt = SS->alarmcnt;
-	for (cp = buf, n = len; n > 0 && !gotalarm; --n, ++cp) {
-	  register char c = (*cp) & 0xFF;
-	  ++SS->hsize;
-
-	  if (--alarmcnt <= 0) {
-	    alarmcnt = ALARM_BLOCKSIZE;
-	    /* fflush(fp); */
-	    alarm(timeout);	/* re-arm it */
-
-	    if (statusreport)
-	      report(SS,"DATA %d/%d (%d%%)",
-		     SS->hsize, SS->msize,
-		     (SS->hsize*100+SS->msize/2)/SS->msize);
-	  }
-
-	  if (state && c != '\n') {
-	    state = 0;
-	    if (c == '.' && !SS->chunking) {
-	      if (ssputc(SS, c, fp) == EOF || ssputc(SS, c, fp) == EOF) {
-		time(&endtime);
-		notary_setxdelay((int)(endtime-starttime));
-		notaryreport(NULL,FAILED,"5.4.2 (body write error, 1)",
-			     "smtp; 500 (body write error, 1)");
-		strcpy(SS->remotemsg, "write error 1");
-		return EOF;
-	      }
-	      VLFPRINTF((SS->verboselog,".."));
-	    } else {
-	      if (ssputc(SS, c, fp) == EOF) {
-		time(&endtime);
-		notary_setxdelay((int)(endtime-starttime));
-		notaryreport(NULL,FAILED,"5.4.2 (body write error, 2)",
-			     "smtp; 500 (body write error, 2)");
-		strcpy(SS->remotemsg, "write error 2");
-		return EOF;
-	      }
-	      VLFPRINTF((SS->verboselog,"%c",c));
-	    }
-	  } else if (c == '\n') {
-	    if (ssputc(SS, '\r', fp) == EOF || ssputc(SS, c, fp) == EOF) {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 3)",
-			   "smtp; 500 (body write error, 3)");
-	      strcpy(SS->remotemsg, "write error 3");
-	      return EOF;
-	    }
-	    VLFPRINTF((SS->verboselog,"\r\n"));
-	    state = 1;
-	  } else {
-	    if (ssputc(SS, c, fp) == EOF) {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 4)",
-			   "smtp; 500 (body write error, 4)");
-	      strcpy(SS->remotemsg, "write error 4");
-	      return EOF;
-	    }
-	    VLFPRINTF((SS->verboselog,"%c",c));
-	  }
-	}
-	SS->state    = state;
-	SS->alarmcnt = alarmcnt;
-	return len;
-}
-
-
-int
-writemimeline(SS, buf, len, convertmode)
-	SmtpState *SS;
-	const char *buf;
-	int len;
-	int convertmode;
-{
-	FILE *fp = SS->smtpfp;
-	register const char *cp;
-	register int n;
-	char *i2h = "0123456789ABCDEF";
-	int qp_chrs = 0;
-	int qp_val = 0;
-	int qp_conv;
-	int column;
-	int alarmcnt;
-
-	/* `convertmode' controls the behaviour of the message conversion:
-	     _CONVERT_NONE (0): send as is
-	     _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-	     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-	     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
-	 */
-
-	alarmcnt = SS->alarmcnt;
-	column   = SS->column;
-
-	qp_conv = (convertmode == _CONVERT_QP ||
-		   convertmode == _CONVERT_UNKNOWN);
-
-	if (buf == NULL) {		/* magic initialization */
-	  /* No magics here.. we are linemode.. */
-	  return 0;
-	}
-	SS->lastch = -1;
-	for (cp = buf, n = len; n > 0; --n, ++cp) {
-	  register int c = (*cp) & 0xFF;
-	  ++column;
-	  ++SS->hsize;
-
-	  if (--alarmcnt <= 0) {
-	    alarmcnt = ALARM_BLOCKSIZE;
-	    /* fflush(fp); */
-	    alarm(timeout);
-
-	    if (statusreport)
-	      report(SS,"DATA %d/%d (%d%%)",
-		     SS->hsize, SS->msize,
-		     (SS->hsize*100+SS->msize/2)/SS->msize);
-	  }
-
-	  if (convertmode == _CONVERT_8BIT) {
-	    if (c == '=' && qp_chrs == 0) {
-	      qp_val = 0;
-	      qp_chrs = 2;
-	      continue;
-	    }
-	    if (qp_chrs != 0) {
-	      if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-		n = 0;		/* We have the line-end wrapper mode */
-		continue;	/* It should NEVER be present except at
-				   the end of the line, thus we are safe
-				   to do this ? */
-	      }
-	      --column;
-	      if ((c >= '0' && c <= '9') ||
-		  (c >= 'a' && c <= 'f') ||
-		  (c >= 'A' && c <= 'F')) {
-		/* The first char was HEX digit, assume the second one
-		   to be also, and convert all three (=XX) to be a char
-		   of given value.. */
-		if (c >= 'a') c -= ('a' - 'A');
-		if (c > '9') c -= ('A' - '9' - 1);
-		qp_val <<= 4;
-		qp_val |= (c & 0x0F);
-	      }
-	      --qp_chrs;
-	      if (qp_chrs == 0)
-		c = qp_val;
-	      else
-		continue;
-	    }
-	    SS->lastch = c;
-	  } else if (qp_conv) {
-	    if (column > 70 && c != '\n') {
-	      ssputc(SS, '=',  fp);
-	      ssputc(SS, '\r', fp);
-	      ssputc(SS, '\n', fp);
-	      SS->lastch = '\n';
-	      VLFPRINTF((SS->verboselog,"=\r\n"));
-	      column = 0;
-	    }
-	    /* Trailing SPACE/TAB ? */
-	    if (n < 3 && (c == ' ' || c == '\t')) {
-	      ssputc(SS, '=', fp);
-	      ssputc(SS, i2h[(c >> 4) & 15], fp);
-	      ssputc(SS, i2h[(c)      & 15], fp);
-	      SS->lastch = i2h[(c) & 15];
-	      column += 2;
-	      VLFPRINTF((SS->verboselog,"=%02X",c));
-	      continue;
-	    }
-	    /* Any other char which needs quoting ? */
-	    if (c == '='  ||  c > 126 ||
-		(column == 0 && (c == 'F' || c == '.')) ||
-		(c != '\n' && c != '\t' && c < 32)) {
-
-	      ssputc(SS, '=', fp);
-	      ssputc(SS, i2h[(c >> 4) & 15], fp);
-	      ssputc(SS, i2h[(c)      & 15], fp);
-	      SS->lastch = i2h[(c) & 15];
-	      column += 2;
-	      VLFPRINTF((SS->verboselog,"=%02X",c));
-	      continue;
-	    }
-	  } /* .... end convertmode	*/
-
-	  if (column == 0 && c == '.' && !SS->chunking) {
-	    if (ssputc(SS, c, fp) == EOF) {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 5)",
-			   "smtp; 500 (body write error, 5)");
-	      strcpy(SS->remotemsg, "write error 5");
-	      return EOF;
-	    }
-	    VLFPRINTF((SS->verboselog,".."));
-	  }
-
-	  if (c == '\n') {
-	    if (ssputc(SS, '\r', fp) == EOF) {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (body write error, 6)",
-			   "smtp; 500 (body write error, 6)");
-	      strcpy(SS->remotemsg, "write error 6");
-	      return EOF;
-	    }
-	    VLFPRINTF((SS->verboselog,"\r"));
-	    column = -1;
-	  }
-	  if (ssputc(SS, c, fp) == EOF) {
-	    time(&endtime);
-	    notary_setxdelay((int)(endtime-starttime));
-	    notaryreport(NULL,FAILED,"5.4.2 (body write error, 7)",
-			 "smtp; 500 (body write error, 7)");
-	    strcpy(SS->remotemsg, "write error 7");
-	    return EOF;
-	  }
-	  SS->lastch = c;
-	  VLFPRINTF((SS->verboselog,"%c",c));
-
-	}
-	SS->column   = column;
-	SS->alarmcnt = alarmcnt;
-	return len;
 }
 
 
@@ -2337,9 +1451,8 @@ smtpopen(SS, host, noMX)
 	int retries = 0;
 	char SMTPbuf[1000];
 
-	if (debug) {
+	if (debug && logfp)
 	  fprintf(logfp, "%s#\tsmtpopen: connecting to %.200s\n", logtag(), host);
-	}
 
 	do {
 
@@ -2409,9 +1522,9 @@ smtpopen(SS, host, noMX)
 
 	} while ((i == EX_TEMPFAIL) && (SS->firstmx < SS->mxcount));
 
-	if (logfp) {
+	if (logfp)
 	  fprintf(logfp, "%s#\tsmtpopen: status = %d\n", logtag(), i);
-	}
+
 	return i;
 }
 
@@ -2453,9 +1566,9 @@ smtpconn(SS, host, noMX)
 
 	stashmyaddresses(myhostname);
 
-	if (debug) {
+	if (debug && logfp)
 	  fprintf(logfp, "%s#\tsmtpconn: host = %.200s\n", logtag(), host);
-	}
+
 	if (host[0] == '"' && host[1] == '[')
 	  ++host;
 
@@ -2738,10 +1851,9 @@ if (SS->verboselog)
 	  }
 	} /* end of HOSTNAME MX lookup processing */
 
-	if (debug) {
+	if (debug && logfp)
 	  fprintf(logfp,
 		  "%s#\tsmtpconn: retval = %d\n", logtag(), retval);
-	}
 
 	if (ai != NULL)
 	  freeaddrinfo(ai);
@@ -2767,7 +1879,7 @@ deducemyifname(SS)
 	SS->myhostname = NULL;
 
 	laddrsize = sizeof(laddr);
-	if (getsockname(FILENO(SS->smtpfp), (struct sockaddr*) &laddr,
+	if (getsockname(sffileno(SS->smtpfp), (struct sockaddr*) &laddr,
 			&laddrsize) != 0)
 	  return; /* Failure .. */
 
@@ -2921,7 +2033,13 @@ makeconn(SS, ai, ismx)
 
 	  switch (i) {
 	  case EX_OK:
-	      SS->smtpfp = fdopen(mfd, "w");
+	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize,
+				 mfd, SF_WRITE|SF_WHOLE);
+
+	      /* FIXME: Use here  sfdisc()  to add smart backends! */
+
+	      SS->smtpdisc.writef = smtp_sfwrite;
+
 	      if (SS->smtpfp == NULL) {
 		int err;
 		err = errno;
@@ -2932,7 +2050,6 @@ makeconn(SS, ai, ismx)
 
 	      deducemyifname(SS);
 
-	      setvbuf(SS->smtpfp, NULL, _IOFBF, SS->smtp_bufsize);
 	      SS->smtp_outcount = 0;
 	      SS->block_written = 0;
 
@@ -3430,7 +2547,7 @@ SmtpState *SS;
 	noalarmjmp = 1;
 	alarm(10);
 	if (SS->smtpfp != NULL)
-		fclose(SS->smtpfp);
+	  sfclose(SS->smtpfp);
 	alarm(0);
 	noalarmjmp = onaj;
 
@@ -3479,19 +2596,19 @@ int bdat_flush(SS, lastflg)
 
 	if (setjmp(alarmjmp) == 0) {
 #if 1
-	  for ( pos = 0; pos < SS->chunksize && !ferror(SS->smtpfp); ) {
+	  for ( pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp); ) {
 	    wrlen = SS->chunksize - pos;
 	    alarm(timeout);
-	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
+	    i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
 	    pos += i;
 	  }
 #else
-	  for (pos = 0; pos < SS->chunksize && !ferror(SS->smtpfp);) {
+	  for (pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp);) {
 	    wrlen = SS->chunksize - pos;
 	    if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
 	    alarm(timeout);
-	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
-	    fflush(SS->smtpfp);
+	    i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
+	    sfsync(SS->smtpfp);
 	    if (i <= 0) {
 	      if (errno == EINTR)
 		continue;
@@ -3504,7 +2621,7 @@ int bdat_flush(SS, lastflg)
 	    }
 	    pos += i;
 	    SS->hsize += i;
-	    if (ferror(SS->smtpfp)) {
+	    if (sferror(SS->smtpfp)) {
 	      alarm(0);
 	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      notaryreport(NULL,NULL,
@@ -3517,7 +2634,7 @@ int bdat_flush(SS, lastflg)
 	  alarm(0);
 	  SS->chunksize = 0;
 
-	  if (SS->smtpfp && !ferror(SS->smtpfp)) {
+	  if (SS->smtpfp && !sferror(SS->smtpfp)) {
 	    if (lastflg || ! SS->pipelining)
 	      r = smtp_sync(SS, r, 0);
 	    else
@@ -3702,7 +2819,7 @@ smtp_sync(SS, r, nonblocking)
 	int r, nonblocking;
 {
 	char *s, *eof, *eol;
-	int infd = FILENO(SS->smtpfp);
+	int infd = sffileno(SS->smtpfp);
 	volatile int idx = 0, code = 0;
 	volatile int rc = EX_OK, len;
 	volatile int some_ok = 0;
@@ -3721,7 +2838,7 @@ smtp_sync(SS, r, nonblocking)
 	  gotalarm = 0;
 	  if (setjmp(alarmjmp) == 0) {
 	    oldalarm = alarm(timeout);
-	    fflush(SS->smtpfp);			/* Flush output */
+	    sfsync(SS->smtpfp);			/* Flush output */
 	  }
 	  if (gotalarm)
 	    oldalarm = 1; /* Don't waste time below ... */
@@ -4037,7 +3154,7 @@ void
 pipeblockread(SS)
 SmtpState *SS;
 {
-	int infd = FILENO(SS->smtpfp);
+	int infd = sffileno(SS->smtpfp);
 	int r;
 	char buf[512];
 
@@ -4107,12 +3224,12 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	if (!pipelining) {
 	  alarm(timeout);	/* This much total to write and get answer */
 	  if (setjmp(alarmjmp) == 0)
-	    fflush(SS->smtpfp);
+	    sfsync(SS->smtpfp);
 	  alarm(0);
 	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	}
 #endif
-	outfd = infd = FILENO(SS->smtpfp);
+	outfd = infd = sffileno(SS->smtpfp);
 
 	if (pipelining) {
 	  if (SS->pipespace <= SS->pipeindex) {
@@ -4157,8 +3274,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      if (SS->verboselog)
 		fwrite(buf, 1, len, SS->verboselog);
 
-	      r = fwrite(buf, 1, len, SS->smtpfp);
-	      err = (r != len) || ferror(SS->smtpfp);
+	      r = sfwrite(SS->smtpfp, buf, len);
+	      err = (r != len) || sferror(SS->smtpfp);
 
 	      if (SS->smtp_outcount > SS->smtp_bufsize) {
 		SS->smtp_outcount -= SS->smtp_bufsize;
@@ -4174,9 +3291,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      if (SS->verboselog)
 		fwrite(buf, 1, len, SS->verboselog);
 
-	      r = fwrite(buf, 1, len, SS->smtpfp);
-	      err = (r != len) || ferror(SS->smtpfp);
-	      if (fflush(SS->smtpfp))
+	      r = sfwrite(SS->smtpfp, buf, len);
+	      err = (r != len) || sferror(SS->smtpfp);
+	      if (sfsync(SS->smtpfp))
 		err = 1;
 	    }
 	  } /* Long-jmp ends */
@@ -4967,72 +4084,6 @@ matchroutermxes(spec_host, ap, mrparam)
 }
 
 
-/* When data is clean 7-BIT, do:  *flag_ptr = (*flag_ptr) << 1  */
-int 
-check_7bit_cleanness(dp)
-struct ctldesc *dp;
-{
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	/* With MMAP()ed spool file it is sweet and simple.. */
-	const register char *s = dp->let_buffer + dp->msgbodyoffset;
-	while (s < dp->let_end)
-	  if (128 & *s)
-	    return 0;
-	  else
-	    ++s;
-	return 1;
-#else /* !HAVE_MMAP */
-
-	register int i;
-	register int bufferfull;
-	int lastwasnl;
-	off_t mfd_pos;
-	int mfd = dp->msgfd;
-
-	/* can we use cache of message body data ? */
-	if (readalready != 0) {
-	  for (i=0; i<readalready; ++i)
-	    if (128 & (let_buffer[i]))
-	      return 0;		/* Not clean ! */
-	}
-
-	/* make sure we are properly positioned at the start
-	   of the message body */
-	bufferfull = 0;
-
-	mfd_pos = lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
-	
-	while (1) {
-	  i = read(mfd, let_buffer, sizeof let_buffer);
-	  if (i == 0)
-	    break;
-	  if (i < 0) {
-	    /* ERROR ?!?!? */
-	    if (errno == EINTR)
-	      continue; /* Hickup... */
-	    readalready = 0;
-	    return 0;
-	  }
-	  lastwasnl = (let_buffer[i-1] == '\n');
-	  readalready = i;
-	  bufferfull++;
-	  for (i = 0; i < readalready; ++i)
-	    if (128 & (let_buffer[i])) {
-	      lseek(mfd, mfd_pos, SEEK_SET);
-	      readalready = 0;
-	      return 0;		/* Not clean ! */
-	    }
-	}
-	/* Got to EOF, and still it is clean 7-BIT! */
-	lseek(mfd, mfd_pos, SEEK_SET);
-	if (bufferfull > 1)	/* not all in memory, need to reread */
-	  readalready = 0;
-
-	/* Set indication! */
-	return 1;
-#endif /* !HAVE_MMAP */
-}
-
 void
 notarystatsave(SS,smtpline,status)
 SmtpState *SS;
@@ -5118,3 +4169,14 @@ void getdaemon()
 	if (!pw) daemon_uid = 0; /* Let it be root, if nothing else */
 	else     daemon_uid = pw->pw_uid;
 }
+
+ssize_t smtp_sfwrite(sfp, p, len, discp)
+     Sfio_t *sfp;
+     const void * p;
+     size_t len;
+     Sfdisc_t *discp;
+{
+  /* FIXME: Must be changed for SSL/TLS streams! */
+  return write(sffileno(sfp), p, len);
+}
+

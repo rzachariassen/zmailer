@@ -1,17 +1,23 @@
 # makefile for sfio
 #
 # Written by Kiem-Phong Vo (4/24/91)
+#
+# Adapted to ZMailer's environment by Matti Aarnio <mea@nic.funet.fi>
 
-INCDIR=	../../../include
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+INCDIR=	$(srcdir)/../../../include
 LIBDIR=	../../../lib
 BINDIR=	../../../bin
 
 # Compiler and flags to use
 CXFLAGS=
-CCMODE=	-O
+CCMODE=	 @CFLAGS@
 CCFLAGS= -I. $(CCMODE) $(CXFLAGS)
-AR=	ar
-CC=	cc
+AR=	@AR@
+CC=	@CC@
 
 # sfio
 SRCS=	sfclose.c sfclrlock.c sfcvt.c sfdisc.c sfdlen.c sfexcept.c \

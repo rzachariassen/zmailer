@@ -4,7 +4,6 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
 #ifdef linux
 #define __USE_BSD 1
 #endif
@@ -13,16 +12,18 @@
 #include <sysexits.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+
 #include "zmsignal.h"
 #include "zmalloc.h"
 #include "zsyslog.h"
+
+#include "ta.h"
 
 #ifdef	HAVE_RESOLVER
 #include "netdb.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-#include "ta.h"
 #include "libz.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
@@ -334,7 +335,7 @@ process(dp)
 	    }
 	  }
 
-	writeheaders(dp->recipients,mfp,"\n",0,0,NULL);
+	fwriteheaders(dp->recipients,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");
 
 	/* append message body itself */

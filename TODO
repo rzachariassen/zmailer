@@ -25,10 +25,6 @@ INSTALL:
 	Badly out of date!
 
 router:
-	BUG:  $(elements zz)  does not result in a LIST type object
-		in proper way.  Most visible this problem is in  server.cf
-		9-9-1999 -- POSSIBLY fixed
-
 	BUG?  router/functions.c: $(homedirectory ..) function does
 		getpwnam() from somewhere WITHOUT checking at the
 		possible errno telling that there is e.g. temporary
@@ -37,7 +33,7 @@ router:
 
 	RFC 822 special bug(?):  '%' is a special, and/or combination
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
-	to react mistakenly we 'Illegal-Object:'.
+	to react mistakenly with 'Illegal-Object:'.
 
 	Works now as a work-gang under leadership of one process
         whose task is to scan the directories for work..

@@ -105,6 +105,8 @@ fi
   cat smtp-policy.src
 
   # Localnames
+  echo "# ----------"
+  echo "# localnames:"
   cat localnames | \
   awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
 
@@ -114,6 +116,8 @@ fi
   #  be fine to allow relaying from anybody whose IP address reverses to
   #  domain suffix ".our.domain")
   if [ -f smtp-policy.relay ] ; then
+    echo "# ------------------"
+    echo "# smtp-policy.relay:"
     cat smtp-policy.relay | \
     awk '/^#/{next;}
 	{printf "%s  %s %s %s %s %s %s %s %s = _full_rights\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
@@ -122,6 +126,8 @@ fi
   # smtp-policy.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
   if [ -f smtp-policy.mx ] ; then
+    echo "# ---------------"
+    echo "# smtp-policy.mx:"
     cat smtp-policy.mx | \
     awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$1;}'
   fi
@@ -131,6 +137,8 @@ fi
   # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
   #  which is intended for QMAIL, and thus needs to be edited..)
   if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
+    echo "# ---------------------------"
+    echo "# smtp-policy.spam{,.manual}:"
     ( if [ -f smtp-policy.spam ] ; then
 	cat smtp-policy.spam
       fi
