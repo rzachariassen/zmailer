@@ -856,7 +856,9 @@ int main(argc, argv)
 #endif
 
 	  if (SS.verboselog)
-	    fprintf(SS.verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+	    fprintf(SS.verboselog,
+		    "getaddrinfo('%s','smtp') -> r=%d (%s), ai=%p\n",
+		    host, r, gai_strerror(r), ai);
 #if defined(AF_INET6) && defined(INET6)
 	  if (use_ipv6) {
 	    struct addrinfo *ai2 = NULL, **aip;
@@ -877,8 +879,8 @@ int main(argc, argv)
 #endif
 	    if (SS.verboselog)
 	      fprintf(SS.verboselog,
-		      "  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
-		      host,i2,ai2);
+		      "  getaddrinfo('%s','smtp') -> r=%d (%s), ai=%p\n",
+		      host,i2, gai_strerror(i2), ai2);
 
 	    if (r != 0 && i2 == 0) {
 	      /* IPv6 address, no IPv4 (or error..) */
