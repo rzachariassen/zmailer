@@ -11,8 +11,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   - Add to  dbases.conf  a triplet: user:group:maxperm
     (either with doublecolon separation, or whitespace separation ?)
 
-- BUG? router/libdb/bind.c: relation of bind,mxlocal doesn't seem to
-  work completely :-/ (30-mar-2000)
 - BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
   CommuniGate Pro 3.2 ... Suspect CommuniGate.
 

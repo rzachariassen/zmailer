@@ -340,6 +340,8 @@ getmxrr(host, ttlp, depth, flags)
 	time_t ttl, maxttl;
 	GCVARS1;
 
+	h_errno = 0;
+
 	nmx = 0;
 	maxttl = ttl = 0;
 	maxpref = -1;
@@ -565,8 +567,8 @@ getmxrr(host, ttlp, depth, flags)
 	UNGCPRO1;
 
 	if (D_bind || _res.options & RES_DEBUG)
-		fprintf(stderr, "search_res: %s: %d valid MX RR's out of %d\n", host, n, nmx);
-	else if (maxttl > 0)
+		fprintf(stderr, "search_res: %s: %d valid MX%s RR's out of %d\n", host, n, (flags & T_MXLOCAL) ? "(LOCAL)":"", nmx);
+	if (maxttl > 0)
 		*ttlp = maxttl;
 	return lhead;
 }

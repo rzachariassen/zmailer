@@ -76,6 +76,7 @@ static int run_recase    ARGCV;
 static int run_squirrel  ARGCV;
 static int run_822syntax ARGCV;
 static int run_condquote ARGCV;
+static int run_dequote   ARGCV;
 static int run_syslog    ARGCV;
 
 #if	defined(XMEM) && defined(CSRIMALLOC)
@@ -132,7 +133,7 @@ struct shCmd fnctns[] = {
 {	"recase",	run_recase,	NULL,	NULL,	0	},
 {	"squirrel",	run_squirrel,	NULL,	NULL,	0	},
 {	"rfc822syntax",	run_822syntax,	NULL,	NULL,	0	},
-{	"dequote",	run_condquote,	NULL,	NULL,	0	},
+{	"dequote",	run_dequote,	NULL,	NULL,	0	},
 {	"condquote",	run_condquote,	NULL,	NULL,	0	},
 {	"syslog",	run_syslog,	NULL,	NULL,	0	},
 {	"logger",	run_syslog,	NULL,	NULL,	0	},
@@ -1891,23 +1892,47 @@ run_822syntax(argc, argv)
 
 
 static int
-run_condquote(argc, argv)
-	int argc;
+run_condquote_(argc, argv, condq)
+	int argc, condq;
 	const char *argv[];
 {
-	const char *s = argv[1];
+	const char *s;
 	int mustquote = 0;
 	int c, quoted;
 	int spc = 0;
+	int errflg = 0;
+	const char *appstr = NULL;
 
 	extern int rfc822_mustquote __((const char *, const int));
 
 	/* We remove quotes when they are not needed, and add them when
 	   they really are needed! */
 
-	if (argc != 2)
-	  return 2; /* Bad bad! Missing/extra arg! */
+	optind = 1;
+	while (1) {
+	  c = getopt(argc, (char*const*)argv, "s:a:");
+	    
+	  if (c == EOF) break;
+	  switch (c) {
+	  case 's':
+	    spc = *optarg; /* First char only */
+	    break;
+	  case 'a':
+	    appstr = optarg;
+	    break;
+	  default:
+	    ++errflg;
+	    break;
+	  }
+	}
+	if (errflg || optind != argc - 1) {
+	  fprintf(stderr,
+		  "Usage: %s [ -s SPCCHR ] [ -a APPENDSTR ] string\n",
+		  argv[0]);
+	  return 1;
+	}
 
+	s = argv[optind];
 
 	mustquote = rfc822_mustquote(s, spc);
 	/* A bitset:
@@ -1942,7 +1967,7 @@ run_condquote(argc, argv)
 	    } else
 	      putchar(c);
 	  }
-	} else if (mustquote > 1 && !(mustquote & 1)) {
+	} else if (mustquote > 1 && !(mustquote & 1) && condq) {
 	  /* Has things needing quotes, but no quotes in place! */
 	  putchar('"');
 	  for (; *s; ++s) {
@@ -1968,6 +1993,24 @@ run_condquote(argc, argv)
 	      putchar(c);
 	  }
 	}
+	if (appstr)
+	  puts(appstr);
 
 	return 0;
+}
+
+static int
+run_condquote(argc, argv)
+	int argc;
+	const char *argv[];
+{
+  return run_condquote_(argc,argv,1);
+}
+
+static int
+run_dequote(argc, argv)
+	int argc;
+	const char *argv[];
+{
+  return run_condquote_(argc,argv,0);
 }

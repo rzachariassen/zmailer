@@ -103,6 +103,11 @@ int rfc822_mustquote(s, spc)
 	    if (*s2) s = s2;
 	    continue;
 	  }
+
+	  if (c == '@' && !inquote)
+	    /* This special outside a quote is ok */
+	    continue;
+
 	  if (c == '.')
 	    /* special, thus must be checked before set lookups below */
 	    continue;
