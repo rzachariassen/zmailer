@@ -785,7 +785,7 @@ int use_ipv6 = 1;
 int prefer_ip6 = 1;
 int checkwks = 0;
 
-char myhostname[MAXHOSTNAMELEN+1] = "my.host.name";
+char myhostname[512] = "my.host.name";
 const char *progname;
 char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
 

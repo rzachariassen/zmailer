@@ -1037,7 +1037,6 @@ downgrade_headers(rp, convertmode, verboselog)
 	char **MIME = NULL;
 	struct ct_data *ct;
 	int lines;
-	int i;
 	int is_textplain;
 	int newlen;
 	int outnum;
@@ -1118,8 +1117,8 @@ NULL };
 	  }
 
 	  for (; (*oldmsgheader)[oldidx]; ++oldidx)
-	    newmsgheaders[outidx++] = (*oldmsgheader)[oldidx];
-	  newmsgheaders[outidx] = NULL;
+	    newmsgheaders[outnum++] = (*oldmsgheader)[oldidx];
+	  newmsgheaders[outnum] = NULL;
 
 	  free(*oldmsgheader); /* Free the old one.. */
 	  *oldmsgheader = newmsgheaders;
@@ -1152,6 +1151,7 @@ NULL };
 	ct = parse_content_type(*CT);
 
 	is_textplain = (ct->basetype != NULL &&
+
 			ct->subtype  != NULL &&
 			CISTREQ(ct->basetype,"text") &&
 			CISTREQ(ct->subtype,"plain"));
