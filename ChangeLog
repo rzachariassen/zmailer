@@ -1,3 +1,12 @@
+2001-07-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* utils/autoanswer.pl.in:
+	    Fixing buggy tests; originally about "$nosend", but
+	    there were some other too..	
+
+	* include/mail.h.in:
+	    Forgot this from the inject below...
+
 2001-07-05  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* include/libc.h, include/mail.h.in, libc/mail.c, libc/sfmail.c,

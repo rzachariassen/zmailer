@@ -41,16 +41,16 @@ while (<STDIN>) {
 
     $text = $_;
 
-    if (($text eq "\n") && ( $double = 1)) {
+    if (($text eq "\n") && ( $double == 1)) {
 	last;
     }
 
-    if (($text eq "\n") && ( $double = 0)) {
+    if (($text eq "\n") && ( $double == 0)) {
 	$double = 1;
 	next;
     }
     
-    if ($text =~ "X-autoanswer-loop: ") {
+    if ($text =~ m/^X-autoanswer-loop:/i) {
 	$nosend = 1;
 	LOG("Looping message, sender=$address");
     }
@@ -60,7 +60,7 @@ while (<STDIN>) {
     push(@header,$text);
 }
 
-if (($address eq '<>') || ($nosend = 0)) {
+if (($address eq '<>') || $nosend ) {
     LOG("SENDER invalid");
     exit 1;
 }
