@@ -414,6 +414,7 @@ start_child(vhead, chwp, howp)
 
 	  if (os >= (buf+sizeof(buf))) {
 	    sfprintf(sfstderr,"BUFFER OVERFLOW IN ARGV[] SUBSTITUTIONS!\n");
+	    sfsync(sfstderr);
 	    abort();
 	  }
 
@@ -433,6 +434,7 @@ start_child(vhead, chwp, howp)
 	    if (strlen(buf2) > sizeof(buf2)) {
 	      /* Buffer overflow ! This should not happen, but ... */
 	      sfprintf(sfstderr,"BUFFER OVERFLOW IN ARGV[0] CONSTRUCTION!\n");
+	      sfsync(sfstderr);
 	      abort();
 	    }
 	  } else
@@ -864,11 +866,12 @@ time_t timeout;
 	      if (_Z_FD_ISSET(i,wrmask)  &&  fcntl(i,F_GETFL,0) < 0)
 		sfprintf(sfstderr,"** Invalid fd on a select() wrmask: %d\n",i);
 	    }
-	    fflush(stderr);
+	    sfsync(sfstderr);
 	    abort(); /* mux() select() error EINVAL or EBADF !? */
 	  }
 	  perror("select() returned unknown error ");
 	  fflush(stderr);
+	  sfsync(sfstderr);
 	  abort(); /* Select with unknown error */
 	} else if (n == 0) {
 	  /* sfprintf(sfstderr, "abnormal 0 return from select!\n"); */
@@ -1155,14 +1158,11 @@ queryipcinit()
 static void readfrom(fd)
 	int fd;
 {
-	int	n, dontbreak, bufsize = 2048;
-	char	*cp, *pcp, *eobuf, *buf;
+	int	n, e, bufsize = 2048;
+	char	*cp, *eobuf, *buf;
 	struct procinfo *proc = &cpids[fd];
 
-	dontbreak = 0;
-	cp = pcp = NULL;
-
-	buf = (char *)emalloc(bufsize);
+	cp = buf = (char *)emalloc(bufsize);
 
 	if (proc->carryover != NULL) {
 	  int carrylen = strlen(proc->carryover);
@@ -1173,69 +1173,72 @@ static void readfrom(fd)
 	  }
 	  strcpy(buf, proc->carryover);
 	  cp = buf+strlen(buf);
-	  pcp = buf;
 	  free(proc->carryover);
 	  proc->carryover = NULL;
-	  dontbreak = 1;
 	}
 
 	/* Note that if we get an alarm() call, the read will return -1, TG */
 	errno = 0;
-	while ((n = read(fd, dontbreak ? cp : buf,
-			 bufsize - (dontbreak ? (cp - buf) : 0))) > 0) {
+	while ((n = read(fd, cp, bufsize - (cp - buf))) > 0) {
+
 	  if (verbose)
 	    sfprintf(sfstderr, "read from %d returns %d\n", fd, n);
-	  eobuf = (dontbreak ? cp : buf) + n;
 
-	  for (cp = buf, pcp = buf; cp < eobuf; ++cp) {
+	  eobuf = cp + n;
+
+	  for (cp = buf; cp < eobuf;) {
 	    if (*cp == '\n') {
+	      int rlen = eobuf - (cp+1);
 	      *cp = '\0';
 	      if (verbose)
 		sfprintf(sfstderr, "%d fd=%d processed: %s\n",
-			(int)proc->pid,fd, pcp);
-	      update(fd,pcp);
-	      *cp = '_';
-	      pcp = cp + 1;
-	      dontbreak = 0;
+			(int)proc->pid, fd, buf);
+	      update(fd,buf);
+	      ++cp;
+	      if (rlen > 0)
+		memcpy(buf, cp, rlen);
+	      else
+		rlen = 0;
+	      cp = buf;
+	      eobuf = buf + rlen;
+
 	    } else
-	      dontbreak = 1;
+
+	      ++cp;
 	  }
 
-	  if (dontbreak && cp == buf + bufsize) {
-	    if (pcp == buf) {
-	      /* XX:
-	       * can't happen, this would mean a status report line 
-	       * that is rather long...
-	       * (oh no! it did happen, it did, it did!...)
-	       */
-	      bufsize += 1024;
-	      pcp = buf = erealloc(buf,bufsize);
-	      cp = buf + (bufsize - 1024);
-	      *cp = '\0';
-	    } else {
-	      memcpy(buf, pcp, cp-pcp);
-	      cp = buf + (cp-pcp);
-	      *cp = '\0';
-	      pcp = buf;	/* may be used below */
-	    }
+	  if (cp == (buf + bufsize)) {
+	    /* 
+	     * can't happen, this would mean a status report line 
+	     * that is rather long...
+	     * (oh no! it did happen, it did, it did!...)
+	     */
+	    int oldsize = bufsize;
+	    bufsize <<= 1;
+	    buf = erealloc(buf,bufsize);
+	    cp = buf + oldsize;
+	    *cp = '\0';
 	  }
-	  if (!dontbreak)
-	    break;
+
 	}
+	e = errno;
 
 	if (verbose) {
-	  if (!(errno == EAGAIN || errno == EWOULDBLOCK))
+	  if (!(e == EAGAIN || e == EWOULDBLOCK))
 	    sfprintf(sfstderr,
-		    "read from %d returns %d, errno=%d\n", fd, n, errno);
+		    "read from %d returns %d, errno=%d\n", fd, n, e);
 	}
-	if (n == 0 || (n < 0 && errno != EWOULDBLOCK && errno != EAGAIN &&
-		       errno != EINTR)) {
-	  /*sfprintf(sfstdout,"about to call waitandclose(), n=%d, errno=%d\n",n,errno);*/
+	if (n == 0 || (n < 0 && !(e == EWOULDBLOCK ||
+				  e == EAGAIN || e == EINTR))) {
+	  /*sfprintf(sfstdout,
+	    "about to call waitandclose(), n=%d, errno=%d\n",n,e);*/
+
 	  if (proc->tofd >= 0)
 	    pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
 	  waitandclose(fd);
 	}
+
 	/* sfprintf(sfstderr, "n = %d, errno = %d\n", n, errno); */
 	/*
 	 * if n < 0, then either we got an interrupt or the read would
@@ -1244,16 +1247,14 @@ static void readfrom(fd)
 	 * make darned sure that a newline was the last character we saw,
 	 * or else some report may get lost somewhere.
 	 */
-	if (dontbreak) {
-	  if (proc->pid != 0) {
-	    proc->carryover = emalloc(cp-pcp+1);
-	    memcpy(proc->carryover, pcp, cp-pcp);
-	    proc->carryover[cp-pcp] = '\0';
-	  } else
-	    sfprintf(sfstderr,
-		    "HELP! Lost %ld bytes (n=%d/%d, off=%ld): '%s'\n",
-		    (long)(cp - pcp), n, errno, (long)(pcp-buf), pcp);
-	}
+	if (proc->pid != 0) {
+	  proc->carryover = emalloc(cp - buf + 1);
+	  memcpy(proc->carryover, buf, cp - buf);
+	  proc->carryover[cp - buf] = '\0';
+	} else
+	  sfprintf(sfstderr,
+		   "HELP! Lost %ld bytes (n=%d/%d): '%s'\n",
+		   (long)(cp - buf), n, errno, buf);
 	free(buf);
 }
 
