@@ -1,3 +1,8 @@
+2004-09-10  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpchild.c:
+	    Account childs by type, not all together..  (oops..)
+
 2004-09-09  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemon-rtr.c:

@@ -67,7 +67,8 @@ int childsameip(addr, socktag, childcntp)
 	    )
 	  ++cnt;
       }
-      if (childs[i].pid != 0)
+      if (childs[i].tag == socktag /* Same type! */ &&
+	  childs[i].pid != 0)
 	++childcnt;
     }
 
@@ -127,7 +128,7 @@ void childregister(cpid, addr, socktag)
 	    if (kill(childs[i].pid, 0) != 0) {
 	      /* No such process in there anymore !?
 		 We free this slot now! */
-	      memset(&childs[i], 0, sizeof(childs[i]));
+	      childreap(childs[i].pid);
 	    }
 	  }
 	  if (childs[i].pid == 0) { /* Free slot! */
