@@ -127,6 +127,10 @@ extern token822 * scan822utext __((const char **cpp, size_t n,
 #endif
 
 /* selfaddrs.c */
+
+struct sockaddr; /* a "forward" declaration */
+struct addrinfo; /* a "forward" declaration */
+
 extern void stashmyaddresses  __((const char *host));
 #ifdef SOCK_STREAM
 extern int  loadifaddresses   __((struct sockaddr ***));
