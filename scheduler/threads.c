@@ -943,9 +943,6 @@ pick_next_vertex(proc, vtx)
 	  return 0;
 	}
 
-#if 0
-	if (proc->pvertex && proc->pvertex->nextitem == (void*)0x55555555L) abort();
-#endif
 	if (proc->pvertex) /* Pick next item */
 	  proc->pvertex = proc->pvertex->nextitem;
 
