@@ -18,7 +18,6 @@
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 
 static int called_getbindaddr = 0;
-static Usockaddr bindaddr;
 
 static void dollarexpand __((unsigned char *s0, int space));
 static void dollarexpand(s0, space)
@@ -117,7 +116,32 @@ static void dollarexpand(s0, space)
     }
     eol[-1] = 0;
 }
-       
+
+
+static void cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
+     char *param1;
+     int use_ipv6, bindtype, bindport;
+{
+	Usockaddr bindaddr;
+
+	called_getbindaddr=1;
+	if (!zgetbindaddr(param1, use_ipv6, &bindaddr)) {
+	  bindaddrs = realloc( bindaddrs,
+			       sizeof(bindaddr) * (bindaddrs_count +2) );
+	  bindaddrs_types = realloc( bindaddrs_types,
+				     sizeof(int) * (bindaddrs_count +2) );
+	  bindaddrs_ports = realloc( bindaddrs_ports,
+				     sizeof(int) * (bindaddrs_count +2) );
+	  if (!bindaddrs || !bindaddrs_types || !bindaddrs_ports)
+	    bindaddrs_count = 0;
+	  else {
+	    bindaddrs      [ bindaddrs_count ] = bindaddr;
+	    bindaddrs_types[ bindaddrs_count ] = bindtype;
+	    bindaddrs_ports[ bindaddrs_count ] = bindport;
+	    bindaddrs_count += 1;
+	  }
+	}
+}       
 
 static void cfparam __((char *, int, const char *, int));
 static void cfparam(str, size, cfgfilename, linenum)
@@ -224,16 +248,34 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (bindport != 0 && bindport != 0xFFFFU)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
-      called_getbindaddr=1;
-      if (!zgetbindaddr(param1, use_ipv6, &bindaddr)) {
-	bindaddrs_count += 1;
-	bindaddrs = realloc( bindaddrs,
-			     sizeof(bindaddr) * (bindaddrs_count +1) );
-	if (!bindaddrs)
-	  bindaddrs_count = 0;
-	else
-	  bindaddrs[ bindaddrs_count-1 ] = bindaddr;
-      }
+      if (use_ipv6)
+	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_ALL, 0 );
+      cfg_add_bindaddr( param1, 0, BINDADDR_ALL, 0 );
+    }
+
+    else if (cistrcmp(name, "BindSmtp") == 0 && param1) {
+      int port = 25;
+      if (param2) port = atoi(param2);
+
+      if (use_ipv6)
+	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SMTP, port );
+      cfg_add_bindaddr( param1, 0, BINDADDR_SMTP, port );
+    }
+    else if (cistrcmp(name, "BindSmtpS") == 0 && param1) {
+      int port = 465;
+      if (param2) port = atoi(param2);
+
+      if (use_ipv6)
+	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SMTPS, port );
+      cfg_add_bindaddr( param1, 0, BINDADDR_SMTPS, port );
+    }
+    else if (cistrcmp(name, "BindSubmit") == 0 && param1) {
+      int port = 587;
+      if (param2) port = atoi(param2);
+
+      if (use_ipv6)
+	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SUBMIT, port );
+      cfg_add_bindaddr( param1, 0, BINDADDR_SUBMIT, port );
     }
 
     /* SMTP Protocol limit & policy tune options */
@@ -444,6 +486,10 @@ static void cfparam(str, size, cfgfilename, linenum)
     } else if (cistrcmp(name, "tls-scache-timeout") == 0 && param1) {
       sscanf(param1,"%d", & tls_scache_timeout);
 
+    } else if (cistrcmp(name, "report-auth-file")   == 0 && param1) {
+      if (reportauthfile) free((void*)reportauthfile);
+      reportauthfile = strdup(param1);
+
     } else if (cistrcmp(name, "lmtp-mode") == 0) {
       lmtp_mode = 1;
     }
@@ -564,17 +610,11 @@ readcffile(name)
     }
     fclose(fp);
     if (!called_getbindaddr) {
-	bindaddr_set = !zgetbindaddr(NULL, use_ipv6, &bindaddr);
-	if (bindaddr_set) {
-	  bindaddrs_count += 1;
-	  bindaddrs = realloc( bindaddrs,
-			       sizeof(Usockaddr) * (bindaddrs_count +1) );
-	  if (!bindaddrs)
-	    bindaddrs_count = 0;
-	  else
-	    bindaddrs[ bindaddrs_count-1 ] = bindaddr;
-	}
+      if (use_ipv6)
+	cfg_add_bindaddr( NULL, use_ipv6, BINDADDR_ALL, 0 );
+      cfg_add_bindaddr( NULL, 0, BINDADDR_ALL, 0 );
     }
+    bindaddr_set = (bindaddrs != NULL);
 #ifndef HAVE_SPF_ALT_SPF_H
     if (use_spf) {
       type(NULL,0,NULL, "SPF parameters specified but SPF support not compiled in");

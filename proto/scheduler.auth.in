@@ -25,6 +25,9 @@
 #	ETRN	"START THREAD channel host"
 #	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
+# Plus in case of the smtpserver sharing this same file:
+#       SMTPIP  set of "Z-REPORT user pass IP ..." reports.
+#
 # - "nobody" via loopback gets different treatment from
 #   "nobody" from anywhere else.
 #

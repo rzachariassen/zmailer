@@ -51,7 +51,7 @@ int subdaemons_init __((void))
 
 	    if (logfp) fclose(logfp); logfp = NULL;
 
-	    report(NULL," [smtpserver ratetracker subsystem]");
+	    report(NULL,"[smtpserver ratetracker subsystem]");
 
 	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_ratetracker);
@@ -71,7 +71,7 @@ int subdaemons_init __((void))
 
 	    if (logfp) fclose(logfp); logfp = NULL;
 
-	    report(NULL," [smtpserver contentfilter subsystem]");
+	    report(NULL,"[smtpserver contentfilter subsystem]");
 
 	    close(ratetracker_rdz_fd); /* Our sister server's handle */
 
@@ -94,7 +94,7 @@ int subdaemons_init __((void))
 	      
 	      if (logfp) fclose(logfp); logfp = NULL;
 	      
-	      report(NULL," [smtpserver router subsystem]");
+	      report(NULL,"[smtpserver router subsystem]");
 	      
 	      close(ratetracker_rdz_fd);   /* Our sister server's handle */
 	      close(contentfilter_rdz_fd); /* Our sister server's handle */

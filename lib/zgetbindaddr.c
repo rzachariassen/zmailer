@@ -11,11 +11,20 @@
     bind to INADDR_ANY.
 
     Possible specification formats are:
+	any
 	[0.0.0.0]
+	any6
 	[IPv6.0::0]
 	iface:eth0:1
+	iface:v4:eth0:1
+	iface:v6:eth0:1
 
-    Original copyright by Matti Aarnio <mea@nic.funet.fi> 1997,2000,
+	FIXME: IPv6 address handling in iface: syntax is completely
+	       broken!   SCOPING needs to be used when picking it!
+	       Very least..
+
+
+    Original copyright by Matti Aarnio <mea@nic.funet.fi> 1997,2000,2004,
     modifications by Eugene Crosser <crosser@average.org> 2002
 */
 
@@ -54,7 +63,7 @@
 int
 zgetbindaddr(bindspec, af, sap)
 	char *bindspec;
-	const int af;
+	int af;
 	Usockaddr *sap;
 {
 	int result = 0;
@@ -64,8 +73,14 @@ zgetbindaddr(bindspec, af, sap)
 	if ((bindspec == NULL) || (*bindspec == '\0'))
 		return 1; /* not specified - bind to INADDR_ANY */
 
+	memset(sap, 0, sizeof(*sap));
+
 #if defined(AF_INET6) && defined(INET6)
-	if (cistrncmp(bindspec, "[ipv6 ", 6) == 0 ||
+	if (cistrcmp(bindspec, "any6") == 0) {
+	  sap->v6.sin6_family = AF_INET6;
+	  /* All other fields are zero.. */
+
+	} else 	if (cistrncmp(bindspec, "[ipv6 ", 6) == 0 ||
 	    cistrncmp(bindspec, "[ipv6:", 6) == 0 ||
 	    cistrncmp(bindspec, "[ipv6.", 6) == 0) {
 		char *s = strchr(bindspec, ']');
@@ -79,7 +94,11 @@ zgetbindaddr(bindspec, af, sap)
 		sap->v6.sin6_family = AF_INET6;
 	} else
 #endif
-	if (*bindspec == '[') {
+	if (cistrcmp(bindspec, "any") == 0) {
+	  sap->v4.sin_family = AF_INET;
+	  /* All other fields are zero.. */
+
+	} else if (*bindspec == '[') {
 	  char *s = strchr(bindspec, ']');
 	  if (s) *s = 0;
 	  if (inet_pton(AF_INET, bindspec + 1, &sap->v4.sin_addr) < 1) {
@@ -90,12 +109,21 @@ zgetbindaddr(bindspec, af, sap)
 	  sap->v4.sin_family = AF_INET;
 	} else {
 		if (CISTREQN(bindspec, "iface:", 6)) {
+		  bindspec += 6;
+		  if (strncmp(bindspec,"v4:",3) == 0) {
+		    af = AF_INET;
+		    bindspec += 3;
+		  }
 #if defined(AF_INET6) && defined(INET6)
+		  if (strncmp(bindspec,"v6:",3) == 0) {
+		    af = AF_INET6;
+		    bindspec += 3;
+		  }
 		  if (af == AF_INET6) {
 		    sap->v6.sin6_family = AF_INET6;
-		    if (zgetifaddress( AF_INET6, bindspec + 6, sap )) {
+		    if (zgetifaddress( AF_INET6, bindspec, sap )) {
 		      /* Didn't get IPv6 interface address of given name.. */
-		      if (zgetifaddress( AF_INET6, bindspec + 6, sap )) {
+		      if (zgetifaddress( AF_INET6, bindspec, sap )) {
 			/* No recognized interface! */
 			result = 1;
 		      }
@@ -104,7 +132,7 @@ zgetbindaddr(bindspec, af, sap)
 		  }
 #endif
 		  if (af == 0 || af == AF_INET) {
-		    if (zgetifaddress( AF_INET, bindspec + 6, sap )) {
+		    if (zgetifaddress( AF_INET, bindspec, sap )) {
 		      /* No recognized interface! */
 		      result = 1;
 		    }

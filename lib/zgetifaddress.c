@@ -12,6 +12,12 @@
 
     Original copyright SunSoft/Berkeley/Almann, modifications
     by Matti Aarnio <mea@nic.funet.fi> 1997,2000
+
+	FIXME: IPv6 address handling in iface: syntax is completely
+	       broken!   SCOPING needs to be used when picking it!
+	       Very least..  (see: zgetbindaddr.c !  )
+
+
 */
 
 #include "hostenv.h"

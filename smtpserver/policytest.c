@@ -1,6 +1,6 @@
 /*
- *  relaytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997-2003
+ *  policytest.c -- module for ZMailer's smtpserver
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-2004
  *
  */
 
@@ -11,14 +11,6 @@
  */
 
 #include "hostenv.h"
-#include "mailer.h"
-
-#include <stdio.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <errno.h>
-
 
 #include "sleepycatdb.h"
 
@@ -33,60 +25,22 @@
 #undef datum
 #endif
 
-#ifdef	HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-
-#include <netdb.h>
-
-#include <netinet/in.h>
-#ifdef HAVE_NETINET_IN6_H
-#include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-#include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-#include <linux/in6.h>
-#endif
-#include <arpa/inet.h>
-
-#endif
-
-#include "libc.h"
-#include "libz.h"
+#define _POLICYTEST_INTERNAL_
+#include "smtpserver.h"
 
 #ifdef HAVE_SPF_ALT_SPF_H
 #include <spf_alt/spf.h>
 #include <spf_alt/spf_dns_resolv.h>
 #endif
 
-#define _POLICYTEST_INTERNAL_
-#include "policytest.h"
-
 #define PICK_PA_MSG(attrib)	\
 	if (state->message) free(state->message);	\
 	state->message = state->messages[(attrib)];	\
 	state->messages[(attrib)] = NULL
 
-
 int use_spf;
 int spf_received;
 int spf_threshold;
-
-/* We are not including  "smtpserver.h",  thus have to do local prototype.. */
-#if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
-extern void type __((void *, int code, const char *status, const char *fmt,...));
-#else
-extern void type __(( /* void *SS, int code, const char *status, const char *fmt, ... */ ));
-#endif
-
-
-
-extern int debug;
-extern int percent_accept;
-
-/* This is *NOT* the official prototype for type() !!! */
-extern void type __((void *, const int code, const char *status, const char *fmt,...));
 
 static int resolveattributes __((struct policytest *, int, struct policystate *, const char *, int));
 static int  check_domain __((struct policytest *, struct policystate *, const char *, int));
@@ -1268,7 +1222,7 @@ Usockaddr *raddr;
       if (debug) {
 	char aaa[32];
 	inet_ntop(raddr->v4.sin_family,&raddr->v4.sin_addr,aaa,sizeof(aaa));
-	type(NULL,0,NULL,"doing SPF_set_ipv4(%s)",aaa);
+	if (debug) type(NULL,0,NULL,"doing SPF_set_ipv4(%s)",aaa);
       }
 #if defined(AF_INET6) && defined(INET6)
       if (raddr->v6.sin6_family == AF_INET6) {
@@ -1561,7 +1515,7 @@ const int len;
 
 #ifdef HAVE_SPF_ALT_SPF_H
     if (state->check_spf) {
-      type(NULL,0,NULL,"doing SPF_set_helo_dom(\"%s\")",str);
+      if (debug) type(NULL,0,NULL,"doing SPF_set_helo_dom(\"%s\")",str);
       if (SPF_set_helo_dom(state->spfcid, str)) {
 	  type(NULL,0,NULL,"SPF_set_helo_dom() failed");
 	  state->check_spf=0;
@@ -1690,7 +1644,7 @@ const int len;
     if (state->check_spf) {
       char *nstr=strdup(str);
       nstr[len]='\0';
-      type(NULL,0,NULL,"doing SPF_set_env_from(\"%s\")",nstr);
+      if (debug) type(NULL,0,NULL,"doing SPF_set_env_from(\"%s\")",nstr);
       if (SPF_set_env_from(state->spfcid, nstr)) {
 	  type(NULL,0,NULL,"SPF_set_env_from(\"%s\") failed",nstr);
 	  state->check_spf=0;
@@ -1870,7 +1824,7 @@ const int len;
 #ifdef HAVE_SPF_ALT_SPF_H
     if (state->check_spf) {
       int spf_level;
-      SPF_output_t spf_output=SPF_result(state->spfcid,state->spfdcid,NULL);
+      SPF_output_t spf_output = SPF_result(state->spfcid,state->spfdcid);
       if (debug) {
 	type(NULL,0,NULL," SPF_result=%d (%s) reason=%d  (%s) error=%d",
 	     spf_output.result,

@@ -1,3 +1,69 @@
+2004-04-16  Matti Aarnio  <mea@zmailer.org>
+
+	* include/shmmib.h, smtpserver/smtpreport.c, smtpserver/smtpserver.h,
+	  smtpserver/policytest.h, smtpserver/policytest.c,
+	  smtpserver/Makefile.in, smtpserver/subdaemon-trk.c:
+	    Created  "Z-REPORT <user> <password> IP 1.2.3.4" command
+	    into SMTP responder that will query the internal rate-tracker
+	    server for more details about rating counters.
+	    (Won't say a thing about _limits_ at all!)
+
+	* smtpserver/smtpcmds.c, smtpserver/smtptls.c:
+	    Extra White-space sloppy-scanner fixes.
+
+	* smtpserver/policytest.c:
+	    SPF api tracking fix from Eugene Crosser.
+
+	* smtpserver/cfgread.c, 
+	    Implemented  BindSmtp, BindSmtpS, BindSubmit PARAMs for
+	    the system.  Also PARAM report-auth-file.
+
+	* man/smtpserver.8.in, proto/smtpserver.conf.in:
+	    - Update the sample  smtpserver.conf  to match current
+	    - Mention new  BindSmtp/BindSmtpS/BindSubmit PARAMs, and
+	    - PARAM report-auth-file ...
+
+	* proto/cf/server.cf, smtpserver/smtpcmds.c:
+	    Do support running HELO/EHLO string thru the interactive
+	    router...  although that isn't all the most brightest
+	    thing to do...  (nor the example router script really
+	    works at all..)
+
+	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,
+	  smtpserver/smtpreport.c:
+	    Revised somewhat the  scheduler.auth  file parsing, and
+	    reused same code (AND SAME DATA FILE!) for ACLs of
+	    various things.
+
+	* scheduler/prototypes.h, scheduler/scheduler.c, scheduler/transport.c:
+	    Reworked the 'mailq' TCP socket binding somewhat.
+	    Depending on system modes, IPv6 binding may or may not
+	    support also IPv4.  Handling that by creating at first
+	    the IPv6 socket bound on any6/mailq port, and then
+	    a IPv4 socket is attempted to bind of  any/mailq.
+	    If the IPv4 doesn't bind successfully, will be using
+	    IPv6 listening socket for everyhing.
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    Reworked the listen socket binding codes.
+	    Background includes abovementioned IPv4 vs. IPv6 issues.
+
+	* lib/selfaddrs.c:
+	    Instead of casting, use Usockaddr pointer.
+
+	* lib/zgetbindaddr.c, lib/zgetifaddress.c:
+	    - Added magic literals: "any", "any6"
+	    - Noticed several deficiencies in address pickup at least
+	      of Linux IPv6 kind.. (link-local isn't very usefull...)
+
+	* proto/post-install.sh.in:
+	    A bug report from  Volker Stolz  about typo in
+	    $POSTOFFICE  directory creation (I always have that
+	    as its own filesystem -> never noticed this one...)
+
+	* lib/prversion.c:
+	    Update the integrated year...
+
 2004-04-14  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf:

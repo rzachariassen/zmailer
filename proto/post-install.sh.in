@@ -379,7 +379,7 @@ printf(STDERR "
 ", $POSTOFFICE);
 
 if (! -d "$POSTOFFICE/.") {
-    mymysystem("$MKDIR -p $POSTOFFICE");
+    mysystem("$MKDIR -p $POSTOFFICE");
     
 }
 mysystem("chmod 2755 $POSTOFFICE/.");

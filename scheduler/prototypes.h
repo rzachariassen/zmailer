@@ -90,6 +90,7 @@ extern int  hungry_childs;
 extern int  global_maxkids;
 extern int  verbose;
 extern int  querysocket;
+extern int  querysocket6;
 extern int  notifysocket;
 extern char *mailqsock;
 extern char *notifysock;
@@ -181,6 +182,6 @@ extern int  mq2_putc __((struct mailq *, int c));
 extern int  mq2_active __((void));
 
 /* mq2auth.c */
-extern void mq2auth __((struct mailq *, char *));
+extern void mq2auth __((struct mailq *, const char *, char *));
 struct mq2pw; /* forward definition */
-extern struct mq2pw * mq2_authuser __((struct mailq *mq, char *user));
+extern struct mq2pw * mq2_authuser __((struct mailq *mq, const char *authfile, const char *user));

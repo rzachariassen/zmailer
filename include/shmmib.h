@@ -151,7 +151,9 @@ struct MIB_MtaEntrySs {
   uint		SubsysRouterMasterPID;
   uint		SubsysContentfilterMasterPID;
 
-  uint	space[29]; /* Add to tail without need to change MAGIC */
+  uint		IncomingSMTP_REPORT;
+
+  uint	space[28]; /* Add to tail without need to change MAGIC */
 
 };
 

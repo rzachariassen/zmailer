@@ -260,7 +260,7 @@ struct vertex {
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#ifndef __Usockaddr__  /* Match the same one in  smtpserver.h */
+#ifndef __Usockaddr__  /* Match the same one in  libz.h */
 typedef union {
     struct sockaddr_in v4;
 #ifdef INET6

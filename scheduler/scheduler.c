@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2004
  */
 
 /*
@@ -103,6 +103,7 @@ time_t	sched_starttime;
 int	do_syslog = 0;
 int	verbose = 0;
 int	querysocket = -1;	/* fd of TCP socket to listen for queries */
+int	querysocket6 = -1;	/* fd of TCP socket to listen for queries */
 int	msgwriteasync = 0;
 int	D_alloc = 0;
 int	hungry_childs = 0;
@@ -1098,6 +1099,10 @@ int sig;
 	if (querysocket >= 0) {		/* give up mailq socket asap */
 		close(querysocket);
 		querysocket = -1;
+	}
+	if (querysocket6 >= 0) {		/* give up mailq socket asap */
+		close(querysocket6);
+		querysocket6 = -1;
 	}
 	if (canexit)
 		die(0, "signal");

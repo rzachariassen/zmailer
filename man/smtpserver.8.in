@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Mar-31"
+.TH SMTPSERVER 8zm "2004-Apr-16"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -344,7 +344,9 @@ which is mandated by the RFC 821.
 .RE
 .IP "PARAM BindPort    25"
 .IP "PARAM BindAddress [0.0.0.0]"
+.IP "PARAM BindAddress any"
 .IP "PARAM BindAddress [IPv6.0::0]"
+.IP "PARAM BindAddress any6"
 .IP "PARAM BindAddress iface:ifacename"
 .RS
 Per default the server mode SMTP-server binds to port 25 and any
@@ -356,6 +358,19 @@ Multiple instances of
 .I BindAddress
 will work, and bind all presently supported ports to all those
 addresses.
+.RE
+.IP "PARAM BindSmtp <address_or_iface> <optional_port>"
+.IP "PARAM BindSmtpS <address_or_iface> <optional_port>"
+.IP "PARAM BindSubmit <address_or_iface> <optional_port>"
+.RS
+Extended versions of abovementioned
+.I Bindaddress
+and
+.I BindPort
+parameters.
+These can be used to bind zero to lots of instances of
+each protocol at different interfaces/addresses/ports, if
+so desired.
 .RE
 .IP "PARAM DEBUGcmd"
 .IP "PARAM EXPNcmd"
@@ -626,6 +641,21 @@ Levels are sorted as follows:
 .fi
 See http://spf.pobox.com/ for explanation of SPF.
 .RE
+.IP "PARAM report\-auth\-file ${MAILSHARE}/scheduler.auth"
+.RS
+If exists, is used to authenticate a set of interactive report
+queries that can be done thru the
+.I smtpserver
+about its internal state.
+.PP
+This can share the authenticator file with the
+.IR scheduler .
+.PP
+This one expects to find token:
+"\fCSMTPIP\fR"
+from the file that for all intents and purposes is same
+what scheduler uses.
+.RE
 .IP "Here is a possible configuration file:"
 .RS 2em
 .nf
@@ -809,6 +839,31 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #PARAM etrn-cluster node-40-name-or-address mq2-username mq2-passwd
 
 #
+#PARAM lmtp-mode        # When wanting to emulate LMTP server,
+#                       # In reality this is only for debugging
+#                       # the smtp TA's LMTP mode.
+#
+
+#PARAM spf-received     # Create Received-SPF header if SPF check is
+#                       # done and data is available.
+#PARAM spf-threshold keyword 
+#        Accept incoming messages with level equal or higher than
+#        specified threshold.  Levels are sorted as follows:
+#               fail:      1
+#               softfail:  2
+#               none:      3
+#               neutral:   4
+#               pass:      5
+#        See http://spf.pobox.com/ for explanation of SPF.
+#
+
+#
+#PARAM report-auth-file ${MAILSHARE}/scheduler.auth
+#   Defines where ACL/AUTH data for "Z-REPORT" SMTP verb
+#   is stored.
+#
+
+#
 #
 # HELO/EHLO-pattern     style-flags
 #               [max loadavg]
@@ -958,6 +1013,9 @@ Possible configuration file is:
 # ---- /usr/lib/sasl2/smtpserver.conf ----
 \fCpwcheck_method: saslauthd
 .fi
+.PP
+File paths, etc. for this are highly dependent of said library
+setup.
 .RE
 .SH TLS MODE
 .PP

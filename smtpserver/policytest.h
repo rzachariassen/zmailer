@@ -66,7 +66,7 @@ struct policystate {		/* Part of SmtpState structure */
 };
 
 
-#ifndef __Usockaddr__  /* Match the same one in  smtpserver.h */
+#ifndef __Usockaddr__  /* Match the same one in  libz.h */
 typedef union {
     struct sockaddr_in v4;
 #ifdef INET6
@@ -143,14 +143,3 @@ extern long  policyinsizelimit __((struct policytest *rel, struct policystate *p
 extern long  policysameiplimit __((struct policytest *rel, struct policystate *ps));
 
 extern struct policytest *policydb;
-
-/* contentpolicy.c */
-extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
-
-extern int mx_client_verify  __((int, const char *, int));
-extern int sender_dns_verify __((int, const char *, int));
-extern int client_dns_verify __((int, const char *, int));
-extern int rbl_dns_test __((const int, const u_char *, char *, char **));
-
-/* subdaemon-trk.c */
-extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, int retbuflen));

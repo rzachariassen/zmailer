@@ -24,21 +24,27 @@
 # Zmailer needs to be compiled with libspf_alt
 # (see http://www.midwestcs.com/spf/libspf-alt/)
 #
-#PARAM spf-received			# create "Received-SPF:" header
-#PARAM spf-threshold        softfail	# worst acceptable SPF check result
-#					# 'fail' - always accept
-#					# 'softfail' - accept if 'softfail',
-#					#   'unpublished', 'neutral', 'pass'
-#					# 'none' - treat 'softfail' as 'fail'
-#					#   accept all better results
-#					# 'neutral' - reject unpublished
-#					# 'pass' - accept only 'pass' and
-#					#   DNS errors.
+#PARAM spf-received                     # create "Received-SPF:" header
+#PARAM spf-threshold        softfail    # worst acceptable SPF check result
+#                                       # 'fail' - always accept
+#                                       # 'softfail' - accept if 'softfail',
+#                                       #   'unpublished', 'neutral', 'pass'
+#                                       # 'none' - treat 'softfail' as 'fail'
+#                                       #   accept all better results
+#                                       # 'neutral' - reject unpublished
+#                                       # 'pass' - accept only 'pass' and
+#                                       #   DNS errors.
 #
 #PARAM BindPort                   25    # Binding port
 #PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
 #PARAM BindAddress       [IPv6.0::0]    # and here is for IPv6 - NO SPACES!
 #PARAM BindAddress      iface:eth0:2    # Addresses of that interface
+#          ###### Number of address binders is not limited!
+#
+#PARAM BindSmtp    <addr_or_if>  <optional_port>
+#PARAM BindSmtpS   <addr_or_if>  <optional_port>
+#PARAM BindSubmit  <addr_or_if>  <optional_port>
+#          ###### Number of protocol address binders is not limited!
 #
 # Enables of some commands:
 #PARAM  DEBUGcmd
@@ -53,12 +59,12 @@
 #                       # the scripts.
 #
 #PARAM  smtp-auth-sasl  # Authentication with SASL[2] mechanisms
-#			# in the system.  Enabling this takes precedence over
-#			# smtp-auth below!
+#                       # in the system.  Enabling this takes precedence over
+#                       # smtp-auth below!
 #
 #PARAM  sasl-mechanisms  LIST OF SASL MECHANISMS
-#			# A space delimittered list of SASL mechanisms we
-#			# want to support.
+#                       # A space delimittered list of SASL mechanisms we
+#                       # want to support.  Possibly just: "plain" !
 #
 #PARAM  smtp-auth       # Enable, if you want to allow SMTP to autenticate
 #                       # with the default code against system  /etc/passwd
@@ -71,7 +77,7 @@
 #                       # authenticator should read a username from
 #                       # command line and a password from standard input.
 #                       # Exit status 0 means successful authentication.
-#			# Works only without SASL
+#                       # Works only without SASL
 #
 #PARAM  AUTH-LOGIN-also-without-TLS
 #                       # Enable, if the "AUTH LOGIN" must be allowed to
@@ -192,6 +198,31 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #PARAM etrn-cluster node-40-name-or-address mq-etrn-user mq-etrn-pw
 
 #
+#PARAM lmtp-mode        # When wanting to emulate LMTP server,
+#                       # In reality this is only for debugging
+#                       # the smtp TA's LMTP mode.
+#
+
+#PARAM spf-received     # Create Received-SPF header if SPF check is
+#                       # done and data is available.
+#PARAM spf-threshold keyword 
+#        Accept incoming messages with level equal or higher than
+#        specified threshold.  Levels are sorted as follows:
+#               fail:      1
+#               softfail:  2
+#               none:      3
+#               neutral:   4
+#               pass:      5
+#        See http://spf.pobox.com/ for explanation of SPF.
+#
+
+#
+#PARAM report-auth-file ${MAILSHARE}/scheduler.auth
+#   Defines where ACL/AUTH data for "Z-REPORT" SMTP verb
+#   is stored.
+#
+
+#
 #
 # HELO/EHLO-pattern     style-flags / !reject_message
 #               [max loadavg]
@@ -200,13 +231,32 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #    The system will not complain about lack of it (since 2.99.56),
 #    but without that enable, those four flags have no effect.
 #
-#localhost           999 ftveR
-#some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
+#  List of supported style flags:
+#    f     Process MAIL FROM thru the interactive router
+#    t     Process RCPT TO thru the interactive router
+#    v     Process VRFY thru the interactive router
+#    e     Process EXPN thru the interactive router
+#    R     Require always fully-qualified addresses for MAIL FROM,
+#          and for RCPT TO; that is, have @ and domain.
+#          ( <postmaster> is the only exception! )
+#    S     Allow utter sloppyness in input syntax; mainly extra
+#          white-spaces in places where they don't belong are
+#          tolerated.  Also lack of HELO/EHLO greeting is allowed!
+#    h     Process HELO parameter thru the interactive router
+#          Use of this IS NOT RECOMMENED, but is here for the
+#          completeness sake...
+#    D     Don't Discard; protocol timeouts leave behind files in
+#          the $POSTOFFICE/public/ directory with suffixes:
+#               .SMTP-TIMEOUT   .DATA-EOF    .BDAT-EOF
+#          depending on where the abort happened..
+#
+#localhost           * ftveR
+#some.host.domain    * !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # If the host presents itself as:  HELO [1.2.3.4], be lenient to it..
 # The syntax below is due to these patterns being SH-GLOB style patterns
 # where the brackets are special characters.
-\[*\]               999 ve
+\[*\]                * ve
 # Per default demand strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
 # on that detail, remove the "R" from "veR" string below:
-*                   999 veR
+*                    * veR

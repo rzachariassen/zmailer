@@ -27,6 +27,7 @@
 
 #define SLOTINTERVAL 512  /* There are 8 slots, slow sliding
 			     bucket accounter.. */
+#define SLOTCOUNT 8
 #if 0
 /* Temporary testing stuff: */
 #undef  SLOTINTERVAL
@@ -69,7 +70,8 @@ struct spblk {
 struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
-	int countset[8];
+	int mails;
+	int countset[SLOTCOUNT];
 };
 
 struct ipv4_regs_head {
@@ -83,7 +85,7 @@ struct ipv6_regs {
 	struct ipv6_regs *next;
 	struct spblk *spl;
 	struct in6_addr ip6addr;
-	int countset[8];
+	int countset[SLOTCOUNT];
 };
 
 struct ipv6_regs_head {
@@ -100,6 +102,8 @@ struct trk_state {
 
 	int	alloccount_v4;
 	int	allocgauge_v4;
+
+	time_t	slot_starts[SLOTCOUNT];
 
 	struct ipv4_regs * ipv4;
 	struct ipv4_regs * ipv4_free;
@@ -214,13 +218,16 @@ static int count_ipv4( state, ipv4addr, incr /* , counterlistspecs ? */ )
 	/* Don't allocate until an INCR is called for! */
 	if (!reg && incr) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
+	  if (reg) reg->mails = 1;
 	}
 	if (!reg) return 0;    /*  not INCR, or alloc failed!  */
+
+	if (incr == 0)  ++ reg->mails;
 
 	reg->countset[ state->slotindex ] += incr;
 
 	sum = 0;
-	for (i = 0; i < 8; ++i)
+	for (i = 0; i < SLOTCOUNT; ++i)
 	  sum += reg->countset[ i ];
 
 	return sum;
@@ -234,12 +241,13 @@ static void new_ipv4_timeslot( state )
 	struct ipv4_regs_head *rhead;
 	int i;
 
-	static const int zerocountset[8] = {0,};
+	static const int zerocountset[SLOTCOUNT] = {0,};
 
 	state->slotindex += 1;
-	if (state->slotindex > 7) state->slotindex = 0;
+	if (state->slotindex > SLOTCOUNT-1) state->slotindex = 0;
 
 	state->next_slotchange = now + SLOTINTERVAL;
+	state->slot_starts[ state->slotindex ] = now;
 
 	rhead = state->ipv4_regs_head;
 
@@ -282,7 +290,7 @@ static void subdaemon_trk_checksigusr1(state)
 {
 	struct ipv4_regs *r;
 	struct ipv4_regs_head *rhead;
-	int i, j, tr[8];
+	int i, j, tr[SLOTCOUNT];
 	unsigned int ip4key;
 	FILE *fp = NULL;
 	const char  *fn = "/var/tmp/smtpserver-ratetracker.dump";
@@ -300,9 +308,9 @@ static void subdaemon_trk_checksigusr1(state)
 
 	if (!fp) return;
 
-	for (i = 0, j = state->slotindex; i < 8; ++i) {
+	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
-	  --j; if (j < 0) j = 7;
+	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
 
 
@@ -321,7 +329,7 @@ static void subdaemon_trk_checksigusr1(state)
 	      fprintf(fp, "%u.%u.%u.%u\t",
 		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		      (ip4key >>  8) & 255,   ip4key & 255 );
-	      for (j = 0; j < 8; ++j) {
+	      for (j = 0; j < SLOTCOUNT; ++j) {
 		fprintf(fp, "%-4d  ", r[i].countset[tr[j]]);
 	      }
 	      fprintf(fp, "\n");
@@ -333,12 +341,80 @@ static void subdaemon_trk_checksigusr1(state)
 	fclose(fp);
 }
 
+static void
+slot_ages(state, outbuf)
+     struct trk_state *state;
+     char *outbuf; /* BAD style, we just PRESUME we have enough space.. */
+{
+	int i, j, tr[SLOTCOUNT];
+	char *s = outbuf;
+
+	time(&now);
+
+	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	  tr[i] = j;
+	  --j; if (j < 0) j = SLOTCOUNT-1;
+	}
+
+	strcpy(s, "200 Slot-ages: ");
+	s += strlen(s);
+	for (i = 0; i < SLOTCOUNT; ++i) {
+	  if (state->slot_starts[tr[i]])
+	    sprintf(s, " %d", (int)(now - state->slot_starts[tr[i]]));
+	  else
+	    sprintf(s, " 0");
+	  s += strlen(s);
+	}
+	strcat(s, "\n");
+
+}
+
+static void
+slot_ipv4_data(state, outbuf, ipv4addr)
+     struct trk_state *state;
+     char *outbuf; /* BAD style, we just PRESUME we have enough space.. */
+     unsigned int ipv4addr;
+{
+	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
+	int i, j, tr[SLOTCOUNT];
+	char *s = outbuf;
+
+	if (!reg) {
+	  strcpy(outbuf,"200 Slot-IPv4-data: 0 0 0 0  0 0 0 0  MAILs: 0");
+	  s = strlen(outbuf)+outbuf;
+#if 0
+	  sprintf(s, "    [%d.%d.%d.%d]",
+		  (ipv4addr >> 24) & 255,
+		  (ipv4addr >> 16) & 255,
+		  (ipv4addr >>  8) & 255,
+		  (ipv4addr      ) & 255);
+#endif
+	  strcat(s, "\n");
+	  return;
+	}
+
+	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	  tr[i] = j;
+	  --j; if (j < 0) j = SLOTCOUNT-1;
+	}
+
+	strcpy(s, "200 Slot-IPv4-data: ");
+	s += strlen(s);
+	for (j = 0; j < SLOTCOUNT; ++j) {
+	  sprintf(s, " %d", reg->countset[tr[j]]);
+	  s += strlen(s);
+	}
+	sprintf(s, "  MAILs: %d\n", reg->mails);
+}
+
 
 static int
 subdaemon_handler_trk_init (statep)
      void **statep;
 {
 	struct trk_state *state = calloc(1, sizeof(*state));
+	int i;
+
 	*statep = state;
 
         runastrusteduser();
@@ -349,6 +425,10 @@ subdaemon_handler_trk_init (statep)
 
 	state->spt4 = sp_init();
 
+	time(&now);
+
+	state->next_slotchange = now + SLOTINTERVAL;
+	state->slot_starts[0]  = now;
 
 	return 0;
 }
@@ -378,9 +458,9 @@ subdaemon_handler_trk_input (statep, peerdata)
 	 * S: 200 <value>
 	 *
 	 * Where:
-	 *  <actionlabel>: "RATE" or "INCR"
+	 *  <actionlabel>: "RATE", "INCR", "RATES", "AGES"
 	 *  <ipaddrlabel>: "4:12345678", or "6:123456789abcdef0"
-	 *  <typelabel>:   "CONNECT" or "MAIL"
+	 *  <typelabel>:   "CONNECT" or "MAIL" ?   (ignored)
 	 *
 	 */
 
@@ -402,10 +482,16 @@ subdaemon_handler_trk_input (statep, peerdata)
 	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'", 
 	   actionlabel, iplabel, typelabel); */
 
-	incr = 0;
-	if (strcmp(actionlabel,"INCR") == 0)
+	incr = -1;
+	if (STREQ(actionlabel,"INCR")) {
 	  incr = 1;
-	else if (strcmp(actionlabel,"RATE") != 0)
+	} else if (STREQ(actionlabel,"RATE")) {
+	  incr = 0;
+	} else if (STREQ(actionlabel,"RATES")) {
+	  incr = -2;
+	} else if (STREQ(actionlabel,"AGES")) {
+	  incr = -3;
+	} else
 	  goto bad_input;
 
 	if (iplabel[0] == '4' && iplabel[1] == ':') {
@@ -413,9 +499,14 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  ipv4addr = strtoul( iplabel+2, NULL, 16);
 	  /* FIXME ? - htonl() ???  */
 
-	  i = count_ipv4( state, ipv4addr, incr );
-
-	  sprintf(peerdata->outbuf, "200 %d\n", i);
+	  if (incr >= 0) {
+	    i = count_ipv4( state, ipv4addr, incr );
+	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	  } else if (incr == -2) {
+	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
+	  } else if (incr == -3) {
+	    slot_ages(statep, peerdata->outbuf);
+	  }
 	  peerdata->outlen = strlen(peerdata->outbuf);
 
 	} else
@@ -480,6 +571,18 @@ struct trk_client_state {
 	char *buf;
 	int buflen;
 };
+
+
+void
+discard_subdaemon_trk( state )
+     struct trk_client_state *state;
+{
+	if (!state) return;
+	if (state->outfp) fclose(state->outfp);
+	if (state->fd_io >= 0) close(state->fd_io);
+	if (state->buf) free(state->buf);
+	free(state);
+}
 
 /* The 'cmd' buffer in this call shall not have a '\n' in it! */
 
@@ -590,6 +693,146 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	retbuf[retbuflen-1] = 0;
 
 	/* type(NULL,0,NULL,"call_subdaemon_trk; -last-"); */
+
+	return 0;
+}
+
+#if 0
+int
+call_subdaemon_trk_getmore (statep, retbuf, retbuflen)
+     void **statep;
+     char *retbuf;
+     int retbuflen;
+{
+	struct trk_client_state * state = *statep;
+	int rc;
+
+	if (state->fd_io < 0) {
+	  return -1;  /* TOUGH! */
+	}
+
+	if (state->buf) state->buf[0] = 0;
+	state->buflen = 0;
+	rc = fdgets( & state->buf, & state->buflen, state->fd_io, 5 );
+
+	if (! state->buf || (state->outfp && ferror(state->outfp)))
+	  return -6; /* Uh ok.. */
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 17"); */
+
+
+	strncpy( retbuf, state->buf, retbuflen );
+	retbuf[retbuflen-1] = 0;
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; -last-"); */
+
+	return 0;
+}
+#endif
+
+int
+smtp_report_ip(SS, ip)
+     SmtpState *SS;
+     const char *ip;
+{
+	char buf1[500];
+	char buf2[500];
+	char *s;
+	int rc, i, rc1, rc2;
+	void *statep;
+	unsigned char ipaddr[16];
+	int addrtype = 4;
+
+	/* type(NULL,0,NULL,"smtp_report_ip() ip='%s'",ip); */
+
+	s = strchr(ip, ':'); /* IPv6 address! */
+	if (s) addrtype = 6;
+	if (addrtype == 4) {
+	  rc = inet_pton(AF_INET, ip, ipaddr);
+	}
+#if defined(AF_INET6) && defined(INET6)
+	else {
+	  rc = inet_pton(AF_INET6, ip, ipaddr);
+	}
+#endif
+	/* type(NULL,0,NULL,"smtp_report_ip() inet_pton(); addrtype=%d rc=%d",
+	   addrtype,rc); */
+
+	if (rc != 1) return -1; /* Bad address.. */
+
+	sprintf(buf1, "AGES 4:00000000");
+	/* type(NULL,0,NULL,"call_subdaemon_trk('%s')...",buf1); */
+	rc = call_subdaemon_trk( & statep, buf1, buf1, sizeof(buf1));
+	/* type(NULL,0,NULL,"call_subdaemon_trk(..) rc=%d bufs='%s'",
+	   rc,buf1); */
+	if (rc == 0) {
+	  s = strchr(buf1,'\n'); if (s) *s = 0;
+	} else
+	  *buf1 = 0;
+
+	sprintf(buf2, "RATES ");
+
+	s = buf2 + strlen(buf2);
+	if (addrtype == 4) {
+	  /* IPv4 address.. */
+	  strcat(s, "4:");
+	  s += strlen(s);
+	  for (i = 0; i < 4; ++i) {
+	    sprintf(s, "%02X", ipaddr[i]);
+	    s += strlen(s);
+	  }
+	} else {
+	  /* IPv6 address.. */
+	  strcat(s, "6:");
+	  s += strlen(s);
+	  for (i = 0; i < 16; ++i) {
+	    sprintf(s, "%02X", ipaddr[i]);
+	    s += strlen(s);
+	  }
+	}
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk('%s')...",buf2); */
+	rc = call_subdaemon_trk( & statep, buf2, buf2, sizeof(buf2));
+	/* type(NULL,0,NULL,"call_subdaemon_trk(..) rc=%d bufs='%s'",
+	   rc,buf2);*/
+	if (rc == 0) {
+	  s = strchr(buf2,'\n'); if (s) *s = 0;
+	} else
+	  *buf2 = 0;
+
+	rc1 = *buf1;
+	rc2 = *buf2;
+
+	switch (rc1) {
+	case '5':
+	  rc1 = 500;
+	  break;
+	case '2':
+	  rc1 = 200;
+	  break;
+	default:
+	  break;
+	}
+
+	switch (rc2) {
+	case '5':
+	  rc2 = 500;
+	  break;
+	case '2':
+	  rc2 = 200;
+	  break;
+	default:
+	  break;
+	}
+
+	if (rc2 && rc1)
+	  type(SS, -rc1, NULL, "%s", buf1+4);
+	if (!rc2 && rc1)
+	  type(SS, rc1, NULL, "%s", buf1+4);
+	if (rc2)
+	  type(SS, rc2, NULL, "%s", buf2+4);
+
+	discard_subdaemon_trk( statep );
 
 	return 0;
 }

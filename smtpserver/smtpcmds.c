@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2003.
+ *      Copyright 1991-2004.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -132,6 +132,14 @@ static void rfc821to822quote(cpp,newcpp,alenp)
 
 /* SMTP-server verb subroutines */
 
+/*
+ * smtp_helo() function
+ *
+ * SMTP protocol verb:  HELO, EHLO, LHLO
+ * SMTP protocol parameter(s): arbitrary string(s)
+ *
+ */
+
 void smtp_helo(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
@@ -253,7 +261,7 @@ const char *buf, *cp;
     /* Note, these are orthogonal to those of smtp-server
        internal policy functions! */
 
-#if 0 /* Original security reviewer reported here a potential
+#if 1 /* Original security reviewer reported here a potential
 	 for a buffer overflow, however there are potentially
 	 more severe things lurking in the interactive router
 	 call with these parameters, than mere buffer overflow.
@@ -261,14 +269,17 @@ const char *buf, *cp;
 	 This code is now buried into '#if 0', until the
 	 real fix is written -- if ever..
 	 This code has never been in active use...
+	 2004-Apr-16: I think the interface is now as safe as possible..
+	   (indeed probably it is safer than intended..)
       */
 
     if (STYLE(SS->cfinfo, 'h')) {
       char argbuf[100+100];
       char *s;
-      sprintf(argbuf,"%.99s %.99s", SS->rhostname,
-	      ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
-	       ? SS->ihostaddr : "[0.0.0.0]"));
+      sprintf( argbuf,"%.99s %.99s",
+	       ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
+		? SS->ihostaddr : "[0.0.0.0]"),
+	       SS->rhostname);
       if ((s = router(SS, RKEY_HELLO, 1, argbuf, strlen(argbuf))) == NULL)
 	/* the error was printed in router() */
 	return;
@@ -369,6 +380,14 @@ const char *buf, *cp;
     SS->state = MailOrHello;
 }
 
+/*
+ * smtp_mail() function
+ *
+ * SMTP protocol verb:  MAIL
+ * SMTP protocol parameter(s): "FROM:<" rfc-821-path ">" ESMTP-options
+ *
+ */
+
 int smtp_mail(SS, buf, cp, insecure)
 SmtpState *SS;
 const char *buf, *cp;
@@ -440,7 +459,7 @@ int insecure;
     }
     cp += 5;
 
-    if ((strict_protocol != 0) || sloppy)
+    if ((strict_protocol < 1) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	/* Skip white-space */
 	if (!isascii((255 & *cp)) || !isspace((255 & *cp))) {
@@ -1060,6 +1079,14 @@ int insecure;
 }
 
 
+/*
+ * smtp_rcpt() function
+ *
+ * SMTP protocol verb:  RCPT
+ * SMTP protocol parameter(s): "TO:<" rfc-821-path ">" ESMTP-options
+ *
+ */
+
 int smtp_rcpt(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
@@ -1113,7 +1140,7 @@ const char *buf, *cp;
 	return -1;
     }
     cp += 3;
-    if ((strict_protocol != 0) || sloppy)
+    if ((strict_protocol < 1) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace((255 & *cp))) {
 	  if (!sloppy && (strict_protocol >= 0)) {
@@ -1579,6 +1606,13 @@ const char *buf, *cp;
     return err;
 }
 
+/*
+ * smtp_verify() function
+ *
+ * SMTP protocol verb:  VRFY
+ * SMTP protocol parameter: arbitrary RFC-822 string
+ *
+ */
 
 void smtp_verify(SS, buf, cp)
 SmtpState *SS;
@@ -1635,6 +1669,14 @@ const char *buf, *cp;
     if (newcp)
 	free((void *)newcp);
 }
+
+/*
+ * smtp_expand() function
+ *
+ * SMTP protocol verb:  EXPN
+ * SMTP protocol parameter: arbitrary RFC-822 string
+ *
+ */
 
 void smtp_expand(SS, buf, cp)
 SmtpState *SS;

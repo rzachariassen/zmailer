@@ -77,7 +77,8 @@ smtp_starttls(SS, buf, cp)
       return;
     }
 
-    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+    if (strict_protocol < 1) /* Skip extra white-spaces */
+      while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp != 0) {
       type(SS, 501, m513, "Extra junk following 'STARTTLS' command!");
       MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;

@@ -415,7 +415,7 @@ void mq2_register(fd, addr)
 
   mq2_puts(mq,"version zmailer 2.0\n");
 
-  mq2test = mq2_authuser(mq, NULL);
+  mq2test = mq2_authuser(mq, mq2authfile, NULL);
 
   if (! mq2test) {
 
@@ -828,7 +828,7 @@ static void mq2interpret(mq,s)
 
   if (mq->auth == 0 && strcmp(s,"AUTH") == 0) {
     MIBMtaEntry->sc.MQ2sockCommandAUTH ++;
-    mq2auth(mq,t);
+    mq2auth(mq, mq2authfile, t);
     if (! mq->auth)
       MIBMtaEntry->sc.MQ2sockAuthRej ++;
     return;

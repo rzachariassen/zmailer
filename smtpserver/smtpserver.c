@@ -83,6 +83,7 @@ struct command command_list[] =
 #ifdef HAVE_OPENSSL
     {"STARTTLS", StartTLS}, /* RFC 2487 */
 #endif /* - HAVE_OPENSSL */
+    {"Z-REPORT", Report},
 
     {"550", Silent},	/* Some Windows SMTP systems are mixing their
 			   threads - they send smtp server error messages
@@ -168,10 +169,10 @@ const char *style = "ve";
 
 long availspace = -1;		/* available diskspace/2 in bytes       */
 long minimum_availspace = 5000; /* 5 million bytes free, AT LEAST */
-long maxsize = 0;
+long maxsize;
 int ListenQueueSize  = 20000;
-int TcpRcvBufferSize = 0;
-int TcpXmitBufferSize = 0;
+int TcpRcvBufferSize;
+int TcpXmitBufferSize;
 int MaxSameIpSource = 100;	/* Max number of smtp connections in progress
 				   from same IP address -- this to detect
 				   systems sending lots of mail all in
@@ -195,36 +196,37 @@ int maxloadavg = 999;		/* Maximum load-average that is tolerated
 				   so that it will never block -- use
 				   "-L 10" to define lower limit (10) */
 
-int allow_source_route = 0;	/* When zero, do ignore source route address
+int allow_source_route;		/* When zero, do ignore source route address
 				   "@a,@b:c@d" by collapsing it into "c@d" */
 
 int rcptlimitcnt = 10000;	/* Allow up to 10 000 recipients for each
 				   MAIL FROM. -- or tune this.. */
 
-int debugcmdok = 0;
-int expncmdok = 0;
-int vrfycmdok = 0;
-int use_ipv6 = 0;
-int ident_flag = 0;
-int do_whoson = 0;
+int debugcmdok;
+int expncmdok;
+int vrfycmdok;
+int use_ipv6;
+int ident_flag;
+int do_whoson;
 int pipeliningok = 1;
 int chunkingok = 1;
 int enhancedstatusok = 1;
 int multilinereplies = 1;
-int enable_router = 0;		/* Off by default -- security */
-int do_sasl = 0;
+int enable_router;		/* Off by default -- security */
+int do_sasl;
 int MaxSLBits = 1000000;	/* a HIGH value */
 int SASLOpts;
 int mime8bitok = 1;
 int dsn_ok = 1;
-int auth_ok = 0;
+int auth_ok;
 int ehlo_ok = 1;
 int etrn_ok = 1;
-int starttls_ok = 0;
-int ssmtp_listen = 0;	   /* Listen on port TCP/465; deprecated SMTP in TLS */
-int ssmtp_connected = 0;
-int submit_connected = 0;
-int msa_mode = 0;
+int starttls_ok;
+int ssmtp_listen;	   /* Listen on port TCP/465; deprecated SMTP in TLS */
+int ssmtp_connected;
+int msa_mode;
+int submit_listen;
+int submit_connected;
 int deliverby_ok = -1;		/* FIXME: RFC 2852 */
 etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
 const char *tls_cert_file = NULL;
@@ -237,34 +239,36 @@ const char *tls_dh1024_param = NULL;
 const char *tls_dh512_param = NULL;
 const char *tls_cipherlist = NULL;
 const char *tls_random_source = NULL;
-int tls_loglevel    = 0;
-int tls_enforce_tls = 0;
+int tls_loglevel;
+int tls_enforce_tls;
 int tls_ccert_vd    = 1;
-int tls_ask_cert    = 0;
-int tls_req_cert    = 0;
-int log_rcvd_whoson = 0;
-int log_rcvd_ident  = 0;
-int log_rcvd_authuser = 0;
-int log_rcvd_tls_mode = 0;
-int log_rcvd_tls_peer = 0;
-int auth_login_without_tls = 0;
-char *smtpauth_via_pipe = NULL;
+int tls_ask_cert;
+int tls_req_cert;
+int log_rcvd_whoson;
+int log_rcvd_ident;
+int log_rcvd_authuser;
+int log_rcvd_tls_mode;
+int log_rcvd_tls_peer;
+int auth_login_without_tls;
+char *smtpauth_via_pipe;
 Usockaddr *bindaddrs;
-int        bindaddrs_count = 0;
+int	  *bindaddrs_types;
+int	  *bindaddrs_ports;
+int        bindaddrs_count;
 Usockaddr testaddr;
-int bindaddr_set    = 0;
-int testaddr_set    = 0;
-u_short bindport = 0;
-int bindport_set = 0;
-int use_tcpwrapper = 0;
-int tarpit_initial = 0; /* TARPIT is DISABLED, by default */
-int tarpit_exponent = 0;
-int tarpit_toplimit = 0;
-int tarpit_cval = 0;
+int bindaddr_set;
+int testaddr_set;
+u_short bindport;
+int bindport_set;
+int use_tcpwrapper;
+int tarpit_initial; /* TARPIT is DISABLED, by default */
+int tarpit_exponent;
+int tarpit_toplimit;
+int tarpit_cval;
 
-int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
-			   this is MAINLY for debug purposes,
-			   NOT for real use! */
+int lmtp_mode;	/* A sort-of RFC 2033 LMTP mode ;
+		   this is MAINLY for debug purposes,
+		   NOT for real use! */
 
 int detect_incorrect_tls_use;
 int force_rcpt_notify_never;
@@ -378,14 +382,45 @@ int insecure;
 
 
 static void create_server_socket __((int *, int **, int **,
-				     int, int, Usockaddr * ));
+				     int, int, int, Usockaddr * ));
 
-static void create_server_socket (lscnt_p, ls_p, lst_p, use_ipv6, portnum, bindaddr)
+static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, portnum, bindaddr)
      int *lscnt_p, **ls_p, **lst_p;
-     int use_ipv6, portnum;
+     int use_ipv6, portnum, lsocktype;
      Usockaddr *bindaddr;
 {
 	int s, i;
+	char buf[80];
+
+	if (use_ipv6) {
+	  if (bindaddr && bindaddr->v4.sin_family == AF_INET)
+	    use_ipv6 = 0;
+	}
+
+	if (bindaddr) {
+	  switch(bindaddr->v4.sin_family) {
+	  case AF_INET:
+	    inet_ntop(AF_INET, &bindaddr->v4.sin_addr, buf, sizeof(buf));
+	    break;
+#if defined(AF_INET6) && defined(INET6)
+	  case AF_INET6:
+	    inet_ntop(AF_INET6, &bindaddr->v6.sin6_addr, buf, sizeof(buf));
+	    break;
+#endif
+	  default:
+	    sprintf(buf, "Unknown socket address family: %d\n",
+		    bindaddr->v4.sin_family);
+	    break;
+	  }
+	} else {
+#if defined(AF_INET6) && defined(INET6)
+	  if (use_ipv6)
+	    strcpy(buf, "0::0");
+	  else
+#endif
+	    strcpy(buf, "0.0.0.0");
+	}
+
 
 	s = socket(
 #ifdef PF_INET6
@@ -410,9 +445,13 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, use_ipv6, portnum, binda
 	}
 
 	(*ls_p )[ *lscnt_p ] = s;
-	(*lst_p)[ *lscnt_p ] = LSOCKTYPE_SMTP;
+	(*lst_p)[ *lscnt_p ] = lsocktype;
 
 	*lscnt_p += 1;
+
+	type(NULL,0,NULL,"setting up: bind(s=%d, v%d, addr='%s' port=%d)",
+	     s, use_ipv6 ? 6 : 4, buf, portnum);
+
 
 	i = 1;
 	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (caddr_t) & i, sizeof i) < 0) {
@@ -459,8 +498,11 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, use_ipv6, portnum, binda
 	  
 	  i = bind(s, (struct sockaddr *) &si6, sizeof si6);
 	  if (i < 0) {
-	    fprintf(stderr, "%s: bind(IPv6): %s\n",
-		    progname, strerror(errno));
+	    type(NULL,0,NULL,"bind(s=%d, v6, port=%d) failed; errno=%s",
+		 s, portnum, strerror(errno));
+	    close(s);
+
+	    *lscnt_p -= 1;
 	  }
 	} else
 #endif
@@ -476,8 +518,11 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, use_ipv6, portnum, binda
 	    
 	    i = bind(s, (struct sockaddr *) &si4, sizeof si4);
 	    if (i < 0) {
-	      fprintf(stderr, "%s: bind(IPv4): %s\n",
-		      progname, strerror(errno));
+	      type(NULL,0,NULL,"bind(s=%d, v4, port=%d) failed; errno=%s",
+		   s, portnum, strerror(errno));
+	      close(s);
+
+	      *lscnt_p -= 1;
 	    }
 	  }
 	
@@ -979,17 +1024,20 @@ char **argv;
 
 	} else {			/* Not from under the inetd -- standalone server */
 
-	  int j, once;
+	  int j;
 	  int childpid, sameipcount, childcnt;
 	  int  listensocks_count = 0;
 	  int *listensocks       = malloc( 3 * sizeof(int) );
 	  int *listensocks_types = malloc( 3 * sizeof(int) );
 	  int  msgfd;
 	  
+
 	  if (postoffice == NULL
 	      && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	    postoffice = POSTOFFICE;
-	  if (pidfile_set || (!bindport_set && !bindaddr_set)) {
+
+	  if (daemon_flg) {
+
 	    /* Kill possible previous smtpservers now! */
 	    if (killprevious(SIGTERM, pidfile) != 0) {
 	      fprintf(stderr,
@@ -999,9 +1047,7 @@ char **argv;
 	    }
 	    fflush(stdout);
 	    fflush(stderr);
-	  }
 
-	  if (daemon_flg) {
 	      
 	    /* Daemon attaches the SHM block, and may complain, but will not
 	       give up..  instead uses builtin fallback  */
@@ -1050,11 +1096,9 @@ char **argv;
 	  dup(0);
 	  dup(0);			/* fd's 0, 1, 2 are in use again.. */
 
-	  if (pidfile_set || (!bindport_set && !bindaddr_set)) {
-	    sleep(3); /* Give a moment to possible previous server
-			 to die away... */
-	    killprevious(0, pidfile);	/* deposit pid */
-	  }
+	  sleep(3); /* Give a moment to possible previous server
+		       to die away... */
+	  killprevious(0, pidfile);	/* deposit pid */
 
 	  /* Start our subdaemons here just before opening SMTP sockets */
 	  subdaemons_init();
@@ -1073,25 +1117,127 @@ char **argv;
 	      bindport = ntohs(service->s_port);
 	  }
 
-	  once = 1;
-	  for (j = 0; j < bindaddrs_count || once; ++j) {
+	  /* Without explicite bindings, pick up defaults.. */
 
-	    once = 0;
+	  if (!bindaddrs || bindaddrs_count <= 0) {
 
-	    create_server_socket( & listensocks_count,
-				  & listensocks,
-				  & listensocks_types,
-				  use_ipv6,
-				  bindport,
-				  bindaddrs ? &bindaddrs[i] : NULL);
-
-	    if (ssmtp_listen)
+	      if (use_ipv6)
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SMTP,
+				      use_ipv6,
+				      bindport,
+				      NULL );
 	      create_server_socket( & listensocks_count,
 				    & listensocks,
 				    & listensocks_types,
+				    LSOCKTYPE_SMTP,
+				    0,
+				    bindport,
+				    NULL );
+	      if (ssmtp_listen) {
+		if (use_ipv6)
+		  create_server_socket( & listensocks_count,
+					& listensocks,
+					& listensocks_types,
+					LSOCKTYPE_SSMTP,
+					use_ipv6,
+					465, /* Deprecated SMTP/TLS WKS port */
+					NULL );
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SSMTP,
+				      0,
+				      465, /* Deprecated SMTP/TLS WKS port */
+				      NULL );
+	      }
+	      if (submit_listen) {
+		if (use_ipv6)
+		  create_server_socket( & listensocks_count,
+					& listensocks,
+					& listensocks_types,
+					LSOCKTYPE_SUBMIT,
+					use_ipv6,
+					587, /* SUBMIT port */
+					NULL );
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SUBMIT,
+				      0,
+				      587, /* SUBMIT port */
+				      NULL );
+	      }
+	  }
+
+	  /* With explicite bindings! */
+
+	  for (j = 0; j < bindaddrs_count; ++j) {
+
+	    switch (bindaddrs_types[j]) {
+	    case BINDADDR_ALL:
+	      /* Do it by the registered IP address' address family! */
+
+	      create_server_socket( & listensocks_count,
+				    & listensocks,
+				    & listensocks_types,
+				    LSOCKTYPE_SMTP,
 				    use_ipv6,
-				    465, /* Deprecated SMTP/TLS WKS port */
-				    bindaddrs ? &bindaddrs[i] : NULL);
+				    bindport,
+				    NULL );
+	      if (ssmtp_listen)
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SSMTP,
+				      use_ipv6,
+				      465, /* Deprecated SMTP/TLS WKS port */
+				      NULL );
+	      if (submit_listen)
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SUBMIT,
+				      use_ipv6,
+				      587, /* SUBMIT port */
+				      NULL );
+		break;
+
+	      case BINDADDR_SMTP:
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SMTP,
+				      use_ipv6,
+				      bindaddrs_ports[j],
+				      &bindaddrs[j]);
+		break;
+
+	      case BINDADDR_SMTPS:
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SSMTP,
+				      use_ipv6,
+				      bindaddrs_ports[j],
+				      &bindaddrs[j]);
+		break;
+
+	      case BINDADDR_SUBMIT:
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SUBMIT,
+				      use_ipv6,
+				      bindaddrs_ports[j],
+				      &bindaddrs[j]);
+		break;
+	      default:
+		break;
+	    }
+
 	  }
 
 
@@ -1109,17 +1255,14 @@ char **argv;
 	  pid = getpid();
 	  openlogfp(&SS, daemon_flg);
 	  if (logfp != NULL) {
-	    char *cp, *ssmtps = "";
+	    char *cp;
 	    char *tt;
-#if 0
-	    if (ssmtp >= 0)
-	      ssmtps = " including deprecated SMTP/TLS port TCP/465";
-#endif
+
 	    time(&now);
 	    cp = rfc822date(&now);
 	    tt = strchr(cp, '\n'); if (tt) *tt = 0;
 	    zsyslog((LOG_INFO, "server started."));
-	    fprintf(logfp, "00000000000#\tstarted server pid %d at %s%s\n", pid, cp, ssmtps);
+	    fprintf(logfp, "00000000000#\tstarted server pid %d at %s\n", pid, cp);
 	    /*fprintf(logfp,"00000000000#\tfileno(logfp) = %d",fileno(logfp)); */
 	    fclose(logfp);
 	    logfp = NULL;
@@ -1277,6 +1420,7 @@ char **argv;
 		    break;
 		  case LSOCKTYPE_SUBMIT:
 		    submit_connected = 1;
+		    msa_mode = 1;
 		    break;
 		  default:
 		    break;
@@ -2315,10 +2459,10 @@ int insecure;
 	    fprintf(stdout, "%s\n", buf);	/* XX: trace.. */
 	report(SS, "%.100s", buf);
 
-	for (cp = buf; (c = *cp) && isascii(c & 0xFF) && isalnum(c & 0xFF); ++cp)
+	for (cp = buf; (c = *cp) && (c != ' ') && (c != '\t'); ++cp)
 	    continue;
 
-	if (cp > buf + 8)	/* "DEBUG" is longest of them.. */
+	if (cp > buf + 8)	/* "STARTTLS" is longest of them.. */
 	  goto unknown_command;
 
 	c = *cp;
@@ -2432,6 +2576,10 @@ int insecure;
 	case Null:
 	    type(SS, 550, m550, "panic!");
 	    typeflush(SS);
+	    break;
+	case Report:
+	    if (smtp_report(SS, buf, cp) < 0)
+	      goto unknown_command;
 	    break;
 #ifdef HAVE_OPENSSL
 	case StartTLS:
@@ -2682,7 +2830,7 @@ va_dcl
 # endif
 #else				/* !HAVE_VSPRINTF */
 # ifdef HAVE_SNPRINTF
-    sprintf(s, bufspace, cp, va_arg(ap, char *));
+    snprintf(s, bufspace, cp, va_arg(ap, char *));
 # else
     sprintf(s, cp, va_arg(ap, char *));
 #endif

@@ -168,6 +168,15 @@ server (key) {
 		done
 		# echo "252 EXPN completed"
 		;;
+	hello)	# $1 = "[ip.address] helo-param-string"
+		ssift "$1" in
+		'([^ ]*) (.*)'
+			a="\1"
+			i="\2"
+			;;
+		tfiss
+		echo "250 Hello you at $a !"
+		;;
 	*)
 		echo "550 SYSTEM ERROR; UNKNOWN KEY: '$key' ARG: '$1'"
 		;;

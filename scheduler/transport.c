@@ -1138,6 +1138,11 @@ time_t timeout;
 	  if (maxf < querysocket)
 	    maxf = querysocket;
 	}
+	if (querysocket6 >= 0) {
+	  _Z_FD_SET(querysocket6, rdmask);
+	  if (maxf < querysocket6)
+	    maxf = querysocket6;
+	}
 	if (notifysocket >= 0) {
 	  _Z_FD_SET(notifysocket, rdmask);
 	  if (maxf < notifysocket)
@@ -1198,6 +1203,9 @@ time_t timeout;
 	  /* In case we really should react.. */
 	  if (querysocket >= 0 &&
 	      _Z_FD_ISSET(querysocket, rdmask))
+	    queryipccheck();
+	  if (querysocket6 >= 0 &&
+	      _Z_FD_ISSET(querysocket6, rdmask))
 	    queryipccheck();
 	  
 	  if (notifysocket >= 0 &&
@@ -1264,20 +1272,28 @@ queryipccheck()
 	   */
 	}
 
-	if (querysocket >= 0 || notifysocket >= 0) {
+	if ((querysocket >= 0) || (querysocket6 >= 0) || (notifysocket >= 0)) {
 
-	  maxfd = querysocket;
+	  maxfd = 0;
 
 	  tv.tv_sec = 0;
 	  tv.tv_usec = 0;
 
 	  _Z_FD_ZERO(rdmask);
 	  _Z_FD_ZERO(wrmask);
-	  if (querysocket >= 0)
+	  if (querysocket >= 0) {
 	    _Z_FD_SET(querysocket, rdmask);
+	    if (maxfd < querysocket)
+	      maxfd = querysocket;
+	  }
+	  if (querysocket6 >= 0) {
+	    _Z_FD_SET(querysocket6, rdmask);
+	    if (maxfd < querysocket6)
+	      maxfd = querysocket6;
+	  }
 	  if (notifysocket >= 0) {
 	    _Z_FD_SET(notifysocket, rdmask);
-	    if (notifysocket > maxfd)
+	    if (maxfd < notifysocket)
 	      maxfd = notifysocket;
 	  }
 
@@ -1289,12 +1305,76 @@ queryipccheck()
 	  } else 
 	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
 
-	  if (n > 0 && notifysocket >= 0 &&
+	  if ((n > 0) && (notifysocket >= 0) &&
 	      _Z_FD_ISSET(notifysocket, rdmask)) {
 	    receive_notify(notifysocket);
 	  }
 
-	  if (n > 0 && querysocket >= 0 &&
+	  if ((n > 0) && (querysocket6 >= 0) &&
+	      _Z_FD_ISSET(querysocket6, rdmask)) {
+	    Usockaddr raddr;
+	    int raddrlen = sizeof(raddr);
+
+	    n = accept(querysocket6, (struct sockaddr *)&raddr, &raddrlen);
+	    if (n >= 0) {
+	      if (mailqmode == 1) {
+		int pid;
+
+		MIBMtaEntry->sc.MQ1sockConnects ++;
+		MIBMtaEntry->sc.MQ1sockParallel ++;
+
+		pid = fork();
+		if (pid == 0) {
+#if defined(F_SETFD)
+		  fcntl(n, F_SETFD, 1); /* close-on-exec */
+#endif
+#ifdef USE_TCPWRAPPER
+#ifdef HAVE_TCPD_H /* TCP-Wrapper code */
+		  if (wantconn(n, "mailq") == 0) {
+		    char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
+		    int   len = strlen(msg);
+		    write(n,msg,len);
+		    MIBMtaEntry->sc.MQ1sockParallel --;
+		    MIBMtaEntry->sc.MQ1sockTcpWrapRej ++;
+		    _exit(0);
+		  }
+#endif
+#endif
+		  qprint(n);
+		  close(n);
+		  MIBMtaEntry->sc.MQ1sockParallel --;
+		  /* Silence memory debuggers about this child's
+		     activities by doing exec() on the process.. */
+		  /* execl("/bin/false","false",NULL); */
+		  _exit(0); /* _exit() should be silent, too.. */
+		}
+		if (pid < 0)
+		  MIBMtaEntry->sc.MQ1sockParallel --;
+		close(n);
+	      } else {
+		/* mailqmode == 2 */
+
+		MIBMtaEntry->sc.MQ2sockConnects ++;
+
+#if 0  /* NOT IN MAILQ-V2 MODE ! */
+#ifdef USE_TCPWRAPPER
+#ifdef HAVE_TCPD_H /* TCP-Wrapper code */
+		if (wantconn(n, "mailq") == 0) {
+		  char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
+		  int   len = strlen(msg);
+		  write(n,msg,len);
+		  MIBMtaEntry->sc.MQ2sockTcpWrapRej ++;
+		  close(n);
+		}
+		else
+#endif
+#endif
+#endif
+		  mq2_register(n, &raddr);
+	      }
+	    }
+	  }
+	  if ((n > 0) && (querysocket >= 0) &&
 	      _Z_FD_ISSET(querysocket, rdmask)) {
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
@@ -1398,6 +1478,7 @@ queryipcinit()
 	  } else
 	    modecode = 0;
 
+	  /* Actually we support only AF_UNIX for the notify... */
 #ifdef  AF_UNIX
 	  if (modecode == 2) {
 	    struct sockaddr_un sad;
@@ -1439,6 +1520,99 @@ queryipcinit()
 #endif /* AF_UNIX */
 	  break;
 	}
+
+#if defined(AF_INET6) && defined(INET6)
+	while (querysocket6 < 0) {
+
+	  modedata = NULL;
+	  modecode = 0;
+	  if (mailqsock) {
+	    if (cistrncmp(mailqsock,"UNIX:",5)==0) {
+	      modedata = (char *)mailqsock+5;
+	      modecode = 2;
+	    } else if (*mailqsock == '/') {
+	      /* If it begins with '/', it is AF_UNIX socket */
+	      modedata = (char *)mailqsock;
+	      modecode = 2;
+	    } else if (cistrncmp(mailqsock,"TCP:",4)==0) {
+	      modedata = (char *)mailqsock+4;
+	      modecode = 1;
+	    } else {
+	      /* The default mode is TCP/IP socket */
+	      modedata = (char *)mailqsock;
+	      modecode = 1;
+	    }
+	  } else {
+	    /* The default mode is TCP/IP socket */
+	    modedata = (char *)mailqsock;
+	    modecode = 1;
+	  }
+
+	  if (modecode == 1) {
+	    struct servent *serv;
+	    Usockaddr ua;
+	    int on = 1;
+	    int port = 174;
+	    char *modedata2 = NULL;
+
+	    if (modedata) {
+	      modedata2 = strchr(modedata,'@');
+	      if (modedata2) *modedata2++ = 0;
+	    }
+
+	    if (!modedata || !*modedata || sscanf(modedata,"%d",&port) != 1) {
+	      serv = getservbyname(modedata ? modedata : "mailq", "tcp");
+	      if (serv == NULL) {
+		sfprintf(sfstderr, "No 'mailq' tcp service defined!\n");
+		port = 174; /* magic knowledge */
+	      } else
+		port = ntohs(serv->s_port);
+	    }
+	    if (modedata2)  modedata2[-1] = '@';
+
+	    querysocket6 = socket(PF_INET6, SOCK_STREAM, 0);
+	    if (querysocket6 < 0) {
+	      perror("querysocket6: socket(PF_INET6) fail");
+	      break;
+	    }
+
+	    memset( & ua, 0, sizeof(ua) );
+#if 0
+	    zgetbindaddr(NULL, AF_INET6, &ua); /* error returns
+						  without setting
+						  anything. */
+#endif
+	    ua.v6.sin6_family   = AF_INET6;
+	    ua.v6.sin6_flowinfo = 0;
+	    ua.v6.sin6_port     = htons(port);
+
+	    setsockopt(querysocket6, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+#ifdef SO_REUSEPORT
+	    setsockopt(querysocket6, SOL_SOCKET, SO_REUSEPORT, (void*)&on, sizeof(on));
+#endif
+
+	    if (bind(querysocket6,(struct sockaddr*)&ua,sizeof(ua.v6)) < 0) {
+	      perror("bind:TCP6 mailq socket");
+	      close(querysocket6);
+	      querysocket6 = -1;
+	      break;
+	    }
+
+	    fd_nonblockingmode(querysocket6);
+
+#if defined(F_SETFD)
+	    fcntl(querysocket6, F_SETFD, 1); /* close-on-exec */
+#endif
+	    if (listen(querysocket6, 5) < 0) {
+	      perror("listen:TCP6 mailq socket");
+	      close(querysocket6);
+	      querysocket6 = -1;
+	      break;
+	    }
+	  }
+	  break;
+	}
+#endif /* defined(AF_INET6) && defined(INET6) */
 
 	while (querysocket < 0) {
 
@@ -1510,8 +1684,8 @@ queryipcinit()
 	      break;
 	    }
 	  }
-#endif
-#ifdef	AF_INET
+#endif /* AF_UNIX */
+#ifdef AF_INET
 	  if (modecode == 1) {
 	    struct servent *serv;
 	    Usockaddr ua;
@@ -1539,47 +1713,18 @@ queryipcinit()
 		ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	    ua.v4.sin_port        = htons(port);
 	    ua.v4.sin_family      = AF_INET;
-	    querysocket = -1;
-#ifdef INET6
-	    querysocket = socket(PF_INET6, SOCK_STREAM, 0);
-#endif
-	    if (querysocket < 0)
-	      querysocket = socket(PF_INET, SOCK_STREAM, 0);
-#ifdef INET6
-	    else {
-	      memset(&ua, 0, sizeof(ua));
-	      if (zgetbindaddr(NULL, AF_INET6, &ua))
-		  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
-	      ua.v6.sin6_port   = htons(port);
-	      ua.v6.sin6_family = AF_INET6;
-	    }
-#endif
+	    querysocket = socket(PF_INET, SOCK_STREAM, 0);
 	    if (querysocket < 0) {
-#ifdef INET6
-	      perror("querysocket: socket(PF_INET6/PF_INET)");
-#else
 	      perror("querysocket: socket(PF_INET)");
-#endif
 	      break;
 	    }
 	    setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
-
-#ifdef INET6
-	    if (ua.v6.sin6_family == AF_INET6) {
-	      if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v6) < 0) {
-		perror("bind:TCP6 mailq socket");
-		close(querysocket);
-		querysocket = -1;
-		break;
-	      }
-	    } else
-#endif
-	      if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v4) < 0) {
-		perror("bind:TCP4 mailq socket");
-		close(querysocket);
-		querysocket = -1;
-		break;
-	      }
+	    if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v4) < 0) {
+	      perror("bind:TCP4 mailq socket");
+	      close(querysocket);
+	      querysocket = -1;
+	      break;
+	    }
 
 	    fcntl(querysocket, F_SETFL,
 		  fcntl(querysocket, F_GETFL, 0)|O_NONBLOCK);
@@ -1600,9 +1745,10 @@ queryipcinit()
 	  break;
 	}
 
-	if (querysocket >= 0 && notifysocket >= 0)
+	if ((querysocket >= 0 || querysocket6 >= 0) && notifysocket >= 0) {
 	  qipcretry = 0; /* Successfull init done. */
-	else {
+	  
+	} else {
 	  mytime(&now); 
 	  qipcretry = now + 5; /* Will do retry soon.. */
 

@@ -223,7 +223,7 @@ typedef enum {
     RecipientOrData, Data, Send, SendOrMail,
     SendAndMail, Reset, Verify, Expand, Help,
     NoOp, Quit, Turn, Tick, Verbose, DebugIdent,
-    Turnme, BData, DebugMode, Auth,
+    Turnme, BData, DebugMode, Auth, Report,
 #ifdef HAVE_OPENSSL
     StartTLS,
 #endif /* - HAVE_OPENSSL */
@@ -426,6 +426,7 @@ extern const char *tls_random_source;
 extern const char *tls_cipherlist;
 extern const char *SASL_Auth_Mechanisms;
 extern const char *contact_pointer_message;
+extern const char *reportauthfile;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
 extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;
 extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
@@ -453,7 +454,13 @@ extern int use_spf, spf_received, spf_threshold;
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;
 extern Usockaddr *bindaddrs;
+extern int       *bindaddrs_types;
+extern int       *bindaddrs_ports;
 extern int        bindaddrs_count;
+#define BINDADDR_ALL    0xFFFF
+#define BINDADDR_SMTP   0x0001
+#define BINDADDR_SMTPS  0x0002
+#define BINDADDR_SUBMIT 0x0004
 extern Usockaddr testaddr;
 
 extern const char *progname;
@@ -601,6 +608,7 @@ extern void smtp_tarpit __((SmtpState * SS));
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
 extern void smtpauth_init __((SmtpState * SS));
 extern void smtpauth_ehloresponse __((SmtpState * SS));
+extern int  smtp_report __((SmtpState * SS, const char *buf, char *cp));
 
 #ifdef HAVE_OPENSSL
 extern int tls_start_servertls __((SmtpState *SS));
@@ -674,3 +682,17 @@ extern struct subdaemon_handler subdaemon_handler_contentfilter;
 /* subdaemon-rtr.c */
 extern char * call_subdaemon_rtr __((void **, const char*, const char *, int, int*));
 extern struct subdaemon_handler subdaemon_handler_router;
+
+/* subdaemon-trk.c */
+extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, int retbuflen));
+extern int call_subdaemon_trk_getmore __((void **statep,char *retbuf, int retbuflen));
+extern int  smtp_report_ip __((SmtpState *SS, const char *ip));
+
+
+/* contentpolicy.c */
+extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
+
+extern int mx_client_verify  __((int, const char *, int));
+extern int sender_dns_verify __((int, const char *, int));
+extern int client_dns_verify __((int, const char *, int));
+extern int rbl_dns_test __((const int, const u_char *, char *, char **));

@@ -1,36 +1,20 @@
 /*
- *	ZMailer 2.99.53+ Scheduler "mailq2" routines
- *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2000,2004
- *
+ *    Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
+ *      This will be free software, but only when it is finished.
  */
-
-#include "scheduler.h"
-#include "prototypes.h"
-#include <ctype.h>
-#include <unistd.h>
-#include "zsyslog.h"
-#include <stdlib.h>
-#include <errno.h>
-
-#include "ta.h"
-#include "libz.h"
-#include "md5.h"
-
-#include <arpa/inet.h>
-
 /*
- *  MAILQv2 autentication database info content:
- *
- *  - username (search key)
- *  - cleartext password (for AUTH hash to work)
- *  - controlling attributes
- *  - IP ACL per tcp-wrapper (how?)
- *
- *
- *  Field separator classical double-colon (':'), meaning that
- *  the cleartext password shall *not* contain that character.
+ *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
+ *      Copyright 1991-2004.
  */
+/*
+ * Zmailer SMTP-server divided into bits
+ *
+ * This implements the  Z-REPORT  command.
+ */
+
+#include "smtpserver.h"
+
+const char * reportauthfile;
 
 struct mq2pw {
 	char *user;
@@ -46,15 +30,14 @@ struct mq2keys {
 static struct mq2keys keys[] =
 {
   { 0,			"NONE"	},
-  { MQ2MODE_SNMP,	"SNMP"	},
-  { MQ2MODE_QQ,		"QQ"	},
-  { MQ2MODE_FULL,	"TT"	},
-  { MQ2MODE_ETRN,	"ETRN"	},
-  { MQ2MODE_KILL,	"KILL"	},
+  { 0x00000001,		"SMTPIP"},
   /* other modes ? */
-  { 0x7fffffff,		"ALL"	},
+  { 0x7fffffff,		"SMTPALL"},
   { 0, NULL },
 };
+
+
+/*** FIXME: Code copied from  scheduler/mq2auth.c !! LIBRARIZE ?? ***** */
 
 
 static long mq2authtokens(keys,s)
@@ -100,13 +83,13 @@ parseaddrlit(hostp, au)
 	    CISTREQN(host,"[IPv6.",6)) {
 	  au->v6.sin6_family = AF_INET6;
 	  err = inet_pton(AF_INET6, host+6, &au->v6.sin6_addr);
-	  if (err > 0) rc = 128;
+	  if (err != 1) rc = 128;
 	} else
 #endif
 	  if (*host == '[') {
 	    au->v4.sin_family = AF_INET;
 	    err = inet_pton(AF_INET, host+1, &au->v4.sin_addr);
-	    if (err > 0) rc = 32;
+	    if (err != 1) rc = 32;
 	  } else
 	    err = -1;
 
@@ -200,7 +183,6 @@ static int mq2amaskcompare(qa, width, ua)
 
     } else {
       return 0; /* NO MATCH! */
-
     }
 }
 
@@ -232,105 +214,150 @@ static int mq2amaskverify(qa, s)
 }
 
 
-struct mq2pw * mq2_authuser(mq, authfile, user)
-     struct mailq *mq;
-     const char *authfile, *user;
+/* ---- Heavily mutated version of mq2_authuser() of scheduler.. --- */
+
+static struct mq2pw * reportauthuser(qa, authfile, user, pass)
+     Usockaddr *qa;
+     const char *authfile;
+     const char *user, *pass;
 {
   static char linebuf[2000];
   static struct mq2pw mpw;
   char *s;
-  Sfio_t *fp;
-  int ulen = user ? strlen(user)+1 : 0;
+  FILE *fp;
 
-  if (!authfile) return NULL; /* D'uh! */
+  if (!authfile || !user || !pass) return NULL; /* D'uh! */
 
-  fp = sfopen(NULL, authfile, "r");
+  fp = fopen(authfile, "r");
   if (!fp) return NULL; /* D'uh! */
 
   mpw.user = linebuf;
-  while (csfgets(linebuf, sizeof(linebuf)-1, fp) >= 0) {
+  while (fgets(linebuf, sizeof(linebuf)-1, fp) != NULL &&
+	 !ferror(fp) && !feof(fp)) {
     if (*linebuf == '#' || *linebuf == '*' || *linebuf == '\n')
       continue;
     s = strchr(linebuf,'\n');
     if (s) *s = 0;
+
+    /* type(NULL,0,NULL,"reportauthuser() inline='%s'",linebuf); */
+
     s = strchr(linebuf,':');
-    if (!s) continue; /* Bad syntax! */
+    if (!s) {
+      /* type(NULL,0,NULL,"No ':' chars in line!"); */
+      continue; /* Bad syntax! */
+    }
     *s++ = '\000';
-    if (!user || memcmp(linebuf,user,ulen) == 0) {
+    if (STREQ(linebuf,user)) {
       /* FOUND! */
-      mpw.plain = s;	/* authenticator verification happens at caller.. */
+      /* type(NULL,0,NULL,"username matched"); */
+      mpw.plain = s;
       s = strchr(s, ':');
-      if (!s) continue; /* Bad syntax! */
+      if (!s) {
+	/* type(NULL,0,NULL,"Missing 2nd ':' char in line!"); */
+	continue; /* Bad syntax! */
+      }
       *s++ = '\000';
+      if (! STREQ(mpw.plain,pass)) {
+	/* type(NULL,0,NULL,"password non-match"); */
+	continue; /* Keep scanning */
+      }
 
       mpw.attrs = s;
       s = strchr(s, ':');
-      if (!s) continue; /* Bad syntax! */
+      if (!s) {
+	/* type(NULL,0,NULL,"Missing 3rd ':' char in line!"); */
+	continue; /* Bad syntax! */
+      }
       *s++ = '\000';
 
-      if (mq2amaskverify(& mq->qaddr, s)) continue; /* BAD user address! */
+      if (mq2amaskverify(qa, s)) {
+	/* type(NULL,0,NULL,"amaskverify fail"); */
+	continue; /* BAD! */
+      }
       mpw.auth = mq2authtokens(keys, mpw.attrs);
-      if (! mpw.auth) continue; /* No known ACL tokens! try next! */
+      if (!mpw.auth) {
+	/* type(NULL,0,NULL,"no authtokens"); */
+	continue; /* NO ACL TOKENS! */
+      }
 
-      sfclose(fp);
+      fclose(fp);
       return & mpw;
     }
   }
 
-  sfclose(fp);
+  fclose(fp);
   return NULL; /* nothing found */
 }
 
 
-
-void mq2auth(mq, authfile, str)
-     struct mailq *mq;
-     const char *authfile;
-     char *str;
+/*
+ * smtp_report() function
+ *
+ * SMTP protocol verb:  Z-REPORT
+ * parameters:   user password queryparameter(s)
+ *
+ * Queryparameters: <cmd> (<params>)*
+ *     <cmd>:    "IP"
+ *        <params>:  1.2.3.4
+ *        <params>:  1111:2222:3333::ffff
+ */
+int smtp_report(SS, buf, cp)
+SmtpState *SS;
+const char *buf;
+char *cp;
 {
-  char *p = str;
-  struct mq2pw *pw;
-  MD5_CTX CTX;
-  unsigned char digest[16];
-  char authbuf[32+1];
-  int i;
+    char user[32], pass[32], cmd[32], param1[200], *p;
+    int l;
 
-  mq->auth = 0;
+    MIBMtaEntry->ss.IncomingSMTP_REPORT ++;
 
-  while (*p && (*p != ' ') && (*p != '\t')) ++p;
-  if (*p) *p++ = '\000';
-  while (*p == ' ' || *p == '\t') ++p;
+    /* At entry the  cp  points right after the verb, skip LWSP.. */
+    while (*cp == ' ') ++cp;
 
-  /* Now 'str' points to username, and from 'p' onwards
-     there is the HEX-encoded MD5 authenticator.. */
+    p = cp;
+    while (*cp && *cp != ' ') ++cp;
+    l = cp - p;
+    strncpy(user, p, sizeof(user));  user[sizeof(user)-1] = 0;
+    if (l < sizeof(user)) user[l] = 0;
 
-  pw = mq2_authuser(mq, authfile, str);
+    while (*cp == ' ') ++cp;
 
-  if (!pw) {
-    mq2_puts(mq,"-BAD USER OR AUTHENTICATOR OR CONTACT ADDRESS\n");
-    return;
-  }
+    p = cp;
+    while (*cp && *cp != ' ') ++cp;
+    l = cp - p;
+    strncpy(pass, p, sizeof(pass));  pass[sizeof(pass)-1] = 0;
+    if (l < sizeof(pass)) pass[l] = 0;
 
-  MD5Init(&CTX);
-  MD5Update(&CTX, (const void *)(mq->challenge), strlen(mq->challenge));
-  MD5Update(&CTX, (const void *)(pw->plain),     strlen(pw->plain));
-  MD5Final(digest, &CTX);
+    while (*cp == ' ') ++cp;
 
-  for (i = 0; i < 16; ++i)
-    sprintf(authbuf+i+i, "%02x", digest[i]);
+    p = cp;
+    while (*cp && *cp != ' ') ++cp;
+    l = cp - p;
+    strncpy(cmd, p, sizeof(cmd));  cmd[sizeof(cmd)-1] = 0;
+    if (l < sizeof(cmd)) cmd[l] = 0;
 
-  if (strcmp(authbuf,p) != 0) {
-    mq2_puts(mq,"-BAD USER OR PASSWORD");
-#if 0 /* used to debug MD5 code... */
-    mq2_puts(mq,"; real auth:");
-    mq2_puts(mq,authbuf);
-#endif
-    mq2_puts(mq,"\n");
-    return;
-  }
+    while (*cp == ' ') ++cp;
 
-  /* Right, authenticator is ok */
-  mq->auth = pw->auth;
+    p = cp;
+    while (*cp && *cp != ' ') ++cp;
+    l = cp - p;
+    strncpy(param1, p, sizeof(param1));  param1[sizeof(param1)-1] = 0;
+    if (l < sizeof(param1)) param1[l] = 0;
 
-  mq2_puts(mq,"+OK\n");
+    /* type(NULL,0,NULL,"user='%s', pass='%s', cmd='%s', param1='%s' reportauthfile=%s",
+       user,pass,cmd,param1, reportauthfile ? reportauthfile : "<nil>"); */
+
+    if (! *cmd || !reportauthfile) {
+      return -1;
+    }
+
+    if (CISTREQ(cmd, "ip")) {
+      struct mq2pw *pw = reportauthuser( & SS->raddr,
+					 reportauthfile,
+					 user, pass );
+      if (pw) {
+	return smtp_report_ip(SS, param1);
+      }
+    }
+    return -1;
 }

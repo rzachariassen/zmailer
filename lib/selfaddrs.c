@@ -669,7 +669,7 @@ int argc;
 char *argv[];
 {
   int cnt, i;
-  struct sockaddr **sa;
+  Usockaddr **sa;
   char buf[80];
 
   cnt = loadifaddresses(&sa);
@@ -677,19 +677,19 @@ char *argv[];
   printf("loadifaddresses rc=%d\n", cnt);
 
   for (i = 0; i < cnt; ++i) {
-    switch(sa[i]->sa_family) {
+    switch(sa[i]->v4.sin_family) {
     case AF_INET:
-      inet_ntop(AF_INET, &((struct sockaddr_in **) sa)[i]->sin_addr, buf, sizeof(buf));
+      inet_ntop(AF_INET, &sa[i]->v4.sin_addr, buf, sizeof(buf));
       printf("IPv4: [%s]\n", buf);
       break;
 #if defined(AF_INET6) && defined(INET6)
     case AF_INET6:
-      inet_ntop(AF_INET6, &((struct sockaddr_in6 **) sa)[i]->sin6_addr, buf, sizeof(buf));
+      inet_ntop(AF_INET6, &sa[i]->v6.sin6_addr, buf, sizeof(buf));
       printf("IPv6: [IPv6:%s]\n",buf);
       break;
 #endif
     default:
-      printf("Unknown socket address family: %d\n", sa[i]->sa_family);
+      printf("Unknown socket address family: %d\n", sa[i]->v4.sin_family);
       break;
     }
   }
