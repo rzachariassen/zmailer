@@ -4158,9 +4158,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int saw_cname = 0;
 	int ttl;
 	int had_eai_again = 0;
-	struct addrinfo req, *ai;
+	struct addrinfo req, *ai, *ai2;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
+	char mxtype[MAXFORWARDERS];
 
 	h_errno = 0;
 
@@ -4222,8 +4223,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	if (SS->verboselog)
 	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d CD=%d AD=%d RA=%d\n",
-		  n, hp->rcode, ntohs(hp->qdcount), ntohs(hp->ancount),
-		  ntohs(hp->nscount), ntohs(hp->arcount),
+		  n, hp->rcode, qdcount, ancount, nscount, arcount,
 		  hp->rd, hp->tc, hp->aa, hp->qr, hp->cd, hp->ad, hp->ra);
 
 	if (hp->rcode != NOERROR || ancount == 0) {
@@ -4337,6 +4337,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    fprintf(stderr, "Out of virtual memory!\n");
 	    exit(EX_OSERR);
 	  }
+	  mxtype[nmx] = 0;
 	  ++nmx;
 	  --ancount;
 	} /* Gone thru all answers */
@@ -4346,11 +4347,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  /* If the MAXFORWARDERS count has been exceeded
 	     (quite a feat!)  skip over the rest of the
 	     answers, as long as we have them, and the
-	     reply-buffer has not been exceeded...
+	     reply-buffer has not been exhausted...
 
-	     These are in fact extremely pathological cases
-	     of the DNS datasets, and most MTA systems will
-	     simply barf at this scale of things far before.. */
+	     These are in fact extremely pathological cases of
+	     the DNS datasets, and most MTA systems will simply
+	     barf at this scale of things far before ZMailer... */
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, "  collected MX count matches maximum supported (%d) with still some (%d) answers left to pick, we discard them.\n",
@@ -4438,8 +4439,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    --nscount;
 	}
 
+	/* If nscount isn't zero here, then (cp >= eom) is true ... */
+
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
-	while (nscount == 0 && arcount > 0 && cp < eom) {
+	while (arcount > 0 && cp < eom) {
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;
@@ -4511,6 +4514,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 		ai->ai_next     = mx[i].ai;
 		mx[i].ai        = ai;
 
+		mxtype[i] |= (type == T_A) ? 1 : 2;
+
 		switch (type) {
 #if defined(AF_INET6) && defined(INET6)
 		case T_AAAA:
@@ -4548,9 +4553,14 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	for (i = 0; i < nmx; ++i) {
 
-	  if (mx[i].ai != NULL) /* have address! */
+#if defined(AF_INET6) && defined(INET6)
+	  /* If not IPv6 speaker, and already have A, skip it. */
+	  if (!use_ipv6 && (mxtype[i] & 1))
 	    continue;
-
+#endif
+	  if (mxtype[i] == 3)
+	    continue; /* Have both A and AAAA */
+	  
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
 	  req.ai_protocol = IPPROTO_TCP;
@@ -4558,21 +4568,29 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  req.ai_family   = PF_INET;
 	  ai = NULL;
 
-	  /* This resolves CNAME, it should not happen in case
-	     of MX server, though..    */
+	  if (! (mxtype[i] & 1)) {  /* Not have A */
+
+	    /* This resolves CNAME, it should not happen in case
+	       of MX server, though..    */
 #if !GETADDRINFODEBUG
-	  n = getaddrinfo(mx[i].host, "0", &req, &ai);
+	    n = getaddrinfo(mx[i].host, "0", &req, &ai);
 #else
-	  n = _getaddrinfo_(mx[i].host, "0", &req, &ai, SS->verboselog);
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		    mx[i].host, n, ai);
+	    n = _getaddrinfo_(mx[i].host, "0", &req, &ai, SS->verboselog);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		      mx[i].host, n, ai);
 #endif
+	  }
 
 #if defined(AF_INET6) && defined(INET6)
-	  if (use_ipv6) {
-	    struct addrinfo *ai2 = NULL, *a;
+	  if (use_ipv6 && !(mxtype[i] & 2) ) {
+
+	    /* Want, but not have AAAA, ask for it. */
+
+	    struct addrinfo *a;
 	    int n2;
+	    ai2 = NULL;
+
 	    memset(&req, 0, sizeof(req));
 	    req.ai_socktype = SOCK_STREAM;
 	    req.ai_protocol = IPPROTO_TCP;
@@ -4604,6 +4622,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    }
 	  }
 #endif
+
+	  /* Catenate old stuff into the tail of the new ... */
+	  ai2 = ai;
+	  while (ai2 && ai2->ai_next) ai2 = ai2->ai_next;
+	  if (ai2) ai2->ai_next = mx[i].ai;
 
 	  mx[i].ai = ai; /* Save it (whatever it was..) */
 

@@ -1,5 +1,17 @@
 2000-06-21  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* smtpserver/mxverify.c, transports/smtp/smtp.c:
+	    Made smtpserver MXVERIFY to use DNS ADDITIONAL DATA,
+	    and reorganized A record collection so that if some
+	    MX server does not have A, that is asked for it
+	    explicitely, and if ipv6 is in use, if AAAA data
+	    does not exist for a server, it is asked for.
+	    In case ipv6 is not in use, this collapses into plain
+	    A type data retrieval.
+
+	* lib/selfaddrs.c:
+	    Removed a test which is never true.
+
 	* transports/smtp/smtp.c:
 	    Some more tuning of  getmxrr()  pathology processing.
 

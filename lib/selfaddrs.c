@@ -645,7 +645,7 @@ matchmyaddress(_sa)
 	  net = (ntohl(sau->v4.sin_addr.s_addr) >> 24) & 0xFF;
 	  if (net == 127)
 	    return 2; /* Loopback network */
-	  if (net == 0 || net == 127 || net > 223)
+	  if (net == 0 || net > 223)
 	    return 3;
 	}
 

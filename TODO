@@ -66,6 +66,8 @@ transports/smtp:
 	check for additional A data in case only AAAA data is available,
 	and if IPv6 is supported (and socket works), if there are only
 	A data, look for AAAA data with separate lookup.
+	Especially so if the ADDITIONAL DATA didn't cover all named servers
+	in the first round.
 
    BUGLET:
 	Right now we make eminently sensible commentary diagnostics carrying
@@ -238,9 +240,6 @@ transports/smtp:
 		This smells like something being wrong at MQ2
 		authentication code, or in what the smtpserver
 		has parsed from its conf file...  Weird..
-
-    VERIFY:
-	policy analysis functionality regarding ``bigmx.zmailer.org''
 
     FEATURE:
 	Bind to named interface (pick its address with SIOCG(L)IFADDR)
