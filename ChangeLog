@@ -1,3 +1,44 @@
+2003-05-08  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/sm/sm.c, transports/mailbox/mailbox.c,
+	  router/daemonsub.c, scheduler/transport.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    Worked over the  wait4()/wait3()/waitpid()/wait() usage.
+	    Essentially addded  wait4()  to the mix.
+
+	* configure.in, Makefile.in:
+	   Syncing things to be in par with  autoconf 2.57, including
+	   having it as a pre-req..  Also producing BUGREPORT and VERSION
+	   literals from  configure.in  file !
+	   
+
+	* configure.in, smtpserver/smtpserver.c, scheduler/scheduler.c,
+	  transports/smtp/smtp.c:
+	    Andrey Blochintsev reports that FreeBSD 4.x needs
+	    to use  setproctitle()  function.  Added autoconfig
+	    tests for that.
+
+	* lib/rfc822date.c:
+	    Just to be on the safe side, enlarging some buffers,
+	    and adding explicite sprintf() string lenth limits.
+
+	* proto/zmailer.sh.in:
+	    Refer to inlined perl-script executor with  @PERL@
+	    autoconfig token.
+
+	* proto/post-install.sh.in:
+	    Typo fix in autoconf patterns.  Should actually rename
+	    this either to 'post-install', or 'post-install.pl',
+	    as it is a perl script...
+	
+	* lib/sleepycatdb.c:
+	    Andrey Blochintsev reported that things didn't work quite
+	    smoothly with only BSD DB 1.x in system. (No SleepyCat's
+	    latter versions.)
+
+	* scheduler/conf.c:
+	    Lower the  global_report_interval  from 15 to 5 minutes.
+
 2003-05-06  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/zgetbindaddr.c, transports/mailbox/mboxpath.c,

@@ -12,16 +12,6 @@ dnl Process this file with autoconf to produce a configure script.
 #   AC_DEFINE(CHECK_MB_SIZE)    # mailbox.c feature using external function
 #
 
-#PACKAGE=ZMailer
-#VERSION=2.99.51patch1
-#PACKAGE_VERSION="$PACKAGE-$VERSION"
-#AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-#AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
-#AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$PACKAGE_VERSION")
-#AC_SUBST(PACKAGE)
-#AC_SUBST(VERSION)
-#AC_SUBST(PACKAGE_VERSION)
-
 #
 # This autoconfigure input was taken from  GNU fileutils  configure.in,
 # and modified by hand by <matti.aarnio@nic.funet.fi>  for the ZMailer
@@ -36,8 +26,14 @@ dnl Process this file with autoconf to produce a configure script.
 # mechanisms ...
 #
 
-AC_INIT(router/router.c)
-AC_CONFIG_HEADER(config.h)
+AC_PREREQ(2.57)
+AC_COPYRIGHT([ZMailer autoconfiguration setup
+copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
+AC_REVISION($Revision$)
+
+AC_INIT(ZMailer, [2.99.56-pre5], [zmhack@nic.funet.fi])
+
+AC_PREFIX_DEFAULT([/opt/zmailer])
 
 AC_PROG_CPP
 AC_ISC_POSIX
@@ -59,7 +55,7 @@ else
     fi
 fi
 
-AC_LANG_C
+AC_LANG(C)
 
 
 AC_SUBST(MKDIR)
@@ -518,17 +514,17 @@ AC_ARG_WITH(yp-lib, [  --with-yp-lib='-L... -lyp'  Linker arguments for the YP/N
 
 AC_HEADER_SYS_WAIT
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(waitpid wait4)
-AC_CHECK_FUNCS(getenv putenv setenv unsetenv)
+AC_CHECK_FUNCS(waitpid getrusage wait4)
+AC_CHECK_FUNCS(getenv putenv setenv unsetenv setproctitle)
 
 #
 #  Study shared library generation
 #
-AC_SUBST(SHLIB_CFLAGS)
-AC_SUBST(SHLIB_LD)
-AC_SUBST(SHLIB_SUFFIX)
-AC_SUBST(DL_LIBS)
-AC_SUBST(LD_FLAGS)
+#AC_SUBST(SHLIB_CFLAGS)
+#AC_SUBST(SHLIB_LD)
+#AC_SUBST(SHLIB_SUFFIX)
+#AC_SUBST(DL_LIBS)
+#AC_SUBST(LD_FLAGS)
 
 
 AC_HEADER_DIRENT
@@ -1491,7 +1487,7 @@ AC_CHECK_FUNCS(mkdir mktime mkstemp rename rmdir strcpy strdup strstr \
 AC_REPLACE_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
                  strchr strrchr setvbuf strerror strsignal strtoul)
 
-AC_DECL_SYS_SIGLIST
+AC_CHECK_DECLS([sys_siglist])
 
 AC_CACHE_CHECK([existence of char **sys_siglist], ac_cv_arr_sys_siglist, [
 AC_TRY_LINK([extern char *sys_siglist[]; static char *s;], [s = sys_siglist[2]; ],
@@ -2333,49 +2329,62 @@ done
 
 CPPFLAGS="$OrigCPPFLAGS"
 
-
-AC_OUTPUT(Makefile
-        router/Makefile                 router/libdb/Makefile           \
-        scheduler/Makefile              smtpserver/Makefile             \
-        transports/Makefile             transports/smtp/Makefile        \
-        transports/mailbox/Makefile     transports/hold/Makefile        \
-        transports/libta/Makefile       transports/sm/Makefile          \
-        transports/errormail/Makefile   transports/fuzzyalias/Makefile  \
-        transports/expirer/Makefile     transports/expirer/manual-expirer \
-	transports/reroute/Makefile	transports/reroute/manual-rerouter \
-        compat/Makefile                 compat/rmail/Makefile           \
-        compat/sendmail/Makefile                                        \
-        sfio/Makefile                   sfio/src/lib/sfio/makefile      \
-        sfio/src/lib/sfio/Stdio_b/Makefile                              \
-        sfio/src/lib/sfio/Stdio_s/Makefile                              \
-        sfio/src/lib/sfio/Sfio_f/Makefile                               \
-        sfio/src/lib/sfio/Sfio_dc/Makefile                              \
-        lib/Makefile                    libc/Makefile                   \
-        libident/Makefile               libs/Makefile                   \
-        libsh/Makefile                  libmalloc/Makefile              \
-        libmalloc/splay/Makefile        libresolv/Makefile              \
-        ssl/Makefile                                                    \
-        doc/Makefile                    doc/design/Makefile             \
-        include/mail.h                  man/Makefile                    \
-        utils/policy-builder.sh         utils/Makefile                  \
-        utils/zmailer.init.sh           utils/autoanswer.pl             \
-        utils/vacation/Makefile         man/vacation.1                  \
-        utils/vacation/vacation.sh      utils/makedb/Makefile           \
-        utils/rotate-logs.sh            utils/smtpserver-log-parser.pl  \
-        proto/Makefile                  proto/zmailer.sh                \
-        proto/newaliases                proto/newfqdnaliases            \
-        proto/newdb                     proto/newdbprocessor            \
-        proto/scheduler.conf            proto/scheduler.auth            \
-        proto/mailrm.sh                 proto/db/Makefile               \
-        proto/cf/TELE-FI.cf             proto/smtpserver.conf           \
-        proto/cf/SMTP+UUCP.cf           proto/cf/UTdefault.cf           \
-        proto/cf/SMTP.cf                proto/smtp-tls.conf             \
-        proto/db/aliases                proto/sm.conf                   \
-        bin/mkdep                       bin/mklibdep                    \
-        proto/post-install.sh           utils/mxverify/Makefile         \
-	utils/smtp-contentfilter	utils/perl/Makefile		\
-        packaging/Makefile              packaging/solaris/Makefile      \
-        SiteConfig      ,
+AC_CONFIG_HEADER(config.h)
+AC_CONFIG_FILES([
+	Makefile
+        router/Makefile                 router/libdb/Makefile           
+        scheduler/Makefile              smtpserver/Makefile             
+        transports/Makefile             transports/smtp/Makefile        
+        transports/mailbox/Makefile     transports/hold/Makefile        
+        transports/libta/Makefile       transports/sm/Makefile          
+        transports/errormail/Makefile   transports/fuzzyalias/Makefile  
+        transports/expirer/Makefile     transports/expirer/manual-expirer 
+	transports/reroute/Makefile	transports/reroute/manual-rerouter 
+        compat/Makefile                 compat/rmail/Makefile           
+        compat/sendmail/Makefile                                        
+        sfio/Makefile                   sfio/src/lib/sfio/makefile      
+        sfio/src/lib/sfio/Stdio_b/Makefile                              
+        sfio/src/lib/sfio/Stdio_s/Makefile                              
+        sfio/src/lib/sfio/Sfio_f/Makefile                               
+        sfio/src/lib/sfio/Sfio_dc/Makefile                              
+        lib/Makefile                    libc/Makefile                   
+        libident/Makefile               libs/Makefile                   
+        libsh/Makefile                  libmalloc/Makefile              
+        libmalloc/splay/Makefile        libresolv/Makefile              
+        ssl/Makefile                                                    
+        doc/Makefile                    doc/design/Makefile             
+        include/mail.h                  man/Makefile                    
+        utils/policy-builder.sh         utils/Makefile                  
+        utils/zmailer.init.sh           utils/autoanswer.pl             
+        utils/vacation/Makefile         man/vacation.1                  
+        utils/vacation/vacation.sh      utils/makedb/Makefile           
+        utils/rotate-logs.sh            utils/smtpserver-log-parser.pl  
+        proto/Makefile                  proto/zmailer.sh                
+        proto/newaliases                proto/newfqdnaliases            
+        proto/newdb                     proto/newdbprocessor            
+        proto/scheduler.conf            proto/scheduler.auth            
+        proto/mailrm.sh                 proto/db/Makefile               
+        proto/cf/TELE-FI.cf             proto/smtpserver.conf           
+        proto/cf/SMTP+UUCP.cf           proto/cf/UTdefault.cf           
+        proto/cf/SMTP.cf                proto/smtp-tls.conf             
+        proto/db/aliases                proto/sm.conf                   
+        proto/post-install.sh           utils/mxverify/Makefile         
+	utils/smtp-contentfilter	
+        packaging/Makefile              packaging/solaris/Makefile      
+        SiteConfig
+],[])dnl
+AC_CONFIG_FILES([
+	utils/perl/Makefile		
+],[
+#### Special conditional copying:
+if test ! -d utils/perl/mailq ; then
+   mkdir utils/perl/mailq
+   cp -pr $srcdir/utils/perl/mailq/* utils/perl/mailq/
+fi
+])dnl
+AC_CONFIG_FILES([
+        bin/mkdep                       bin/mklibdep  ],
 [chmod 755 bin/*
  echo > stamp-h])dnl
+AC_OUTPUT
 AC_MSG_RESULT([Remember to check  SiteConfig  for possible option changes])

@@ -1,8 +1,9 @@
 # Master Makefile for the ZMailer
 
-MAJORVERSION =	2
-MINORVERSION =	99
-PATCHLEVEL =	56-pre5
+# From  configure.in  !
+VERSION   =  @PACKAGE_VERSION@
+BUGREPORT = "@PACKAGE_BUGREPORT@"
+
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -328,14 +329,11 @@ version.c: force # Makefile
 		REVISION=`expr $$REVISION + 1` ;; \
 	*)	REVISION=0 ;; \
 	esac ; \
-	case "${PATCHLEVEL}" in \
-	0)	VERSION="${MAJORVERSION}.${MINORVERSION}" ;; \
-	*)	VERSION="${MAJORVERSION}.${MINORVERSION}.${PATCHLEVEL}" ;; \
-	esac ; \
 	echo $$REVISION > revision ; \
 	exec > version.c ; \
-	echo "const char *Version = \"$${VERSION} #$${REVISION}: `date`\";"; \
-	echo "const char *VersionNumb = \"$${VERSION} #$${REVISION}\";"; \
+	echo "const char *Version = \"${VERSION} #$${REVISION}: `date`\";"; \
+	echo "const char *VersionNumb = \"${VERSION} #$${REVISION}\";"; \
+	echo "const char *Bugreport = \"${BUGREPORT}\";"; \
 	echo "const char *CC_user = \"$${USER}@$${HOSTNAME}\";"; \
 	echo "const char *CC_pwd = \"`pwd`\";" '
 
