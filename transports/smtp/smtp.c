@@ -807,8 +807,7 @@ main(argc, argv)
 	logfp = NULL;
 	if (logfile != NULL) {
 	  if ((fd = open(logfile, O_CREAT|O_APPEND|O_WRONLY, 0644)) < 0)
-	    fprintf(stdout,
-		    "#%s: cannot open logfile \"%s\"!\n",
+	    fprintf(stdout, "# %s: cannot open logfile \"%s\"!\n",
 		    argv[0], logfile);
 	  else
 	    logfp = (FILE *)fdopen(fd, "a");
@@ -840,7 +839,7 @@ main(argc, argv)
 	   */
 	  char *s;
 
-	  printf("#hungry\n");
+	  fprintf(stdout, "#hungry\n");
 	  fflush(stdout);
 
 	  if (statusreport) {
@@ -913,13 +912,13 @@ main(argc, argv)
 	    host = strdup(s);
 	  } else
 	    if (need_host) {
-	      printf("# smtp needs defined host!\n");
+	      fprintf(stdout,"# smtp needs defined host!\n");
 	      fflush(stdout);
 	      continue;
 	    }
 
 	  if (debug > 1) { /* "DBGdiag:"-output */
-	    printf("# (fdcnt=%d, file:%.200s, host:%.200s)\n", countfds(), filename, host);
+	    fprintf(stdout,"# (fdcnt=%d, file:%.200s, host:%.200s)\n", countfds(), filename, host);
 	    fflush(stdout);
 	  }
 
@@ -932,7 +931,7 @@ main(argc, argv)
 #endif /* BIND */
 	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
 	  if (dp == NULL) {
-	    printf("#resync %.200s\n", filename);
+	    fprintf(stdout,"#resync %.200s\n", filename);
 	    fflush(stdout);
 	    if (logfp)
 	      fprintf(logfp, "%s#\tc='%s' h='%s' #resync %s\n", logtag(), channel, host, filename);
@@ -968,10 +967,9 @@ main(argc, argv)
 	  ctlclose((struct ctldesc *)dp);
 	} /* while (!getout) ... */
 
-	if (smtpstatus == EX_OK) {
-	  if (SS.smtpfp && !getout)
-	    smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
-	}
+	if (SS.smtpfp && !getout)
+	  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
+
 	/* Close the channel -- if it is open anymore .. */
 	if (SS.smtpfp) {
 	  smtpclose(&SS);
@@ -2875,7 +2873,7 @@ makeconn(SS, ai, ismx)
 	      if (SS->smtpfp == NULL) {
 		int err;
 		err = errno;
-		printf("smtp: Failed to fdopen() a socket stream, errno=%d, err='%s' Hmm ??\n",err, strerror(err));
+		fprintf(stdout,"# smtp: Failed to fdopen() a socket stream, errno=%d, err='%s' Hmm ??\n",err, strerror(err));
 		fflush(stdout);
 		abort(); /* sock-stream fdopen() failure! */
 	      }
@@ -3161,6 +3159,7 @@ if (SS->verboselog)
 
 	errnosave = errno;
 	fcntl(sk, F_SETFL, flg);
+
 #ifdef SO_ERROR
 	flg = 0;
 	{
@@ -4001,7 +4000,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 {
 	register char *s;
 	volatile char *cp;
-	int response, infd, outfd, rc;
+	int response, infd, rc;
 	volatile int r = 0, i;
 	char *se;
 	char *status = NULL;
@@ -4023,7 +4022,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  alarm(0);
 	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	}
-	outfd = infd = FILENO(SS->smtpfp);
+	infd = FILENO(SS->smtpfp);
 
 	if (pipelining) {
 	  if (SS->pipespace <= SS->pipeindex) {
@@ -4085,7 +4084,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      if (SS->verboselog)
 		fwrite(buf, len, 1, SS->verboselog);
 
-	      r = write(outfd, buf, len); /* XX: I/O retry !? */
+	      r = fwrite(buf, len, 1, SS->smtpfp);
+	      fflush(SS->smtpfp);
 	      err = (r != len);
 	    }
 	  } /* Long-jmp ends */
