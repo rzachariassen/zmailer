@@ -3535,6 +3535,11 @@ smtp_sync(SS, r, nonblocking)
 	    if (len < 0)
 	      err = errno;
 
+#ifdef HAVE_OPENSSL
+	    /* Actually can come here with len >= 0 ! */
+	  have_some_data:
+#endif
+
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
@@ -3548,12 +3553,25 @@ smtp_sync(SS, r, nonblocking)
 		  break; /* XX: return ?? */
 		}
 	      } else {
+
 		if (err == EINTR || err == EAGAIN
 #ifdef EWOULDBLOCK
 		    || err == EWOULDBLOCK
 #endif
 		    ) {
-		  err = 0;
+		  err = select_sleep(infd, timeout);
+		  en = errno;
+		  if (debug && logfp)
+		    fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",
+			    logtag(),infd,timeout,err);
+		  if (err < 0) {
+		    if (logfp)
+		      fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
+		    if (SS->smtpfp) 
+		      if (SS->verboselog)
+			fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
+		    break;
+		  }
 		  goto reread_line;
 		}
 	      }
@@ -3579,10 +3597,6 @@ smtp_sync(SS, r, nonblocking)
 	      err = EX_TEMPFAIL;
 	      break;
 	    } else {
-
-#ifdef HAVE_OPENSSL
-	  have_some_data:
-#endif
 
 	      /* more data for processing.. munch munch.. */
 	      if (s > SS->pipebuf) {
