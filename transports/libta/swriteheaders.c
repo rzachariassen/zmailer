@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  */
 /*
- *	Matti E Aarnio 1994,1999,2000 -- write (new) multiline headers
+ *	Matti E Aarnio 1994,1999-2001 -- write (new) multiline headers
  *	to the file.  This is part of the Zmailer
  *
  *	TODO: auto-wrapping/widening of (continued) headers to given
@@ -127,12 +127,15 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	      char *p = strchr(s, '\n');
 	      int linelen = p ? (p - s) : strlen(s);
 
-	      if (*s == '.')
-		/* sferror() not needed to check here.. */
-		sfputc(fp,'.'); /* ALWAYS double-quote the beginning
-				   dot -- though it should NEVER occur
-				   in the headers, but better safe than
-				   sorry.. */
+	      if (*s == '.') {
+		/* ALWAYS double-quote the beginning
+		   dot -- though it should NEVER occur
+		   in the headers, but better safe than
+		   sorry.. */
+		if (sfputc(fp,'.') < 0) {
+		  return -1;
+		}
+	      }
 	      if (*WriteTabs == '0') {
 		/* Expand line TABs */
 		int col = 0;
@@ -140,11 +143,11 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		  if (*s == '\t') {
 		    int c2 = col + 8 - (col & 7);
 		    while (col < c2) {
-		      sfputc(fp, ' ');
+		      if (sfputc(fp, ' ') < 0) return -1;
 		      ++col;
 		    }
 		  } else {
-		    sfputc(fp, *s);
+		    if (sfputc(fp, *s) < 0) return -1;
 		    ++col;
 		  }
 		}

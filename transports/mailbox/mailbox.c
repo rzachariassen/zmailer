@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2000 Matti Aarnio -- MIME processing et.al.
+ *	Copyright 1992-2001 Matti Aarnio -- MIME processing et.al.
  */
 
 /* History:
@@ -373,6 +373,19 @@ static int zsfsetfd(fp, fd)
   /* This is *NOT* the SFIO's sfsetfd() -- we do no sfsync() at any point.. */
   fp->file = fd;
   return fd;
+}
+
+static void zsfclose(fp)
+     Sfio_t *fp;
+{
+  /* This is *NOT* the SFIO's sfclose() -- in case of an error,
+     we junk the buffers ourselves! */
+
+  if (sferror(fp)) {
+    close(fp->file);
+    fp->file = -1;
+  }
+  sfclose(fp);
 }
 
 
@@ -1764,12 +1777,14 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
 	} else {
+#if 0 /* garbage.. */
 #if	defined(HAVE_SOCKET)
 	  if (fp) {
 	    if (nbp != NULL) /* putmail() has produced a DIAGNOSTIC */
 	      nbp->offset = -1;
 	}
 #endif	/* BIFF || RBIFF */
+#endif
 	}
 	
 	return;
@@ -1838,7 +1853,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
      const char *fdopmode, *timestring, *file;
      uid_t uid;
 {
-	int len, rc, mw=0;
+	int len, rc, mw=0, err;
 	Sfio_t *fp;
 	char buf[2];
 	struct stat st;
@@ -1970,12 +1985,16 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	/* Add the From_ line and print out the header */
 
-	if (sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
-	    || swriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
+	if ((sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0) ||
+	    (swriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0))
 	  failed = 1;
+
+	if (!failed && sferror(fp)) failed = 1;
 
 	if (!failed)
 	  sfprintf(fp, "X-Envelope-To: <%s> (uid %d)\n", rp->addr->user, uid);
+
+	if (!failed && sferror(fp)) failed = 1;
 
 	if (!failed && rp->orcpt) {
 	  sfprintf(fp, "X-Orcpt: ");
@@ -1987,6 +2006,8 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  decodeXtext(fp, rp->orcpt);
 	  sfprintf(fp, "\n");
 	}
+	if (!failed && sferror(fp)) failed = 1;
+
 	if (!failed && dp->envid) {
 	  sfprintf(fp, "X-Envid: ");
 	  decodeXtext(fp, dp->envid);
@@ -1996,85 +2017,88 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  decodeXtext(fp, dp->envid);
 	  sfprintf(fp, "\n");
 	}
-	if (do_xuidl && !topipe) {
+	if (!failed && sferror(fp)) failed = 1;
+
+	if (!failed && do_xuidl && !topipe) {
 	  struct timeval tv;
 	  gettimeofday(&tv, NULL);
 
 	  sfprintf(fp, "X-UIDL: %ld.%ld.%d\n",
 		  (long)tv.tv_sec, (long)tv.tv_usec, (int)getpid());
 	}
-	sfprintf(fp, "\n");
+	if (!failed && sferror(fp)) failed = 1;
 
-	sfsync(fp); /* Headers written, sync possible errors here! */
 	if (!failed)
-	  failed = sferror(fp);
+	  sfprintf(fp, "\n");
+	if (!failed && sferror(fp)) failed = 1;
+
+	if (!failed)
+	  sfsync(fp); /* Headers written, sync possible errors here! */
+
+	if (!failed && sferror(fp)) failed = 1;
+
+	if (failed) goto write_failure;
 
 	/* From now on, write errors to PIPE will not cause errors */
 
-	if (failed) {
-	  notaryreport(rp->addr->link->user, "failed",
-		       "4.2.2 (Write to user's mailbox failed)",
-		       "x-local; 500 (Write to user's mailbox failed)");
-	  DIAGNOSTIC(rp, file, EX_IOERR,
-		     "header write to \"%s\" failed", file);
-#ifdef HAVE_FTRUNCATE
-	  /* XX: should I really do this? */
-	  for (;;) {
-	    errno = 0;
-	    sfsync(fp);
-	    if (errno == EINTR)
-	      continue;
-	    break;
-	  }
-	  if (eofindex >= 0)
-	    while (ftruncate(sffileno(fp), (u_long)eofindex) < 0)
-	      if (errno != EINTR && errno != EAGAIN)
-		break;
-#endif /* HAVE_FTRUNCATE */
-#ifdef HAVE_FSYNC
-	  while (fsync(sffileno(fp)) < 0)
-	    if (errno != EINTR && errno != EAGAIN)
-	      break;
-#endif
-	  sfclose(fp);
-	  fp = NULL;
-	  goto time_reset;
-	}
-	lastch = appendlet(dp, rp, &WS, file, is_mime);
+	if (!failed)
+	  lastch = appendlet(dp, rp, &WS, file, is_mime);
 
-	sfsync(fp);
+	if (!failed && sferror(fp)) failed = 1;
+
+	if (!failed) sfsync(fp);
+
+	if (!failed && sferror(fp)) failed = 1;
 
 	mw = 1;
 	if (!topipe)
-	  if (lastch < -128 || sferror(fp)) {
-	    int err;
+
+	  if (lastch < -128 || failed) {
+
 	  write_failure:
+
+	    /* Does the 'errno' really have correct data in all paths ? */
 	    err = errno;
+
 	    notaryreport(NULL,NULL,NULL,NULL);
 	    DIAGNOSTIC4(rp, file, EX_IOERR,
 			"message write[%d] to \"%s\" failed: %s",
 			mw, file, strerror(err));
 #ifdef HAVE_FTRUNCATE
-	    /* XX: should I really do this? */
-	    sfsync(fp);
 	    if (eofindex >= 0)
 	      while (ftruncate(sffileno(fp), (off_t)eofindex) < 0)
 		if (errno != EINTR && errno != EAGAIN)
 		  break;
+
+	    /* Some syscall traces seem to tell that Solaris 7/8
+	       implements  ftruncate()  as:
+
+> 9497:   fcntl(7, F_FREESP, 0xFFBEE5BC)                  = 0
+> 9497:     typ=F_WRLCK whence=SEEK_SET start=0 len=0
+> 9497:     sys=428042295   pid=-4266544  
+
+	       Also notable details being that this moves
+	       the read/write cursor into SEEK_SET/start=0
+	       location, which did latter cause some trouble..
+
+	     */
 #endif /* HAVE_FTRUNCATE */
+
 #ifdef HAVE_FSYNC
 	    while (fsync(sffileno(fp)) < 0)
 	      if (errno != EINTR && errno != EAGAIN)
 		break;
 #endif
-	    sfclose(fp);
+	    /* Discard and close! */
+	    zsfclose(fp);
 	    eofindex = -1;
 	    fp = NULL;
 	    goto time_reset;
 	  }
 
-if (verboselog)
-  fprintf(verboselog," end of putmail(file='%s'), topipe=%d\n",file,topipe);
+	if (verboselog)
+	  fprintf(verboselog," end of putmail(file='%s'), topipe=%d\n",
+		  file,topipe);
 
 	if (!topipe) {
 	  /*
@@ -2092,69 +2116,67 @@ if (verboselog)
 	   * login etc. can distinguish new mail from old.
 	   * The mtime will be set to now by the following write() calls.
 	   */
+	  err = errno;
 	  sfseek(fp, (Sfoff_t)-2LL, SEEK_END);
 	  len = sfread(fp, buf, 2);
 	  sfseek(fp, (Sfoff_t)0,    SEEK_END);
 	  /* to end of file, again */
+	  errno = err;
 
-if (verboselog)
-  fprintf(verboselog," .. EOF read did yield %d bytes\n", len);
+	  if (verboselog)
+	    fprintf(verboselog," .. EOF read did yield %d bytes\n", len);
 
 	  if (len == 1 || len == 2) {
-	    int err;
 	    --len;
 	    len = (buf[len]!='\n') + (len == 1 ? buf[0]!='\n' : 1);
-	    err = (len > 0 && (sfwrite(fp, "\n\n", len) != len));
-	    sfsync(fp);
 
-if (verboselog)
-  fprintf(verboselog," .. wrote %d newlines to the end\n", len);
+	    if (len > 0 && sfwrite(fp, "\n\n", len) != len)
+	      failed = 1;
 
-	    if (!err) err = sferror(fp);
-	    if (err) {
-	      notaryreport(NULL,NULL,NULL,NULL);
-	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "cleansing of \"%s\" failed", file);
-#ifdef	HAVE_FTRUNCATE
-	      /* XX: should I really do this? */
-	      sfsync(fp);
-	      if (eofindex >= 0)
-		while (ftruncate(sffileno(fp), (off_t)eofindex) < 0)
-		  if (errno != EINTR && errno != EAGAIN)
-		    break;
-#endif /* HAVE_FTRUNCATE */
-#ifdef HAVE_FSYNC
-	      while (fsync(sffileno(fp)) < 0)
-		if (errno != EINTR && errno != EAGAIN)
-		  break;
-#endif
-	      sfclose(fp);
-	      fp = NULL;
+	    if (!failed) sfsync(fp);
+	    if (!failed && sferror(fp)) failed = 1;
 
-	      goto time_reset;
-	    }
+	    if (verboselog)
+	      fprintf(verboselog," .. wrote %d newlines to the end%s\n",
+		      len, failed ? " FAILED!":"");
+
+	    mw=2;
+
+	    if (failed)
+	      goto write_failure;
+
 	  }
 
 	  /* End of the file, and MMDF-style ? */
 	  if (mmdf_mode == 1 /* Values 2 and 3 exist on PIPEs only.. */ ) {
 	    if (sfprintf(fp,"\001\001\001\001\n") == EOF) {
-	      mw=2;
+	      mw=3;
 	      goto write_failure;
 	    }
 	  }
-	}
 
+	} /* !topipe */
+
+	/* Flush everything out */
 	sfsync(fp);
+	/* Raise an error only if it is non-pipe target */
 	if (!topipe && sferror(fp)) {
-	  mw=3;
+	  mw=4;
 	  goto write_failure;
 	}
+
 #ifdef HAVE_FSYNC
-	if (mmdf_mode <= 1) {
+	if (!topipe) {
 	  while (fsync(fdmail) < 0) {
 	    if (errno == EINTR || errno == EAGAIN)
 	      continue;
+
+#if 0	/* No, don't err if fsync() fails. */
+	    mw=5;
 	    goto write_failure;
+#else
+	    break;
+#endif
 	  }
 	}
 #endif
@@ -2176,11 +2198,6 @@ if (verboselog)
 		  dp->logident, (int)eofindex,
 		  (int)((fp ? sftell(fp): 0) - eofindex), file,
 		  (int)getpid(), rp->addr->user);
-#if 0
-	  fprintf(logfp, "%s: %ld + %ld : %s\n",
-		  dp->logident, eofindex,
-		  (fp ? ftell(fp): 0) - eofindex, file);
-#endif
 	  fflush(logfp);
 	}
 
@@ -2200,8 +2217,11 @@ if (verboselog)
 	}
 
 
-	zsfsetfd(fp, -1);
-	sfclose(fp);
+	if (fp) {
+	  /* Discard and close */
+	  zsfclose(fp);
+	  /* The pointer is needed latter! */
+	}
 
 	return fp; /* Dummy marker! */
 }
@@ -2464,7 +2484,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	if (fp == NULL) {
 	  pid = wait(&status);
 	  close(out[1]);
-	  sfclose(errfp);
+	  zsfclose(errfp);
 	  return status;
 	}
 	close(out[1]);
@@ -2476,7 +2496,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	else if ((cp = strchr(buf, '\n')) != NULL)
 		*cp = '\0';
 	pid = wait(&status);
-	sfclose(errfp);
+	zsfclose(errfp);
 	cp = buf + strlen(buf);
 
 	/* Union or not, we treat it as if it were an integer.. */
@@ -2932,7 +2952,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
 	  mfp = sfnew(NULL, NULL, 16*1024, mfd, SF_READ|SF_WHOLE);
 
-#define MFPCLOSE zsfsetfd(mfp,-1); sfclose(mfp);
+#define MFPCLOSE zsfsetfd(mfp,-1); zsfclose(mfp);
 
 	  /* we are assuming to be positioned properly
 	     at the start of the message body */
@@ -3551,7 +3571,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	      sfprintf(mfp, "%s", buf);
 	    }
 	  } /* ... while() ends.. */
-	  sfclose(efp);
+	  zsfclose(efp);
 	} else {
 	  for (cpp = dfltform; *cpp != NULL; ++cpp)
 	    if (*cpp[0] == 0) {

@@ -1,3 +1,13 @@
+2001-12-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/mailbox/mailbox.c, transports/libta/swriteheaders.c:
+	    When message writing into a file fails with e.g. EDQUOTA
+	    (quota exceeded), abort writing completely, discard sfio
+	    buffers, and truncate away the incompletely received message.
+
+	* transports/smtp/getmxrr.c:
+	    Cleanup some compiler warnings.
+
 2001-11-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,

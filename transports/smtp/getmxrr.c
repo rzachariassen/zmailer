@@ -229,7 +229,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  if (cp > eom) break;
 
 	  mx[nmx].ai   = NULL;
-	  mx[nmx].host = (msgdata *)strdup((void*)buf);
+	  mx[nmx].host = (char *)strdup((void*)buf);
 	  if (mx[nmx].host == NULL) {
 	    fprintf(stderr, "Out of virtual memory!\n");
 	    exit(EX_OSERR);
@@ -634,7 +634,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    mx[nmx].ai = ai;
 	    ai         = ai->ai_next;
 	    mx[nmx].ai->ai_next = NULL;
-	    mx[nmx].host = (msgdata *)strdup((const char *)mx[i].host);
+	    mx[nmx].host = (char *)strdup((const char *)mx[i].host);
 	    if (mx[nmx].host == NULL) {
 	      fprintf(stderr, "Out of virtual memory!\n");
 	      exit(EX_OSERR);
