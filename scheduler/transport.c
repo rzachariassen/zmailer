@@ -1347,7 +1347,7 @@ queryipcinit()
 #ifdef	AF_INET
 	if (modecode == 1) {
 	  struct servent *serv;
-	  struct sockaddr_in sad;
+	  Usockaddr ua;
 	  int on = 1;
 	  int port = 174; /* MAGIC knowledge */
 
@@ -1359,21 +1359,45 @@ queryipcinit()
 	      port = ntohs(serv->s_port);
 	  }
 	  qipcretry = now + 5;
-	  sad.sin_port        = htons(port);
-	  sad.sin_family      = AF_INET;
-	  sad.sin_addr.s_addr = htonl(INADDR_ANY);
-	  if ((querysocket = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	  memset(&ua, 0, sizeof(ua));
+	  ua.v4.sin_port        = htons(port);
+	  ua.v4.sin_family      = AF_INET;
+	  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
+	  querysocket = -1;
+#ifdef INET6_not_now
+	  querysocket = socket(PF_INET6, SOCK_STREAM, 0);
+#endif
+	  if (querysocket < 0)
+	    querysocket = socket(PF_INET, SOCK_STREAM, 0);
+#ifdef INET6
+	  else {
+	    memset(&ua, 0, sizeof(ua));
+	    ua.v6.sin6_port   = htons(port);
+	    ua.v6.sin6_family = AF_INET6;
+	  }
+#endif
+	  if (querysocket < 0) {
 	    perror("querysocket: socket(PF_INET)");
 	    return;
 	  }
 	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
 
-	  if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
-	    perror("bind:mailq socket");
-	    close(querysocket);
-	    querysocket = -1;
-	    return;
-	  }
+#ifdef INET6
+	  if (ua.v6.sin6_family == AF_INET6) {
+	    if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v6) < 0) {
+	      perror("bind:mailq ipv6 socket");
+	      close(querysocket);
+	      querysocket = -1;
+	      return;
+	    }
+	  } else
+#endif
+	    if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v4) < 0) {
+	      perror("bind:mailq ipv4 socket");
+	      close(querysocket);
+	      querysocket = -1;
+	      return;
+	    }
 
 #if defined(F_SETFD)
 	  fcntl(querysocket, F_SETFD, 1); /* close-on-exec */

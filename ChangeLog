@@ -1,5 +1,8 @@
 2000-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mq2auth.c, scheduler/transport.c:
+	    Mailq-V2 IP-ACL system works!
+
 	* scheduler/scheduler.c, scheduler/transports.c:
 	    Call  syncweb()  also inside the   mux()  routine
 	    so that new jobs will get assimilated faster.

@@ -10,12 +10,14 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "zsyslog.h"
-/* #include <stdlib.h> */
+#include <stdlib.h>
 #include <errno.h>
 
 #include "ta.h"
 #include "libz.h"
 #include "md5.h"
+
+#include <arpa/inet.h>
 
 /*
  *  MAILQv2 autentication database info content:
@@ -77,15 +79,143 @@ static long mq2authtokens(s)
   return rc;
 }
 
+static int parseaddrlit __((const char **, Usockaddr *));
+static int
+parseaddrlit(hostp, au)
+	const char **hostp;
+	Usockaddr *au;
+{
+	int rc;
+	const char *host = *hostp;
+	char *hh = (void *) host;
+
+	memset(au, 0, sizeof(*au));
+
+	hh = strchr(hh, ']');
+	if (hh) *hh = 0;
+
+#if defined(AF_INET6) && defined(INET6)
+	if (strncasecmp(host,"[IPv6:",6)==0) {
+	  au->v6.sin6_family = AF_INET6;
+	  rc = inet_pton(AF_INET6, host+6, &au->v6.sin6_addr);
+	  if (hh) *hh = ']';
+	  if (rc > 0) rc = 128;
+	} else
+#endif
+	  if (*host == '[') {
+	    au->v4.sin_family = AF_INET;
+	    rc = inet_pton(AF_INET, host+1, &au->v4.sin_addr);
+	    if (hh) *hh = ']';
+	    if (rc > 0) rc = 32;
+	  } else
+	    return -1;
+
+	if (rc <= 0)
+	  return -1; /* Umm.. Failed ? */
+
+	while (*host && *host != ']') ++host;
+	if (*host == ']') ++host;
+
+	if (*host == '/') {
+	  ++host;
+	  rc = 0;
+	  while ('0' <= *host && *host <= '9') {
+	    rc = rc * 10 + (*host) - '0';
+	    ++host;
+	  }
+	}
+
+	*hostp = host;
+
+	return rc;
+}
+
+static void mask_ip_bits __((void *, int, int));
+static void mask_ip_bits(ipnump, width, maxwidth)
+     void *ipnump;
+     int width, maxwidth;
+{
+    unsigned char *ipnum = ipnump;
+    int i, bytewidth, bytemaxwidth;
+
+    bytemaxwidth = maxwidth >> 3;	/* multiple of 8 */
+    bytewidth = (width + 7) >> 3;
+
+    /* All full zero bytes... */
+    for (i = bytewidth; i < bytemaxwidth; ++i)
+	ipnum[i] = 0;
+
+    /* Now the remaining byte */
+    i = 8 - (width & 7);	/* Modulo 8 */
+
+    bytewidth = width >> 3;
+    if (i != 8) {
+	/* Not exactly multiple-of-byte-width operand to be masked    */
+	/* For 'width=31' we get now 'bytewidth=3', and 'i=1'         */
+	/* For 'width=25' we get now 'bytewidth=3', and 'i=7'         */
+	ipnum[bytewidth] &= (0xFF << i);
+    }
+}
+
+
+static int mq2amaskcompare(mq, width, ua)
+     struct mailq *mq;
+     int width;
+     Usockaddr *ua;
+{
+  Usockaddr qa = mq->qaddr;
+
+#ifdef INET6
+  if (qa.v6.sin6_family == AF_INET6) {
+    if (ua->v6.sin6_family != AF_INET6) return 0; /* No match! */
+    mask_ip_bits(&qa.v6.sin6_addr,  width, 128);
+    mask_ip_bits(&ua->v6.sin6_addr, width, 128);
+    if (memcmp(&qa.v6.sin6_addr, &ua->v6.sin6_addr, 16) == 0)
+      return 1; /* Match! */
+    return 0; /* No match */
+
+  } else
+#endif
+    if (qa.v4.sin_family == AF_INET) {
+      if (ua->v4.sin_family != AF_INET) return 0; /* No match! */
+      mask_ip_bits(&qa.v4.sin_addr,  width, 32);
+      mask_ip_bits(&ua->v4.sin_addr, width, 32);
+      if (memcmp(&qa.v4.sin_addr, &ua->v4.sin_addr, 4) == 0)
+	return 1; /* Match! */
+      return 0; /* No match */
+
+    } else {
+      return 0; /* NO MATCH! */
+
+    }
+}
+
 static int mq2amaskverify(mq, s)
      struct mailq *mq;
-     char *s;
+     const char *s;
 {
   /* TO BE WRITTEN!
      Verify that  mq->qaddr  stored address is ok
      for this user/authenticator to use us.        */
+  int rc;
+  Usockaddr ua;
+  int not = 0;
 
-  return 0;
+  while (*s == ' ') ++s;
+  if (*s == 0) return 0; /* Empty -> Any OK */
+
+  for ( ; *s; ++s) {
+    if (*s == ',') { not = 0; continue; }
+    if (*s == ' ') { not = 0; continue; }
+    if (*s == '!') { not = 1; continue; }
+    if (*s == '[') {
+      rc = parseaddrlit( &s, &ua );
+      if (rc >= 0 && mq2amaskcompare(mq, rc, &ua))
+	return not;
+    }
+  }
+
+  return -1;  /* Non-empty -> no match -> not ok */
 }
 
 
