@@ -282,7 +282,10 @@ static void new_ipv4_timeslot( state )
 	      r[i].slots = 0;
 	    }
 
-	    if (r[i].excesses2 || r[i].excesses3) continue;
+	    /* If there have been excesses, keep FOREVER,
+	       otherwise keep for about two hours... */
+	    if (r[i].excesses2 || r[i].excesses3 ||
+		r[i].mails2 || r[i].recipients2) continue;
 
 	    /* See if now ALL slots are ZERO value.. */
 	    if (memcmp(zerocountset, r[i].countset,
@@ -448,7 +451,6 @@ dump_trk(state, peerdata)
 {
 	int pid;
 	FILE *fp;
-	struct ipv4_regs *r;
 	struct ipv4_regs_head *rhead;
 	int i, j, tr[SLOTCOUNT];
 	struct v4_dataprint dp4;
