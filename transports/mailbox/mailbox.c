@@ -1296,6 +1296,10 @@ deliver(dp, rp, usernam, timestring)
 	  return;			/* setupuidgid sets status */
 	}
 
+	if (verboselog)
+	  fprintf(verboselog, " ismbox=%d file='%s' usernam='%s'\n",
+		  ismbox, file, usernam);
+
 	if (ismbox) {
 
 	  struct sieve sv;
