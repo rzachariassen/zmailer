@@ -153,12 +153,13 @@ static int qpctlfile(spl)
 		     "thread ");
 	    ++i;
 	  } else {
-	    if (vp->proc) {
-	      sfprintf(qpfp,"(running now, pid=%d ", (int)vp->proc->pid);
-	      if (vp->proc->pvertex == vp)
-		sfprintf(qpfp,"active");
+	    if (vp->thread->proc) {
+	      sfprintf(qpfp,"(running now, pid=%d ",
+		       (int)vp->thread->proc->pid);
+	      if (vp->thread->proc->pvertex == vp)
+		sfprintf(qpfp,"NextFeed");
 	      else
-		if (vp->proc->pvertex == NULL)
+		if (vp->thread->proc->pvertex == NULL)
 		  sfprintf(qpfp,"vtx=NULL??");
 		else
 		  sfprintf(qpfp,"touched");
@@ -167,10 +168,6 @@ static int qpctlfile(spl)
 	      /* A vertex is always on some thread.. */
 	      if (vp->thread && vp->thread->proc) {
 		sfprintf(qpfp," pid=%d ", (int)vp->thread->proc->pid);
-		if (vp->thread->proc->pthread == vp->thread)
-		  sfprintf(qpfp,"expected");
-		else
-		  sfprintf(qpfp,"bygone");
 	      } else {
 		if (vp->thread == NULL)
 		  sfprintf(qpfp," NO_THREAD!");

@@ -268,17 +268,16 @@ void unvertex(vp, justfree, ok)
 
 	if (verbose)
 	  sfprintf(sfstderr,
-		   "unvertex(vtx=%p (thr=%p proc=%p, ng=%d) ,%d,%d)\n",
-		   vp, vp->thread, vp->proc, vp->ngroup, justfree, ok);
+		   "unvertex(vtx=%p (thr=%p, ng=%d) ,%d,%d)\n",
+		   vp, vp->thread, vp->ngroup, justfree, ok);
 
-	if (vp->proc) {
+	if (vp->thread && vp->thread->proc) {
 	  /* Somebody here, move it elsewere! */
 	  /* This MAY happen -- expire() hits when some
 	     thread is coming into processing...            */
-	  if (vp->proc->pvertex == vp)
-	    pick_next_vertex(vp->proc);
+	  if (vp->thread->proc->pvertex == vp)
+	    pick_next_vertex(vp->thread->proc);
 	}
-
 	for (i = 0; i < SIZE_L; ++i) {
 
 	  if (vp->next[i])

@@ -111,10 +111,8 @@ flush_child(proc)
      struct procinfo *proc;
 {
 	if (proc->tofd < 0) {
-	  if (proc->pvertex) {
-	    proc->pvertex->proc = NULL;
+	  if (proc->pvertex)
 	    proc->pvertex       = NULL;
-	  }
 	  if (proc->pthread) {
 	    proc->pthread->proc = NULL;
 	    proc->pthread       = NULL;
@@ -145,10 +143,8 @@ flush_child(proc)
 	    /* Some real failure :-( */
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
-	    if (proc->pvertex) {
-	      proc->pvertex->proc = NULL;
+	    if (proc->pvertex)
 	      proc->pvertex       = NULL;
-	    }
 	    if (proc->pthread) {
 	      proc->pthread->proc = NULL;
 	      proc->pthread       = NULL;
@@ -265,7 +261,6 @@ feed_child(proc)
 	  }
 	}
 
-	vtx->proc = proc;     /* Flag that it is in processing */
 	vtx->ce_pending  = 0; /* and clear the pending..       */
 
 	vtx->attempts   += 1;
@@ -677,7 +672,6 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->thg->transporters += 1;
 	++numkids;
 	proc->tofd    = tofd;
-	vhead->proc   = proc;
 	proc->pthread->proc = proc;
 
 	mytime(&proc->hungertime); /* Actually it is not yet 'hungry' as
@@ -799,10 +793,8 @@ if (verbose)
 	  /* Reschedule them all .. */
 	  thread_reschedule(proc->pthread,0,-1);
 	  /* Reschedule may destroy this vertex (and thread) */
-	  if (proc->pvertex) {
-	    proc->pvertex->proc = NULL;
+	  if (proc->pvertex)
 	    proc->pvertex       = NULL;
-	  }
 	  if (proc->pthread) {
 	    proc->pthread->proc = NULL;
 	    proc->pthread       = NULL;
@@ -833,10 +825,8 @@ if (verbose)
 	    --idleprocs;
 	  } else {
 	    /* It is not in idle chain, it has died somehow else.. */
-	    if (proc->pvertex) {
-	      proc->pvertex->proc = NULL;
+	    if (proc->pvertex)
 	      proc->pvertex = NULL;
-	    }
 	    if (proc->pthread) {
 	      proc->pthread->proc = NULL;
 	      proc->pthread = NULL;

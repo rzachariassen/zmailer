@@ -746,8 +746,6 @@ struct thread *thr;
 	    ur_arr[i]->previtem = ur_arr[i-1];
 	  if (i < (n-1))
 	    ur_arr[i]->nextitem = ur_arr[i+1];
-	  /* 4b) Clear vertex proc pointer */
-	  ur_arr[i]->proc   = NULL;
 #if 1
 	  /* 4c) Clear wakeup timer; the feed_child() will refuse
 	     to feed us, if this one is not cleared.. */
@@ -881,7 +879,6 @@ thread_start(thr, queue_only_too)
 	  proc->pthread = thr;
 
 	  thr->proc             = proc;
-	  thr->thvertices->proc = proc;
 
 	  ta_hungry(proc);
 
@@ -969,11 +966,6 @@ pick_next_vertex(proc)
 		   proc, proc->tofd, thr, proc->pvertex,
 		   thr ? thr->jobs : 0, proc->overfed, (int)proc->state);
 
-	if (proc->pvertex)
-	  proc->pvertex->proc = NULL;	/* Done with the previous one */
-	if (vtx)
-	  vtx->proc = NULL;		/* Likewise */
-
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "He is dead, Jim!"	*/
 #if 0
 	  if (proc->pthread) {
@@ -981,19 +973,15 @@ pick_next_vertex(proc)
 	    proc->pthread       = NULL;
 	  }
 #endif
-	  if (proc->pvertex) {
-	    proc->pvertex->proc = NULL;
+	  if (proc->pvertex)
 	    proc->pvertex       = NULL;
-	  }
+
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'He is dead, Jim!'\n");
 	  return 0;
 	}
 
 	if (vtx) /* Pick next item */
 	  proc->pvertex = vtx->nextitem;
-
-	if (proc->pvertex)
-	  proc->pvertex->proc = proc; /* Next in line for feeding */
 
 	return (proc->pvertex != NULL);
 }
@@ -1019,8 +1007,6 @@ time_t retrytime;
 
 	if (thr->proc) {
 	  /* We also disjoin possible current TA process */
-	  if (thr->proc->pvertex)
-	    thr->proc->pvertex->proc = NULL;
 	  thr->proc->pvertex = NULL;
 	  thr->proc->pthread = NULL;
 	  thr->proc = NULL;
@@ -1115,9 +1101,6 @@ time_t retrytime;
 	    vtx->wakeup = retrytime;
 	  if (wakeup > vtx->wakeup || wakeup == 0)
 	    wakeup = vtx->wakeup;
-
-	  /* Mark it busy... */
-	  /* vtx->proc = thr->proc; */
 
 	  vtx = vtx->nextitem;
 	}

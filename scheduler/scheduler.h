@@ -209,7 +209,6 @@ struct vertex {
 #define NOT_FAILURE 010
 	int		ce_pending;	/* pending on what ?		     */
 	time_t		ce_expiry;	/* when this vertex expires ?        */
-	struct procinfo *proc;		/* current TA process description    */
 	int		attempts;	/* count of number of TA invocations */
 	int		retryindex;	/* cur index into ce->retries array  */
 	time_t		wakeup;		/* time to wake up and run this      */
