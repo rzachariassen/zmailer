@@ -30,7 +30,7 @@
 #ifdef  HAVE_DB_H
 #include <db.h>
 #else
-# error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"
+:error:error:error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"
 #endif
 #endif
 #endif
