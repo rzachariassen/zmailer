@@ -350,8 +350,15 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	   Actually DON'T do then at all! */
 	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
 
+	  int fd = FILENO(stdout);
+	  int len;
+	  char *buf;
+
 	  /* This should always be in blocking mode, but... */
-	  fd_blockingmode(FILENO(stdout));
+	  fd_blockingmode(fd);
+
+	  len = (9+9+4+strlen(notarybuf ? notarybuf : "") +
+		 strlen(statmsg) + strlen(message));
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
 		  (notarybuf && report_notary) ? notarybuf : "",

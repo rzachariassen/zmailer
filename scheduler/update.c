@@ -91,9 +91,8 @@ update(fd, diagnostic)
 
 	if (*diagnostic == 0) {
 	  /* Lone newline.. old-style indications from the transporter */
-	  if (proc->tofd >= 0 &&
-	      proc->hungry == 0) {
-	    proc->hungry = 1;
+	  if (proc->tofd >= 0) {
+	    proc->hungry += 1;
 	    mytime(&now);
 	    proc->hungertime = now;
 	    ++hungry_childs;
@@ -105,8 +104,6 @@ update(fd, diagnostic)
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->hungry)
 	    feed_child(proc);
-	  if (proc->fed)
-	    ++proc->overfed;
 	  flush_child(proc);
 	  return;
 	}
@@ -175,7 +172,7 @@ update(fd, diagnostic)
 	     where actor tells, when it needs a new
 	     job to be fed to it. */
 	  if (proc->tofd   >= 0) {
-	    proc->hungry = 1;
+	    proc->hungry += 1;
 	    mytime(&proc->hungertime);
 	    if (proc->overfed > 0)
 	      /* It was overfed, decrement that counter first.. */
@@ -189,9 +186,7 @@ update(fd, diagnostic)
 	      while (!proc->fed && proc->thread) {
 		if (proc->hungry)
 		  feed_child(proc);
-		if (proc->fed)
-		  proc->overfed += 1;
-		else
+		if (!proc->fed)
 		  break; /* Huh! Feed/flush failure! */
 		/* See if we should, and can feed more! */
 		if (proc->thg == NULL ||
@@ -201,7 +196,7 @@ update(fd, diagnostic)
 		if (proc->overfed >= proc->thg->ce.overfeed)
 		  break;	/* if the limit is zero, don't overfeed ever.*/
 		/* Ok, increment the counter, and loop back.. */
-		proc->hungry = 1; /* Simulate hunger.. */
+		proc->hungry += 1; /* Simulate hunger.. */
 		pick_next_vertex(proc, 1, 0);
 		/* If it got next,  ``proc->fed'' is now zero.. */
 	      }

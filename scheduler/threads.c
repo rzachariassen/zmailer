@@ -864,8 +864,6 @@ struct thread *thr;
 	    return 0;
 	  }
 	  feed_child(proc);
-	  if (proc->fed)
-	    proc->overfed += 1;
 
 #if 1
 
@@ -876,11 +874,9 @@ struct thread *thr;
 #else
 	  /* While we have a thread, and things to feed.. */
 	  while (!proc->fed && proc->thread) {
-	    if (proc->hungry)
+	    if (proc->hungry > 0)
 	      feed_child(proc);
-	    if (proc->fed)
-	      proc->overfed += 1;
-	    else
+	    if (!proc->fed)
 	      break; /* Huh! Didn't feed it! */
 	    /* See if we should, and can feed more! */
 	    if (proc->thg == NULL ||
@@ -1654,7 +1650,7 @@ void thread_report(fp,mqmode)
 		else {
 		  sfprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
 		}
-		sfprintf(fp," OF=%-2d", thr->proc->overfed);
+		sfprintf(fp," OF=%d", thr->proc->overfed);
 	      }
 
 	    } else if (thr->wakeup > now) {

@@ -315,8 +315,9 @@ struct procinfo *proc;
 	
 	if (proc->hungry) --hungry_childs;
 	/* It was fed (to buffer), clear this flag.. */
-	proc->hungry = 0;
+	proc->hungry -= 1;
 	proc->fed = 1;
+	proc->overfed += 1;
 
 	if (verbose)
 	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);

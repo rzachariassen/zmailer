@@ -264,7 +264,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  getwd(cwd);
 #endif
 	  sprintf(buf,
-		  "Cannot open control file \"%%s\" from \"%s\" for \"%%s/%%s\" as uid %d! (%%m)",
+		  "Cannot open control file \"%%s\" from \"%s\" for \"%%s/%%s\" as uid %d!",
 		  cwd, (int)geteuid());
 	  errno = e;
 	  if (host == NULL)
@@ -360,7 +360,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    break;
 	  /* Shudder... we trash the memory block here.. */
 	  s = contents + d.offset[i];
-	  switch (*s) {
+	  switch (*s) r{
 	  case _CF_FORMAT:
 	    ++s;
 	    format = 0;
