@@ -288,8 +288,8 @@ struct ctlfile *cfp;
 	}
 
 	for (vp = cfp->head; vp != NULL; vp = nvp) {
-	  /* Stash the next pointer, because the CFP content
-	     may become trashed at the end of the run. */
+	  /* Stash the next pointer, because the VP content
+	     WILL become trashed at the end of the loop. */
 	  nvp = vp->next[L_CTLFILE];
 
 	  MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
