@@ -313,12 +313,10 @@ Text to be inserted here.
 
 This section describes the router internal functions.
 
-\vspace {2pt}
-
-
-\paragraph{``colon''}
-
+% -------------------------------------------
 \hrule
+\paragraph{``:''}
+
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -345,12 +343,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
-\paragraph{``include''}
-
+% -------------------------------------------
 \hrule
+\paragraph{``.'', ``include''}
+
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -371,16 +367,18 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
-\paragraph{``test''}
-
+% -------------------------------------------
 \hrule
+\paragraph{``['', ``test''}
+
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt {\bf [} \{many parameters\} [ \{many parameters\} ]}
+{\tt {\bf {[}} \{test parameters\} {\bf {]}}}
+
+\item[{\bf Alternate syntax:}] \mbox{}
+
+{\tt {\bf {test}} \{test parameters\}}
 
 \item[{\bf Return Values:}] \mbox{}
 
@@ -441,7 +439,7 @@ True if file exists and is readable.
 
 True if file exists and has a size greater than zero.
 
-\item[{\tt -t [fd]}] \mbox{}
+\item[{\tt -t {[fd]}}] \mbox{}
 
 True if {\tt fd} is opened on a terminal. 
 If {\tt fd} is omitted, it defaults to 1 (standard output).
@@ -542,18 +540,16 @@ Parenthesis
 
 \item[{\bf Notes:}] \mbox{}
 
-This is basically the shell {\tt [} a.k.a. 
+This is basically the shell {\tt {[}} a.k.a. 
 {\tt test} program.
 
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{attributes}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -575,12 +571,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{basename}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -612,12 +606,10 @@ Prints the base filename of the pathname.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{break}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -644,12 +636,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{builtin}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -676,12 +666,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{builtins}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -702,12 +690,10 @@ List builtin functions.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{car}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -730,12 +716,10 @@ and {\tt first} commands.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{cd}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -766,12 +750,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{cdr}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -794,12 +776,10 @@ command.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{channel}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -822,12 +802,10 @@ synonymous to this command.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{continue}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -854,12 +832,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{daemon}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -890,16 +866,14 @@ other purpose.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{db}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt db \{ $add\|flush\|owner\|print\|remove\|toc$ \} [database [key [value]]]}
+{\tt db \{ $add\|flush\|owner\|print\|remove\|toc$ \} {[database [key [value]]]}}
 
 
 
@@ -920,33 +894,33 @@ Error.
 \item[{\bf Options:}] \mbox{}
 
 \begin{description}
-\item[{\tt a[dd]}] \mbox{}
+\item[{\tt {a[dd]}}] \mbox{}
 
 Add a {\tt key,value} 
 entry to the database, if possible.
 
-\item[{\tt f[lush]}] \mbox{}
+\item[{\tt {f[lush]}}] \mbox{}
 
 Remove all entries from the database, 
 if possible.
 
-\item[{\tt o[wner]}] \mbox{}
+\item[{\tt {o[wner]}}] \mbox{}
 
 Print the account name of the owner 
 of the database, if possible. This is usually determined by the 
 files associated with the database.
 
-\item[{\tt p[rint]}] \mbox{}
+\item[{\tt {p[rint]}}] \mbox{}
 
 Print all entries of the database, 
 if possible. 
 
-\item[{\tt r[emove]}] \mbox{}
+\item[{\tt {r[emove]}}] \mbox{}
 
 Remove a {\tt key} entry 
 from the database, if possible.
 
-\item[{\tt t[oc]}] \mbox{}
+\item[{\tt {t[oc]}}] \mbox{}
 
 Print a table of defined relations 
 and their associated information. This table has five columns, 
@@ -979,12 +953,10 @@ entries and maximum size, flags, and associated files. See the
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{dblookup}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1015,12 +987,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{echo}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1054,12 +1024,10 @@ The access function to the database facilities in the
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{elements}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1080,12 +1048,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{envars}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1112,12 +1078,10 @@ Print internal variable tree.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{erraddron}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1147,12 +1111,10 @@ or other collectors of address trivia.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{eval}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1173,12 +1135,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{exit}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1205,12 +1165,10 @@ Exit from the shell with exit code.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{export}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1238,12 +1196,10 @@ export prints a list of which variables have been exported.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{filepriv}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1287,12 +1243,10 @@ for nonwritability and for having the same (or a 0) uid.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{first}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1315,12 +1269,10 @@ and {\tt channel} commands.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{gensym}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1351,12 +1303,10 @@ hold attached address property lists, during alias expansion.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{get}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1377,12 +1327,10 @@ Returns a property list corresponding to key string.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{getopts}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1413,12 +1361,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{grind}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1439,12 +1385,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{groupmembers}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1474,12 +1418,10 @@ not listed in the groups file, will not appear in this list.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{hash}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1512,12 +1454,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{homedirectory}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1549,12 +1489,10 @@ user account.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{host}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1576,12 +1514,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{hostname}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1616,12 +1552,10 @@ will only be generated if a hostname has been set using this function.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{last}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1643,12 +1577,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{length}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1670,12 +1602,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{list}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1696,12 +1626,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{listaddresses}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1752,12 +1680,10 @@ files or similar.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{listexpand}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1797,12 +1723,10 @@ handling. (That is, without variable duplicating {\tt setf}'s.)
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{login2uid}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1837,12 +1761,10 @@ the uid to login name mapping to the {\tt pwuid} in-core database.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{malcontents}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1863,12 +1785,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{printaliases}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1916,12 +1836,10 @@ from a source file.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{process}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1959,12 +1877,10 @@ configuration file.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{read}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -1995,12 +1911,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{recase}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2046,12 +1960,10 @@ string in either all-uppercase, all-lowercase, or capitalized (pretty).
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{recipient}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2084,16 +1996,14 @@ is a recipient address in a message header''.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{relation}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt relation -t dbtype[,subtype] [-f file -e\# -s\# -bilmnu -d driver] name}
+{\tt relation -t {dbtype[,subtype] [-f file -e\# -s\# -bilmnu -d driver]} name}
 
 Options are listed below. {\tt name} is the name of the relation
 that is wanted to be created. Examples:
@@ -2123,7 +2033,7 @@ Error.
 \item[{\bf Options:}] \mbox{}
 
 \begin{description}
-\item[{\tt -t dbtype[,subtype]}] \mbox{}
+\item[{\tt -t {dbtype[,subtype]}}] \mbox{}
 
 One of the known types 
 of databases, currently: 
@@ -2185,8 +2095,6 @@ The Network Information Service from Sun Microsystems
 Inc. (Later renamed to be NIS, the still newer NIS+ is not supported).
 
 \item[{\tt btree}] \mbox{}
-
-
 
 \end{description}
 
@@ -2268,12 +2176,10 @@ search. (Makes less system calls that way.)
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{rest}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2296,12 +2202,10 @@ command.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{return}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2337,12 +2241,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{returns}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2373,12 +2275,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{rfc822}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2401,12 +2301,10 @@ called by the {\tt process} function.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{rfc822date}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2433,12 +2331,10 @@ Prints the current time in RFC822 format.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{rfc822syntax}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2474,12 +2370,10 @@ exit status.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{runas}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2510,12 +2404,10 @@ user id of the process back (to root).
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{sender}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2548,12 +2440,10 @@ is a sender address in a message header''.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{set}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2641,12 +2531,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{setf}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2667,12 +2555,10 @@ Replaces variable reference within a {\tt varcell}.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{shift}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2703,12 +2589,10 @@ Modifies caller's argument vector.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{sleep}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2739,12 +2623,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{squirrel}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2799,12 +2681,10 @@ indicate what to do to toggle the event flag.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{stability}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2836,16 +2716,14 @@ similar characteristic of sorting algorithms.
 \end{description}
 
 
-\vspace {2pt}
-
-
-\paragraph{test}
-
+% -------------------------------------------
 \hrule
+\paragraph{test, .}
+
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt test \{many parameters\} [ \{many parameters\} ]}
+{\tt test \{many parameters\} {[} \{many parameters\} {]}}
 
 \item[{\bf Return Values:}] \mbox{}
 
@@ -2867,18 +2745,15 @@ Error.
 
 \item[{\bf Notes:}] \mbox{}
 
-This is basically the shell {\tt [} a.k.a. 
-{\tt test} program. See ``test'' command for the options.
+This is basically the shell {\tt {[}} a.k.a. 
+{\tt test} program. See UNIX ``test'' command for the options.
 
 \end{description}
 
-
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{times}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -2909,12 +2784,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{trace}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3023,12 +2896,10 @@ each message.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{trap}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3056,12 +2927,10 @@ known traps.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{type}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3088,12 +2957,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{uid2login}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3127,12 +2994,10 @@ exists with that user id. It has the same side-effects as the
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{umask}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3154,12 +3019,10 @@ Without parameters default mask is 077.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{unset}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3190,12 +3053,10 @@ none
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{untrace}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3229,12 +3090,10 @@ valid keywords.
 \end{description}
 
 
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{user}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3255,13 +3114,10 @@ none
 
 \end{description}
 
-
-\vspace {2pt}
-
-
+% -------------------------------------------
+\hrule
 \paragraph{wait}
 
-\hrule
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 

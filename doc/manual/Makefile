@@ -13,7 +13,7 @@ PARTS=	zadministration.tex     zref-router.tex			\
 	ztutorial.tex		zappendixes.tex			\
 	zmanual-head.tex	zmanual-tail.tex
 
-FIGS   :=	msgmodl.fig msgrout.fig
+FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig
 
 FIGEPS :=	$(FIGS:%.fig=%.eps)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
@@ -151,7 +151,8 @@ html: zmanual.aux $(PARTS) $(FIGEPS) Makefile
 
 
 
-zman:	$(FIGEPS)
+zman:	$(FIGEPS) zmanual.tex
+	@touch zmanual.lof # To please LaTeX2HTML to be quiet..
 	$(L2H) $(L2HLTOP)  zmanual.tex
 
 ztut:	$(FIGEPS)
@@ -162,10 +163,26 @@ zinst:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
 	./L2H.sh  zinstall.tex		INS	section	"Build and Install"
 
+zref:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zreference.tex	REF	section	"Reference"
+
+zrrt:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zref-router.tex	RRT  subsection "Router"
+
 zrsm:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
 	./L2H.sh  zref-smtpserver.tex	RSM  subsection "SMTP-server"
 
-zref:	$(FIGEPS)
+zrse:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
-	./L2H.sh  zreference.tex	REF	section	"Reference"
+	./L2H.sh  zref-sendmail.tex	RSE  subsection "sendmail"
+
+zrrm:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zref-rmail.tex 	RRM  subsection "rmail"
+
+zrzl:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zref-zmailer3.tex	RZL  subsection "zmailer(3)"
