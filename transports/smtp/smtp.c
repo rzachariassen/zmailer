@@ -897,7 +897,7 @@ deliver(SS, dp, startrp, endrp)
 {
 	struct rcpt *rp = NULL;
 	int r = EX_TEMPFAIL;
-	int nrcpt, rcpt_cnt, size, tout;
+	int nrcpt, rcpt_cnt, size, tout, hdrsize;
 	int content_kind = 0;
 	int mail_from_failed;
 	CONVERTMODE convertmode;
@@ -1377,9 +1377,6 @@ deliver(SS, dp, startrp, endrp)
 	  if (!sferror(SS->smtpfp))
 	    sfprintf(SS->smtpfp, "\r\n");
 
-	  /* if (!sferror(SS->smtpfp)) */
-	  /* sfsync(SS->smtpfp); */
-
 	  if (sferror(SS->smtpfp))
 	    SS->hsize = -1;
 
@@ -1419,7 +1416,9 @@ deliver(SS, dp, startrp, endrp)
 	  SS->msize += SS->hsize;
 	else
 	  SS->msize -= SS->hsize-1;
-	
+
+	hdrsize = SS->hsize;
+
 	/* Append the message body itself */
 
 	r = appendlet(SS, dp, convertmode);
@@ -1508,7 +1507,7 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(logfp, "%s#\t%s\n", logtag(), SS->remotemsg);
 	  else
 	    fprintf(logfp, "%s#\t%d bytes, %d in header, %d recipients, %d secs for envelope, %d secs for body xfer\n",
-		    logtag(), SS->msize, SS->hsize, nrcpt,
+		    logtag(), SS->hsize, hdrsize, nrcpt,
 		    (int)(body_start - env_start),
 		    (int)(body_end   - body_start));
 	}

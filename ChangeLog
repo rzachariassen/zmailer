@@ -1,5 +1,9 @@
 2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    An oddball log error - misreported outwritten message header
+	    size into smtp client's log file.
+
 	* README.UPGRADING, include/mail.h.in, scheduler/scheduler.c,
 	  transports/libta/markoff.c:
 	    Prepared for adding _CF_MIMESTRUCT multiline entity into
