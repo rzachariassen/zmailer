@@ -6,24 +6,25 @@ On Fri, Nov 21, 2003 at 08:06:07PM +0300, Alexander Voropay wrote:
 >  I'm writting a Micro-HOWTO how to integrate Zmailer with
 > new AF_UNIX LMTP delivery.
 > 
->  Do you have interest in this document ?
 
-Yes.
-
->  Unfortunately, I'm not native english speaker, so my
-> doc should be edited.
-
-I am not native English writer either, so don't look at me ;-)
+- [alexander]: Initial version of LMTP-server text
+- [mea]: Added ZMailer part
+- [mea]: Revised to explain bits about how to do LMTP-over-TCP,
+         which needs authentication...
 
 
 ------------- ZMailer to Cyrus Micro-HOWTO ----------------
 
-=============
-Zmailer/LMTP integration for local delivery.
+
+    ZMailer/LMTP integration for local delivery.
 
 
- Zmailer starting from version 2.99.55 has a ability to
- deliver local e-mail via AF_UNIX LMTP socket.
+ZMailer starting from version 2.99.55 has a ability to
+deliver local e-mail via AF_UNIX LMTP socket.
+
+ZMailer starting a bit after 2.99.56 has ability to do simple "AUTH LOGIN"
+handshake on SMTP/LMTP connection, when an '-A' option is given.  More info
+is in 
 
 
 1. LMTP Server
@@ -86,7 +87,7 @@ QUIT
 221 2.0.0 bye
 
 
-2. Zmailer configuration.
+2. ZMailer configuration.
 
 In  $MAILSHARE/router.cf  there is the need to run WITHOUT qualifying
 local addresses.
@@ -117,16 +118,23 @@ in the subset, and edit UNIX:-path to match your application.
  ----- scheduler.conf  fragment for  local/*  target -------
    # Or with CYRUS server the following might do:
    #command="sm -c $channel cyrus"
-   #command="smtp -c $channel -M -x -F [127.0.0.1] -p 2525 -s" # -l ${LOGDIR}/smtp-lmtp"
+   #command="smtp -c $channel -M -x -F [127.0.0.1] -p 2003 -s" # -l ${LOGDIR}/smtp-lmtp"
    command="smtp -c $channel -M -x -F UNIX:/var/lib/imap/socket/lmtp -s -l ${LOGDIR}/smtp-lmtp"
  ----------------
 
 An alternate processing way would be thru using  'smtp-lmtp/*' channel
-setup in  scheduler.conf,  and placing the above given  command=  line
-also in there to be the active one.  Observe relevant comments further
-below in routing database discussions.
-(Do note that although the SMTP client has ability to do  AUTH LOGIN
-in SMTP session, that isn't verified to function.)
+setup in  scheduler.conf,  and placing following  command=  line in there
+to be the active one.  Observe relevant comments further below in routing
+database discussions.
+
+ ----- scheduler.conf  fragment for  smtp-lmtp/*  target -------
+   # Or with CYRUS server the following might do:
+   #command="sm -c $channel cyrus"
+   command="smtp -c $channel -M -x -A ${MAILVAR}/db/smtp-auth-secrets.txt -p 2003 -s" # -l ${LOGDIR}/smtp-lmtp"
+   #command="smtp -c $channel -M -x -F UNIX:/var/lib/imap/socket/lmtp -s -l ${LOGDIR}/smtp-lmtp"
+ ----------------
+
+See the 'man smtp.8zm' page about the '-A' option and its parameter file.
 
 
 As the system doesn't use UNIX accounts (and homedirs) for anything,
@@ -157,8 +165,8 @@ like:
  envflags = CDB, CREATE, RO
  -------
 
-Now these files with the  'sleepyenv.conf' in them are peculiar; they are
-READ-ONLY for 'newdbprocessor', but are read/write for the 'router'.
+Now these files with the  'sleepyenv.conf' in them are peculiar; they
+are READ-ONLY for 'newdbprocessor', but are read/write for the 'router'.
 In this example it is special "SleepyCat DB  Concurrent Database"  mode
 local database, which can be updated live by means of external updater
 program (*).  These could be also e.g. an LDAP maps, but for various
@@ -224,7 +232,7 @@ And following setup of database contents (by their base filenames):
       This map can be used to make things similar to those of
       'fqdnaliases-local', but sending message to an alternate
       destination:
-          user@domain:  smtp-lmtp!cyrus-gw-node!cyrus-user%2
+          user@domain:  smtp-lmtp!cyrus-lmtp-node!cyrus-user%2
 
       With the  smtp-lmtp/*  running thru a UNIX socket, the
       middle part will be ignored.  The '%2' is magic for this
@@ -232,6 +240,11 @@ And following setup of database contents (by their base filenames):
       into:  cyrus-user+tail  form.  Also: user--tail@domain
       does get the exact same treatment, but goes thru a lot
       more websites...
+
+      With virtual-domains support in Cyrus, mapping should be
+      something like:
+          user@domain:  smtp-lmtp!cyrus-lmtp-node!virtual-user%2@virtual-domain
+
 
   In  'fqdnroutes':
       This is just a SleepyCat DB in a CDB mode with same purpose
@@ -241,12 +254,3 @@ And following setup of database contents (by their base filenames):
 
 -- 
 /Matti Aarnio	<mea@nic.funet.fi>
-
-
-
-
-Success reports with this guide have been received for:
-
-ZMailer:   -
-CMU CYRUS: -
-
