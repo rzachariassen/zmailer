@@ -459,7 +459,7 @@ univptr_t cp;
 	 * valid pointer. If tag p0-1 is allocated, then it could be an
 	 * arena bound.
 	 */
-#ifndef DEBUG /* Don't merge prev/next */
+#ifndef DEBUG_DEBUG /* Don't merge prev/next */
 	if (TAG(p2) == FREE) {
 		/*
 		 * Aha - block p2 (physically after p0) is free.  Merging
