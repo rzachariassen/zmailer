@@ -786,7 +786,8 @@ process(SS, dp, smtpstatus, host, noMX)
 		  }
 
 		  /* If delivery fails, try other MX hosts */
-		} while ((smtpstatus == EX_TEMPFAIL) &&
+		} while (((smtpstatus == EX_TEMPFAIL) ||
+			  (smtpstatus == EX_IOERR)) &&
 			 (SS->firstmx < SS->mxcount));
 
 		/* Report (and unlock) all those recipients which aren't
@@ -1071,7 +1072,8 @@ deliver(SS, dp, startrp, endrp)
 	    }
 	  }
 	  if (SS->smtpfp)
-	    smtpwrite(SS, 0, "RSET", 0, NULL);
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+	      r = EX_IOERR;
 	  return r;
 	}
 	nrcpt = 0;
@@ -1134,7 +1136,8 @@ deliver(SS, dp, startrp, endrp)
 	if (nrcpt == 0) {
 	  /* all the RCPT To addresses were rejected, so reset server */
 	  if (SS->smtpfp)
-	    r = smtpwrite(SS, 0, "RSET", 0, NULL);
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+	      r = EX_IOERR;
 
 	  if (r == EX_OK && more_rp)
 	    /* we have more recipients,
@@ -1198,7 +1201,8 @@ deliver(SS, dp, startrp, endrp)
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
 	    if (SS->smtpfp)
-	      smtpwrite(SS, 0, "RSET", 0, NULL);
+	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+		r = EX_IOERR;
 	    return r;
 	  }
 
@@ -1222,7 +1226,8 @@ deliver(SS, dp, startrp, endrp)
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
 	    if (SS->smtpfp)
-	      smtpwrite(SS, 0, "RSET", 0, NULL);
+	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+		r = EX_IOERR;
 	    return r;
 	  }
 	  time(&endtime);
@@ -1244,7 +1249,8 @@ deliver(SS, dp, startrp, endrp)
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
 	    if (SS->smtpfp)
-	      smtpwrite(SS, 0, "RSET", 0, NULL);
+	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+		r = EX_IOERR;
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
 	    return r;
@@ -1263,7 +1269,8 @@ deliver(SS, dp, startrp, endrp)
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
 	    if (SS->smtpfp)
-	      smtpwrite(SS, 0, "RSET", 0, NULL);
+	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+		r = EX_IOERR;
 	    return r;
 	  }
 	}
@@ -1314,6 +1321,7 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 	if (SS->hsize < 0) {
+	  int r = EX_TEMPFAIL;
 	  for (rp = startrp; rp != endrp; rp = rp->next)
 	    if (rp->lockoffset) {
 	      time(&endtime);
@@ -1322,16 +1330,17 @@ deliver(SS, dp, startrp, endrp)
 	      notaryreport(rp->addr->user,FAILED,
 			   "5.4.2 (Message header write failure)",
 			   "smtp; 566 (Message header write failure)"); /* XX: FIX THE STATUS? */
-	      diagnostic(rp, EX_TEMPFAIL, 0, "%s", "header write error");
+	      diagnostic(rp, r, 0, "%s", "header write error");
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
 	  if (SS->smtpfp)
-	    smtpwrite(SS, 0, "RSET", 0, NULL);
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+	      r = EX_IOERR;
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 
-	  return EX_TEMPFAIL;
+	  return r;
 	}
 
 	/* Add the header size to the initial body size */
@@ -1476,7 +1485,8 @@ deliver(SS, dp, startrp, endrp)
 	  goto more_recipients;
 
 	if (r != EX_OK && SS->smtpfp && !getout)
-	  smtpwrite(SS, 0, "RSET", 0, NULL);
+	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+	    r = EX_IOERR;
 
 	if (SS->chunkbuf) free(SS->chunkbuf);
 
