@@ -31,7 +31,7 @@ $(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
 	$(RANLIB) $@
 	#-rm -f *.o
 
-$(OBJS):: $(TOPDIR)/include/rfc822.entry
+$(OBJS): $(TOPDIR)/include/rfc822.entry
 
 $(TOPDIR)/include/rfc822.entry:
 	cd .. ; $(MAKE) $(MFLAGS) ../include/rfc822.entry
