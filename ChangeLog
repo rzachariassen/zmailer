@@ -1,5 +1,7 @@
 1999-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	DISTRIBUTION: 2.99.50s17
+
 	* SiteConfig.in, proto/cf/rrouter.cf:
 	    Moved "SMARTHOST" into historical bit-bucket.
 	    Suggested way is to use "dot-route" to default
