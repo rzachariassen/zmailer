@@ -1,3 +1,8 @@
+2000-02-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
+	    Grumble...  Still seeing wrong kind of timeouts..
+
 2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
@@ -13,7 +18,7 @@
 	    (And do proper body structure processings where appropriate)
 
 	* transports/smtp/smtp.c:
-	    Lengthen the -Ttcpw= default to 5 minutes (RFC 1123: 3 minutes)
+	    Lengthened the -Ttcpw= default to 5 minutes (RFC 1123: 3 minutes)
 
 	* router/parsedate.c:
 	    Armour  lilian()  function against bad MON or DAY inputs.

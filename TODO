@@ -16,6 +16,28 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	Cured around 25-Jan-2000 ??? (for 2.99.52patch2)
 	Cured around 02-Feb-2000 ???
 
+  Perhaps not:
+
+Feb  3 11:07:13 nic smtp[2791]: S14836AbQBCJC1: to=<vps@phoenix.math.spbu.ru>, delay=00:04:46, xdelay=00:00:02, mailer=smtp, relay=phoenix.math.spbu.ru ([195.19.230.5|25|193.166.0.145|64634]), stat=ok3 250 2.0.0 e1397GH02222 Message accepted for delivery cvt=NONE
+Feb  3 11:13:57 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=48779
+Feb  3 11:33:57 nic smtp[2791]: S14746AbQBCJBu: to=<sparky@muma.tusur.ru>, delay=00:32:07, xdelay=00:26:38, mailer=smtp, relay=muma.tusur.ru ([212.192.122.19|25|193.166.0.145|32866]), stat=deferred smtp; 466 (Timeout on SMTP response read, Cmd: .) cvt=NONE
+Feb  3 11:39:13 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=48779
+Feb  3 12:05:18 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=51699
+Feb  3 12:49:03 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=50936
+Feb  3 12:53:13 nic smtp[2791]: S13528AbQBCKOi: to=<sparky@muma.tusur.ru>, delay=00:38:35, xdelay=00:11:09, mailer=smtp, relay=muma.tusur.ru ([212.192.122.19|25|193.166.0.145|44234]), stat=deferred smtp; 500 (Error on SMTP response read: Connection timed out, Cmd: .) cvt=NONE
+Feb  3 13:09:55 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=53856
+Feb  3 13:25:52 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=50936
+Feb  3 13:53:23 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=51699
+Feb  3 14:13:23 nic smtp[2791]: S14746AbQBCJBu: to=<sparky@muma.tusur.ru>, delay=03:11:33, xdelay=00:27:04, mailer=smtp, relay=muma.tusur.ru ([212.192.122.19|25|193.166.0.145|60286]), stat=deferred smtp; 466 (Timeout on SMTP response read, Cmd: .) cvt=NONE
+Feb  3 14:19:40 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=51699
+Feb  3 14:55:12 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=51699
+Feb  3 15:07:52 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=41499
+Feb  3 15:17:41 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=50936
+Feb  3 15:21:11 nic smtp[2791]: S13528AbQBCKOi: to=<sparky@muma.tusur.ru>, delay=03:06:33, xdelay=00:09:16, mailer=smtp, relay=muma.tusur.ru ([212.192.122.19|25|193.166.0.145|43049]), stat=deferred smtp; 500 (Error on SMTP response read: Connection timed out, Cmd: .) cvt=NONE
+Feb  3 15:27:09 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=39280
+
+
+
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
 

@@ -1123,14 +1123,18 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 #endif
 
 	/* Don't even consider writing, if the stream has error status.. */
+	errno = EIO;
 	if (sferror(sfp)) return -1;
 	if (sffileno(sfp) < 0) return -1; /* Write-FD killed! */
 
 	/* If 'len' is zero, return zero.. */
 	/* (I have a feeling such writes are sometimes asked for..) */
+	errno = 0;
 	if (len == 0) return 0;
 
-	while (len > 0 && !sferror(sfp)) {
+	errno = e;
+
+	while (len > 0 && !sferror(sfp) && sffileno(sfp) >= 0) {
 
 #ifdef HAVE_OPENSSL
 	  if (SS->sslmode) {
@@ -1231,9 +1235,8 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 		e = ETIMEDOUT;
 
-zsyslog((LOG_ERR, "ERROR: SMTP socket write timeout; leftover=%d\n", len));
+zsyslog((LOG_ERR, "ERROR: SMTP socket write timeout; leftover=%d; IP: %s\n", len, SS->ipaddress));
 
-		len = 0; /* Entirely break out of the wrapping while() */
 		break;
 	      }
 

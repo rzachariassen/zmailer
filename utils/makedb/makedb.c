@@ -423,6 +423,9 @@ const int typ;
 
 		/* Collect attribute pairs */
 		str1 = tokskip(s, &s);
+
+		if (*str1 == '#') continue; /* Begins a within line comment */
+
 		if (str1 == NULL) {
 			fprintf(stderr,
 				"Error: No attribute pair on line %d.\n",

@@ -2359,9 +2359,9 @@ makeconn(SS, ai, ismx)
 
 	  switch (i) {
 	  case EX_OK:
+
 	      SS->smtpfd = mfd;
-	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize,
-				 mfd, SF_WRITE|SF_WHOLE);
+	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize, mfd, SF_WRITE);
 
 	      memset(&SS->smtpdisc, 0, sizeof(SS->smtpdisc));
 	      SS->smtpdisc.D.readf   = NULL;
@@ -3152,15 +3152,6 @@ smtp_sync(SS, r, nonblocking)
 	  if (!nonblocking && SS->smtpfp && sffileno(SS->smtpfp) >= 0)
 	    sfsync(SS->smtpfp);			/* Flush output */
 
-	  if (SS->smtpfp && sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
-	    /* Error on write stream, write is thus from now on FORBIDDEN!
-	       We do a write direction shutdown on the socket, and only
-	       listen for replies from now on... */
-	    shutdown(sffileno(SS->smtpfp), 1);
-	    /* Absolutely NO SFIO SYNC AT THIS POINT! */
-	    zsfsetfd(SS->smtpfp, -1);
-	  }
-
 	  eof = SS->pipebuf + SS->pipebufsize;
 	  for (eol = s; eol < eof; ++eol)
 	    if (*eol == '\n') break;
@@ -3579,15 +3570,6 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      err = 1;
 	  }
 
-	  if (sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
-	    /* Error on write stream, write is thus from now on FORBIDDEN!
-	       We do a write direction shutdown on the socket, and only
-	       listen for replies from now on... */
-	    shutdown(sffileno(SS->smtpfp), 1);
-	    /* Absolutely NO SFIO SYNC AT THIS POINT! */
-	    zsfsetfd(SS->smtpfp, -1);
-	  }
-  
 	  if (err) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");
