@@ -1,41 +1,53 @@
 
-* Howto make a RedHat rpm of ZMailer MTA
+ This spec has been tested on a Red Hat Linux release 6.2 x86 (Zoot)
+ plus all upgrades and LiNUX kernel 2.4.2-ac7
+--
+* Howto make a RPM of ZMailer MTA
 
-  1. Get zmailer-spec.tar.gz from :
-      http://perso.wanadoo.es/xose/linux/zmailer-spec.tar.gz
+  1. Get zmailer-X.YY.ZZ-N.nosrc.rpm from
+      http://perso.wanadoo.es/xose
+
       This package is a posting to ZMailer mailing list and it's 
-      made by Xose Vazquez, xose@wanadoo.es
+      made by Xos… V·zquez, xose@wanadoo.es
 
-  2. Open it 'tar xvfz zmailer-spec.tar.gz'
+  2. Install it:
 
-  3. Copy all the files into /usr/src/redhat/SOURCES directory.
+	# rpm -i zmailer-X.YY.ZZ-N.nosrc.rpm
+	
+      or decompress it:
+	
+	# rpm2cpio zmailer-X.YY.ZZ-N.nosrc.rpm | cpio -i -d
+      
+      and # mv *.spec /usr/src/redhat/SPECS ; mv * /usr/src/redhat/SOURCES
 
-  4. Get zmailer-x.yy.zz.tar.gz or the last version from :
+  3. Get zmailer-X.YY.ZZ.tar.gz from :
       ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/
-      and copy it under /usr/src/redhat/SOURCES as well.
+      and copy it under /usr/src/redhat/SOURCES
 
-      - If you get a new version, you need update the line 7 of
-        the zmailer.spec, "%define version" section.
+  4. Create your own rpm packages with the commands :
 
-  5. Create your own rpm packages with commands:
+	# cd /usr/src/redhat/SPECS
 
-	cd /usr/src/redhat/SOURCES
-	rpm -ba zmailer.spec
+      - If you get a new version of zmailer, you need update the 
+	line 7 of the zmailer.spec, "%define version" section.
 
-  6. rpm packages will be created under /usr/src/redhat/SRPMS (src) and
+	# rpm -ba zmailer.spec
+
+  5. RPM packages will be created under /usr/src/redhat/SRPMS (src) and
       under /usr/src/redhat/RPMS/i386 (bin + doc)
 
-  7. Install ZMailer rpm packages into the system:
+  6. Install ZMailer rpm packages into the system:
 
-	rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-x.yy.zz-n.i386.rpm
-	rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-doc-x.yy.zz-n.i386.rpm
+	# rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-X.YY.ZZ-N.i386.rpm
+	# rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-doc-X.YY.ZZ-N.i386.rpm
 
-  8. Finish ZMailer configuration by editing the following:
+  7. Finish ZMailer configuration by editing the following:
+
         o /etc/mail.conf
         o /etc/zmailer/*
 
       For first time installations I'd recommend reading
-      /usr/doc/zmailer-x.yy.zz/* and /usr/doc/zmailer-doc-x.yy.zz/*  
+      /usr/doc/zmailer-X.YY.ZZ/* and /usr/doc/zmailer-doc-X.YY.ZZ/*
       documents.
 
 
@@ -43,10 +55,9 @@ For more information about ZMailer just visit www.zmailer.org. For more
 information about rpm visit www.rpm.org.
   ------------------------------------------------------------------------
 
-Please e-mail me any corrections about this document: jt@iki.fi and
-xose@wanadoo.es
+Please e-mail me any corrections about this document: xose@wanadoo.es
 
-Get it the last version from  http://perso.wanadoo.es/xose/linux/zmailer-spec.tar.gz
+Get it the last version from  http://perso.wanadoo.es/xose
 
-This document come out has been updated Thu May 11 23:09:06 CEST 2000
-by xose.
+This document come out has been updated at Fri Mar  2 10:04:09 CET 2001
+by Xos….

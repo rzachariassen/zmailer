@@ -1,9 +1,32 @@
 errors root@localhost
 compress
 
-/var/log/zmailer/* {
-    missingok
+/var/log/zmailer/router {
     postrotate
 	/etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/scheduler {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/scheduler.perflog {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtpserver {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
     endscript
 }

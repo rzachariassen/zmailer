@@ -11,30 +11,41 @@
 # pidfile: /var/spool/postoffice/.pid.scheduler .pid.smtpserver .pid.router
 
 # Source function library.
-. /etc/rc.d/init.d/functions
+if [ -f /etc/rc.d/init.d/functions ] ; then
+	. /etc/rc.d/init.d/functions
+	else
+		if [ -f /etc/init.d/functions ] ; then
+			. /etc/init.d/functions
+			else
+				exit 0
+		fi
+fi
 
 # Source networking configuration.
-. /etc/sysconfig/network
+if  [ -f  /etc/sysconfig/network ] ; then
+	. /etc/sysconfig/network
+	else
+		exit 0
+fi
 
-# Source zmailer configureation.
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+# Source zmailer configuration.
 if [ -f /etc/zmailer/zmailer.conf ] ; then
 	. /etc/zmailer/zmailer.conf
 else 
 	exit 0
 fi
 
-# Check that networking is up.
-[ ${NETWORKING} = "no" ] && exit 0
-
 [ -f $MAILBIN/zmailer ] || exit 0
 
-# See how we were called.
-case "$1" in
-  start)
+RETVAL=0
+
+start() {
 	# Start daemons.
-	# echo "Starting ZMailer: "
-	if ps auxw | egrep 'router|scheduler|smtpserver' | grep -v egrep \
-                                                     >> /dev/null ; then
+
+	if ( status scheduler || status router || status smtpserver ) | grep -v stop > /dev/null ; then
 		echo "Zmailer is running yet"
 	
 	else
@@ -44,34 +55,61 @@ case "$1" in
 			$MAILBIN/zmailer bootclean
 			$MAILBIN/zmailer
 		fi
-	touch /var/lock/subsys/zmailer
+
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/zmailer
+	return $RETVAL
+
 	fi
-	;;
-  stop)
+}
+
+stop() {
 	# Stop daemons.
-        # echo "Shutting down ZMalier: "
-	if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
-		$MAILBIN/zmailer kill
+
+	if ( status scheduler || status router || status smtpserver ) | grep stop > /dev/null ; then
+
+		echo "Zmailer is not running"
+	else
+
+		if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+			$MAILBIN/zmailer kill
+		fi
+
+	RETVAL=$?
+        echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/zmailer $POSTOFFICE/.pid.*
+	return $RETVAL
+
 	fi
-	rm -f /var/lock/subsys/zmailer
-	rm -f $POSTOFFICE/.pid.*
-	;;
-  restart|reload)
-        $0 stop
-        $0 start
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
         ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+	stop
+	start
+	RETVAL=$?
+	;;
   status)
 	status router
 	status scheduler
 	status smtpserver
+	RETVAL=$?
         ;;
- logsync)
+  logsync)
         $MAILBIN/zmailer logsync
         ;;
   *)
-	echo "Usage: zmailer {start|stop|restart|reload|status|logsync}"
+	echo "Usage: $0 {start|stop|restart|reload|status|logsync}"
 	exit 1
 	;;
 esac
 
-exit 0
+exit $RETVAL
