@@ -403,6 +403,9 @@
 /* Define if you have the setpriority function.  */
 #undef HAVE_SETPRIORITY
 
+/* Define if you have the setregid function.  */
+#undef HAVE_SETREGID
+
 /* Define if you have the setreuid function.  */
 #undef HAVE_SETREUID
 
