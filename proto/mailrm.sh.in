@@ -7,11 +7,16 @@ cd $POSTOFFICE/transport || exit 1
 trap "rm -f /tmp/cancel$$" 0 1 2 15
 for msgid
 do
-	if [ ! -f $msgid ]; then
+	if [ -f $msgid ]; then
+		subdir=.
+	else
+		subdir=`find . -name $msgid|sed -e 's@^[^/]*/@@' -e 's@/[^/]*$@@'`
+	fi
+	if [ ! -f $subdir/$msgid ]; then
 		echo $0: message $msgid is not queued
 		continue
 	fi
-	awk '/^l / { print substr($0,3) ; exit }' < $msgid >> /tmp/cancel$$
+	awk '/^l / { print substr($0,3) ; exit }' < $subdir/$msgid >> /tmp/cancel$$
 done
 if [ -s /tmp/cancel$$ ]; then
 	( echo "To: /dev/null
