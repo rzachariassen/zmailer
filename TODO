@@ -14,10 +14,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   encoding fails in some combinations ??  At nic.funet.fi
   I see it every 1-3 days..
 
-- smtp TA (all TAs ??) leak memory in MIME header processing,
-  and (what is worse) they seem to refer thru pointers located
-  within FREED memory blocks..
-    (refers thru freed memory cured (?) at 2.99.52, leak status unknown)
+- smtp TA (all TAs ??) leak memory in MIME header processing.
+  (or something else ?)
 
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.

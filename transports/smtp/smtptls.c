@@ -1054,12 +1054,12 @@ int     tls_stop_clienttls(SS, failure)
      SmtpState *SS;
      int failure;
 {
-    SSL_SESSION *session;
+	SSL_SESSION *session;
 
-    if (SS->sslmode) {
-	session = SSL_get_session(SS->ssl);
-	SSL_shutdown(SS->ssl);
-	if (session) {
+	if (SS->sslmode) {
+	  session = SSL_get_session(SS->ssl);
+	  SSL_shutdown(SS->ssl);
+	  if (session) {
 	    if (failure) {
 	      remove_clnt_session(peername_md5, MD5_DIGEST_LENGTH);
 	      msg_info(SS, "SSL session removed");
@@ -1067,17 +1067,17 @@ int     tls_stop_clienttls(SS, failure)
 	    SSL_CTX_remove_session(SS->ctx, session);
 	    SSL_free(SS->ssl);
 	    SS->ssl = NULL;
+	  }
+	  SSL_CTX_flush_sessions(SS->ctx,time(NULL));
+
+	  tls_peer_verified = 0;
+	  tls_protocol = NULL;
+	  tls_cipher_name = NULL;
+	  tls_cipher_usebits = 0;
+	  tls_cipher_algbits = 0;
 	}
-	SSL_CTX_flush_sessions(SS->ctx,time(NULL));
 
-	tls_peer_verified = 0;
-	tls_protocol = NULL;
-	tls_cipher_name = NULL;
-	tls_cipher_usebits = 0;
-	tls_cipher_algbits = 0;
-    }
-
-    return (0);
+	return (0);
 }
 #endif /* - HAVE_OPENSSL */
 
@@ -1107,127 +1107,128 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
      size_t len;
      Sfdisc_t *discp;
 {
-    struct smtpdisc *sd = (struct smtpdisc *)discp;
-    SmtpState *SS = (SmtpState *)sd->SS;
+	struct smtpdisc *sd = (struct smtpdisc *)discp;
+	SmtpState *SS = (SmtpState *)sd->SS;
 
-    const char * p = (const char *)vp;
-    int r, rr, e, i;
+	const char * p = (const char *)vp;
+	int r, rr, e, i;
 
-    rr = -1; /* No successfull write */
-    e = 0;
+	rr = -1; /* No successfull write */
+	e = 0;
 
 #if 1 /* Remove after debug tests */
-    if (SS->verboselog)
-      fprintf(SS->verboselog,
-	      " smtp_sfwrite() to write %d bytes\n", (int)len);
+	if (SS->verboselog)
+	  fprintf(SS->verboselog,
+		  " smtp_sfwrite() to write %d bytes\n", (int)len);
 #endif
 
-    while (len > 0) {
+	while (len > 0) {
 
 #ifdef HAVE_OPENSSL
-      if (SS->sslmode) {
-	r = SSL_write(SS->ssl, p, len);
-	e = errno; /* FIXME: Some SSL function ??? */
-	if (r < 0) {
-	  e = SSL_get_error(SS->ssl, r);
-	  if (e == SSL_ERROR_WANT_WRITE) {
-	    /* Right, so we want to wait a bit, and retry.. */
-	    e = EAGAIN;
-	  } else {
-	    /* XXX: Err... What ??? */
-	    e = ETIMEDOUT; /* not precisely.. */
-	    gotalarm = 1;  /* Well, sort of.. */
-	    break;
-	  }
-	}
-      } else
+	  if (SS->sslmode) {
+	    r = SSL_write(SS->ssl, p, len);
+	    e = errno; /* FIXME: Some SSL function ??? */
+	    if (r < 0) {
+	      e = SSL_get_error(SS->ssl, r);
+	      if (e == SSL_ERROR_WANT_WRITE) {
+		/* Right, so we want to wait a bit, and retry.. */
+		e = EAGAIN;
+	      } else {
+		/* XXX: Err... What ??? */
+		e = ETIMEDOUT; /* not precisely.. */
+		gotalarm = 1;  /* Well, sort of.. */
+		break;
+	      }
+	    }
+	  } else
 #endif /* - HAVE_OPENSSL */
-	{
-	  r = write(sffileno(sfp), p, len);
-	  e = errno;
-	}
+	    {
+	      r = write(sffileno(sfp), p, len);
+	      e = errno;
+	    }
 
-      if (r >= 0) {
-	if (rr < 0) rr = 0;	/* something successfull. init this!	*/
-	rr  += r;		/* Accumulate writeout accounting	*/
-	p   += r;		/* move pointer				*/
-	len -= r;		/* count down the length to be written	*/
-	continue;
-      }
+	  if (r >= 0) {
+	    if (rr < 0) rr = 0;	/* something successfull. init this!	*/
+	    rr  += r;		/* Accumulate writeout accounting	*/
+	    p   += r;		/* move pointer				*/
+	    len -= r;		/* count down the length to be written	*/
+	    continue;
+	  }
 
-      /* Hmm..  Write bounced for some reason */
-      switch (e) {
-      case EAGAIN:
+	  /* Hmm..  Write bounced for some reason */
+	  switch (e) {
+	  case EAGAIN:
 #ifdef EWOULDBLOCK
 #if EWOULDBLOCK != EAGAIN
-      case EWOULDBLOCK:
+	  case EWOULDBLOCK:
 #endif
 #endif
-	{
-	  /* Write blocked, lets select (and sleep) for write.. */
-	  struct timeval tv, t0;
-	  fd_set wrset;
+	    {
+	      /* Write blocked, lets select (and sleep) for write.. */
+	      struct timeval tv, t0;
+	      fd_set wrset;
 
 #if 1 /* Remove after debug tests */
-	  if (SS->verboselog)
-	    gettimeofday(&t0, NULL);
+	      if (SS->verboselog)
+		gettimeofday(&t0, NULL);
 #endif
 
-	  i = sffileno(sfp);
-	  _Z_FD_ZERO(wrset);
-	  _Z_FD_SET(i, wrset);
+	      i = sffileno(sfp);
+	      _Z_FD_ZERO(wrset);
+	      _Z_FD_SET(i, wrset);
 
-	  tv.tv_sec = timeout_tcpw;
-	  tv.tv_usec = 0;
+	      tv.tv_sec = timeout_tcpw;
+	      tv.tv_usec = 0;
 
-	  r = select(i+1, NULL, &wrset, NULL, &tv);
-	  e = errno;
+	      r = select(i+1, NULL, &wrset, NULL, &tv);
+	      e = errno;
 
 #if 1 /* Remove after debug tests */
-	  if (SS->verboselog) {
-	    struct timeval t2;
+	      if (SS->verboselog) {
+		struct timeval t2;
 
-	    gettimeofday(&t2, NULL);
+		gettimeofday(&t2, NULL);
 
-	    t2.tv_usec -= t0.tv_usec;
-	    if (t2.tv_usec < 0) {
-	      t2.tv_usec += 1000000;
-	      t2.tv_sec  -= 1;
+		t2.tv_usec -= t0.tv_usec;
+		if (t2.tv_usec < 0) {
+		  t2.tv_usec += 1000000;
+		  t2.tv_sec  -= 1;
+		}
+		t2.tv_sec -= t0.tv_sec;
+		fprintf(SS->verboselog,
+			" smtp_sfwrite() did select; rc=%d errno=%d len=%d dt=%d.%06d\n",
+			r, e, (int)len, (int)t2.tv_sec, (int)t2.tv_usec);
+	      }
+#endif
+
+	      if (r > 0)
+		/* Ready to write! */
+		continue;
+
+	      if (r == 0) {
+		/* TIMEOUT!  Uarrgh!! */
+		rr = -1; /* Zap the write-count! We are to FAIL! */
+		e = ETIMEDOUT;
+zsyslog((LOG_ERR, "ERROR: SMTP socket write timeout\n"));
+		break;
+	      }
+
+	      /* Khrm... */
+	      /* Select error status is sent out */
 	    }
-	    t2.tv_sec -= t0.tv_sec;
-	    fprintf(SS->verboselog,
-		    " smtp_sfwrite() did select; rc=%d errno=%d len=%d dt=%d.%06d\n",
-		    r, e, (int)len, (int)t2.tv_sec, (int)t2.tv_usec);
-	  }
-#endif
-
-	  if (r > 0)
-	    /* Ready to write! */
-	    continue;
-
-	  if (r == 0) {
-	    /* TIMEOUT!  Uarrgh!! */
-	    rr = -1; /* Zap the write-count! We are to FAIL! */
-	    e = ETIMEDOUT;
+	    break;
+	  default:
+	    /* Any other errno.. */
 	    break;
 	  }
 
-	  /* Khrm... */
-	  /* Select error status is sent out */
-	}
-	break;
-      default:
-	/* Any other errno.. */
-	break;
-      }
+	  /* If STILL a error, break out -- will retry EINTR at  Sfio  library. */
+	  if (r < 0) break;
 
-      /* If STILL a error, break out -- will retry EINTR at  Sfio  library. */
-      if (r < 0) break;
+	} /* End of while(len > 0) loop */
 
-    } /* End of while(len > 0) loop */
-
-  errno = e;
-  return rr;
+	errno = e;
+	return rr;
 }
 
 /*
@@ -1239,23 +1240,23 @@ int smtp_nbread(SS, buf, spc)
      void *buf;
      int spc;
 {
-  int r, e;
-  int infd = sffileno(SS->smtpfp);
+	int r, e;
+	int infd = sffileno(SS->smtpfp);
 
 
 #ifdef HAVE_OPENSSL
-  if (SS->sslmode) {
-    r = SSL_read(SS->ssl, buf, spc);
-    e = SSL_get_error(SS->ssl, r);
-    if (e == SSL_ERROR_WANT_READ) {
-      e = EAGAIN;
-    } else
-      e = EINTR;
-    errno = e;
-  } else
+	if (SS->sslmode) {
+	  r = SSL_read(SS->ssl, buf, spc);
+	  e = SSL_get_error(SS->ssl, r);
+	  if (e == SSL_ERROR_WANT_READ) {
+	    e = EAGAIN;
+	  } else
+	    e = EINTR;
+	  errno = e;
+	} else
 #endif /* - HAVE_OPENSSL */
-    /* Normal read(2) */
-    r = read(infd, buf, spc);
+	  /* Normal read(2) */
+	  r = read(infd, buf, spc);
   
-  return r;
+	return r;
 }

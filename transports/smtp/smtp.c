@@ -3617,6 +3617,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  fd_set rdset;
 	  struct timeval tv;
 
+	do_reread:
+
 	  tv.tv_sec = timeout;
 	  tv.tv_usec = 0;
 
@@ -3625,8 +3627,10 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	  gotalarm = 0;
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
+	  if (r < 0 && errno == EINTR) goto do_reread;
 	  if (r == 1) {
 	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf));
+	    if (errno == EINTR) goto do_reread;
 	  } else {
 	    if (r == 0)
 	      gotalarm = 1;
