@@ -590,12 +590,11 @@ main(argc, argv)
 	}
 
 	if (SS.verboselog != NULL)
-		fclose(SS.verboselog);
+	  fclose(SS.verboselog);
 	if (logfp != NULL)
-		fclose(logfp);
-	if (smtpstatus == EX_DATAERR)
-		smtpstatus = EX_OK; /* Nothing processed ?? */
-	return smtpstatus;
+	  fclose(logfp);
+
+	return 0;
 }
 
 int
