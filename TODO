@@ -43,10 +43,6 @@ transports/smtp:
 	very long living and hard working smtp-ta program as
 	slow size growth.
 
-scheduler:
-	SNMP Mail Monitoring MIB variable maintance is wrong at the
-	Stored Recipients Count Gauge.  It leaks...
-
 router + TA library + TA programs:
 	Router to scan message MIME structure, and to store that
 	into dense consise format which doesn't need prerescan of

@@ -118,7 +118,7 @@ extern int  hdr_status __((const char *cp, const char *lbuf, int n, int octo));
 extern u_long _hdr_compound __((const char *cp, long n, int cstart, int cend,
 				TokenType type, token822 *tp,
 				token822 **tlist, token822 **tlistp));
-extern const char *_unfold __((const char *start, const char *end, token822 *t));
+extern const char *_unfold __((int len, const char *start, const char **cpp, token822 *t));
 extern token822 * scan822 __((const char **cpp, size_t n, int c1, int c2,
 				  int allowcomments, token822 **tlistp));
 #endif

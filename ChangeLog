@@ -1,5 +1,13 @@
 1999-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/canon.cf:
+	    Received a patch to UUCP routing problem introduced
+	    by the addition of forbidding to spot '\!' pair..
+
+	* include/libz.h, lib/rfc822scan.c:
+	    Fix the way how _unfold() works.  Pointer comparison
+	    was certainly *wrong* way...
+
 	* router/libdb/ldap.c:
 	    Reorganized things:
 		Do connect+bind to DB at  ldap_open()

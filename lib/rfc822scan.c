@@ -132,6 +132,9 @@ hdr_status(cp, lbuf, n, octo)
  * the typical example. Comments may be recursive.
  */
 
+extern u_long _hdr_compound __((const char *, long, int, int, TokenType,
+				token822 *, token822 **, token822 **));
+
 u_long
 _hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
 	register const char *cp;
@@ -199,31 +202,32 @@ nextline:
 /* Unfold (see RFC822) the contents of a compound token */
 
 const char *
-_unfold(start, end, t)
-	const char *start, *end;
+_unfold(len, start, cpp, t)
+	int len; /* Total length to unfold */
+	const char *start;
+	const char **cpp;
 	token822 *t;
 {
 	char *s, *cp;
+
 	/*
 	 * Since we will be ignoring CRLF and copying everything else,
 	 * we know the max length is going to be (end - start) (sic).
 	 * However, I like being conservative about these things...
 	 */
 
-	s = cp = (char *)tmalloc((u_int)(end-start+1));
-	while (start < end) {
-		/* != 'cuz *end is ')' or '"' and lines are randomly alloced */
+	/* Start and End may be at different tmalloc()ed objects! */
+
+	s = cp = (char *)tmalloc(len +1);
+	while (len > 0) {
+		if (*start == 0) {
+		  t = t->t_next;
+		  start = t->t_pname;
+		}
+		--len;
 		if (*start == '\n') {
 			++start;
-			if (start == end)
-				break;
 			continue;
-		} else if (*start == '\0') {	/* lines are NUL terminated */
-			if (t->t_next)		/* [mea] Sometimes NULL! */
-				t = t->t_next;
-			else
-				break;
-			start = t->t_pname;
 		}
 		*s++ = *start++;
 	}
@@ -300,6 +304,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 		} else if ((ct & _s) && (*cp=='(' || *cp=='"' || *cp=='[')) {
 			TokenType	type;
 			char	cend;
+			int len;
 
 			if (*cp == '"') {
 			  cend = *cp;
@@ -312,14 +317,16 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			  type = Comment;
 			}
 			ot = (tlistp == NULL ? NULL : *tlistp);
-			n = _hdr_compound(cp, n, *cp, cend,
-					  type, &t, &tlist, tlistp);
+			len = _hdr_compound(cp, n, *cp, cend,
+					    type, &t, &tlist, tlistp);
 			if (ot != NULL && tlistp != NULL && ot != *tlistp) {
+#if 0
 			  /* a compound token crossed line boundary */
 			  (*cpp) = ((*tlistp)->t_pname +
 				    TOKENLEN(*tlistp) - n);
-			  /* copy from ++cp up to and excluding *cpp */
-			  t.t_pname = _unfold(++cp, (*cpp)-1, ot);
+#endif
+			  /* copy from ++cp for len chars */
+			  t.t_pname = _unfold(n, len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
 			  /* compensate for calculations below */
 			  (*cpp)  -= t.t_len;
@@ -332,6 +339,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 				--t.t_len, ++(*cpp);
 				t.t_pname = ++cp;
 			}
+			n = len;
 		} else if (ct & _s) {		/* specials */
 			if (*cp == ':' && cp[1] == ':')
 				--n;

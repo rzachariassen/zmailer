@@ -202,11 +202,11 @@ canonicalize (address) {
 		canonicalize "\2@\[\1\]"
 		return
 		;;
-	([^!.]*)[^\]!(.*)			# leftmost '!', pure uucp
+	([^!.]*[^\])!(.*)			# leftmost '!', pure uucp
 		canonicalize "\2@\1.uucp"
 		return
 		;;
-	([^!]*)[^\]!(.*)			# leftmost '!', domain uucp
+	([^!*)[^\])!(.*)			# leftmost '!', domain uucp
 		canonicalize "\2@\1"
 		return
 		;;
