@@ -1098,7 +1098,7 @@ deliver(dp, rp, usernam, timestring)
 	     to the actual device.. So lets just use that magic
 	     name and create a FAST "write" to  /dev/null..  */
 	  if (strcmp(usernam,"/dev/null") == 0) {
-	    notaryreport(rp->addr->user,"delivery",
+	    notaryreport(rp->addr->user,"delivered",
 			 "2.2.0 (delivery successfull)",
 			 "x-local; 250 (Delivered successfully)");
 	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1322,7 +1322,7 @@ deliver(dp, rp, usernam, timestring)
 	   to the actual device.. So lets just use that magic
 	   name and create a FAST "write" to  /dev/null..  */
 	if (strcmp(file,"/dev/null") == 0) {
-	  notaryreport(rp->addr->user,"delivery",
+	  notaryreport(rp->addr->user,"delivered",
 		       "2.2.0 (delivery successfull)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1469,7 +1469,7 @@ deliver(dp, rp, usernam, timestring)
 			  starttime, timestring );
 	  } else {
 	    /* This happens only ONCE per recipient, if ever */
-	    notaryreport(rp->addr->user,"delivery",
+	    notaryreport(rp->addr->user,"delivered",
 			 "2.2.0 (Discarded successfully)",
 			 "x-local; 250 (Discarded successfully)");
 	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1754,7 +1754,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	close(fdmail);
 	if (fp != NULL) { /* Dummy marker! */
 	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(rp->addr->user,"delivery",
+	  notaryreport(rp->addr->user,"delivered",
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -2446,7 +2446,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	time(&endtime);
 	notary_setxdelay((int)(endtime-starttime));
 	if (rc == EX_OK) {
-	  notaryreport(NULL,"delivery",
+	  notaryreport(NULL,"delivered",
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	} else {

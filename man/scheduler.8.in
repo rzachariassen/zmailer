@@ -916,6 +916,22 @@ file.
 .I /var/spool/postoffice/queue (POSTOFFICE/queue)
 .SH SEE ALSO
 router(8), mailq(1)
+.PP
+.ta 2.5i
+.nf
+RFC 822	 The basic Internet email format specification
+RFC 1123	 Various 822 parameter clarifications
+
+Several extended SMTP facilities are implemented:
+
+RFC 1341/1521/2045	 MIME specification (body, formats)
+RFC 1342/1522/2047	 MIME specification (headers)
+RFC 1425/1651/1869	 ESMTP EHLO framework
+RFC 1428	 Basic MIME conversion rules
+RFC 1892	 The Multipart/Report Content Type
+RFC 1893	 Enhanced Mail System Status Codes
+RFC 1894	 Extensible Message format for DSNs
+.fi
 .SH AUTHOR
 This program authored and copyright by:
 .br

@@ -1,5 +1,9 @@
 2000-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/msgerror.c:
+	    Basic footwork for DELAYED reporter.
+	    (Incomplete yet.)
+
 	* scheduler/scheduler.c:
 	    Reverted earlier change which counted already processed
 	    recipients into MTA-MIB variables.
@@ -18,7 +22,7 @@
 	* scheduler/scheduler.c, scheduler/scheduler.h, scheduler/conf.c,
 	  scheduler/agenda.c, scheduler/msgerror.c, scheduler/readconfig.c,
 	  scheduler/prototypes.h, man/scheduler.8:
-	    - Simplified slightly doagenda()
+	    - Slightly simplified doagenda()
 	    - Created accumulated report collector/reporter subservice.
 
 2000-03-01  Matti Aarnio  <mea@mea.tmt.tele.fi>

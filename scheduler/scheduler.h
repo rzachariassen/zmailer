@@ -235,6 +235,7 @@ struct vertex {
 	time_t		nextrprttime;	/* next time after which collected
 					   reports of this message will be
 					   produced.                         */
+	time_t		nextdlyrprttime;
 	char		*sender;	/* Message Sender/error recipient    */
 	int		ngroup;		/* number of addresses in group      */
 	int		index[1];	/* index of cfp->offset for group    */

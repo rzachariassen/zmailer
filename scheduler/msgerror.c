@@ -308,7 +308,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	if (!*no_error_reportp)
 	  printenvaddr(errfp, eaddr);
 	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR,
-		deliveryform ? deliveryform : "delivery");
+		deliveryform ? deliveryform : "delivered");
 	fp = sfopen(NULL, path, "r");
 	if (fp != NULL) {
 	  int inhdr = 1, hadsubj =0;
@@ -897,6 +897,140 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	cfp->mid = NULL; /* we don't want to loose the original one! */
 	free_cfp_memory(cfp);
 }
+
+
+/* ---------------- DELAYED reporter --------------------------*/
+
+void
+msgdelayed(vp, offset, notary, message)
+	struct vertex *vp;
+	long offset;
+	char *notary;
+	const char *message;
+{
+	Sfio_t *fp;
+	char path[410];
+	char *not[20], *s;
+	int i;
+
+	/* Split the notary string into components. */
+	for (i = 0; i < 20; ++i) not[i] = NULL;
+	s = notary;
+	i = 0;
+	while (i < 20 && s) {
+	  not[i++] = s;
+	  s = strchr(s, '\001');
+	  if (s) *s++ = 0;
+	}
+
+	if (vp->cfp->dirind > 0) {
+	  sprintf(path, "%.300s/%.100s",
+		  cfpdirname(vp->cfp->dirind), vp->cfp->mid);
+	} else {
+	  strncpy(path,vp->cfp->mid,400);
+	  path[400] = 0;
+	}
+
+	/* exclusive access required, but we're the only scheduler... */
+	fp = sfopen(NULL, path, "a");
+	if (fp == NULL) {
+	  sfprintf(sfstderr,
+		   "Cannot open control file %s to deposit", vp->cfp->mid);
+	  sfprintf(sfstderr,
+		   " error message for offset %ld:\n", offset);
+	  sfprintf(sfstderr, "\t%s\n", message);
+	  return;
+	}
+	vp->cfp->haderror = 1;
+	sfprintf(fp, "%c%c%ld:%ld:%ld::%ld\t",
+		 _CF_DIAGNOSTIC, _CFTAG_NORMAL, offset,
+		 (long)vp->headeroffset, (long)vp->drptoffset,
+		 time(NULL));
+	s = "";
+
+	/* Mark this DELAYED */
+	if (not[1]) {
+	  strcpy(path,"_delayed");
+	  not[1] = path+1;
+	}
+
+	for (i = 0; i < 20 && not[i]; ++i) {
+	  sfprintf(fp, "%s%s", s, not[i]);
+	  s = "\001";
+	  if (i > 0) not[i][-1] = '\001';
+	}
+	sfprintf(fp, "%s", notary);
+	sfprintf(fp, "\t%s\n", message);
+	sfsync(fp);
+#ifdef HAVE_FSYNC
+	fsync(sffileno(fp));
+#endif
+	sfclose(fp);
+}
+
+
+
+static void delayaux(vp, index, notary, buf)
+	struct vertex *vp;
+	int index;
+	char *notary;
+	const char *buf;
+{
+	int i;
+
+	/* Mark the delay info in.. */
+	for (i = 0 ; i < vp->ngroup; ++i)
+	  if (vp->index[i] == index) {
+	    msgdelayed(vp, vp->cfp->offset[index], notary, buf);
+	    break;
+	  }
+}
+
+/* FIXME: FIXME:  delayreport() calling, report times
+   control and tracking, etc... */
+
+void
+delayreport(vp)
+	struct vertex *vp;
+{
+	int i;
+	char *emsg;
+	char buf[BUFSIZ];
+	char notbuf[BUFSIZ];
+	const char *fmt = "\r%s, problem was:\r%s";
+	char *notary = vp->notary;
+
+	if (vp->nextdlyrprttime > now) return; /* Nothing yet! */
+
+	if (notary == NULL) {
+	  /* addres / action / status / diagnostic / wtt */
+	  sprintf(notbuf, "%s\001%s\001%s\001%s",
+		  "\003", /* XX: recipient address! XX: MAGIC INFO! */
+		  "delayed",
+		  "4.4.7 (no attempt done yet; long queue?)",
+		  "smtp; 400 (no delivery attempt done in ");
+	  saytime((u_long)(vp->nextdlyrprttime - vp->cfp->mtime), notbuf, 0);
+	  strcat(notbuf,")\001");
+	  notary = notbuf;
+	}
+
+	strcpy(buf, "delayed; no successfull delivery in ");
+	saytime((u_long)(vp->nextdlyrprttime - vp->cfp->mtime), buf, 0);
+
+	if (vp->message != NULL && *(vp->message) != '\0') {
+	  emsg = emalloc(strlen(buf) + strlen(vp->message) + strlen(fmt));
+	  sprintf(emsg, fmt, buf, vp->message);
+	} else
+	  emsg = buf;
+
+	/* Report all vertices having had a delay.. */
+	for (i = vp->ngroup -1; i >= 0; --i)
+	  delayaux(vp, vp->index[i], notary, emsg);
+
+	if (emsg != buf)
+	  free(emsg);
+}
+
 
 /* FIXME: reporting subsystem needs tuning! */
 /*        ... implementing/tuning DELAYED reports! */

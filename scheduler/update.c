@@ -870,14 +870,6 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 		   "RETRYAT: proc=%p (S=%d OF=%d tofd=%d) vp=%p[%d] message='%s'\n",
 		   proc, (int)proc->state, proc->overfed, proc->tofd, vp, index, message);
 
-#if 0
-	if ((proc->state   == CFSTATE_LARVA) &&
-	    (proc->overfed == 1) &&
-	    (proc->tofd    >= 0))
-	  proc->state = CFSTATE_FINISHING;
-	/* That previous state change would mean a fork()ed sub-program
-	   has spontaneously decided to produce  retryat  state... */
-#endif
 
 	if ((proc->state   == CFSTATE_STUFFING) &&
 	    (proc->tofd    >= 0)) {
