@@ -259,14 +259,16 @@ struct timezoneBSD {
 # ifndef NeXT
 extern char *getenv __P((char *));
 # else
+#  ifndef sun /* SunOS 4.1.x */
 extern char *getenv __P((const char *));
+#  endif
 # endif
 extern int errno;
 
 # if !defined(DMALLOC) && !defined(NeXT)
 extern char *malloc(), *realloc(), *calloc();
 #  if defined(sun)
-extern int free();
+/* extern int free(); */ /* Not for SunOS 4.1.x */
 #  else
 extern void free();
 #  endif

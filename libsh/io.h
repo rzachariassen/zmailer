@@ -42,7 +42,7 @@ extern struct siobuf *siofds[];		/* array of linked lists of siobufs */
 
 extern struct siobuf *sIOp;
 
-#define	_FILEIO(p)  (((sIOp = siofds[fileno(p)]) == NULL) || sIOp->sb_flag < 0)
+#define	_FILEIO(p)  ((((sIOp = siofds[FILENO(p)]) == NULL) || sIOp->sb_flag < 0)
 
 #ifndef	REALSTDIO
 
