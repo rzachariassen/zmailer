@@ -202,6 +202,8 @@ Installation procedure:
 6.	Once you are safe, run either:
 
 		# make install
+		# $MAILBIN/post-install.sh -MD5
+FIXME:			(See notes about post-install below)
 
 	(this installs all binaries and the default database files, which
 	 still need editing! See below.)

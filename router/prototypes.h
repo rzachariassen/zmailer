@@ -25,8 +25,8 @@
 
 /* various libraries, standard libc included.. */
 
-extern const char * gs_name;
-extern const char * monthname[];
+extern const char * const gs_name;
+extern const char * const monthname[];
 extern char	*prio_list[];
 #ifndef HAVE_STRERROR /* System has it, and propably has prototype too..
 			 IRIX 6.2 */

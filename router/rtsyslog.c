@@ -39,9 +39,6 @@ int size, nrcpts;
 
   /* Syslogflag 'R' for classical format, and 'r' for TAB-separated format */
 
-  static char *fmt1c = "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s";
-  static char *fmt1t = "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s";
-
   if (syslogflg == NULL) {
     syslogflg = getzenv("SYSLOGFLG");
     if (syslogflg == NULL)
@@ -63,8 +60,15 @@ int size, nrcpts;
      ctladdr=`getpwuid(rp->addr->misc)`
      mailer='rp->addr->channel' */
 
-  sprintf(lbuf, ((*t == 'r') ? fmt1t : fmt1c),
-	  spoolid, from, smtprelay, size, nrcpts, msgid);
+  if (*t == 'R')
+    sprintf(lbuf,
+	    "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
+	    spoolid, from, smtprelay, size, nrcpts, msgid);
+  else
+    sprintf(lbuf,
+	    "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s",
+	    spoolid, from, smtprelay, size, nrcpts, msgid);
+
 
   zsyslog((LOG_INFO, "%s", lbuf));
 }

@@ -140,7 +140,6 @@ int xdly;
 }
 
 static char *A1 = NULL, *A2 = NULL, *A3 = NULL, *A4 = NULL;
-static const char *notaryfmt = "%s\001%s\001%s\001%s\001%s";
 
 void
 notaryreport(arg1,arg2,arg3,arg4)
@@ -184,7 +183,7 @@ notaryreport(arg1,arg2,arg3,arg4)
 	  return;
 	}
 
-	sprintf(notarybuf, notaryfmt,
+	sprintf(notarybuf, "%s\001%s\001%s\001%s\001%s",
 		A1?A1:"", A2?A2:"", A3?A3:"", A4?A4:"",
 		wtthost?wtthost:"");
 	if (wttip) {

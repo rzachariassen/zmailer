@@ -346,6 +346,7 @@ main(argc, argv)
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
 	volatile const char *smtphost, *punthost = NULL;
+	char *tls_conf_file = NULL;
 
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
@@ -532,15 +533,8 @@ main(argc, argv)
 	    prefer_ip6 = !prefer_ip6;
 	    break;
 	  case 'S':
-#ifdef HAVE_OPENSSL
 	    /* -S /path/to/SmtpSSL.conf */
-	    tls_available = (tls_init_clientengine(&SS, optarg) == 0);
-
-    fprintf(stderr,
-	    "# -S %s  tls_init_client_engine() -> tls_available=%d\n",
-	    optarg, tls_available);
-
-#endif /* - HAVE_OPENSSL */
+	    tls_conf_file = optarg;
 	    break;
 	  default:
 	    ++errflg;
@@ -598,6 +592,18 @@ main(argc, argv)
 	/* We need this latter on .. */
 	zopenlog("smtp", LOG_PID, LOG_MAIL);
 	notary_settaid("smtp",getpid());
+
+	if (tls_conf_file) {
+#ifdef HAVE_OPENSSL
+	  /* -S /path/to/SmtpSSL.conf */
+
+	  tls_available = (tls_init_clientengine(&SS, tls_conf_file) == 0);
+
+	  fprintf(stderr,
+		  "# -S %s  tls_init_client_engine() -> tls_available=%d\n",
+		  tls_conf_file, tls_available);
+#endif /* - HAVE_OPENSSL */
+	}
 
 	/* We defer opening a connection until we know there is work */
 
@@ -2982,7 +2988,7 @@ int fd;
 	_Z_FD_SET(fd,rdmask);
 
 	rc = select(fd+1,&rdmask,NULL,NULL,&tv);
-	if (rc == 1) /* There is something to read! */
+	if (rc > 0) /* There is something to read! */
 	  return 1;
 	return 0;    /* interrupt or timeout, or some such.. */
 }
@@ -3119,17 +3125,6 @@ smtp_sync(SS, r, nonblocking)
 	static int continuation_line = 0;
 	static int first_line = 1;
 
-	if (!nonblocking && SS->smtpfp && sffileno(SS->smtpfp) >= 0)
-	  sfsync(SS->smtpfp);			/* Flush output */
-
-	if (SS->smtpfp && sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
-	  /* Error on write stream, write is thus from now on FORBIDDEN!
-	     We do a write direction shutdown on the socket, and only
-	     listen for replies from now on... */
-	  shutdown(sffileno(SS->smtpfp), 1);
-	  sfsetfd(SS->smtpfp, -1);
-	}
-
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
 
@@ -3152,6 +3147,18 @@ smtp_sync(SS, r, nonblocking)
       rescan_line_0: /* processed some continuation line */
 	  s = eol;
       rescan_line:   /* Got additional input */
+
+	  if (!nonblocking && SS->smtpfp && sffileno(SS->smtpfp) >= 0)
+	    sfsync(SS->smtpfp);			/* Flush output */
+
+	  if (SS->smtpfp && sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
+	    /* Error on write stream, write is thus from now on FORBIDDEN!
+	       We do a write direction shutdown on the socket, and only
+	       listen for replies from now on... */
+	    shutdown(sffileno(SS->smtpfp), 1);
+	    sfsetfd(SS->smtpfp, -1);
+	  }
+
 	  eof = SS->pipebuf + SS->pipebufsize;
 	  for (eol = s; eol < eof; ++eol)
 	    if (*eol == '\n') break;
@@ -3481,7 +3488,6 @@ SmtpState *SS;
 
 int dflag = 0;
 
-/* VARARGS */
 int
 smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	SmtpState *SS;
@@ -3666,12 +3672,17 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  _Z_FD_SET(infd,rdset);
 
 	  gotalarm = 0;
+
+	  /* Sync us - just in case... */
+	  if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
+	    sfsync(SS->smtpfp);
+
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
 	  if (r < 0 && errno == EINTR) goto do_reread;
-	  if (r == 1) {
+	  if (r > 0) {
 	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf));
 	    if (r < 0 && errno == EINTR) goto do_reread;
-	  } else {
+	  } else { /* == 0 */
 	    if (r == 0)
 	      gotalarm = 1;
 	    r = -1;

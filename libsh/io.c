@@ -373,7 +373,7 @@ register struct siobuf *siop;
 #endif
 #define	ARG() \
 	_ulong = flags&LONGINT ? va_arg(argp, long) : \
-	    flags&SHORTINT ? va_arg(argp, short) : va_arg(argp, int);
+	    flags&SHORTINT ? (short)va_arg(argp, int) : va_arg(argp, int);
 
 #define	todigit(c)	((c) - '0')
 #define	tochar(n)	((n) + '0')

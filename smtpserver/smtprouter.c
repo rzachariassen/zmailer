@@ -82,8 +82,10 @@ FILE *fp;
     return buf;
 }
 
+#ifndef HAVE_PUTENV
 static const char *newenviron[] =
-{"SMTPSERVER=y", NULL};
+  { "SMTPSERVER=y", NULL };
+#endif
 
 static int callr __((SmtpState * SS));
 static int callr(SS)

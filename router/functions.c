@@ -232,7 +232,7 @@ run_trace(argc, argv)
 
 
 int gensym;
-const char *gs_name = "g%d";
+const char * const gs_name = "g%d";
 
 static int
 run_gensym(argc, argv)
