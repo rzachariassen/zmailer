@@ -1,12 +1,12 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH zDBASES.CONF 5 "2003-May-13"
+.TH zDBASES.CONF 5zm "2003-Aug-28"
 .SH NAME
 .B TBW:
 .B dbases.conf
 \- Centralized database setup for the ZMailer's
-.IR router (8).
+.IR router (8zm).
 .SH SYNOPSIS
 The file is usually located into ZMailer's
 .I MAILSHARE/db/
@@ -128,7 +128,7 @@ userdb          NONE - - - -
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -147,8 +147,8 @@ l l.
 .PP
 .SH SEE ALSO
 .PP
-.IR router (8),
-.IR scheduler (8).
+.IR router (8zm),
+.IR scheduler (8zm).
 .PP
 .TE
 .SH AUTHOR

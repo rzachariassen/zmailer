@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "2003-May-13"
+.TH SM 8zm "2003-Aug-28"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -14,7 +14,7 @@ sm \- zmailer Sendmail compatible transport agent
 .SH DESCRIPTION
 .I sm
 is a ZMailer transport agent which is usually only run by the
-.IR scheduler (8),
+.IR scheduler (8zm),
 to deliver messages by invoking a program with facilities and in a way
 compatible with a Sendmail mailer.  The
 .I sm
@@ -66,7 +66,7 @@ requires flags, a program name, and a command line specification.
 These are in fact the fields of the entries of the configuration file.
 Lines starting with whitespace or a ``#'' are ignored, and all others are
 assumed to follow this format:
-.sp
+.PP
 .TS
 l l l l
 l s
@@ -105,7 +105,7 @@ flags are recognized, but the ones that do not make sense in the context of
 will produce an error.
 .PP
 The flags that change the behaviour of
-.IR sm (8)
+.IR sm (8zm)
 and their comparisons against
 .I sendmail-8.11
 are:
@@ -122,7 +122,7 @@ Special ``no flags defined'' dummy entry
 .RS
 .I sendmail:
 various sendmail-specific things that are handled mostly by the
-.IR router (8)
+.IR router (8zm)
 subsystem at ZMailer.
 .PP
 .I sm:
@@ -132,7 +132,7 @@ Not used.
 .RS
 .I sendmail:
 Equivalent of ZMailer's
-.IR smtp (8)
+.IR smtp (8zm)
 transport agents
 .I \-x
 option.  (Don't use MX data, only addresses)
@@ -389,7 +389,7 @@ likely sendmail running at another port)
 .I sm:
 not used
 (See ZMailer
-.IR smtp (8)
+.IR smtp (8zm)
 transport agent.)
 .RE
 .IP K
@@ -503,7 +503,7 @@ adds ``\-r\ \fIsender\fR'' arguments to the delivery program.
 .I sendmail:
 Open SMTP connections from a ``secure'' port.
 (Meaningless in ZMailer, but see
-.IR smtp (8)
+.IR smtp (8zm)
 transport agent.)
 .PP
 .I sm:
@@ -553,7 +553,7 @@ Not used
 .I sendmail, sm:
 will prepend a From-space line, with a "remote from \fImyuucpname\fR" at the
 end, to the message.  This is what is expected by remote
-.IR rmail (1)
+.IR rmail (1zm)
 programs for incoming UUCP mail.
 .RE
 .IP "v, V"
@@ -602,7 +602,7 @@ See RFC 2033.
 .I sm:
 Not implemented/used.
 ZMailer's
-.IR smtp (8)
+.IR smtp (8zm)
 implements LMTP.
 .RE
 .IP Z
@@ -689,7 +689,7 @@ The exit status is a code from
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -710,8 +710,8 @@ l l.
 \fI@MAILSHARE@/sm.cf\fR	(MAILSHARE/sm.cf)
 .TE
 .SH SEE ALSO
-.IR scheduler (8),
-.IR smtp (8).
+.IR scheduler (8zm),
+.IR smtp (8zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "2003-May-13"
+.TH ROUTER 8zm "2003-Aug-28"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
@@ -17,39 +17,39 @@ router \- zmailer message routing daemon
 [\fB\-Z\fR\ \fIzenvfile\fR]
 .SH DESCRIPTION
 The
-.IR router (8)
+.IR router (8zm)
 daemon makes all decisions affecting the processing of messages in
 .BR ZMailer .
 .PP
 A mail message is submitted by placing it in a file in the
 \fIPOSTOFFICE\fB/router\fR directory.
 The
-.IR router (8)
+.IR router (8zm)
 scans this directory frequently for new files and will lock and process them
 as it finds them.
 The result is a message control file that gets linked into
 the \fIPOSTOFFICE\fB/scheduler\fR and \fIPOSTOFFICE\fB/transport\fR
 directories for use by the
-.IR scheduler (8)
+.IR scheduler (8zm)
 in the next step of message processing.
 The original message file is then moved to the \fIPOSTOFFICE\fB/queue\fR
 directory.
 .PP
 The
-.IR router (8)'s
+.IR router (8zm)'s
 behaviour is controlled by a configuration file read at startup.
 It is really a
-.IR zmsh (1)
+.IR zmsh (1zm)
 script that uses facilities provided builtin to the
-.IR router (8).
+.IR router (8zm).
 .PP
 .SH OPTIONS
 Invoking the
-.IR router (8)
+.IR router (8zm)
 without any arguments will do nothing (except make it reads its configuration
 file and promptly exit).
 The normal startup method is to run the
-.IR zmailer (8)
+.IR zmailer (8zm)
 script, as in:
 .RS
 .nf
@@ -57,7 +57,7 @@ script, as in:
 .fi
 .RE
 This will kill the possible previous incarnation of the
-.IR router (8),
+.IR router (8zm),
 and start a new as a daemon.
 .PP
 .IP \-d
@@ -66,7 +66,7 @@ detach and run as a daemon.
 overrides the default configuration file \fIMAILSHARE\fB/router.cf\fR.
 .IP \-i
 run interactively, presenting a
-.IR zmsh (1)
+.IR zmsh (1zm)
 session with the configuration file preloaded.
 .IP \-k
 kill the currently running router by sending it a
@@ -84,12 +84,12 @@ starts the specified number of parallel router processes.  The default is
 a single router process.
 .IP \-o\ \fIzmshoptions\fR
 sets the option string passed on the the internal
-.IR zmsh (1)
+.IR zmsh (1zm)
 invocation.
 The default is \fB-O\fR.
 Note that the leading '-' is mandatory.
 See
-.IR zmsh (1)
+.IR zmsh (1zm)
 for the available options.
 .IP \-P\ \fIpostoffice\fR
 specifies an alternate \fIPOSTOFFICE\fR directory.
@@ -100,7 +100,7 @@ created.
 If undefined and alternate router directories are in use, the router
 will clear the entire directory before returning.
 See below and 
-.IR zmailer (3)
+.IR zmailer (3zm)
 about Z\-Environment and \fIROUTERDIRS\fR.
 .IP \-S
 Can be used to turn off non-serious syslogging.
@@ -129,7 +129,7 @@ rendering them thru any formatting RFC-822 engine.
 \fIThis deviates from old behaviour of the ZMailer in a major way!\fR
 .PP
 To restart a
-.IR router (8)
+.IR router (8zm)
 daemon:
 .PP
 .RS
@@ -148,7 +148,7 @@ To test an address, start up an interactive session:
 .PP
 or if the
 .B ZMailer
-.IR sendmail (8)
+.IR sendmail (8zm)
 is installed:
 .PP
 .RS
@@ -161,7 +161,7 @@ Then just use the pre-defined functions.
 .PP
 .SH CONFIGURATION FILE
 The
-.IR router (8)
+.IR router (8zm)
 configuration file must provide some services so the message processing
 can proceed:
 .PP
@@ -187,7 +187,7 @@ cannot continue due to a temporary resource unavailability (e.g., when
 the nameserver is acting up).
 There is a shell variable, \fBdefer\fR, which may be set internally
 in the database lookup routines in the
-.IR router (8)
+.IR router (8zm)
 scripts.
 
 In case of a temporary resource failure, the variable will be set to a
@@ -197,10 +197,10 @@ may be dealt with by the \fBheader_defer\fR function.
 .RE
 .PP
 The interface specifications of these items exhaust the expectations the
-.IR router (8)
+.IR router (8zm)
 has of its configuration file.
 The
-.IR router (8)
+.IR router (8zm)
 contains useful builtin functions that will aid in implementing the
 required functionality.
 These functions are described in the section on
@@ -208,10 +208,10 @@ These functions are described in the section on
 below.  
 .PP
 Optionally the
-.IR router (8)
+.IR router (8zm)
 may provide services to other programs.
 In particular, the
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 program relies on the router to do address validation and verification
 when it is asked (and enabled) to provide this service during an SMTP
 conversation.
@@ -281,7 +281,7 @@ any other information to the property list for use by the
 function.
 .PP
 Note: in the current version of ZMailer, only the
-.IR router (8)
+.IR router (8zm)
 knows about mutually exclusive addresses.
 Therefore all quads must be the lone element of their address group.
 .PP
@@ -323,7 +323,7 @@ rewritten properly due to a resource deferral.
 In that case the
 .B defer
 variable will be set by the
-.IR router (8)
+.IR router (8zm)
 during execution of the message header address rewriting function specified
 by the
 .B crossbar
@@ -337,10 +337,10 @@ would just quote the address and make it relative to the local host.
 .IP "\fBserver\fR \fIkey\fR ..."
 .RS
 This function is not used by the
-.IR router (8)
+.IR router (8zm)
 while processing mail.
 It is called from the
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 when synchronous address validation is required.
 Since this function may need services provided by other parts
 of the normal configuration file, it is included by convention.
@@ -393,7 +393,7 @@ program and has no other purpose.
 .I router
 has a bit more complex directory semantics, than can be seen from above.
 See
-.IR zmailer (3)
+.IR zmailer (3zm)
 for details.
 .IP "basename \fIpathname\fR [ \fIsuffix\fR ]"
 prints the base filename of the pathname.  If a suffix is given and matches
@@ -518,17 +518,6 @@ the value of possibly existing property-element pair
 If the name can not be found, name and its value are appended to
 the variable.
 .RE
-.IP "printaliases [ -v ] [ -o \fIindexoutputfile\fR ] \fIfile\fR"
-reads RFC822 syntax header lines from the specified file, parses them
-assuming contents must be an address list, and sorts and prints the header
-lines with all addresses in normal form.  If the
-\-o switch is specified, each header line will also generate a
-\fIheader\fR \fBTAB\fR \fIbyteoffset\fR line in the indexfile.  Comments
-are allowed; they extend from the character '#' at the beginning of a line,
-or after an address, to the end of line.  This
-function is used by the
-.IR newaliases (1)
-program to generate the aliases database from a source file.
 .IP "process \fImessagefile\fR"
 is the protocol switch function.  It is called by the
 .B daemon
@@ -539,12 +528,12 @@ the message file.  The current version knows about messages submitted
 using the
 .B MSG_RFC822
 parameter to
-.IR mail_open (3).
+.IR mail_open (3zm).
 For that case, the protocol function is called
 .BR rfc822 .
 .I router
 has a bit more complex directory semantics, than is stated above. See
-.IR zmailer (3)
+.IR zmailer (3zm)
 for details.
 Although the
 .B process
@@ -853,7 +842,7 @@ In addition any defined relations will create a builtin function with
 the same name as the relation.
 .SH GLOBAL VARIABLES
 The following shell variables are defined by the
-.IR router (8):
+.IR router (8zm):
 .IP defer
 is set by the database lookup routines to indicate a temporary failure
 of some kind.  The value assigned to this variable is a valid host
@@ -1006,21 +995,21 @@ Example:
 .IP ROUTERNOTIFY
 defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
 which a receiving client \fImay\fR inform the
-.IR router (8)
+.IR router (8zm)
 that there is some new job available.
 .IP SCHEDULERNOTIFY
 defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
 which the
-.IR router (8)
+.IR router (8zm)
 sends a message for the
-.IR scheduler (8)
+.IR scheduler (8zm)
 that there is a new job available.
 .IP SCHEDULERDIRHASH
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option at the
-.IR scheduler (8) .
+.IR scheduler (8zm) .
 Existence of this ZENV-variable tells the
-.IR router (8)
+.IR router (8zm)
 to send messages directly to the scheduler's hash subdirectories,
 thus eliminating a few directory operations which the scheduler would
 otherwise do, and at the same time limiting the size of the directory
@@ -1038,10 +1027,10 @@ l l.
 \fI@POSTOFFICE@/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
 .TE
 .SH SEE ALSO
-.IR mailq (1),
-.IR zmailer (3),
-.IR scheduler (8),
-.IR zmsh (1).
+.IR mailq (1zm),
+.IR zmailer (3zm),
+.IR scheduler (8zm),
+.IR zmsh (1zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

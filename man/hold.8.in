@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH HOLD 8 "2003-May-13"
+.TH HOLD 8zm "2003-Aug-28"
 .SH NAME
 hold \- zmailer deferred processing transport agent
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ hold \- zmailer deferred processing transport agent
 .SH DESCRIPTION
 .I hold
 is a ZMailer transport agent which is usually only run by the
-.IR scheduler (8)
+.IR scheduler (8zm)
 program to test conditions for reprocessing of previously deferred
 message addresses.  The
 .I hold
@@ -113,7 +113,7 @@ The exit status is a code from
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -133,7 +133,7 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8).
+.IR scheduler (8zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

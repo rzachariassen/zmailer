@@ -1,5 +1,6 @@
+'\" t
 .\" @(#)vacation.1 1.4 87/02/12 SMI
-.TH VACATION 1 "14 Oct 1998"
+.TH VACATION 1zm "2003-Aug-28"
 .SH NAME
 vacation \- reply to mail automatically 
 .SH SYNOPSIS
@@ -82,7 +83,7 @@ and that no one can write to your home directory.
 .RE
 .PP
 To stop
-.IR vacation (1),
+.IR vacation (1zm),
 run the command:
 .PP
 .RS 4em
@@ -170,7 +171,7 @@ the PostMaster or the mailer daemon, since standards and common sense dictate
 that it never points back to an address that could cause a loop.
 The From_ line is used only as a last resort.
 .SH SEE\ ALSO
-.IR sendmail (8),
+.IR sendmail (8zm),
 .I Zmailer Manual (http://zmailer.org/)
 .SH AUTHOR
 This program is originally the

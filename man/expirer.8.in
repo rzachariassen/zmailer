@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH EXPIRER 8 "2003-May-13"
+.TH EXPIRER 8zm "2003-Aug-28"
 .SH NAME
 expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
@@ -17,7 +17,7 @@ is a ZMailer transport agent which is used to expire selected recipients
 from the queue before their normal expiration time with (possibly)
 a customized message.
 The
-.IR expirer (8)
+.IR expirer (8zm)
 program must be run with root privileges and invoked with the same
 current directory as the
 .IR scheduler ,
@@ -39,10 +39,10 @@ specifies a logfile.
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the
-.IR scheduler (8)
+.IR scheduler (8zm)
 (namely: \fI$POSTIOFFICE/transport/\fR).
 Optionally on the same line the
-.IR scheduler (8)
+.IR scheduler (8zm)
 may tell which host is to be looked for from the recipients of the message.
 .PP
 .RS
@@ -73,7 +73,7 @@ and the
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
-.IR scheduler (8)
+.IR scheduler (8zm)
 log.
 .PP
 The exit status is a code from
@@ -83,7 +83,7 @@ The exit status is a code from
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -98,8 +98,8 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8),
-.IR manual-expirer (8).
+.IR scheduler (8zm),
+.IR manual-expirer (8zm).
 .SH AUTHOR
 This program is authored and copyright by:
 .RS 3em

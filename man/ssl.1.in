@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.0
-.TH SSL 1 "2 June 1990"
+.TH SSL 1zm "2 June 1990"
 .SH NAME
 ssl - syntax/semantic language preprocessor, for parser description/generation
 .SH SYNOPSIS

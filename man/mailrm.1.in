@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.0
-.TH MAILRM 1 "2003-May-13"
+.TH MAILRM 1zm "2003-Aug-28"
 .SH NAME
 mailrm \- zmailer mail queue message remover
 .SH SYNOPSIS
@@ -41,7 +41,7 @@ to retrieve the message id for a given message file id.
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -56,9 +56,9 @@ l l.
 .PP
 .SH SEE ALSO
 .PP
-.IR router (8),
-.IR scheduler (8),
-.IR mailq (1).
+.IR router (8zm),
+.IR scheduler (8zm),
+.IR mailq (1zm).
 .br
 RFC987, RFC1138
 .SH AUTHOR

@@ -1,6 +1,7 @@
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH RMAIL 1 "2003-May-13"
+.TH RMAIL 1zm "2003-Aug-28"
 .SH NAME
 rmail \- zmailer program to process incoming uucp mail
 .SH SYNOPSIS
@@ -10,7 +11,7 @@ rmail \- zmailer program to process incoming uucp mail
 \fIrecipient...\fR
 .SH DESCRIPTION
 The
-.I rmail (1)
+.I rmail (1zm)
 is usually invoked by a remote UUCP neighbour host's mailer using
 a command line like:
 .PP
@@ -21,9 +22,9 @@ uux - -r -a\fIsender\fR -gC \fIthishost\fR!rmail (\fIrecipient1\fR) (\fIrecipien
 .RE
 .PP
 The end result is the remote neighbour's
-.IR uuxqt( 8)
+.IR uuxqt (8)
 runs
-.IR rmail (1)
+.IR rmail (1zm)
 on
 .I thishost
 with this command line:
@@ -37,11 +38,11 @@ rmail \fIrecipient1\fR \fIrecipient2\fR ...
 In both cases, a UUCP format mail message is on the standard input.
 .PP
 The task of
-.IR rmail (1)
+.IR rmail (1zm)
 is to transform the trace information in the UUCP format message to the
 equivalent RFC822 trace information, and to submit the message to the
 .B ZMailer
-.IR router (8)
+.IR router (8zm)
 with the appropriate envelope information.
 .PP
 The expected input format looks like:
@@ -68,9 +69,9 @@ This is considered equivalent to the following
 .RE
 .PP
 In order for the mailer to process the incoming message properly,
-.IR rmail (1)
+.IR rmail (1zm)
 must be run by a userid which the
-.IR router (8)
+.IR router (8zm)
 will accept forged mail from.
 This is normally the
 .B uucp
@@ -96,8 +97,8 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR zmailer (8),
-.IR router (8).
+.IR zmailer (8zm),
+.IR router (8zm).
 .PP
 .SH AUTHOR
 This program authored and copyright by:

@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "2003-Jun-17"
+.TH MAILBOX 8zm "2003-Aug-23"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -17,7 +17,7 @@ mailbox \- zmailer local delivery transport agent
 is a
 .B ZMailer
 transport agent which is usually only run by the
-.IR scheduler (8)
+.IR scheduler (8zm)
 program to deliver mail to local user mailbox files.  The
 .I mailbox
 program must be run with root privileges and invoked with the same
@@ -66,7 +66,7 @@ mailbox is not empty the
 .I mailbox
 program will enforce 2 newlines as a separator before the message to
 be delivered.  This guarantees that User Agents, like
-.IR Mail( 1),
+.IR Mail (1),
 can find the about-to-be delivered message even if the current contents of
 the mailbox is corrupt.
 .PP
@@ -92,9 +92,9 @@ address and a timestamp.
 After all deliveries and just before exiting, the
 .I mailbox
 process will poke
-.IR comsat( 8C)
+.IR comsat (8C)
 in case recipients have turned on
-.IR biff( 1).
+.IR biff (1).
 The program may be compiled to look in the rwho files on the system
 for recipient names logged onto neighbouring hosts, in which case the
 .I comsat
@@ -110,7 +110,7 @@ encoded characters.
 .IP \-a
 the access time on mailbox files is, by default, preserved across delivery,
 so that programs such as
-.IR login( 1)
+.IR login (1)
 can determine if new mail has arrived.
 This option disables the above action.
 .IP \-b
@@ -307,10 +307,10 @@ mail spools.\fR
 Like all parts of the
 .BR ZMailer ,
 the
-.IR mailbox (8)
+.IR mailbox (8zm)
 chooses to err into overtly cautious side.
 In case of pipes being run under the
-.IR mailbox (8),
+.IR mailbox (8zm),
 the program in pipe is started thru
 .I /bin/sh
 with severely sanitized environment variables, and with only
@@ -387,12 +387,12 @@ is the location of the ZMailer ZENV file.
 .IP MSGSPOOLID
 Is the message spool-id in the ZMailer; subprograms may use this
 info in co-operation with ZMailer to e.g.
-.IR syslog( 3)
+.IR syslog (3)
 what they have done to the arrived message.
 .IP MESSAGEID
 Is the RFC 822 "Message-ID:" header data as possibly copied into
 the control file; another item to support
-.IR syslog( 3)
+.IR syslog (3)
 at programs.
 .IP MAILBIN
 is the value from ZENV.
@@ -417,7 +417,7 @@ was started.
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -457,12 +457,12 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8),
-.IR comsat( 8C),
-.IR biff( 1B),
-.IR flock( 2),
-.IR Mail( 1),
-.IR mboxpath (1).
+.IR scheduler (8zm),
+.IR comsat (8C),
+.IR biff (1),
+.IR flock (2),
+.IR Mail (1),
+.IR mboxpath (1zm).
 .PP
 .TS
 l l.

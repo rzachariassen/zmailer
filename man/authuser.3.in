@@ -1,4 +1,7 @@
-.TH authuser 3
+'\" t
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH authuser 3zm "2003-Aug-28"
 .SH NAME
 authuser \- remote authentication library using the Authentication Server
 .SH SYNTAX
@@ -217,9 +220,9 @@ the TCP/IP protocol suite, see
 Steve Bellovin's article
 ``Security Problems in the TCP/IP Protocol Suite.''
 .SH "SEE ALSO"
-tcpclient(1),
-tcpserver(1),
-getpeername(3),
-getsockname(3),
-tcp(4),
-authd(8)
+.IR tcpclient (1),
+.IR tcpserver (1),
+.IR getpeername (3),
+.IR getsockname (3),
+.IR tcp (4),
+.IR authd (8)

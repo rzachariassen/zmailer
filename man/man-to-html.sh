@@ -84,9 +84,9 @@ groff  -t -man -Tascii "$1" | \
         s{</U>(\s*)<U>}{\1}og;
         s{</I><B>_</B><I>}{_}og;
 	# Ordinary man-pages
-        s{<I>([-.0-9a-zA-Z_]+)</I>\((\d\w*)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
+        s{<I>([-.0-9a-zA-Z_]+)</I>\((\dzm)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	# Ordinary PERL PODs
-        s{<I>([-.0-9a-zA-Z_]+::[-.0-9a-zA-Z_]+)</I>\((\d\w*)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
+        s{<I>([-.0-9a-zA-Z_]+::[-.0-9a-zA-Z_]+)</I>\((\d\w+)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	print;' | \
     perl -ne '
 	if (m{^<B>(.*)</B>$}o) {

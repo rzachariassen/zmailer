@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1 "2003-May-13"
+.TH MBOXPATH 1zm "2003-Aug-28"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
@@ -26,16 +26,16 @@ directory prefix, but usually that is sufficient.
 .SH OPTIONS
 .IP \-d\ \fIdirpath\fR
 See
-.IR mailbox (8).
+.IR mailbox (8zm).
 .IP \-D[D]
 See
-.IR mailbox (8).
+.IR mailbox (8zm).
 .IP \-P[P]
 See
-.IR mailbox (8).
+.IR mailbox (8zm).
 .IP \-X[X]
 See
-.IR mailbox (8).
+.IR mailbox (8zm).
 .SH USAGE
 This is intended for system-wide startup script usage with
 code something like following for sh:
@@ -80,9 +80,9 @@ variable can be overridden with the
 option.
 .PP
 .SH SEE ALSO
-.IR mailbox (8),
-.IR scheduler (8),
-.IR comsat (8C),
+.IR mailbox (8zm),
+.IR scheduler (8zm),
+.IR comsat (8),
 .IR biff (1),
 .IR flock (2),
 .IR Mail (1).

@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH REROUTE 8 "2003-May-13"
+.TH REROUTE 8zm "2003-Aug-28"
 .SH NAME
 reroute \- zmailer's utility to move queued message back to router
 .SH SYNOPSIS
@@ -12,12 +12,12 @@ reroute \- zmailer's utility to move queued message back to router
 .SH DESCRIPTION
 .PP
 The
-.IR reroute (8)
+.IR reroute (8zm)
 is a ZMailer transport agent which sends message from scheduler queue
 back to router.
 .PP
 The
-.IR reroute (8)
+.IR reroute (8zm)
 program must be run with root privileges and invoked with the same
 current directory as the
 .IR scheduler ,
@@ -35,10 +35,10 @@ prints a version message and exits.
 .PP
 This program reads in processable file names relative to the current
 working directory of the
-.IR scheduler (8)
+.IR scheduler (8zm)
 (namely: \fI$POSTIOFFICE/transport/\fR).
 Optionally on the same line the
-.IR scheduler (8)
+.IR scheduler (8zm)
 may tell which host is to be looked for from the recipients of the message.
 .PP
 .RS
@@ -69,7 +69,7 @@ and the
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
-.IR scheduler (8)
+.IR scheduler (8zm)
 log.
 .PP
 The exit status is a code from
@@ -86,8 +86,8 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8),
-.IR manual-rerouter (8).
+.IR scheduler (8zm),
+.IR manual-rerouter (8zm).
 .SH AUTHOR
 This program is authored and copyright by:
 .RS 3em

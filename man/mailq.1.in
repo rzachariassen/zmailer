@@ -1,8 +1,8 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "2003-May-23"
+.TH MAILQ 1zm "2003-Aug-28"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -27,29 +27,29 @@ mailq \- zmailer mail queue printer
 \fIFIXME: Not all options are documented!\fR
 .SH DESCRIPTION
 The 
-.IR mailq (1)
+.IR mailq (1zm)
 queries a running
-.IR scheduler (8)
+.IR scheduler (8zm)
 process on a specified host for its current internal model of
 the mail transport queues and presents this information to the user.
 By default, the
-.IR scheduler (8)
+.IR scheduler (8zm)
 process queried is the one relevant to the local host, i.e. either a
 local process or a
-.IR scheduler (8)
+.IR scheduler (8zm)
 on a mail server host.
 If the optional
 .I host
 argument is specified, the
-.IR scheduler (8)
+.IR scheduler (8zm)
 running on that host will be queried instead.
 .PP
 If the
-.IR scheduler (8)
+.IR scheduler (8zm)
 has used
 .B \-Q
 option to shrink the amount of output, the
-.IR mailq (1)
+.IR mailq (1zm)
 .B must
 also use
 .B \-Q
@@ -78,7 +78,7 @@ The normal action is to print the transport queue.
 .IP "\-c \fIchannel\fR \-h \fIhost\fR"
 .RS
 in MAILQv2 mode (see
-.IR scheduler (8))
+.IR scheduler (8zm))
 query details about only those messages destined at given channel and host.
 .PP
 The default for \fIchannel\fR is "\fIsmtp\fR".
@@ -102,12 +102,12 @@ dumpts its content (various counters and gauges).
 .I "This works only local in the system, unlike MAILQ-v2 queries!"
 .PP
 Listed variables are described at:
-.IR mailq-m (5).
+.IR mailq-m (5zm).
 .RE
 .IP \-p\ \fIport\fR
 .RS
 specifies an alternate TCP/IP port to connect to a
-.IR scheduler (8)
+.IR scheduler (8zm)
 at.
 .RE
 .IP \-Q
@@ -133,23 +133,23 @@ summary statistics lines.
 Shows same dump as "mailq -M" produces, but can do it over the network.
 .PP
 Listed variables are described at:
-.IR mailq-m (5).
+.IR mailq-m (5zm).
 .RE
 .IP \-s
 .RS
 asks for a status of the
-.IR router (8),
-.IR scheduler (8),
+.IR router (8zm),
+.IR scheduler (8zm),
 and transport queues.
 .PP
 The first two are determined by scanning the appropriate directories
 and counting files, whereas the status of the transport queue is
 retrieved from the running
-.IR scheduler (8)
+.IR scheduler (8zm)
 process.
 .PP
 Doubling this option will cause
-.IR mailq (1)
+.IR mailq (1zm)
 to exit after printing this summary.
 .RE
 .IP \-S
@@ -305,13 +305,13 @@ l l.
 .PP
 .SH SEE ALSO
 The \fBMAILQ-V2\fR protocol is described at the
-.IR scheduler (8)
+.IR scheduler (8zm)
 manual page.
 .PP
-.IR mailq-m (5),
-.IR zmailer (1),
-.IR router (8),
-.IR scheduler (8),
+.IR mailq-m (5zm),
+.IR zmailer (1zm),
+.IR router (8zm),
+.IR scheduler (8zm),
 .IR "ZMailer::mailq" (3pm).
 .PP
 .SH AUTHOR

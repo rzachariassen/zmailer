@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 5 "2003-May-13"
+.TH ZMAILER 5zm "2003-Aug-28"
 .SH NAME
 .B aliases
 \- aliases file for ZMailer
@@ -19,7 +19,7 @@ Lines begining with white space are extensions to previous
 line.
 .PP
 This file describes user ID aliases used by
-.IR zmailer (1).
+.IR zmailer (1zm).
 The file resides in ZMailer's database directory, which
 usually has a symlink to this file from
 .I /etc.
@@ -66,9 +66,9 @@ Some examples for user "user":
 BSD-Sendmail lets those addresses be written without quotes,
 however it is against RFC-822 rules.
 .SH SEE ALSO
-.IR zmailer (1),
-.IR sendmail (8),
-.IR zdbases.conf (5).
+.IR zmailer (1zm),
+.IR sendmail (8zm),
+.IR zdbases.conf (5zm).
 .br
 RFC 822
 .SH HISTORY

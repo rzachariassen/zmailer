@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SENDMAIL 8 "2003-May-05"
+.TH SENDMAIL 8zm "2003-Aug-28"
 .SH NAME
 sendmail \- zmailer sendmail emulation and mail submission interface
 .SH SYNOPSIS
@@ -20,14 +20,14 @@ sendmail \- zmailer sendmail emulation and mail submission interface
 [\fIaddress\ ...\fR]
 .SH DESCRIPTION
 This
-.IR sendmail (8)
+.IR sendmail (8zm)
 program is an emulation of the original Sendmail interface.  It provides all
 the original options that it makes sense to support in the context of ZMailer.
 This is not intended to be the normal user interface to mail, rather it is
 used by old User Agent programs, e.g.,
 .IR Mail (1),
 to submit mail.  This mechanism has been superseded by the
-.IR zmailer (3)
+.IR zmailer (3zm)
 library routines as the native submission interface
 (Application Program Interface) for ZMailer.
 .PP
@@ -41,7 +41,7 @@ terminates when a period is seen by itself on a line, or at end of file on
 the input stream.
 .PP
 If the message submission fails immediately on the
-.IR mail_open (3),
+.IR mail_open (3zm),
 the data on stdin will be appended to a
 .B dead.letter
 file in the submitters home directory.
@@ -52,35 +52,35 @@ asks
 to deliver mail, which it does anyway.  This option has no effect.
 .IP \-bs
 will start an SMTP server reading from stdin.  This causes the
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 program to be executed.
 .IP \-bd
 starts the
-.IR router (8)
+.IR router (8zm)
 and
-.IR scheduler (8)
+.IR scheduler (8zm)
 programs to emulate Sendmail's daemon mode.
 This is \fBnot\fR a recommended method
 to start these programs, instead use
-.IR zmailer (1).
+.IR zmailer (1zm).
 .IP \-bt
 runs the
-.IR router (8)
+.IR router (8zm)
 in interactive mode for testing.
 .IP \-bi
 runs
-.IR newaliases (1)
+.IR newaliases (1zm)
 to rebuild the alias file database;
 This is \fBnot\fR a recommended method
 to start these programs, instead use
 .I "zmailer newdb"
 .IP \-bp
 runs
-.IR mailq (1)
+.IR mailq (1zm)
 to print the mail transport queue status.
 .IP \-C\ \fIconfigfile\fR
 specify the
-.IR router (8)
+.IR router (8zm)
 configuration file.
 .IP \-E
 indicates the origin of this message is an insecure channel.
@@ -165,7 +165,7 @@ If this is present, but bad, you are screwed...
 .RE
 .PP
 Those that
-.IR zmailer (3)
+.IR zmailer (3zm)
 library uses:
 .RS
 .IP FULLNAME
@@ -179,7 +179,7 @@ One of its own:
 .RS
 .IP MAILPRIORITY
 This is used to set
-.IR zmailer (3)
+.IR zmailer (3zm)
 library variable
 .IR mail_priority .
 .RE
@@ -188,7 +188,7 @@ library variable
 .PP
 .IP POSTOFFICE
 Used by
-.IR zmailer (3)
+.IR zmailer (3zm)
 library.
 .IP SMTPOPTIONS
 .IP MAILBIN
@@ -211,13 +211,13 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR zmailer (1),
-.IR zmailer (3),
-.IR router (8),
-.IR scheduler (8),
-.IR mailq (1),
-.IR newaliases (8),
-.IR zmailer (3).
+.IR zmailer (1zm),
+.IR zmailer (3zm),
+.IR router (8zm),
+.IR scheduler (8zm),
+.IR mailq (1zm),
+.IR newaliases (8zm),
+.IR zmailer (3zm).
 .PP
 RFC-2822
 .PP

@@ -1,6 +1,7 @@
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "2003-May-13"
+.TH ZMAILER 1zm "2003-Aug-28"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
@@ -23,49 +24,49 @@ zmailer \- zmailer control script
 
 .SH DESCRIPTION
 The
-.IR zmailer (1)
+.IR zmailer (1zm)
 is the quick interface to starting and stopping the local mail daemons,
 and doing other administrative chores.
 .PP
 There are three daemons, called the
-.IR router (8),
+.IR router (8zm),
 the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and the
-.IR smtpserver (8).
+.IR smtpserver (8zm).
 .PP
 The
-.IR router (8)'s
+.IR router (8zm)'s
 home directory is \fIPOSTOFFICE\fB/router\fR, which it scans
 every 15 idle seconds for newly submitted message files.
 The
-.IR router (8)
+.IR router (8zm)
 determines what to do with a message.
 It will typically send it on to the
-.IR scheduler (8)
+.IR scheduler (8zm)
 queue.
 This is maintained in the \fIPOSTOFFICE\fB/scheduler\fR directory,
 which is also the working directory of the
-.IR scheduler (8)
+.IR scheduler (8zm)
 and its transport agents.
 The
-.IR scheduler (8)
+.IR scheduler (8zm)
 process is what listens to the
 .B mailq
 TCP port for queries from the
-.IR mailq (1)
+.IR mailq (1zm)
 program used to examine the state of the transport queues.
 .PP
 .SH OPTIONS
 Invoking
-.IR zmailer (1)
+.IR zmailer (1zm)
 without any argument is equivalent to giving the three arguments:
 .RS 4em
 .B "router scheduler smtpserver"
 .RE
 .PP
 Invoking
-.IR zmailer (1)
+.IR zmailer (1zm)
 with only one argument, "\fBkill\fR", is equivalent to invoking
 it with the four arguments:
 .RS 4em
@@ -127,7 +128,7 @@ a new SMTP server daemon.
 will run database regeneration per definitions at
 "\fIMAILSHARE\fB/db/dbases.conf\fR" file.
 See
-.IR zdbases.conf (5).
+.IR zdbases.conf (5zm).
 .IP \fBnewaliases\fR
 will run the script to recreate the alias database from the
 "\fIMAILSHARE\fB/db/aliases\fR" file.
@@ -180,12 +181,12 @@ $MAILBIN/scheduler
 .IP \fI@MAILBIN@/smtpserver\fR
 $MAILBIN/smtpserver
 .SH SEE ALSO
-.IR router (8),
-.IR scheduler (8),
-.IR smtpserver (8),
-.IR mailq (1),
-.IR newdb (8),
-.IR zdbases.conf (5).
+.IR router (8zm),
+.IR scheduler (8zm),
+.IR smtpserver (8zm),
+.IR mailq (1zm),
+.IR newdb (8zm),
+.IR zdbases.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

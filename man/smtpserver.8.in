@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "2003-Aug-18"
+.TH SMTPSERVER 8zm "2003-Aug-28"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -28,16 +28,16 @@ in RFC-2821, and knows about the common extensions to the protocol expected
 by Sendmail and BSMTP clients.
 .PP
 By default the program will kill the previous
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 daemon, if any, then detach and listen for SMTP connections.
 Incoming messages will be submitted for processing using the
-.IR zmailer (3)
+.IR zmailer (3zm)
 interface to ZMailer.
 Nontrivial address checking is done asynchronously, although this behaviour
 can be changed by a command line option if you cannot afford to transfer
 data just to bounce it back.
 All checking is done by executing the
-.IR router (8)
+.IR router (8zm)
 program in interactive mode, and executing a well-known shell function with
 well-known parameters for each request.
 .PP
@@ -139,7 +139,7 @@ directory.
 .IP "\-R \fIrouter\fR"
 .RS
 specifies an alternate
-.I router (8)
+.I router (8zm)
 program to use for address verification.
 .RE
 .IP "\-C \fIcfgfile\fR"
@@ -792,7 +792,7 @@ program is started without parameters running userid of
 in directory $POSTOFFICE.
 .PP
 The protocol in between the
-.IR smtpserver (8),
+.IR smtpserver (8zm),
 and the content-policy program is a clone from the scheduler to
 transport-agent one.
 Namely:
@@ -887,7 +887,7 @@ ALL : ALL@ALL\fR
 Alternatively, all the functions which tcp-wrapper could supply are
 also available thru the policy database machinery.
 .PP
-.I "(Do note that scheduler(8) has also tcp\-wrapper support, which becomes"
+.I "(Do note that scheduler(8zm) has also tcp\-wrapper support, which becomes"
 .I "active simultaneously with smtpserver's tcp\-wrapper code!)"
 .P
 .SH "SASL[2] AUTHENTICATION MECHANISMS"
@@ -914,7 +914,7 @@ Possible configuration file is:
 .PP
 .B "TO BE WRITTEN;"
 Some further notes on how to setup the TLS encryption on the
-.IR smtpserver (8).
+.IR smtpserver (8zm).
 For the time being, see notes at "doc/guides/openssl"
 as well as what is written above at the "PARAM use\-tls", or
 there abouts.
@@ -969,7 +969,7 @@ account  required  /lib/security/pam_pwdb.so
 .fi
 .SH SMTP\-POLICY CONFIGURATION
 This subsystem of
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 does control acceptability of recipient envelope addresses per several
 criteria:
 .PP
@@ -1323,7 +1323,7 @@ PARAM tls-random-source /var/run/prngd-socket
 .PP
 .SH ENVIRONMENT VARIABLES USED BY THE SMTPSERVER
 The
-.IR zmailer (3)
+.IR zmailer (3zm)
 library's
 .I mail_open()
 et.al. functions use several environment variables.
@@ -1356,15 +1356,15 @@ Possible specification formats are:
 .PP
 .IP INPUTDIRS
 See
-.IR zmailer (3).
+.IR zmailer (3zm).
 .PP
 .IP INPUTNOTIFY
 See
-.IR zmailer (3).
+.IR zmailer (3zm).
 .PP
 .IP MAILBIN
 Used to find related
-.IR router (8)
+.IR router (8zm)
 program for interactive routing things.
 .PP
 .IP PATH
@@ -1373,15 +1373,15 @@ Passed on authentication subprocess program, see:
 .PP
 .IP POSTOFFICE
 See also
-.IR zmailer (3).
+.IR zmailer (3zm).
 .PP
 .IP ROUTEDIRHASH
 See
-.IR zmailer (3).
+.IR zmailer (3zm).
 .PP
 .IP ROUTERNOTIFY
 See
-.IR zmailer (3).
+.IR zmailer (3zm).
 .PP
 .IP SYSLOGFLG
 .PP
@@ -1401,7 +1401,7 @@ if PAM mechanism is present and plain-password authentication is wanted
 .PP
 
 .SH SEE ALSO
-.IR router (8).
+.IR router (8zm).
 .PP
 .TS
 l l

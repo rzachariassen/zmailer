@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH NEWDB 1 "2003-May-13"
+.TH NEWDB 8zm "2003-Aug-28"
 .SH NAME
 newdb \- zmailer database builder
 .SH SYNOPSIS
@@ -15,7 +15,7 @@ newdb \- zmailer database builder
 .SH DESCRIPTION
 .PP
 A wrapper to
-.IR makedb (8)
+.IR makedb (8zm)
 supplying various default values from
 .IR ZENV -variables,
 and doing database type specific file version rotations
@@ -33,7 +33,7 @@ a "configured in" default value will be used instead.
 .PP
 .IP MAILBIN
 Where
-.IR zmailer (1)'s
+.IR zmailer (1zm)'s
 component module binaries (and scripts) are located at
 .IP DBTYPE
 What the the default database type to be used in the system,
@@ -48,9 +48,9 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR makedb (8),
-.IR zdbases.conf (5),
-.IR zmailer (1)
+.IR makedb (8zm),
+.IR zdbases.conf (5zm),
+.IR zmailer (1zm)
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

@@ -1,7 +1,8 @@
+'\" t
 .\" $Header$
 .nr X
 .ds ]W "ZMailer 2.99"
-.TH ZMSH 1 "24 Dec 1994"
+.TH ZMSH 1zm "2003-Aug-28"
 .SH NAME
 zmsh \- zmailer shell
 .SH SYNOPSIS
@@ -12,9 +13,9 @@ zmsh \- zmailer shell
 .PP
 .SH DESCRIPTION
 The
-.IR zmsh (1)
+.IR zmsh (1zm)
 is an implementation of the Bourne shell suitable for use with the ZMailer
-.IR router (8)
+.IR router (8zm)
 as its configuration file language interpreter.
 It contains extensions that allow structured data
 (in the form of lists) to be manipulated.
@@ -436,8 +437,8 @@ Hitting interrupt during I/O stuff is a bad thing.
 The file descriptor prediction doesn't always work, especially in
 (nested) multi-pipe command lines.
 .SH SEE ALSO
-.IR sh( 1),
-.IR router (8).
+.IR sh (1),
+.IR router (8zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

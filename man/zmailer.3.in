@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 3 "2003-May-13"
+.TH ZMAILER 3zm "2003-Aug-28"
 .SH NAME
 mail_open, mail_priority, mail_abort, mail_close, mail_close_alternate, mail_alloc, mail_free, mail_host
 \- zmailer message submission interface
@@ -103,9 +103,9 @@ The
 .IR mail_close_alternate ()
 can be used to send currently open message file to some alternate
 destination, and is used at
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 to send some quick-action requests directly to the
-.IR scheduler (8).
+.IR scheduler (8zm).
 .PP
 The
 .IR mail_alloc ()
@@ -218,7 +218,7 @@ have subdirectories with names ``A'' thru ``Z'', alike
 .RS
 defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
 which a receiving client \fImay\fR inform the
-.IR router (8)
+.IR router (8zm)
 that there is some new job available.
 .RE
 .IP INPUTDIRS
@@ -255,8 +255,8 @@ $POSTOFFICE/{ROUTERDIRS}/
 .IP \fI@POSTOFFICE@/.router.notify\fR
 $POSTOFFICE/.router.notify
 .SH SEE ALSO
-.IR zmailer (1),
-.IR sendmail (8).
+.IR zmailer (1zm),
+.IR sendmail (8zm).
 .br
 RFC-2822
 .SH AUTHOR

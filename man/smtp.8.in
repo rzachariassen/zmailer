@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "2003-May-13"
+.TH SMTP 8zm "2003-Aug-28"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -20,15 +20,15 @@
 \fIhost\fR
 .SH DESCRIPTION
 The
-.IR smtp (8)
+.IR smtp (8zm)
 is a ZMailer transport agent which is usually only run by the
-.IR scheduler (8)
+.IR scheduler (8zm)
 to transfer messages to a remote Internet host using the SMTP
 protocol.
 The
-.IR smtp (8)
+.IR smtp (8zm)
 program must be run with the same current directory as the
-.IR scheduler (8),
+.IR scheduler (8zm),
 namely \fIPOSTOFFICE\fB/transport\fR.
 .PP
 The program scans the message control files named on stdin for addresses
@@ -296,7 +296,7 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -315,8 +315,8 @@ l l.
 .PP
 .SH SEE ALSO
 .PP
-.IR router (8),
-.IR scheduler (8).
+.IR router (8zm),
+.IR scheduler (8zm).
 .PP
 .TS
 l l

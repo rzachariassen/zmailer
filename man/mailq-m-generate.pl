@@ -29,13 +29,13 @@ $/ = $oldinsep; # Restore the separator
 close SRCFILE;
 
 
-print '.\" t
+print '\'\" t
 .\" THIS FILE IS GENERATED WITH  mailq-m-generate.pl  FROM  mailq.inc
 .ds ]W "ZMailer 2.99"
 .nr X
 ';
 
-printf ".TH MAILQ-M 5 \"%s\"\n", strftime("%Y-%b-%d",localtime());
+printf ".TH MAILQ-M 5zm \"%s\"\n", strftime("%Y-%b-%d",localtime());
 
 print '.SH NAME
 "mailq \-M" \- output format description

@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAKEDB 1 "2003-May-13"
+.TH MAKEDB 1zm "2003-Aug-28"
 .SH NAME
 makedb \- zmailer database builder
 .SH SYNOPSIS
@@ -33,13 +33,13 @@ and new data, depending upon operational mode.
 .IP "\fI\-a\fR"
 .RS 3em
 Use
-.IR aliases (5)
+.IR aliases (5zm)
 rules about labels, and line continuation in the source.
 .RE
 .IP "\fI\-p\fR"
 .RS 3em
 Compiles
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 policy configuration database into its binary representation.
 .RE
 .IP "\fI\-l\fR | \fI\-u\fR"
@@ -81,8 +81,8 @@ There are no e.g.
 nor any files this reads besides of given inputs.
 .PP
 .SH SEE ALSO
-.IR newdb (8),
-.IR zmailer (1),
+.IR newdb (8zm),
+.IR zmailer (1zm),
 .IR @MAILBIN@/policy-builder.sh
 .SH AUTHOR
 This program authored and copyright by:

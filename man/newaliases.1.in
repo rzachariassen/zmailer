@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH NEWALIASES 1 "2003-May-13"
+.TH NEWALIASES 1zm "2003-Aug-28"
 .SH NAME
 newaliases \- zmailer aliases database rebuilder
 .SH SYNOPSIS
@@ -12,9 +12,9 @@ newaliases \- zmailer aliases database rebuilder
 .B mechanism.
 .PP
 The
-.IR newaliases (1)
+.IR newaliases (1zm)
 rebuilds the aliases database used by the
-.IR router (8)
+.IR router (8zm)
 configuration at most sites.
 .PP
 The database is a sorted list of (alias,byteoffset) values,
@@ -29,7 +29,7 @@ Classical DBM systems weren't good enough due to e.g. NDBM having
 a limit of 1 kilobyte of key + data!\fR
 .PP
 The
-.IR router (8)
+.IR router (8zm)
 must be available to interpret this script, as it provides the address
 digestification functionality.
 .PP
@@ -44,7 +44,7 @@ are located at.
 .SH Z\-ENVIRONMENT VARIABLES
 .PP
 Following \fIZENV-variables\fR are used by the
-.IR newaliases (1)
+.IR newaliases (1zm)
 program:
 .PP
 .IP MAILVAR
@@ -59,9 +59,9 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR router (8),
-.IR zmailer (1)
-.I newdb.
+.IR router (8zm),
+.IR zmailer (1zm)
+.IR newdb (8zm).
 .PP
 .SH AUTHOR
 This program authored and copyright by:

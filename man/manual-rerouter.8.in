@@ -1,9 +1,10 @@
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MANUAL-REROUTER 8 "2003-May-13"
+.TH MANUAL-REROUTER 8zm "2003-Aug-28"
 .SH NAME
 manual-rerouter \- wrapper for
-.IR reroute (8)
+.IR reroute (8zm)
 transport agent program
 .SH SYNOPSIS
 .IP \fBmanual-rerouter\fR 17em
@@ -19,11 +20,11 @@ back to routing.
 .PP
 .I manual-rerouter
 wraps
-.IR reroute (8)
+.IR reroute (8zm)
 utility call with suitable parameters for generating input.
 .PP
 Suggested parameters for
-.IR reroute (8)
+.IR reroute (8zm)
 are:
 .IP \-c\ channel
 Message recipient selector "channel" (optional)
@@ -39,13 +40,13 @@ program inherits
 environment variable, and reads it, and uses value of
 .B MAILBIN
 in it to locate the
-.IR reroute (8)
+.IR reroute (8zm)
 utility, as well as to determine where
 .BR POSTFOFFICE /transport/
 directory is located at.
 .SH SEE ALSO
-.IR scheduler (8),
-.IR reroute (8).
+.IR scheduler (8zm),
+.IR reroute (8zm).
 .SH AUTHOR
 This script is authored and copyright by:
 .RS 3em

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "2003-May-13"
+.TH SCHEDULER 8zm "2003-Aug-28"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -19,25 +19,31 @@ scheduler \- zmailer transport queue scheduler daemon
 [\fB\-Z\fR\ \fIzenvfile\fR]
 .PP
 .SH DESCRIPTION
-The \fIscheduler\fR daemon manages the delivery processing of messages
-in the ZMailer.
+The
+.I scheduler
+daemon manages the delivery processing of messages in the ZMailer.
 .PP
-The \fIrouter\fR(8) creates message control files in
-the \fIPOSTOFFICE\fB/transport\fR directory.
+The
+.IR router (8zm)
+creates message control files in the
+\fIPOSTOFFICE\fB/transport\fR directory.
 These refer to the original message files in
 the \fIPOSTOFFICE\fB/queue\fR directory.
 .PP
-The \fIscheduler\fR reads each message control file
-from \fIPOSTOFFICE\fB/transport/\fR, translates the contained message
+The
+.I scheduler
+reads each message control file from
+\fIPOSTOFFICE\fB/transport/\fR, translates the contained message
 and destination information into internal data structures, and unlinks
 the message control file.
 .PP
 Based on scheduling, priority, and execution information read from a
 configuration file, the\ \fIscheduler\fR arranges to execute
-\fITransport Agents\fR relevant to the queued messages.
+\fITransport\ Agents\fR relevant to the queued messages.
 .PP
 At the time scheduled for a particular transport
-agent invocation, the \fIscheduler\fR
+agent invocation, the
+.I scheduler
 will start a transport agent (or use one from idle-pool), and tell
 it one by one which message control files to process.
 When all the destination addresses in a message have been processed,
@@ -81,7 +87,7 @@ simply dumps its internal state in a terse format to the TCP stream.
 It is expected that the client program will reconstruct the data structures
 sufficiently to give a user a good idea of what the scheduler thinks the
 world looks like.  The
-.IR mailq (1)
+.IR mailq (1zm)
 program serves this purpose.
 .PP
 .SH OPTIONS
@@ -180,7 +186,7 @@ specifies an alternate \fIPOSTOFFICE\fR directory.
 on machines without TCP/IP networking, the rendezvous between
 .I scheduler
 and
-.IR mailq (1)
+.IR mailq (1zm)
 is done using a well-known named pipe.  This option overrides the default
 location for this special file, either \fIRENDEZVOUS\fR or
 \fB/usr/tmp/.mailq.text\fR.
@@ -520,7 +526,7 @@ a clause with
 flag does not auto-start at the arrival of a message, instead it
 .B must
 be started by means of
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 command
 .B ETRN
 thru an SMTP connection.
@@ -1247,18 +1253,18 @@ Example:
 .IP SCHEDULERNOTIFY
 defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
 which the
-.IR router (8)
+.IR router (8zm)
 sends a message for the
-.IR scheduler (8)
+.IR scheduler (8zm)
 that there is a new job available.
 .PP
 .IP SCHEDULERDIRHASH
 .RS
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option at the
-.IR scheduler (8) .
+.IR scheduler (8zm) .
 Existence of this ZENV-variable tells the
-.IR router (8)
+.IR router (8zm)
 to send messages directly to the scheduler's hash subdirectories,
 thus eliminating a few directory operations which the scheduler would
 otherwise do, and at the same time limiting the size of the directory
@@ -1309,7 +1315,7 @@ contain following kind of entries:
 .fi
 .PP
 (\fIDo note that
-.IR smtpserver (8)
+.IR smtpserver (8zm)
 \fIhas also tcp\-wrapper support, which becomes active simultaneously
 with scheduler's tcp\-wrapper code!\fR)
 .PP
@@ -1348,9 +1354,19 @@ l l.
 \fI@POSTOFFICE@/queue\fR	(POSTOFFICE/queue)
 .TE
 .SH SEE ALSO
-.IR mailq (1),
-.IR router (8),
-.IR smtpserver (8).
+.IR mailq (1zm),
+.IR mailq-m (5zm),
+.IR router (8zm),
+.IR smtpserver (8zm),
+.IR mailbox (8zm),
+.IR hold (8zm),
+.IR smtp (8zm),
+.IR errormail (8zm),
+.IR sm (8zm),
+.IR expirer (8zm),
+.IR reroute (8zm),
+.IR manual-expirer (8zm),
+.IR manual-rerouter (8zm).
 .PP
 .TS
 l l

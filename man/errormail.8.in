@@ -1,7 +1,7 @@
-.\" t
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8 "2003-May-13"
+.TH ERRORMAIL 8zm "2003-Aug-23"
 .SH NAME
 errormail \- zmailer error message transport agent
 .SH SYNOPSIS
@@ -11,12 +11,12 @@ errormail \- zmailer error message transport agent
 .SH DESCRIPTION
 .I errormail
 is a ZMailer transport agent which is usually only run by the
-.IR scheduler (8)
+.IR scheduler (8zm)
 program to produce error messages from canned forms.  The
 .I errormail
 program must be invoked with the same
 current directory as the
-.IR scheduler (8),
+.IR scheduler (8zm),
 namely \fIPOSTOFFICE\fB/transport\fR.
 .PP
 The program will interpret the host part of an address destined for its channel
@@ -39,9 +39,9 @@ the message file being processed.
 .RE
 .PP
 This program is used to report errors on behalf of the ZMailer
-.IR router (8)
+.IR router (8zm)
 and
-.IR scheduler (8)
+.IR scheduler (8zm)
 programs, and by implication also report delivery failures for the
 various transport agents.  The primary exception is syntax errors during
 message parsing in the
@@ -56,10 +56,10 @@ prints a version message and exits.
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the
-.IR scheduler (8)
+.IR scheduler (8zm)
 (namely: \fI$POSTIOFFICE/transport/\fR).
 Optionally on the same line the
-.IR scheduler (8)
+.IR scheduler (8zm)
 may tell which host is to be looked for from the recipients of the message.
 .PP
 .RS
@@ -90,7 +90,7 @@ and the
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
-.IR scheduler (8)
+.IR scheduler (8zm)
 log.
 .PP
 The exit status is a code from
@@ -100,7 +100,7 @@ The exit status is a code from
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-.IR scheduler (8),
+.IR scheduler (8zm),
 and it tells where scheduler's idea of
 .IR ZENV -variables
 are located at.
@@ -114,7 +114,7 @@ This supplies the location of the directory under which
 "$MAILSHARE/forms/hostpart" files are located.
 .IP "POSTOFFICE, ROUTERDIRHASH, ROUTERNOTIFY, etc.."
 Variables used by
-.IR zmailer (3)
+.IR zmailer (3zm)
 library, while posting error messages.
 .PP
 .SH FILES
@@ -126,9 +126,9 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8),
-.IR router (8),
-.IR zmailer (3).
+.IR scheduler (8zm),
+.IR router (8zm),
+.IR zmailer (3zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em
