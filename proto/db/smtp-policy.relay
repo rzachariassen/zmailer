@@ -1,0 +1,41 @@
+#|
+#| This file is called:  smtp-policy.relay 
+#|
+#| Into this file you should list all those ip addresses from which you
+#| will accept SMTP input traffic that is allowed to have unrestricted
+#| outbound relaying thru this server.
+#|
+#| Per default the  policy-builder.sh  script adds attribute-alias
+#|    = _full_rights
+#| (which maps to: rejectnet - relaycustnet + relaycustomer + relaytarget +)
+#| to the address given below.  Any attributes following the address here
+#| are appended AFTER the "= _full_rights" pair.  (I.e. everything is not
+#| settable here -- resetting attributes already set in _full_rights is
+#| not possible, for example.)
+#|
+#|   Examples:
+#|
+#|   Default behaviour on loopback users; default meaning
+#|   verifying that source and destination addresses are resolvable
+#|   thru the DNS, but not doing any other limitations:
+#|
+#| [127.0.0.0]/8
+#|
+#|   In case you want to allow unverified input relaying from some
+#|   source, add "fulltrustnet +" attribute pair like here.  Then
+#|   the addresses (source and destination) are accepted as is without
+#|   any sort of checking at the smtpserver.  Possible errors in the
+#|   addresses are flagged at latter stages (output, very likely):
+#|
+#| [1.2.3.4]/32 fulltrustnet +
+#|
+#|   DEPRECATED USE:  You give a DOMAIN NAME in here which is looked
+#|   at connection setup time (against IP reversal ptr value), and
+#|   against MAIL FROM:<...> domain name.  However there are lots
+#|   of reasons why you SHOULD NOT use this technique for allowing
+#|   relaying thru your machine -- foremost of which is that then
+#|   anybody who just claims any address with this domain can relay
+#|   thru your server -- and you get the blame...
+#|
+#| some.domain.name
+#|
