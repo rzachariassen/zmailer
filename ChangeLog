@@ -1,5 +1,9 @@
 2003-05-08  Matti Aarnio  <mea@zmailer.org>
 
+	* libsh/builtins.c:
+	    Debugging  sh_read()'s internal buffer re-allocation/extension
+	    code.  Something is wrong in there, and it grows without bounds..
+
 	* include/listutils.h, libsh/listmalloc.c, router/db.c:
 	    "function with parameter that is a pointer to a function with ..."
 	    .. found correct thing.  I wish gcc would tell as much as
