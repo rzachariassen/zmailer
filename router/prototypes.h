@@ -117,7 +117,6 @@ extern struct header	*erraddress __((struct envelope *e));
 extern void	defer __((struct envelope *e, const char *why));
 extern struct header	*mkSender __((struct envelope *e, const char *name, int flag));
 extern struct header	*mkTrace __((struct envelope *e));
-extern int	nullhost __((const char *s));
 extern conscell	*pickaddress __((conscell *l));
 extern int	thesender __((struct envelope *e, struct address *a));
 extern conscell	*makequad __((void));

@@ -2,8 +2,9 @@
  *	Copyright 1989 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Fully LISPis memory allocation scheme with garbage collection
- *	by   Matti Aarnio <mea@nic.funet.fi> 1996
+ *	LISPish memory allocation scheme with garbage collection by
+ *	Matti Aarnio <mea@nic.funet.fi> 1996, 1999  containing ideas
+ *	(and possible bits of code) from GNU Emacs, (C) FSF.
  */
 
 /* #define CELLDEBUG */

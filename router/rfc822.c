@@ -55,10 +55,10 @@ static conscell	*find_errto __((conscell *list));
 
 #define dprintf	if (D_sequencer) printf
 
-#define	QCHANNEL(x)	(x)->string
-#define	QHOST(x)	(cdr(x))->cstring
-#define	QUSER(x)	(cddr(x))->cstring
-#define	QATTRIBUTES(x)	(cdr(cddr(x)))->string
+#define	QCHANNEL(x)	(x)
+#define	QHOST(x)	(cdr(x))
+#define	QUSER(x)	(cddr(x))
+#define	QATTRIBUTES(x)	(cdr(cddr(x)))
 
 
 conscell *
@@ -84,10 +84,9 @@ struct envelope *qate;
 int
 iserrmessage()
 {
-	return (qate != NULL
-		&& qate->e_from_trusted != NULL
-		&& (QCHANNEL(qate->e_from_trusted) == NULL
-		    || CISTREQ(QCHANNEL(qate->e_from_trusted), "error")));
+	return (qate != NULL && qate->e_from_trusted != NULL &&
+		(QCHANNEL(qate->e_from_trusted)->cstring == NULL ||
+		 CISTREQ(QCHANNEL(qate->e_from_trusted)->cstring, "error")));
 }
 
 
@@ -632,6 +631,18 @@ FILE *mfp;
 	}
 }
 
+static int nullhost __((conscell *cs));
+static int
+nullhost(cs)
+	conscell *cs;
+{
+	const char *s = cs->cstring;
+
+	return (s == NULL || *s == '\0' || strcmp(s, "-") == 0);
+	/* actually we should also check for localhostness, but lets not
+	   get carried away... */
+}
+
 /* Send the message back to originator with user-friendly chastizing errors */
 
 static void
@@ -880,7 +891,7 @@ mkSender(e, name, flag)
 			l = pickaddress(l);
 			flag = (QUSER(l) == NULL || !nullhost(QHOST(l)));
 			if (!flag)
-				flag = !CISTREQ(QUSER(l), name);
+				flag = !CISTREQ(QUSER(l)->cstring, name);
 		} else
 			flag = 1;
 	} else
@@ -1047,15 +1058,6 @@ rwalloc(rwpp)
 	return p;
 }
 
-int
-nullhost(s)
-	const char *s;
-{
-	return (s == NULL || *s == '\0' || strcmp(s, "-") == 0);
-	/* actually we should also check for localhostness, but lets not
-	   get carried away... */
-}
-
 conscell *
 pickaddress(l)
 	conscell *l;
@@ -1070,7 +1072,7 @@ pickaddress(l)
 	for (p = NULL, la = car(l); la != NULL && LIST(la) ; la = cdr(la)) {
 		/* AND addresses; i.e. exploded address list or one address */
 		for (lx = car(la); lx != NULL && LIST(lx) ; lx = cdr(lx)) {
-			if (STRING(cdar(lx)) && nullhost(cdar(lx)->string)) {
+			if (STRING(cdar(lx)) && nullhost(cdar(lx))) {
 				p = lx;
 				break;
 			}
@@ -1095,8 +1097,8 @@ thesender(e, a)
 		return 0;
 	e->e_from_resolved = pickaddress(l);
 
-	if (QUSER(e->e_from_resolved) == NULL
-	    || !nullhost(QHOST(e->e_from_resolved)))
+	if (QUSER(e->e_from_resolved) == NULL ||
+	    !nullhost(QHOST(e->e_from_resolved)))
 		return 0;
 	/*
 	 * We assume here, that local mailbox id's correspond to user
@@ -1108,7 +1110,8 @@ thesender(e, a)
 	 * only done if the message file wasn't created by a trusted user,
 	 * so in practise this is less of a problem than it might appear to be.
 	 */
-	return CISTREQ(QUSER(e->e_from_resolved),uidpwnam(e->e_statbuf.st_uid));
+	return CISTREQ(QUSER(e->e_from_resolved)->cstring,
+		       uidpwnam(e->e_statbuf.st_uid));
 }
 
 extern conscell *rwmappend __((conscell *, conscell *, conscell *));
@@ -1157,7 +1160,7 @@ sequencer(e, file)
 	conscell       *rwmchain;
 	struct rwmatrix *rwhead, *nsp, *rwp = NULL, *rcp = NULL;
 	token822   *t = NULL;
-	int   idnumber, nxor, i;
+	int   idnumber, nxor, i, slen;
 	int   def_uid, header_error, perr;
 	FILE	       *ofp, *vfp;
 	int		ofperrors = 0;
@@ -1354,8 +1357,9 @@ sequencer(e, file)
 			    && (p = ap->a_tokens) != NULL
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
+				slen = TOKENLEN(t);
 				QCHANNEL(e->e_from_trusted) =
-					strnsave(t->t_pname, TOKENLEN(t));
+				  newstring(dupnstr(t->t_pname, slen), slen);
 			} else {
 				/*
 				 * No origination channel, or channel
@@ -1441,10 +1445,11 @@ sequencer(e, file)
 			    && (p = ap->a_tokens) != NULL
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
+				slen = TOKENLEN(t);
 				QCHANNEL(e->e_from_trusted) =
-					strnsave(t->t_pname, TOKENLEN(t));
+				  newstring(dupnstr(t->t_pname, slen), slen);
 			}
-			if (QCHANNEL(e->e_from_trusted) == NULL) {
+			if (QCHANNEL(e->e_from_trusted)->cstring == NULL) {
 				/*
 				 * the mailer is supposed to know about
 				 * all valid channel identifiers. Gripe.
@@ -1453,14 +1458,22 @@ sequencer(e, file)
 			}
 		}
 		FindEnvelope(eRcvdFrom);
-		if (h != NULL)		/* a previous host was specified */
-			QHOST(e->e_from_trusted) = h->h_contents.a->a_pname;
+		if (h != NULL && h->h_contents.a->a_pname) {
+			/* a previous host was specified */
+			slen = strlen(h->h_contents.a->a_pname);
+			QHOST(e->e_from_trusted) =
+			  newstring(dupnstr(h->h_contents.a->a_pname, slen),slen);
+		}
 		FindEnvelope(eUser);
-		if (h != NULL)		/* a previous user was specified */
-			QUSER(e->e_from_trusted) = h->h_contents.a->a_pname;
-		if (QCHANNEL(e->e_from_trusted) == NULL
-		    || QHOST(e->e_from_trusted) == NULL
-		    || QUSER(e->e_from_trusted) == NULL) {
+		if (h != NULL && h->h_contents.a->a_pname) {
+			/* a previous user was specified */
+			slen = strlen(h->h_contents.a->a_pname);
+			QHOST(e->e_from_trusted) =
+			  newstring(dupnstr(h->h_contents.a->a_pname, slen),slen);
+		}
+		if (QCHANNEL(e->e_from_trusted)->cstring == NULL
+		    || QHOST(e->e_from_trusted)->cstring == NULL
+		    || QUSER(e->e_from_trusted)->cstring == NULL) {
 			FindEnvelope(eFrom);
 			/* X: assert h != NULL */
 			if (h == NULL || h->h_stamp == BadHeader) {
@@ -1503,13 +1516,13 @@ sequencer(e, file)
 			/* local user */
 			FindEnvelope(eExternal);
 			if (h != NULL || (e->e_statbuf.st_mode & 022)) {
-				optsave(FYI_BREAKIN, e);
-			} else if (QUSER(e->e_from_resolved) != NULL)
-				def_uid =
-					login_to_uid(QUSER(e->e_from_resolved));
-			else if (QUSER(e->e_from_trusted) != NULL)
-				def_uid =
-					login_to_uid(QUSER(e->e_from_trusted));
+			  optsave(FYI_BREAKIN, e);
+			} else if (QUSER(e->e_from_resolved)->cstring != NULL)
+			  def_uid =
+			    login_to_uid(QUSER(e->e_from_resolved)->cstring);
+			else if (QUSER(e->e_from_trusted)->cstring != NULL)
+			  def_uid =
+			    login_to_uid(QUSER(e->e_from_trusted)->cstring);
 		}
 	} else {
 		dprintf("We know sender is local and one of the peons\n");
@@ -1552,7 +1565,7 @@ sequencer(e, file)
 		  set_pname(e, nh, "Sender");
 		}
 	}
-	if (QCHANNEL(e->e_from_trusted) == NULL)
+	if (QCHANNEL(e->e_from_trusted)->cstring == NULL)
 		QCHANNEL(e->e_from_trusted) = QCHANNEL(e->e_from_resolved);
 	if (QHOST(e->e_from_trusted) == NULL)
 		QHOST(e->e_from_trusted) = QHOST(e->e_from_resolved);

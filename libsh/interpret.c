@@ -964,9 +964,12 @@ functype(fname, shcmdpp, sfdpp)
 	struct sslfuncdef *sfdp;
 	struct spblk *spl;
 
-	symid = symbol(fname);
+	symid = symbol_lookup(fname);
 	/* is it a defined function? */
-	spl = sp_lookup(symid, spt_funclist);
+	if (!symid)
+	  spl = NULL;
+	else
+	  spl = sp_lookup(symid, spt_funclist);
 	if (spl == NULL)
 	  sfdp = NULL;
 	else
@@ -976,7 +979,7 @@ functype(fname, shcmdpp, sfdpp)
 	/* behaviour in execute() requires we continue, not return */
 
 	/* is it a builtin command? */
-	if (shcmdpp != NULL) {
+	if (shcmdpp != NULL && symid) {
 	  spl = sp_lookup(symid, spt_builtins);
 	  if (spl != NULL)
 	    *shcmdpp = (struct shCmd *)spl->data;
@@ -1973,8 +1976,8 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				} else
 					name = "";
 				if (d != NULL && LIST(d)) {
-				  cdr(d) = NULL;
 				  d = copycell(d);
+				  cdr(d) = NULL;
 				} else {
 				  slen = strlen(name);
 				  d = newstring(dupnstr(name,slen),slen);
@@ -2764,6 +2767,7 @@ lapply(fname, l)
 	struct spblk *spl;
 	struct osCmd avc;
 	conscell *ll, *tmp;
+	spkey_t spkey;
 	GCVARS4;
 
 #ifdef DEBUG
@@ -2784,9 +2788,13 @@ lapply(fname, l)
 	}
 #endif
 
-	spl = sp_lookup(symbol(fname), spt_funclist);
+	spkey = symbol_lookup(fname);
+	spl = NULL;
+	if (!spkey)
+	  return -1;
+	spl = sp_lookup(spkey, spt_funclist);
 	if (spl == NULL) {
-		spl = sp_lookup(symbol(fname), spt_builtins);
+		spl = sp_lookup(spkey, spt_builtins);
 		if (spl == NULL)
 			return -1;
 		/* Non conscell input parameters to the target

@@ -116,14 +116,20 @@ _s_copy_tree(list)
 	return new;
 }
 
+extern int D_conscell;
+
 conscell *
 s_copy_tree(list)
 	conscell *list;  /* input list is gc-protected */
 {
 	list = _s_copy_tree(list);
-#ifdef CELLDEBUG
-    fprintf(stderr," s_copy_tree() returns %p to caller at %p\n", list,
-	    __builtin_return_address(0));
+#ifdef __GNUC__
+	if (D_conscell)
+	  fprintf(stderr," s_copy_tree() returns %p to caller at %p\n", list,
+		  __builtin_return_address(0));
+#else
+	if (D_conscell)
+	  fprintf(stderr," s_copy_tree() returns %p\n", list);
 #endif
 	return list;
 }

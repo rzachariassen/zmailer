@@ -18,6 +18,8 @@
 #define __inline__ /* nothing for non-GCC */
 #endif
 
+int D_conscell = 0;
+
 /*
  * We allocate conscells in set of blocks, where we do garbage collections
  * at every N requests, or other trigger criteria..
@@ -120,9 +122,8 @@ static consblock *new_consblock()
     int newsize = (sizeof(consblock) +
 		   sizeof(conscell) * (consblock_cellcount - 1));
 
-#ifdef DEBUG
-    printf("new_consblock(%d cells)\n", consblock_cellcount);
-#endif
+    if (D_conscell)
+      fprintf(stderr,"new_consblock(%d cells)\n", consblock_cellcount);
 
     new = (consblock *) calloc(1,newsize); /* clearing malloc */
     if (!new)
@@ -158,9 +159,8 @@ int first;
     int newsize = (sizeof(consvarptrs) +
 		   sizeof(conscell *) * (consvars_cellcount - 1));
 
-#ifdef DEBUG
-    printf("new_consvars(first=%d; %d varcells)\n", first, consvars_cellcount);
-#endif
+    if (D_conscell)
+      fprintf(stderr,"new_consvars(first=%d; %d varcells)\n", first, consvars_cellcount);
 
     new = (consvarptrs *) malloc(newsize);
     if (!new)
@@ -181,9 +181,8 @@ int first;
 
 void *consvar_mark()
 {
-#ifdef DEBUG
-  printf ("consvar_marker() returns %p\n", (void*)consvars_cursor);
-#endif
+    if (D_conscell)
+      fprintf(stderr,"consvar_marker() returns %p\n", (void*)consvars_cursor);
     return (void *)consvars_cursor;
 }
 
@@ -220,9 +219,8 @@ int consvar_register(varptr)
 {
     int marklast, idx;
 
-#ifdef DEBUG
-    printf("consvar_register(varptr=%p)\n", varptr);
-#endif
+    if (D_conscell)
+      fprintf(stderr,"consvar_register(varptr=%p)\n", varptr);
 
     if (consvars_root == NULL) {
 	if (new_consvars(0) == NULL)
@@ -388,19 +386,17 @@ int cons_garbage_collect()
 
 		/* This was not reachable, no marker was added.. */
 		if (ISNEW(cc)) {   /* if (cc->flags & NEWSTRING) */
-#ifdef DEBUG
-		    fprintf(stderr,
-			    " freestr(%p) cell=%p called from %p s='%s'\n",
-			    cc->string, cc, __builtin_return_address(0),
-			    cc->string);
-#endif
+		    if (D_conscell)
+		      fprintf(stderr,
+			      " freestr(%p) cell=%p called from %p s='%s'\n",
+			      cc->string, cc, __builtin_return_address(0),
+			      cc->string);
 		    freestr(cc->string,cc->slen);
 		    cc->string = NULL;
 		}
 		if (!(cc->flags & DSW_FREEMARK)) {
-#ifdef DEBUG
-		  fprintf(stderr," freecell(%p)\n",cc);
-#endif
+		  if (D_conscell)
+		    fprintf(stderr," freecell(%p)\n",cc);
 		  ++newfreecnt;
 		}
 		cc->flags = DSW_FREEMARK;
@@ -416,10 +412,10 @@ int cons_garbage_collect()
     newcell_gc_freecount += freecnt;
     newcell_gc_strusecnt = strusecnt;
 
-#ifdef DEBUG
-    fprintf(stderr,"cons_garbage_collect() freed %d, found %d free, and %d used cells\n",
-	    newfreecnt, freecnt-newfreecnt, usecnt);
-#endif
+    if (D_conscell)
+      fprintf(stderr,"cons_garbage_collect() freed %d, found %d free, and %d used cells\n",
+	      newfreecnt, freecnt-newfreecnt, usecnt);
+
     return freecnt;
 }
 
@@ -435,9 +431,8 @@ conscell *
 
     /* At first, see if we are to do some GC ... */
 
-#ifdef DEBUG
-    printf("newcell() called\n");
-#endif
+    if (D_conscell)
+      fprintf(stderr,"newcell() called\n");
 
     ++newcell_callcount;
     if (conscell_freechain == NULL) {
@@ -474,9 +469,14 @@ conscell *
     memset(new, 0, sizeof(*new));
 #endif
 #endif
-#ifdef DEBUG
-    fprintf(stderr," newcell() returns %p to caller at %p\n", new,
-	    __builtin_return_address(0));
+
+#ifdef __GNUC__
+    if (D_conscell)
+      fprintf(stderr," newcell() returns %p to caller at %p\n", new,
+	      __builtin_return_address(0));
+#else
+    if (D_conscell)
+      fprintf(stderr," newcell() returns %p\n", new);
 #endif
     return new;
 }
@@ -600,7 +600,7 @@ conscell *conststring(const char *s, const int slen)
 
 const static int  strmagic = 0x53545200; /* 'STR\0' */
 
-#define STRPOSOFFSET 5	/* 5 for debug,		*/
+#define STRPOSOFFSET 4	/* 5 for debug,		*/
 			/* 4 for run w/ check,	*/
 			/* 0 for run w/o check!	*/
 
@@ -618,9 +618,13 @@ char *mallocstr(len)
 #if STRPOSOFFSET > 0
   *ip = strmagic;
 #endif
-#ifdef DEBUG
-  fprintf(stderr," mallocstr() returns %p to caller at %p\n", p,
-	  __builtin_return_address(0));
+#ifdef __GNUC__
+  if (D_conscell)
+    fprintf(stderr," mallocstr() returns %p to caller at %p\n", p,
+	    __builtin_return_address(0));
+#else
+  if (D_conscell)
+    fprintf(stderr," mallocstr() returns %p\n", p);
 #endif
 
   return p;
@@ -635,9 +639,13 @@ char *dupnstr(str,len)
   p[len] = 0;
   ++newcell_gc_dupnstrcount;
 
-#ifdef DEBUG
-  fprintf(stderr," dupnstr() returns %p to caller at %p\n", p,
-	  __builtin_return_address(0));
+#ifdef __GNUC__
+  if (D_conscell)
+    fprintf(stderr," dupnstr() returns %p to caller at %p\n", p,
+	    __builtin_return_address(0));
+#else
+  if (D_conscell)
+    fprintf(stderr," dupnstr() returns %p\n", p);
 #endif
   return (p);
 }
