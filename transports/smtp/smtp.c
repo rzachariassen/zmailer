@@ -2166,6 +2166,7 @@ writemimeline(SS, buf, len, convertmode)
 	    }
 	    /* Any other char which needs quoting ? */
 	    if (c == '='  ||  c > 126 ||
+		(column == 0 && (c == 'F' || c == '.')) ||
 		(c != '\n' && c != '\t' && c < 32)) {
 
 	      ssputc(SS, '=', fp);
