@@ -1,7 +1,7 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "13 Jun 2000"
+.TH MAILQ 1 "15 May 2001"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -39,6 +39,8 @@ mailq \- zmailer mail queue printer
 [
 .B \-Q[Q[Q]]
 ]
+[
+.B "\-c channel \-h host"
 [
 .I host
 ]
@@ -127,6 +129,7 @@ override the verbose option.
 specifies an alternate TCP/IP port to connect to a
 .I scheduler
 at.
+.IP "\-c \fIchannel\fR \-h \fIhost\fR"
 .IP \-Q
 .IP \-QQ
 .IP \-QQQ

@@ -4,6 +4,12 @@
 	    The 'mailq -v' did show the ta-work-specification-file
 	    size, not message size in 'bytes %ld' printout.. :-(
 
+	    Also:  Have options:  "-c channel -h host"
+	    which TOGETHER will let querying of some particularly
+	    interesting destination channel/host pair among all that
+	    the system may have active.  Requires MAILQ-V2 mode, and
+	    '-v' option use (not '-Q'!).
+
 2001-05-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* include/libc.h:

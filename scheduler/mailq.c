@@ -123,6 +123,9 @@ typedef struct threadtype {
 
 const char *host = NULL;
 
+const char *channel_opt = NULL;
+const char *host_opt    = NULL;
+
 int
 main(argc, argv)
 	int argc;
@@ -142,7 +145,7 @@ main(argc, argv)
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "46dip:r:stu:U:vVSQE:K:");
+	  c = getopt(argc, argv, "46c:dh:ip:r:stu:U:vVSQE:K:");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -154,11 +157,17 @@ main(argc, argv)
 	    prefer_4 = 0;
 	    prefer_6 = 1;
 	    break;
+	  case 'c':
+	    channel_opt = optarg;
+	    break;
 	  case 'd':
 	    ++debug;
 	    break;
 	  case 'E':
 	    expn = optarg;
+	    break;
+	  case 'h':
+	    host_opt = optarg;
 	    break;
 	  case 'i':
 	    user = getuid();
@@ -245,9 +254,9 @@ main(argc, argv)
 	}
 	if (errflg) {
 #ifdef	AF_INET
-	  fprintf(stderr, "Usage: %s [-46isSvt] [-p#] [host]\n", progname);
+	  fprintf(stderr, "Usage: %s [-46isSvt] [-cchannel -hhost] [-p#] [host]\n", progname);
 #else  /* !AF_INET */
-	  fprintf(stderr, "Usage: %s [-isSvt]\n", progname);
+	  fprintf(stderr, "Usage: %s [-isSvt] [-cchannel -hhost]\n", progname);
 #endif /* AF_INET */
 	  exit(EX_USAGE);
 	}
@@ -1414,44 +1423,54 @@ void query2(fpi, fpo)
 	  threadtype *threads = (threadtype *) malloc(sizeof(threadtype) *
 						      threadspace);
 
-	  fprintf(fpo, "SHOW QUEUE THREADS2\n");
-	  fflush(fpo);
+	  if (channel_opt && host_opt) {
 
-	  bufsize = 0;
-	  if (GETLINE(buf, bufsize, bufspace, fpi))
-	    return;
-
-	  if (*buf != '+') {
-	    fprintf(stdout,"Scheduler response: '%s'\n",buf);
-	    return;
-	  }
-
-	  for (;;) {
-	    char *b;
-	    bufsize = 0;
-	    if (GETLINE(buf, bufsize, bufspace, fpi))
-	      break;
-	    if (buf[0] == '.' && buf[1] == 0)
-	      break;
-
-	    if (linecnt+1 >= linespace) {
-	      linespace *= 2;
-	      lines = (char **)realloc((void**)lines,
-				       sizeof(char *) * linespace);
-	    }
-
-	    /* Do leading dot duplication suppression */
-	    b = buf;
-	    if (*b == '.') {
-	      --bufsize;
-	      ++b;
-	    }
-
-	    lines[linecnt] = malloc(bufsize+2);
-	    memcpy(lines[linecnt], b, bufsize+1);
+	    int i = strlen(channel_opt) + strlen(host_opt);
+	    lines[linecnt] = malloc(i+2);
+	    sprintf(lines[linecnt], "%s\t%s", channel_opt, host_opt);
 	    ++linecnt;
 
-	    /* fprintf(stdout,"%s\n", b); */
+	  } else {
+
+	    fprintf(fpo, "SHOW QUEUE THREADS2\n");
+	    fflush(fpo);
+
+	    bufsize = 0;
+	    if (GETLINE(buf, bufsize, bufspace, fpi))
+	      return;
+
+	    if (*buf != '+') {
+	      fprintf(stdout,"Scheduler response: '%s'\n",buf);
+	      return;
+	    }
+
+	    for (;;) {
+	      char *b;
+	      bufsize = 0;
+	      if (GETLINE(buf, bufsize, bufspace, fpi))
+		break;
+	      if (buf[0] == '.' && buf[1] == 0)
+		break;
+
+	      if (linecnt+1 >= linespace) {
+		linespace *= 2;
+		lines = (char **)realloc((void**)lines,
+					 sizeof(char *) * linespace);
+	      }
+
+	      /* Do leading dot duplication suppression */
+	      b = buf;
+	      if (*b == '.') {
+		--bufsize;
+		++b;
+	      }
+
+	      lines[linecnt] = malloc(bufsize+2);
+	      memcpy(lines[linecnt], b, bufsize+1);
+	      ++linecnt;
+
+	      /* fprintf(stdout,"%s\n", b); */
+	    }
 	  }
 
 	  lines[linecnt] = NULL;
