@@ -13,14 +13,18 @@ that may mean that:
 </UL>
 Various gauges may or may not be zero, all depending...
 <P>
-Gauges are those with words: "Space", "Parallel", "Space", "Stored", "processes"
+Volumes are in kilobytes ("-kB" suffix), all others are
+single events.
+<P>
+Gauges are marked with "-G" suffix, all others are counters.
 <P>
 ZMailer has several subsystems:
 <UL>
-<LI> smtpserver (incoming .. SMTP, and "Ss" suffix),
-<LI> router ("Rt" suffix),
-<LI> scheduler ("Sc" suffix),
-<LI> transport agents of which there is particular interest to "outgoing SMTP".
+<LI> SYS: non-subsystem data
+<LI> SS: Smtpserver
+<LI> RT: Router
+<LI> SC: scheduler
+<LI> TA: transport agents of which there is particular interest to "outgoing SMTP".
 </UL>
 <P>
 

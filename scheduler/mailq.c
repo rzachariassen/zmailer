@@ -1902,112 +1902,112 @@ static void print_shm __((void))
 #define M  MIBMtaEntry->m
 
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
-  printf("Time_now                       %10lu\n", (unsigned long)time(NULL));
+  printf("Time_now                        %10lu\n", (unsigned long)time(NULL));
 
-  printf("SYS.mtaRouterMasterPID          %9u",M.mtaRouterMasterPID);
+  printf("SYS.mtaRouterMasterPID          %10u",M.mtaRouterMasterPID);
   if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSchedulerMasterPID       %9u",M.mtaSchedulerMasterPID);
+  printf("SYS.mtaSchedulerMasterPID       %10u",M.mtaSchedulerMasterPID);
   if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSmtpServerMasterPID      %9u",M.mtaSmtpServerMasterPID);
+  printf("SYS.mtaSmtpServerMasterPID      %10u",M.mtaSmtpServerMasterPID);
   if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
 
-  printf("SYS.mtaSpoolFreeSpace-kB        %9u\n", M.mtaSpoolFreeSpace);
-  printf("SYS.mtaLogFreeSpace-kB          %9u\n", M.mtaLogFreeSpace);
+  printf("SYS.mtaSpoolFreeSpace-kB         %9d\n", M.mtaSpoolFreeSpace);
+  printf("SYS.mtaLogFreeSpace-kB           %9d\n", M.mtaLogFreeSpace);
 
 
-  printf("SS.mtaIncomingProcesses              %4u\n",
+  printf("SS.Processes-G                        %4d\n",
 	 M.mtaIncomingSMTPSERVERprocesses);
 
-  printf("SS.mtaIncomingParallelSMTPconnects   %4u\n",
+  printf("SS.ParallelSMTPconnects-G             %4d\n",
 	 M.mtaIncomingParallelSMTPconnects);
-  printf("SS.mtaIncomingParallelSMTPSconnects  %4u\n",
+  printf("SS.ParallelSMTPSconnects-G            %4d\n",
 	 M.mtaIncomingParallelSMTPSconnects);
-  printf("SS.mtaIncomingParallelSUBMITconnects %4u\n",
+  printf("SS.ParallelSUBMITconnects-G           %4d\n",
 	 M.mtaIncomingParallelSUBMITconnects);
 
-  printf("SS.mtaIncomingSMTPconnects      %9u\n", M.mtaIncomingSMTPconnects);
-  printf("SS.mtaIncomingSMTPSconnects     %9u\n", M.mtaIncomingSMTPSconnects);
-  printf("SS.mtaIncomingSUBMITconnects    %9u\n", M.mtaIncomingSUBMITconnects);
-  printf("SS.mtaIncomingSMTPTLSes         %9u\n", M.mtaIncomingSMTPTLSes);
+  printf("SS.SMTPconnects                 %10u\n", M.mtaIncomingSMTPconnects);
+  printf("SS.SMTPSconnects                %10u\n", M.mtaIncomingSMTPSconnects);
+  printf("SS.SUBMITconnects               %10u\n", M.mtaIncomingSUBMITconnects);
+  printf("SS.SMTPTLSes                    %10u\n", M.mtaIncomingSMTPTLSes);
 
-  printf("SS.mtaIncomingSMTP_MAIL         %9u\n", M.mtaIncomingSMTP_MAIL);
-  printf("SS.mtaIncomingSMTP_MAIL_ok      %9u\n", M.mtaIncomingSMTP_MAIL_ok);
-  printf("SS.mtaIncomingSMTP_MAIL_bad     %9u\n", M.mtaIncomingSMTP_MAIL_bad);
-  printf("SS.mtaIncomingSMTP_RCPT         %9u\n", M.mtaIncomingSMTP_RCPT);
-  printf("SS.mtaIncomingSMTP_RCPT_ok      %9u\n", M.mtaIncomingSMTP_RCPT_ok);
-  printf("SS.mtaIncomingSMTP_RCPT_bad     %9u\n", M.mtaIncomingSMTP_RCPT_bad);
-  printf("SS.mtaIncomingSMTP_HELO         %9u\n", M.mtaIncomingSMTP_HELO);
-  printf("SS.mtaIncomingSMTP_EHLO         %9u\n", M.mtaIncomingSMTP_EHLO);
-  printf("SS.mtaIncomingSMTP_ETRN         %9u\n", M.mtaIncomingSMTP_ETRN);
-  printf("SS.mtaIncomingSMTP_HELP         %9u\n", M.mtaIncomingSMTP_HELP);
-  printf("SS.mtaIncomingSMTP_DATA         %9u\n", M.mtaIncomingSMTP_DATA);
-  printf("SS.mtaIncomingSMTP_DATA_ok      %9u\n", M.mtaIncomingSMTP_DATA_ok);
-  printf("SS.mtaIncomingSMTP_DATA_bad     %9u\n", M.mtaIncomingSMTP_DATA_bad);
-  printf("SS.mtaIncomingSMTP_BDAT         %9u\n", M.mtaIncomingSMTP_BDAT);
-  printf("SS.mtaIncomingSMTP_BDAT_ok      %9u\n", M.mtaIncomingSMTP_BDAT_ok);
-  printf("SS.mtaIncomingSMTP_BDAT_bad     %9u\n", M.mtaIncomingSMTP_BDAT_bad);
-  printf("SS.mtaIncomingSMTP_DATA-kB      %9u\n", M.mtaIncomingSMTP_DATA_KBYTES);
-  printf("SS.mtaIncomingSMTP_BDAT-kB      %9u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
-  printf("SS.mtaIncomingSMTP_spool-kB     %9u\n", M.mtaIncomingSMTP_spool_KBYTES);
+  printf("SS.SMTP_MAIL                    %10u\n", M.mtaIncomingSMTP_MAIL);
+  printf("SS.SMTP_MAIL_ok                 %10u\n", M.mtaIncomingSMTP_MAIL_ok);
+  printf("SS.SMTP_MAIL_bad                %10u\n", M.mtaIncomingSMTP_MAIL_bad);
+  printf("SS.SMTP_RCPT                    %10u\n", M.mtaIncomingSMTP_RCPT);
+  printf("SS.SMTP_RCPT_ok                 %10u\n", M.mtaIncomingSMTP_RCPT_ok);
+  printf("SS.SMTP_RCPT_bad                %10u\n", M.mtaIncomingSMTP_RCPT_bad);
+  printf("SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
+  printf("SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
+  printf("SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
+  printf("SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
+  printf("SS.SMTP_DATA                    %10u\n", M.mtaIncomingSMTP_DATA);
+  printf("SS.SMTP_DATA_ok                 %10u\n", M.mtaIncomingSMTP_DATA_ok);
+  printf("SS.SMTP_DATA_bad                %10u\n", M.mtaIncomingSMTP_DATA_bad);
+  printf("SS.SMTP_BDAT                    %10u\n", M.mtaIncomingSMTP_BDAT);
+  printf("SS.SMTP_BDAT_ok                 %10u\n", M.mtaIncomingSMTP_BDAT_ok);
+  printf("SS.SMTP_BDAT_bad                %10u\n", M.mtaIncomingSMTP_BDAT_bad);
+  printf("SS.SMTP_DATA-kB                 %10u\n", M.mtaIncomingSMTP_DATA_KBYTES);
+  printf("SS.SMTP_BDAT-kB                 %10u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
+  printf("SS.SMTP_input_spool-kB          %10u\n", M.mtaIncomingSMTP_spool_KBYTES);
 
-  printf("SS.mtaReceivedMessages          %9u\n", M.mtaReceivedMessagesSs);
-  printf("SS.mtaReceivedRecipients        %9u\n", M.mtaReceivedRecipientsSs);
-  printf("SS.mtaTransmittedMessages       %9u\n", M.mtaTransmittedMessagesSs);
-  printf("SS.mtaTransmittedRecipients     %9u\n", M.mtaTransmittedRecipientsSs);
+  printf("SS.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSs);
+  printf("SS.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSs);
+  printf("SS.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSs);
+  printf("SS.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSs);
 
-  printf("RT.mtaRouterProcesses           %9u\n", M.mtaRouterProcesses);
-  printf("RT.mtaReceivedMessages          %9u\n", M.mtaReceivedMessagesRt);
-  printf("RT.mtaReceivedRecipients        %9u\n", M.mtaReceivedRecipientsRt);
-  printf("RT.mtaTransmittedMessages       %9u\n", M.mtaTransmittedMessagesRt);
-  printf("RT.mtaTransmittedRecipientsRt   %9u\n", M.mtaTransmittedRecipientsRt);
+  printf("RT.RouterProcesses-G             %9d\n", M.mtaRouterProcesses);
+  printf("RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
+  printf("RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
+  printf("RT.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesRt);
+  printf("RT.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsRt);
 
-  printf("RT.mtaReceivedVolume-kB         %9u\n", M.mtaReceivedVolumeRt);
-  printf("RT.mtaTransmittedVolume-kB      %9u\n", M.mtaTransmittedVolumeRt);
-  printf("RT.mtaTransmittedVolume2-kB     %9u\n", M.mtaTransmittedVolume2Rt);
+  printf("RT.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeRt);
+  printf("RT.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeRt);
+  printf("RT.TransmittedVolume2-kB        %10u\n", M.mtaTransmittedVolume2Rt);
 
-  printf("RT.mtaStoredMessages            %9u\n", M.mtaStoredMessagesRt);
-  printf("RT.mtaStoredRecipients          %9u\n", M.mtaStoredRecipientsRt);
-  printf("RT.mtaStoredVolume              %9u\n", M.mtaStoredVolumeRt);
+  printf("RT.StoredMessages-G              %9d\n", M.mtaStoredMessagesRt);
+  printf("RT.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsRt);
+  printf("RT.StoredVolume-kB-G             %9d\n", M.mtaStoredVolumeRt);
 
-  printf("SC.mtaReceivedMessages          %9u\n", M.mtaReceivedMessagesSc);
-  printf("SC.mtaReceivedRecipients        %9u\n", M.mtaReceivedRecipientsSc);
-  printf("SC.mtaTransmittedMessages       %9u\n", M.mtaTransmittedMessagesSc);
-  printf("SC.mtaTransmittedRecipients     %9u\n", M.mtaTransmittedRecipientsSc);
-  printf("SC.mtaStoredMessages            %9u\n", M.mtaStoredMessagesSc);
-  printf("SC.mtaStoredRecipients          %9u\n", M.mtaStoredRecipientsSc);
-  printf("SC.mtaReceivedVolume            %9u\n", M.mtaReceivedVolumeSc);
-  printf("SC.mtaStoredVolume              %9u\n", M.mtaStoredVolumeSc);
-  printf("SC.mtaTransmittedVolume         %9u\n", M.mtaTransmittedVolumeSc);
-  printf("SC.mtaStoredThreads             %9u\n", M.mtaStoredThreadsSc);
-  printf("SC.mtaTransportAgentsActive     %9d\n", M.mtaTransportAgentsActiveSc);
-  printf("SC.mtaTransportAgentsIdle       %9d\n", M.mtaTransportAgentsIdleSc);
+  printf("SC.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSc);
+  printf("SC.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSc);
+  printf("SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
+  printf("SC.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSc);
+  printf("SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
+  printf("SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
+  printf("SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
+  printf("SC.StoredVolume-kB              %10u\n", M.mtaStoredVolumeSc);
+  printf("SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
+  printf("SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
+  printf("SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
+  printf("SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
 
-  printf("TA.mtaOutgoingSmtpConnects      %9u\n", M.mtaOutgoingSmtpConnects);
-  printf("TA.mtaOutgoingSmtpConnectFails  %9u\n", M.mtaOutgoingSmtpConnectFails);
-  printf("TA.mtaOutgoingSmtpSTARTTLS      %9u\n", M.mtaOutgoingSmtpSTARTTLS);
-  printf("TA.mtaOutgoingSmtpMAIL          %9u\n", M.mtaOutgoingSmtpMAIL);
-  printf("TA.mtaOutgoingSmtpRCPT          %9u\n", M.mtaOutgoingSmtpRCPT);
-  printf("TA.mtaOutgoingSmtpDATA          %9u\n", M.mtaOutgoingSmtpDATA);
-  printf("TA.mtaOutgoingSmtpBDAT          %9u\n", M.mtaOutgoingSmtpBDAT);
-  printf("TA.mtaOutgoingSmtpDATAvolume    %9u\n", M.mtaOutgoingSmtpDATAvolume);
-  printf("TA.mtaOutgoingSmtpBDATvolume    %9u\n", M.mtaOutgoingSmtpBDATvolume);
-  printf("TA.mtaOutgoingSmtpMAILok        %9u\n", M.mtaOutgoingSmtpMAILok);
-  printf("TA.mtaOutgoingSmtpRCPTok        %9u\n", M.mtaOutgoingSmtpRCPTok);
-  printf("TA.mtaOutgoingSmtpDATAok        %9u\n", M.mtaOutgoingSmtpDATAok);
-  printf("TA.mtaOutgoingSmtpBDATok        %9u\n", M.mtaOutgoingSmtpBDATok);
-  printf("TA.mtaOutgoingSmtpDATAvolumeOK  %9u\n", M.mtaOutgoingSmtpDATAvolumeOK);
-  printf("TA.mtaOutgoingSmtpBDATvolumeOK  %9u\n", M.mtaOutgoingSmtpBDATvolumeOK);
+  printf("TA.OutgoingSmtpConnects         %10u\n", M.mtaOutgoingSmtpConnects);
+  printf("TA.OutgoingSmtpConnectFails     %10u\n", M.mtaOutgoingSmtpConnectFails);
+  printf("TA.OutgoingSmtpSTARTTLS         %10u\n", M.mtaOutgoingSmtpSTARTTLS);
+  printf("TA.OutgoingSmtpMAIL             %10u\n", M.mtaOutgoingSmtpMAIL);
+  printf("TA.OutgoingSmtpRCPT             %10u\n", M.mtaOutgoingSmtpRCPT);
+  printf("TA.OutgoingSmtpDATA             %10u\n", M.mtaOutgoingSmtpDATA);
+  printf("TA.OutgoingSmtpBDAT             %10u\n", M.mtaOutgoingSmtpBDAT);
+  printf("TA.OutgoingSmtpDATAvolume-kB    %10u\n", M.mtaOutgoingSmtpDATAvolume);
+  printf("TA.OutgoingSmtpBDATvolume-kB    %10u\n", M.mtaOutgoingSmtpBDATvolume);
+  printf("TA.OutgoingSmtpMAILok           %10u\n", M.mtaOutgoingSmtpMAILok);
+  printf("TA.OutgoingSmtpRCPTok           %10u\n", M.mtaOutgoingSmtpRCPTok);
+  printf("TA.OutgoingSmtpDATAok           %10u\n", M.mtaOutgoingSmtpDATAok);
+  printf("TA.OutgoingSmtpBDATok           %10u\n", M.mtaOutgoingSmtpBDATok);
+  printf("TA.OutgoingSmtpDATAvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpDATAvolumeOK);
+  printf("TA.OutgoingSmtpBDATvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpBDATvolumeOK);
 
 #if 0
-  printf("mtaSuccessfulConvertedMessages %9u\n", M.mtaSuccessfulConvertedMessages);
-  printf("mtaFailedConvertedMessages     %9u\n", M.mtaFailedConvertedMessages);
-  printf("mtaLoopsDetected               %9u\n", M.mtaLoopsDetected);
+  printf("mtaSuccessfulConvertedMessages  %10u\n", M.mtaSuccessfulConvertedMessages);
+  printf("mtaFailedConvertedMessages      %10u\n", M.mtaFailedConvertedMessages);
+  printf("mtaLoopsDetected                %10u\n", M.mtaLoopsDetected);
 #endif
 
 	exit(0);
