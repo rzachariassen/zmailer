@@ -389,7 +389,7 @@ ta_hungry(proc)
 	  }
 
 	  proc->state = CFSTATE_FINISHING;
-	  return;
+	  /* FALL THRU! */
 
 	case CFSTATE_FINISHING:
 
