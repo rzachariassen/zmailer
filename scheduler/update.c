@@ -886,10 +886,19 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	     feeding and move to the finishing state before
 	     continuing anywhere... */
 
-	  /* sfprintf(sfstderr,
-	     "%% u_retryat(proc=%p) -> CFSTATE_FINISHING\n", proc); */
+	  if (proc->pthread && proc->pthread->nextfeed &&
+	      proc->pthread->nextfeed->ce_expiry > 0 &&
+	      proc->pthread->nextfeed->ce_expiry < now) {
 
-	  proc->state = CFSTATE_FINISHING;
+	    /* Whops! next one is an *old* message, keep it in
+	       the STUFFING state, and let other messages of
+	       the queue possibly get the same quick diagnostics
+	       after at least one activation... */
+	  } else {
+	    /* sfprintf(sfstderr,
+	       "%% u_retryat(proc=%p) -> CFSTATE_FINISHING\n", proc); */
+	    proc->state = CFSTATE_FINISHING;
+	  }
 	}
 
 	if (*message == '+')

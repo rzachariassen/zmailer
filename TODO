@@ -78,6 +78,7 @@ transports/smtp:
 		Fixed ? (20000314)
 	Not.  Apparently some combinations still conspire to produce
 	rejections in cases which should retry.
+		Fixed ? (20000619)
 
    DRUMS/SMTPUPD:
 	If MX set after the backup-prune is empty (and initially was non-
@@ -95,6 +96,8 @@ transports/smtp:
 	(But no response within timeout from remote server should be
 	 treated the same way as 'conn timeout' -- I think ?)
 		Fixed ? (20000314)
+	Not fixed on 2000/3/14 ...
+		Fixed ? (20000619)
 
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
@@ -112,6 +115,14 @@ transports/smtp:
 	  D with lower preferrence..
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
+
+   FEATURE:
+	Use DNS reply contained "additional data" as much as possible.
+	(E.g. use all of arcount resource entries, if possible.)
+	Also handle lookup retries in case the DNS server answer is
+	truncated *and* the answer-data doesn't fit all in, then (try to)
+	retry with TCP connection.
+	
 
    FEATURE:
 	BIND to INTERFACE's address -- assuming a set of servers

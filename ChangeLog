@@ -1,5 +1,20 @@
 2000-06-19  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* scheduler/update.c:
+	    Organically relating to  smtpopen() -> "retryat +60"
+	    code, if NEXT thing to feed has its expiry tag in
+	    past (and non-zero), then *stay* in CFSTATE_STUFFING
+	    so that possible next thing will be quickly diagnosed
+	    out of the queue at the end of its expiry time..
+	    ALSO fixed double-counting of attempts on therads
+	    and vertices!
+
+	* transports/smtp/smtp.c:
+	    If smtpopen() yields EX_TEMPFAIL, always do diagnostics
+	    with 60 seconds timeout flag.. ( -> "retryat +60" )
+	    so that the entire message queue will not be retried
+	    there just for no good reason..
+
 	* smtpserver/smtptls.c:
 	    Following some discussion at OpenSSL list, I noticed
 	    that DH type keys are not supported by our current code.

@@ -308,7 +308,10 @@ feed_child(proc)
 	}
 
 	vtx->ce_pending  = 0; /* and clear the pending..       */
-	vtx->attempts   += 1;
+	/* DON'T double-count attempts on vertices!
+	   This gets counted when some diagnostics is received for
+	   this vertex. */
+	/* vtx->attempts   += 1; */
 	
 	/* It was fed (to buffer), clear this flag.. */
 	proc->overfed        += 1;
@@ -458,7 +461,7 @@ ta_hungry(proc)
 	     the process moves into IDLE state. */
 
 	  if (pick_next_thread(proc)) {
-	    struct thread *thr = proc->pthread;
+
 	    /* We have WORK !  We are reconnected to the new thread! */
 	    /* Picked a new thread, which isn't same as THR0! */
 
@@ -474,7 +477,10 @@ ta_hungry(proc)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
 		       proc, proc->pthread);
 
-	    thr->attempts += 1;
+	    /* DON'T double-count attempts on threads!
+	       This gets counted when some diagnostic is received
+	       for this thing.. */
+	    /* proc->pthread->attempts += 1; */
 
 	    if (feed_child(proc))
 	      /* non-zero return means things went wrong somehow.. */

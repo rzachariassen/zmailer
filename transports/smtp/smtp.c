@@ -891,7 +891,9 @@ process(SS, dp, smtpstatus, host, noMX)
 		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
 
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
+		    diagnostic(rphead, EX_TEMPFAIL,
+			       openstatus == EX_TEMPFAIL ? 60 : 0,
+			       "%s", SS->remotemsg);
 		  }
 		}
 
@@ -911,7 +913,9 @@ process(SS, dp, smtpstatus, host, noMX)
 		    notaryreport(rp->addr->user,FAILED,
 				 "5.0.0 (Target status indeterminable)",
 				 NULL);
-		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
+		    diagnostic(rphead, EX_TEMPFAIL,
+			       openstatus == EX_TEMPFAIL ? 60 : 0,
+			       "%s", SS->remotemsg);
 		  }
 
 		  rphead = rphead->next;
