@@ -130,10 +130,6 @@ router + TA library + TA programs:
 				   when it is coming from this IP address"
 	  type of checkup...
   - more complete address processing into policytest() routines
-  - Complete the fqdn address top-level domain existence verification
-    test activation based on:
-	- If policytest is in use, do it
-	- If "-sR" mode is on, do it
   - truncate (somehow) rhostname, and helobuf data which are stored
     into "rcvdfrom" envelope entry.  SMTP-systems allow only up to
     about 1000 characters long lines..

@@ -326,7 +326,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 				    TOKENLEN(*tlistp) - n);
 #endif
 			  /* copy from ++cp for len chars */
-			  t.t_pname = _unfold(n, len, ++cp, cpp, ot);
+			  t.t_pname = _unfold(len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
 			  /* compensate for calculations below */
 			  (*cpp)  -= t.t_len;
