@@ -112,7 +112,11 @@ struct procinfo *proc;
 	   left in the cmdbuf[] ! */
 	if (proc->cmdbuf == NULL)
 	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
-	if (proc->cmdlen != 0) {
+
+	if (proc->cmdlen > 0)
+	  flush_child(proc);
+
+	if (proc->cmdlen > 0) {
 	  if (proc->cmdlen >= proc->cmdspc)
 	    cmdbufalloc(proc->cmdlen, &proc->cmdbuf, &proc->cmdspc);
 	  proc->cmdbuf[proc->cmdlen] = 0;
@@ -125,7 +129,7 @@ struct procinfo *proc;
 	  proc->cmdbuf[0] = '\n';
 	  len = 1;
 	} else {
-	  memcpy(proc->cmdbuf,"#idle\n", 6);
+	  memcpy(proc->cmdbuf,"#idle\n", 7);
 	  len = 6;
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */

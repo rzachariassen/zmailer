@@ -1373,8 +1373,9 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	++global_wrkcnt;
 
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
-	  /* Put into the schedules */
-	  vtxdo(vp, cehead, file);
+	  if (!reread)
+	    /* Put into the schedules */
+	    vtxdo(vp, cehead, file);
 	}
 
 	/* Now we have no more need for the contents in core */

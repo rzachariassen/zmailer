@@ -614,16 +614,15 @@ struct vertex *vtx;
 {
 	struct thread *thr = vtx->thread;
 
-	thr->jobs -= 1;
-
 	if (vtx->previtem != NULL)
 	  vtx->previtem->nextitem = vtx->nextitem;
 	if (vtx->nextitem != NULL)
 	  vtx->nextitem->previtem = vtx->previtem;
 
+	thr->jobs -= 1;
+
 	if (thr->vertices   == vtx)
 	  thr->vertices   = vtx->nextitem;
-
 	if (thr->lastvertex == vtx)
 	  thr->lastvertex = vtx->previtem;
 
