@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "zmsignal.h"
+#include <string.h>
 
 int timeout_conn = 30; /* 30 seconds for connection */
 int timeout_tcpw = 20; /* 20 seconds for write      */
@@ -37,6 +38,15 @@ char argv[];
 
   if (!getstr) err = 1;
   if (!getstr) getstr = "--DESTINATION-DOMAIN-NOT-SUPPLIED--";
+
+  if (!err) {
+    char *s = strchr(getstr, '&');
+    if (s) *s = 0;
+    if (strncasecmp(getstr,"DOMAIN=",7)==0) {
+      getstr += 7;
+    } else
+      err = 1;
+  }
 
   setvbuf(stdout, NULL, _IOLBF, 0);
   setvbuf(stderr, NULL, _IOLBF, 0);
@@ -77,7 +87,6 @@ char argv[];
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <setjmp.h>
-#include <string.h>
 
 #include "mail.h"
 #include "zsyslog.h"
