@@ -1484,14 +1484,33 @@ const int len;
       break; /* Ok, could be ok, but RBL may say differently ... */
     }
 
-    if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
-	PICK_PA_MSG(P_A_RELAYTARGET);
-	return  0;
-    }
     if (valueeq(state->values[P_A_ACCEPTbutFREEZE], "+")) {
 	state->sender_freeze = 1;
 	PICK_PA_MSG(P_A_ACCEPTbutFREEZE);
 	return  1;
+    }
+
+    if (valueeq(state->values[P_A_TestRcptDnsRBL], "+")) {
+
+      type(NULL, 0, NULL, "test-rcpt-dns-rbl test; rblmsg='%s'",
+	   state->rblmsg ? state->rblmsg : "<none>");
+
+      if (state->rblmsg != NULL) {
+	/* Now this is cute... the source address had RBL entry,
+	   and the recipient domain had a request to honour the
+	   RBL data. */
+	if (state->message != NULL) free(state->message);
+	state->message = strdup(state->rblmsg);
+	if (debug)
+	  printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
+		 state->rblmsg);
+	return -1;
+      }
+    }
+
+    if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
+	PICK_PA_MSG(P_A_RELAYTARGET);
+	return  0;
     }
 
     if (state->rcpt_nocheck) {
@@ -1511,24 +1530,6 @@ const int len;
 	printf("000- ... returns: %d\n", rc);
       PICK_PA_MSG(P_A_ACCEPTifMX);
       return rc;
-    }
-
-    if (valueeq(state->values[P_A_TestRcptDnsRBL], "+")) {
-
-      type(NULL, 0, NULL, "test-rcpt-dns-rbl test; rblmsg='%s'",
-	   state->rblmsg ? state->rblmsg : "<none>");
-
-      if (state->rblmsg != NULL) {
-	/* Now this is cute... the source address had RBL entry,
-	   and the recipient domain had a request to honour the
-	   RBL data. */
-	if (state->message != NULL) free(state->message);
-	state->message = strdup(state->rblmsg);
-	if (debug)
-	  printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
-		 state->rblmsg);
-	return -1;
-      }
     }
 
     if (state->values[P_A_ACCEPTifMX] || state->sender_norelay != 0) {
