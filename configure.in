@@ -31,7 +31,7 @@ AC_COPYRIGHT([ZMailer autoconfiguration setup
 copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
 AC_REVISION($Revision$)
 
-AC_INIT(ZMailer, [2.99.56.pre9], [zmhack@nic.funet.fi])
+AC_INIT(ZMailer, [2.99.56], [zmhack@nic.funet.fi])
 
 AC_PREFIX_DEFAULT([/opt/zmailer])
 
