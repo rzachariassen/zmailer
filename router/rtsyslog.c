@@ -13,10 +13,11 @@
 static char lbuf[8000];	/* Should be aplenty..		*/
 
 void
-rtsyslog(spoolid,msgmtime,from,smtprelay,size,nrcpts,msgid,starttime)
+rtsyslog(spoolid,msgmtime,from,smtprelay,size,nrcpts,msgid,starttime,worktimeu,worktimes)
 const time_t starttime, msgmtime;
 const char *spoolid, *from, *smtprelay, *msgid;
 const int size, nrcpts;
+const double worktimeu, worktimes;
 {
   char delays[16], xdelays[16]; /* Min. space: 8+1 chars	*/
   time_t now;
@@ -50,11 +51,19 @@ const int size, nrcpts;
   if (*t == 'R')
     sprintf(lbuf,
 	    "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s, delay=%s, xdelay=%s",
-	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays);
+	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays );
   else
     sprintf(lbuf,
 	    "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s\tdelay=%s\txdelay=%s",
-	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays);
+	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays );
+
+  if (worktimeu != 0.0l && worktimes != 0.0l) {
+    char *s = lbuf + strlen(lbuf);
+    if (*t == 'R')
+      sprintf(s, ", rusage=%.2f/%.2f", worktimeu, worktimes);
+    else
+      sprintf(s, "\trusage=%.2f/%.2f", worktimeu, worktimes);
+  }
 
   zsyslog((LOG_INFO, "%s", lbuf));
 }

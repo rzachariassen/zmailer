@@ -17,6 +17,15 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #endif
+#ifdef HAVE_SYS_RESOURCE_H
+#ifdef HAVE_GETRUSAGE
+#include <sys/time.h>
+#include <sys/resource.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#endif
+#endif
 
 static void	reject __((struct envelope *e, const char *msgfile));
 
@@ -1224,6 +1233,22 @@ sequencer(e, file)
 	struct stat stbuf;
 	long infilesize_kb, taskfilesize_kb;
 	GCVARS5;
+	double worktimeu, worktimes;
+
+
+	worktimeu = worktimes = 0.0l;
+#if defined(RUSAGE_SELF) && defined(HAVE_GETRUSAGE)
+	{
+	  struct rusage rr;
+	  if (getrusage(RUSAGE_SELF, &rr) == 0) {
+	    worktimeu = ( ((double)rr.ru_utime.tv_sec) +
+			  ((double)rr.ru_utime.tv_usec) * 0.000001l );
+	    worktimes = ( ((double)rr.ru_stime.tv_sec) +
+			  ((double)rr.ru_stime.tv_usec) * 0.000001l );
+	  }
+	}
+#endif
+
 
 	time(&start_now);
 
@@ -2537,9 +2562,26 @@ sequencer(e, file)
 		vfp = NULL;
 	}
 
+#if defined(RUSAGE_SELF) && defined(HAVE_GETRUSAGE)
+	{
+	  struct rusage rr;
+	  if (worktimeu != 0.0l && worktimes != 0.0l &&
+	      getrusage(RUSAGE_SELF, &rr) == 0) {
+	    worktimeu = ( ((double)rr.ru_utime.tv_sec) +
+			  ((double)rr.ru_utime.tv_usec) * 0.000001l
+			  - worktimeu );
+	    worktimes = ( ((double)rr.ru_stime.tv_sec) +
+			  ((double)rr.ru_stime.tv_usec) * 0.000001l
+			  - worktimes );
+	  } else {
+	    worktimeu = worktimes = 0.0l;
+	  }
+	}
+#endif
+
 	rtsyslog(e->e_spoolid, e->e_statbuf.st_mtime,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
-		 onrcpts, msgidstr, start_now);
+		 onrcpts, msgidstr, start_now, worktimeu, worktimes);
 
 	MIBMtaEntry->rt.TransmittedMessages   += 1;
 	MIBMtaEntry->rt.ReceivedRecipients    += inrcpts;

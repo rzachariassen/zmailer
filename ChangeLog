@@ -1,5 +1,10 @@
 2004-10-23  Matti Aarnio  <mea@zmailer.org>
 
+	* router/prototypes.h, router/rfc822.c, router/rtsyslog.c:
+	    Track and report process RUSAGE (user and system CPU times)
+	    if support for that is available.  Can be used to understand
+	    system load developments.
+
 	* transports/libta/mimeheaders.c:
 	    Sometimes malformed messages undergoing format conversion
 	    did cause smtp to drop core.  Turned out to be a mistaken
