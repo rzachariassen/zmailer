@@ -384,7 +384,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 		sfprintf(errfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
 		sfprintf(errfp,"\tboundary=\"%s\"\n\n",boundary);
 		sfprintf(errfp, "This is MULTIPART/REPORT structured message as defined at RFC 1894.\n\n");
-		sfprintf(errfp, "As your email client software vendor, when will they support this\nreport format by showing its formal part in your preferred language.\n\n");
+		sfprintf(errfp, "Ask your email client software vendor, when will they support this\nreport format by showing its formal part in your preferred language.\n\n");
 		sfprintf(errfp, "--%s\n", boundary);
 		sfprintf(errfp, "Content-Type: text/plain\n");
 	      }

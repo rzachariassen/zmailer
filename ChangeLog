@@ -1,3 +1,9 @@
+2000-07-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* scheduler/msgerror.c:
+	    A simple spelling error in normally invisible text sent
+	    towards the user inside the delivery status reports.
+
 2000-07-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
