@@ -1,3 +1,10 @@
+1998-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf, proto/cf/consist.cf, proto/cf/crossbar.cf,
+	  proto/cf/aliases-new.cf:
+	    Replaced all uses of 'setf' with  'lappend' and 'lreplace',
+	    where appropriate.
+
 1998-05-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* libsh/builtins.c:
