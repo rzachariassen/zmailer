@@ -1,3 +1,12 @@
+1999-07-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.51-pre3
+
+	* router/rfc822.c:
+	    - Empty headers caused problems in printout
+	    - At errprint() did some token double-printing, now fixed.
+
 1999-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* root/prototypes.h, root/rfc822hdrs.c:
