@@ -80,9 +80,9 @@ while MHS includes MTS and UA functionality (UAs, MSs and AUs).
 
 
 A graphical example of the messaging model is shown in figure 
-\ref{msgmodl}.
+\ref{fig:msgmodl}.
 %begin{latexonly}
-(Page \pageref{msgmodl}.)
+(Page \pageref{fig:msgmodl}.)
 %end{latexonly}
 It shows the relationships between different elements of the model.
 
@@ -90,7 +90,7 @@ It shows the relationships between different elements of the model.
   \htmlimage{noantialias,transparent}
   \htmlborder{2}
   \centering\includegraphics[width=\textwidth]{msgmodl.eps}
-  \caption{\label{msgmodl}A graphical example of the messaging model.}
+  \caption{\label{fig:msgmodl}A graphical example of the messaging model.}
 \end{figure}
 
 
@@ -162,14 +162,14 @@ This is a sure recipe for trouble.
 Graphically, the way a message should be dealt with is shown 
 in figure
 %begin{latexonly}
- \ref{msgrout}, page \pageref{msgrout}.
+ \ref{fig:msgrout}, page \pageref{fig:msgrout}.
 %end{latexonly}
 \begin{figure}
   \htmlimage{noantialias,transparent}
   \htmlborder{2}
   \centering
   \includegraphics[width=\textwidth]{msgrout.eps}
-  \caption{ \label{msgrout} How a message should be handled.}
+  \caption{\label{fig:msgrout}How a message should be handled.}
 \end{figure}
 
 The user creates the message with the help of a UA. How the interaction 
@@ -248,20 +248,22 @@ a UA function.
 
 \subsubsection{Introduction}
 
-ZMailer is a mailer subsystem for the UNIX operating system.  A mailer is in
-charge of handling all mail messages that are created on a system
-(typically a single host), from their creation until final disposition
-locally or by transfer to another system. As such, the mailer subsystem
-(the Message Transfer Agent) must interface to local mail reading and
-composing programs (User Agents), to the various transport methods that can
-be used to reach other mailers, and to a variety of databases describing
-the mailer's environment. ZMailer provides this functionality in a package
-and with a philosophy that has benefited from experiences with earlier
-mailers. ZMailer provides a capable, robust, efficient subsystem to do the
-job, which will excel in demanding environments, but is simple enough to
+ZMailer is a mailer subsystem for the UNIX operating system.
+It is in charge of handling all mail messages that are created
+on a system, from their creation until final disposition locally
+or by transfer to another system.
+
+As such, the mailer subsystem (the Message Transfer Agent) must
+interface to local mail reading and composing programs (User Agents),
+to the various transport methods that can be used to reach other mailers,
+and to a variety of databases describing the mailer's environment.
+
+ZMailer provides this functionality in a package and with a philosophy
+that has benefited from experiences with earlier mailers.
+
+ZMailer provides a capable, robust, efficient subsystem to do the job,
+which will excel in demanding environments, but is simple enough to
 fit easily everywhere.
-
-
 
 
 \subsubsection{Design Summary}
@@ -314,6 +316,12 @@ environment.  This allows ZMailer to replace a Sendmail installation
 without requiring changes in standard User Agents.
 
 
+\begin{figure}
+  \htmlimage{noantialias,transparent}
+  \htmlborder{2}
+  \centering\includegraphics[width=\textwidth]{zmdirs.eps}
+  \caption{\label{fig:zmdirs}Directories that ZMailer uses for message processing}
+\end{figure}
 
 
 \subsection{Running ZMailer}

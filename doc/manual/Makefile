@@ -13,10 +13,12 @@ PARTS=	zadministration.tex     zref-router.tex			\
 	ztutorial.tex		zappendixes.tex			\
 	zmanual-head.tex	zmanual-tail.tex
 
-FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig
+FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
+		zmdirs.fig
 
 FIGEPS :=	$(FIGS:%.fig=%.eps)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
+FIGGIF :=	$(FIGS:%.fig=%.gif)
 
 LINUXDOCBIN=/usr/bin
 LINUXDOCLIB=/usr/lib/sgml-tools
@@ -26,6 +28,11 @@ LATEX2HTMLLIB=/usr/lib/latex2html/texinputs
 # set and export TEXINPUTS
 TEXINPUTS=$(LATEX2HTMLLIB):$(LINUXDOCLIB):$$TEXINPUTS:
 TEXENV=  TEXINPUTS=$(TEXINPUTS);export TEXINPUTS;
+
+
+L2HGIFS = next_motif_gr.gif previous_motif_gr.gif up_motif.gif \
+	  contents_motif.gif index_motif.gif
+GIFS = $(L2HGIFS) zmailer-logo2.gif
 
 # L2H = latex2html  -no_math -html_version 3.2,math -scalable_fonts 
 L2H = $(TEXENV) latex2html  -no_math -html_version 3.2,math 
@@ -62,7 +69,16 @@ ps:  zmanual.ps
 #html: zmanual.html
 dist: manual_parts.tar.gz
 
+zmailer-logo2.gif zlogo: zmailer-logo2.gif-green
+	cp -p zmailer-logo2.gif-green zmailer-logo2.gif
+
+zmailer-logo2.gif-green: zmailer-logo.ps
+
 gifs: $(FIGGIF)
+
+$(L2HGIFS):
+	cp -p /usr/lib/latex2html/icons.gif/* .
+	rm -f icons.html
 
 clean:
 	rm -f zmanual.*
@@ -71,26 +87,34 @@ clean:
 	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
 	rm -f [A-Z]*images.* *labels.pl *figure.pl IMG_PAR*
-	rm -f TEXENV
+	rm -f TEXENV *.ps.gz *.xbm *.png
 	rm -f ADM.tex  ASC.tex  INS.tex  RRT.tex  RSM.tex  RZL.tex
 	rm -f AFM.tex  ASS.tex  REF.tex  RSC.tex  RTA.tex  TUT.tex
 	rm -f ALM.tex  ATA.tex  RRM.tex  RSE.tex  RUT.tex
+	rm -f *.gif-green
 
 
-.SUFFIXES: .gif .fig .eps .ps
+.SUFFIXES: .gif .fig .eps .ps .gif-green
 
 %.gif: %.ps
 	rm -f $@.ppm
-	ghostscript -dNOPAUSE -sDEVICE=ppm -sOutputFile=$@.ppm $^ -c quit
+	ghostscript -dNOPAUSE -sPAPERSIZE=a3 -sDEVICE=ppm -sOutputFile=$@.ppm $^ -c quit
 	if [ ! -f $@.ppm ] ; then exit 1 ;fi # No file, abort!
-	ppmtogif -transparent white < $@.ppm > $@
+	pnmcrop < $@.ppm | ppmtogif -transparent white > $@
+	rm -f $@.ppm
+
+%.gif-green: %.ps
+	rm -f $@.ppm
+	ghostscript -dNOPAUSE -sPAPERSIZE=a3 -sDEVICE=ppm -sOutputFile=$@.ppm $^ -c quit
+	if [ ! -f $@.ppm ] ; then exit 1 ;fi # No file, abort!
+	pnmcrop < $@.ppm | ppmtogif -transparent green > $@
 	rm -f $@.ppm
 
 %.ps: %.fig
-	fig2dev -Lps -c -p x -P -z A4 -m 1.0000 -p xxx -x 0 -y 0 -n $@ $< $@
+	fig2dev -Lps -c -P -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
 
 %.eps: %.fig
-	fig2dev -Lps -c -p x -P -z A4 -m 1.0000 -p xxx -x 0 -y 0 -n $@ $< $@
+	fig2dev -Lps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
 
 $(FIG_PS): $(FIGS)
 $(FIGEPS): $(FIGS)
@@ -120,7 +144,7 @@ zmanual.aux: zmanual.dvi
 all-html: zmanual.aux $(PARTS) $(FIGEPS)
 	$(L2H) $(L2HCOMMON) -split 0 -unsegmented zmanual.tex
 
-html: zmanual.aux $(PARTS) $(FIGEPS) Makefile
+html: zmanual.aux $(PARTS) $(FIGEPS) Makefile $(GIFS)
 	#for y in figure contents index images internals labels \
 	#		sections table; \
 	#    	do echo "1;" > $$y.pl ; done
@@ -151,7 +175,7 @@ html: zmanual.aux $(PARTS) $(FIGEPS) Makefile
 
 
 
-zman:	$(FIGEPS) zmanual.tex
+zman:	$(FIGEPS) zmanual.tex $(GIFS)
 	@touch zmanual.lof # To please LaTeX2HTML to be quiet..
 	$(L2H) $(L2HLTOP)  zmanual.tex
 
@@ -186,3 +210,22 @@ zrrm:	$(FIGEPS)
 zrzl:	$(FIGEPS)
 	echo "$(TEXENV)" > TEXENV
 	./L2H.sh  zref-zmailer3.tex	RZL  subsection "zmailer(3)"
+
+index:	html ps
+	gzip -9 < zmanual.ps > zmanual.ps.gz
+	echo "<HTML><HEAD><TITLE>ZMailer manual test dump index</TITLE></HEAD>" > index.html
+	echo "<BODY>" >> index.html
+	echo "<H1>ZMailer manual test dump index:</H1>" >> index.html
+	echo "<PRE>" >> index.html
+	echo "<HR>" >> index.html
+	ls -l --full-time *.ps.gz | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
+	echo "<HR>" >> index.html
+	ls -l  zmanual.html | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
+	ls -l  *.html | egrep -v "zmanual.html|index.html" | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
+	echo "<HR>" >> index.html
+	ls -l  *.css  | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
+	echo "<HR>" >> index.html
+	ls -l  *.gif  | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
+	echo "<HR>" >> index.html
+	echo "</PRE>" >> index.html
+	echo "</BODY></HTML>" >> index.html

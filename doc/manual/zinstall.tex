@@ -317,9 +317,9 @@ listed at  {\tt /etc/group} entry {\tt zmailer}.  Users (unames) listed there
 will be able to claim any addresses at the message headers, etc.
 (See {\tt \$MAILSHARE/cf/trusted.cf} for its usage there.)
 
-Usual set is: {\tt root,daemon,uucp}.
-(Note: At some machines `daemon' is called `daemons'; it is
-the one with UID=1)
+The usual {\bf minimal} set is: {\tt root,daemon,uucp}.
+(Note: At some machines `daemon' is called `daemons';  {\em It must be
+ on that group for the smtpserver to be able to work properly!})
 
 {\bf SECURITY ITEM:} Those users at {\tt zmailer} group {\bf must not} contain {\tt nobody}!
 (The {\tt nobody} is used to prevent externally given inputs from being
@@ -544,6 +544,8 @@ host-specific services:
 \begin{verbatim}
     mailq        174/tcp      # Mailer transport queue
 \end{verbatim}
+
+\subsection{Scheding the Scheduler}
 
 
 \subsubsection{Bootup Scripts}

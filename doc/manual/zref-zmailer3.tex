@@ -113,7 +113,13 @@ At first the message starts with a set of envelope headers
  *identinfo %s \n
 \end{verbatim}
 
-Either: {\tt from \%lt;\%s{\(>\)} \(\backslash\)n} Or: {\tt channel error \(\backslash\)n}
+Either: \\
+% {\tt\ \ \ from {\(<\)}\%s{\(>\)} \(\backslash\)n} \\
+\verb!  from <%s> \n! \\
+Or: \\
+\verb!  channel error \n! \\
+% {\tt\ \ \ channel error \(\backslash\)n}
+
 \begin{verbatim}
  *envid %s \n
  *notaryret %s \n
