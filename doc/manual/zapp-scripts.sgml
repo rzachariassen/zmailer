@@ -1,62 +1,78 @@
 <APPENDIX ID="ZAPP-SCRIPTS"><?dbhtml filename="zapp-scripts.html">
 <TITLE>Sample Router Configuration Scripts</TITLE>
 
-<SCREEN>
+<PARA>
 Text to be inserted here.
+</PARA>
 
+<PARA>
 The following are examples of the router configuration scripts SMTP+UUCP.cf, crossbar.cf, process.cf, and rrouter.cf.
+</PARA>
 
+<SECT1><TITLE><FILENAME>SMTP+UUCP.cf</></TITLE>
 
-\subsection{SMTP+UUCP.cf}
-
+<PARA>
 ZMailer 2 configuration file for a generic SMTP host (with UUCP links)
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 ZCONFIG=@ZMAILERCFGFILE@
 
 . $ZCONFIG
 
 PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
 PS1=z$PS1
-\end{verbatim}
+</SCREEN>
 
+<PARA>
 Configure error logging (squirrel)
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 squirrel -breakin
 squirrel badheader
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Domains with these toplevels will not be canonicalized via DNS lookup.
 This list is from ISOC table of 16-April-95.
+</PARA>
 
-The quoted string {\tt "ad...zw"} should be on one line in the actual SMTP+UUCP.cf file.
+<PARA>
+The quoted string {\tt "ad...zw"} should be on one line in the actual
+SMTP+UUCP.cf file.
+</PARA>
 
-\begin{verbatim}
-toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba bb bd be bf bg bh bi bj bm bn 
-bo br bs bt bv bw by bz ca cc cf cg ch ci ck cl cm cn co com cr cu cv cx cy cz de dj dk dm 
-do dz ec edu ee eg eh es et fi fj fk fm fo fr ga gb gd ge gf gh gi gl gm gn gov gp gq gr gt 
-gu gw gy hk hm hn hr ht hu id ie il in int io iq ir is it jm jo jp ke kg kh ki km kn kp kr 
-kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md mg mh mil ml mm mn mo mp mq mr ms mt mu 
-mv mw mx my mz na nc ne net nf ng ni nl no np nr nt nu nz om org pa pe pf pg ph pk pl pm pn 
-pr pt pw py qa re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so sr st sv sy sz tc td tf 
-tg th tj tk tm tn to tp tr tt tv tw tz ua ug uk um us uy uz va vc ve vg vi vn vu wf ws ye yu 
-za zm zr zw"
-\end{verbatim}
+<SCREEN>
+toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba bb bd
+           be bf bg bh bi bj bm bn bo br bs bt bv bw by bz ca cc cf
+	   cg ch ci ck cl cm cn co com cr cu cv cx cy cz de dj dk dm
+	   do dz ec edu ee eg eh es et fi fj fk fm fo fr ga gb gd ge
+	   gf gh gi gl gm gn gov gp gq gr gt gu gw gy hk hm hn hr ht
+	   hu id ie il in int io iq ir is it jm jo jp ke kg kh ki km
+	   kn kp kr kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc
+	   md mg mh mil ml mm mn mo mp mq mr ms mt mu mv mw mx my mz
+	   na nc ne net nf ng ni nl no np nr nt nu nz om org pa pe pf
+	   pg ph pk pl pm pn pr pt pw py qa re ro ru rw sa sb sc sd se
+	   sg sh si sj sk sl sm sn so sr st sv sy sz tc td tf tg th tj
+	   tk tm tn to tp tr tt tv tw tz ua ug uk um us uy uz va vc ve
+	   vg vi vn vu wf ws ye yu za zm zr zw"
+</SCREEN>
 
-
+<PARA>
 The transport preference order
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 protocols='routes smtp uucp'
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Will the  MAILVAR/lists/listname  show out sender identity as
 either:  owner-listname, or:  listname-owner?
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 if true ; then # Change to "false" to get "pre-owner" mode
         preowner=""
         postowner="-owner"
@@ -64,47 +80,52 @@ else
         preowner="owner-"
         postowner=""
 fi
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Does our ``local'' channel accept domain (@) at the user part?
 ZMailer's mailbox does accept.  If you use something else, and
 it doesn't accept, comment this away.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 localdoesdomain=1
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 We may want .forward and mailing list files to be private, i.e., we ignore
 the current privileges when checking the privileges of such files.
 Don't add `include' to this list, since anyone can :include: any file.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 private='.forward maillist'
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Set up dependency checking.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 . consist.cf
 require siteinfo router crossbar process server
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 The following are standard setup files and must be loaded in this order
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 . standard.cf
 . trusted.cf
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Load the databases so they and the variables defined (e.g. network-specific
 node names for this host) can be used in the site specific configuration.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 for method in $protocols
 do
         test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
@@ -123,12 +144,13 @@ mailconf () {
         fi
 
         hname=$(canon $rawhostname)
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Try to discover the organizational domain name.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
         orgdomain=$hname
         sift $hname in
         $rawhostname\.(.+)
@@ -154,12 +176,13 @@ else
         . $MAILCONF && provide siteinfo
 fi
 [ "$orgdomains" = x ] && orgdomains=$orgdomain
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Set hostname to enable message-id generation and checking.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 hostname $hostname
 
 . aliases.cf
@@ -176,65 +199,72 @@ done
 . server.cf
 
 consist || exit 1
-\end{verbatim}
+</SCREEN>
+
+</SECT1>
 
 
 
-
-
-\subsection{Crossbar.cf}
+<SECT1><TITLE><FILENAME>Crossbar.cf</></>
 
 
 
-\begin{verbatim}
+<SCREEN>
 provide crossbar
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 The crossbar function makes the policy decisions of how the instance of
 a message between a particular sender and recipient should be treated.
 The 'from' and 'to' parameters are quads, i.e., in the form
-
+</PARA>
+<PARA>
 (channel host user attributes)
-
+</PARA><PARA>
 The function may modify any of these elements of both the from and to
 addresses, and must select a message header address rewriting function
 to be applied to this message instance.  If the return value is nil or
 empty, the instance is completely ignored, to the point that if there are
 no other recipients specified a complaint will be generated saying there
 are {\bf no} recipients specified.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 crossbar (from, to) {
         local rewrite destination tmp
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Count them...  (in {\tt process.cf})
 (we could use this as an ultimate duplicate remover too...)
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
         db add recipients "$(user $to)" "$(user $from)"
-
+</SCREEN>
+<PARA>
 Intercept (drop, redirect, bounce, save) the message
-
+</PARA>
+<SCREEN>
         tmp=$(intercept "$(user $from)") &&
                 case "$(car $tmp)" in
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 Dropping error types for from addresses is necessary to avoid mail loops.
-\begin{verbatim}
+</PARA>
+<SCREEN>
                 drop|error)
                         return ;;
                 file)   LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
                 esac
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Only intercept mail that is not from the local postmaster,
 so that error messages can find their way back.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
         [ "$(channel $from)" = local -a "$(user $from)" = postmaster ] ||
         tmp=$(intercept "$(user $to)") &&
                 case "$(car $tmp)" in
@@ -244,15 +274,17 @@ so that error messages can find their way back.
                         ;;
                 file)   LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
                 esac
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 If we do any alias expansion from the crossbar, we should do this:
-\begin{verbatim}
+</PARA>
+<SCREEN>
 db flush expansions
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 Determine which rewrite function (for message header addresses) to use.
-\begin{verbatim}
+</PARA>
+<SCREEN>
         case $(channel $to) in
         smtp|smtpx)
                 #case "$(channel $from)" in
@@ -288,12 +320,13 @@ Determine which rewrite function (for message header addresses) to use.
                 tfis
                 ;;
         esac
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 The alias expansion might want to modify the envelope sender
 of the message instance.  Here we cooperate in the scheme which
 is to set the 'sender' attribute of the destination address.
-\begin{verbatim}
+</PARA>
+<SCREEN>
         tmp="$(get $(attributes $to) sender)" && [ x"$tmp" != x ] &&
                 from=(local "$tmp" "$tmp" $(attributes $from))
 
@@ -306,20 +339,22 @@ is to set the 'sender' attribute of the destination address.
                 fi
                 ;;
         esac
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 Rewrite the envelope addresses appropriately.
-\begin{verbatim}
+</PARA>
+<SCREEN>
         case "$(channel $to)" in
 #       uucp|local)
         uucp)
-\end{verbatim}
-
+</SCREEN>
+<PARA>
 Local destination on a system that delivers in UCB Mail
-compatible mail spool files means that the From\_ line
+compatible mail spool files means that the From_ line
 must be in all-! form, which is the same as the UUCP
 transport requirement.
-\begin{verbatim}
+</PARA>
+<SCREEN>
                 setf "$(user $from)" "$(uucproute "$(user $from)")"
                 setf "$(user $to)" "$(uucproute "$(user $to)")"
                 sift "$(user $to)" in
@@ -392,28 +427,30 @@ transport requirement.
         #log recipient: "$(channel $to)" "$(host $to)" "$(user $to)"
         return ($rewrite $from $to)
 }       # end of crossbar
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 If you want to intercept specific mail messages, this function and the
 associated code in the crossbar and process functions will let you do it.  
 There are three possible actions:
+<SCREEN>
+   drop      - completely ignore this address
+   error     - return the specified error message
+   file      - append the message file to the specified file
+</SCREEN>
+</PARA>
 
-\begin{itemize}
-\item drop      - completely ignore this address
-\item error     - return the specified error message
-\item file      - append the message file to the specified file
-\end{itemize}
-
-
+<PARA>
 Both the file and error actions require an argument, which necessitates
 the use of multiple-value return (i.e., return a list) in all cases.
-
+</PARA>
+<PARA>
 If you don't want to intercept anything, this function should return failure.
 The stub defined here is the usual case, you can override it in the host-
 specific cf file.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 intercept (address) {
 #       case "$(smtp_useratdomain "$address")" in
 #       *@pdq*)         return (file /var/scr/pdq) ;;
@@ -423,16 +460,17 @@ intercept (address) {
 
         return 1
 }
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 On mail from one local user to another, we don't want to see all the
 long domain name extensions.  This can cause problems with silly UAs,
 if it does you can just redefine {\tt intramachine} to call 
 {\tt null} in your
 site or host-specific configuration files.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 intramachine (address) {                # strip hostname if it came from here
         sift "$address" in
         (.*)@($hostname|$mydomain)
@@ -445,13 +483,14 @@ intramachine (address) {                # strip hostname if it came from here
 null (address) {
         return "$address"               # surprise!
 }
-\end{verbatim}
+</SCREEN>
 
-
+<PARA>
 This is usually the default message-header address rewriting function.
 It is responsible for hostname hiding and qualification.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 internet (address) {
         address="$(canonicalize "$address")"    # Canonicalize does local
                                                 # hostname hiding...
@@ -472,22 +511,25 @@ internet (address) {
         tfis
         return "$address"
 }       # end of internet
-\end{verbatim}
+</SCREEN>
 
 
+</SECT1>
 
 
+<SECT1><TITLE><FILENAME>Process.cf</></>
 
-\subsection{Process.cf}
-
+<PARA>
 This is the protocol switch function.  It keys off the form of the filename
 to determine how to process a particular class of messages.  It is expected
 that an internal function will be called to orchestrate the processing of
 the message and enforce proper semantics.
+</PARA>
 
+<PARA>
 The file argument is the name of a file in the {\tt \$POSTOFFICE/router}
 directory.
-\begin{verbatim}
+<SCREEN>
 process (file) {
 
         db flush pwuid
@@ -495,21 +537,20 @@ process (file) {
         db flush fullname
         db flush hostexpansions
         db flush recipients
-\end{verbatim}
-
+</SCREEN>
 Since we cannot detect that the password database has been updated under
 our feet, we flush the cached information every once in a while (in this
 case, before every message).
-\begin{verbatim}
+<SCREEN>
         LOGMSG=''
-\end{verbatim}
+</SCREEN>
 
 The LOGMSG variable is used by the intercept facility (in {\tt crossbar.cf})
 to make sure only a single copy of a message is saved when required.
 Each sender - recipient address pair can cause an intercept which can
 specify a file to save the message to.  This variable is appended to
 elsewhere, and processed at the end of this function.
-\begin{verbatim}
+<SCREEN>
         case "$file" in
 #       [0-9]*.x400)    x400 "$file" ;;
 #       [0-9]*.uucp)    uucpfilter "$file" &gt; /tmp/X.$$
@@ -525,7 +566,7 @@ elsewhere, and processed at the end of this function.
         esac
 
         [ $? ] && return 0      # Leave when they returned failure..
-\end{verbatim}
+</SCREEN>
 
 The file names in the {\tt \$POSTOFFICE/router} directory are determined by
 the parameter to the mail\_open() C library routine.  This case
@@ -536,41 +577,39 @@ semantics of the message and of the configuration code.  For example,
 the {\tt router}, {\tt crossbar}, and {\tt header\_defer} functions have semantics only
 because the {\tt rfc822} function knows about them.  There are no other
 message formats supported in this distribution.
-\begin{verbatim}
+<SCREEN>
         log info: recipients $(db count recipients) $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo))))) '
 '
-\end{verbatim}
+</SCREEN>
 
 For statistics gathering we print out the envelope information property
 list in its entirety, except for the file name, and the message id, both
 of which were logged earlier (in C code).
-\begin{verbatim}
+<SCREEN>
         for f in $LOGMSG
         do
                 { echo "==${file}==$(rfc822date)==" ;
                   /bin/cat ../queue/"$file" } &gt;&gt; $f && log saved "$file" in $f
         done
 }
-\end{verbatim}
+</SCREEN>
 
 This does the saving of intercepted messages into archive files.
+</PARA>
+</SECT1>
+
+<SECT1><TITLE><FILENAME>Rrouter.cf</></>
 
 
-
-\subsection{Rrouter.cf}
-
-
-
+<PARA>
 Most of the address routing processing is done here.
 
-
-
-\begin{verbatim}
+<SCREEN>
 provide rrouter
-\end{verbatim}
+</SCREEN>
 
 
-\begin{verbatim}
+<SCREEN>
 . fqdnalias.cf # Pick that set of tools into here!
 
 envelopeinfo=(message-id "&lt;$USER.interactive@$hostname&gt;" now 0)
@@ -591,19 +630,19 @@ rrouter (address, origaddr, A, plustail, domain) {
                 return $tmp
 
         address="$(condquote "$address")"
-\end{verbatim}
+</SCREEN>
 
 We have troublesome addresses coming here...
-\begin{verbatim}
+<SCREEN>
         #       "|pipe-program"
         #       "|quoted string"@domain
         #       "foo &gt; faa"@domain
         #       "fii &lt; fuu"@domain
         #       "foo @ faa"@domain
         #       "|foo @ faa"
-\end{verbatim}
+</SCREEN>
 and we want to do correct focusing...
-\begin{verbatim}
+<SCREEN>
         ssift "$address" in
         # Now make canonical
         '"'(.*)'"'&lt;(.*)
@@ -640,14 +679,14 @@ and we want to do correct focusing...
                 tmp=(local user postmaster $A)
                 return $(routeuser $tmp "")
                 ;;
-\end{verbatim}
+</SCREEN>
 
 
 The following two are two approaches to the same problem, generally
 speaking we should use the SECOND one, but your mileage may vary...
 (Problems exist when WE are the target..)
 
-\begin{verbatim}
+<SCREEN>
 #       (.*)&lt;@\[(.)\]&gt;(.*)
 #               address="\1$plustail&lt;@$(gethostbyaddr \2)&gt;\3"
 #               ;;
@@ -661,22 +700,22 @@ speaking we should use the SECOND one, but your mileage may vary...
                         return (((smtp "[\2]" "\1$plustail@$(gethostbyaddr \2)\3" $A)))
                 fi
                 ;;
-\end{verbatim}
+</SCREEN>
 
 
 This is the end of the $1.2.3.4$ address case...
 
-\begin{verbatim}
+<SCREEN>
         (.*)&lt;@(.*)\.&gt;(.*)
                 address="\1$plustail&lt;@\2&gt;\3"
                 plustail=""
                 ;;
-\end{verbatim}
+</SCREEN>
 
 
 Now massage the local info.
 
-\begin{verbatim}
+<SCREEN>
         (.*)&lt;@(.*)($orgdomains)&gt;(.*)
                 address="\1$plustail&lt;@\2$orgdomain&gt;\4"
                 domain="@\2$orgdomain"
@@ -719,25 +758,25 @@ Now massage the local info.
                 ;;
         esac
 #log "BITNET name=$bitnetname, address=$address"
-\end{verbatim}
+</SCREEN>
 
 
 Resolve names to routes, get the actual channel name mostly from an external database.
 
-\begin{verbatim}
+<SCREEN>
 
         ssift "$address" in
         (.*)&lt;@(.+)&gt;(.*) 
 #log "neighbourg test: domain: \2, addr: $address"
                 address="\1$plustail@\2\3"
                 plustail=""
-\end{verbatim}
+</SCREEN>
 
 
 If you want to have the SMARTHOST to pick the routing
 for all non-local stuff, enable the following test case..
 
-\begin{verbatim}
+<SCREEN>
 
                 # if [ "$SMARTHOST" ]; then
                 #       return $(rrouter "$SMARTHOST!$(uucproute "$address")$plustail" "$origaddr" $A "" "$domain")
@@ -785,34 +824,34 @@ for all non-local stuff, enable the following test case..
                 ;;
 
         /.+     # file
-\end{verbatim}
+</SCREEN>
 
 
 Well, it could be a slash-notated X.400 address too..
 
-\begin{verbatim}
+<SCREEN>
                 return (((local "file.$origaddr" "$address" $A)))
                 ;;
         \|.+    # pipe
                 return (((local "pipe.$origaddr" "$address" $A)))
                 ;;
         :include:.+ # ":include:" -alias
-\end{verbatim}
+</SCREEN>
 
 
 We must test this here, because the file-path after
 this prefix may have a dot.
 
-\begin{verbatim}
+<SCREEN>
                 tmp=(local "$origaddr" "$address" $A)
                 return $(routeuser $tmp "")
                 ;;
-\end{verbatim}
+</SCREEN>
 
 
 Ok, from now on if we don't have a domain set, we use {\tt \$mydomain}
 
-\begin{verbatim}
+<SCREEN>
         .*      if [ -z "$domain" ] ; then
                         domain="@$mydomain"
                 fi
@@ -820,12 +859,12 @@ Ok, from now on if we don't have a domain set, we use {\tt \$mydomain}
         (.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
                 plustail="\2"
                 address="\1"
-\end{verbatim}
+</SCREEN>
 
 
 Fall forward for the dotfull processing.
 
-\begin{verbatim}
+<SCREEN>
                 ;;
         .+\..+  # A dotfull name
                 tmp="$(fullnamemap "$address")" && \
@@ -833,21 +872,21 @@ Fall forward for the dotfull processing.
                 if [ $(newsgroup "$address") ]; then
                         return (((usenet - "$address" $A)))
                 fi
-\end{verbatim}
+</SCREEN>
 
 
 Okay... Not in our special fullname/newsgroup-files,
 lets see if it is in the traditional one?
 
-\begin{verbatim}
+<SCREEN>
                 if [ $(aliases "$address") ]; then
-\end{verbatim}
+</SCREEN>
 
 
 It can be found from the normal aliases,
 run the alias processing.
 
-\begin{verbatim}
+<SCREEN>
                         tmp=(local "$origaddr" "$address" $A)
                         return $(routeuser $tmp "$domain")
                 fi
@@ -876,27 +915,27 @@ routes_spec (domain, address, A) {
                 tmp="$(uucproute "$address")"
                 sift "$tmp" in
                 .+!([^!]+)!([^!]+)
-\end{verbatim}
+</SCREEN>
 
 
 We are trying to gateway through a DEFRT1 domain(!)
 
-\begin{verbatim}
+<SCREEN>
                         #return (((error bitnetgw "$address" $A))) ;;
-\end{verbatim}
+</SCREEN>
 
 
 This will usually work anyway, sigh...
 
-\begin{verbatim}
+<SCREEN>
                         return (((bsmtp3 "mailer@$rscshost" "\2@\1" $A))) ;;
                 ([^!]+)!([^!]+)
-\end{verbatim}
+</SCREEN>
 
 
 The destination domain is the next hop, so we're all happy.
 
-\begin{verbatim}
+<SCREEN>
                         return ((($channel "\2@$rscshost" "\2@\1" $A))) ;;
                 tfis
                 ;;
@@ -921,12 +960,12 @@ The destination domain is the next hop, so we're all happy.
                 return ((("\1" - "$address" $A)))
                 ;;
         delay!(.)
-\end{verbatim}
+</SCREEN>
 
 
 NB! envelope info must also be defined in interactive mode.
 
-\begin{verbatim}
+<SCREEN>
                 tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
                 return (((hold "$tmp" "$address" $A))) ;;
         (.?)!([^!]+)
@@ -940,7 +979,7 @@ NB! envelope info must also be defined in interactive mode.
 }
 
 uucproute (address) {
-\end{verbatim}
+</SCREEN>
 
 
 This function turns any address into a pure-! form.  It should not
@@ -948,7 +987,7 @@ call any other functions, since random other functions call it.
 In particular it should not use rfc822route which itself uses
 uucproute.
 
-\begin{verbatim}
+<SCREEN>
         sift "$address" in
         (.*)&lt;(.*)&gt;(.*)          address=\1\2\3 ;;               # defocus
         (.+!)@(.+)              address=\1$(uucproute "@\2") ;;
@@ -956,13 +995,13 @@ uucproute.
         :include:[^!]+          return $address ;;
         @(.+:)([^:]+)           address=\1$(uucproute "\2") ;;
         (.+):(.+)               address=\1!\2 ; continue ;;
-\end{verbatim}
+</SCREEN>
 
 This won't work properly for e.g. utzoo!bar@gpu.utcs.toronto.edu
 because gpu.utcs also has an active uucp connection with utzoo.
 It will work properly in other cases though, so if we have to guess...
 
-\begin{verbatim}
+<SCREEN>
         #([^!])!(.+)@(.+)       if [ $(ldotsys \1) ]; then
         #                               address=\1!\3!\2
         #                       else
@@ -976,7 +1015,8 @@ It will work properly in other cases though, so if we have to guess...
         tfis
         return "$address"
 }       # end of uucproute
-\end{verbatim}
-
 </SCREEN>
+</PARA>
+</SECT1>
+
 </APPENDIX>

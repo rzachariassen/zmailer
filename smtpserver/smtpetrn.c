@@ -56,15 +56,16 @@ int silence;
     return 0;
 }
 
+static int etrn_mailqv2 __((etrn_cluster_ent *, SmtpState *, const char *, const char *));
 static int etrn_mailqv2(node, SS, name, cp)
-char *node;
+etrn_cluster_ent *node;
 SmtpState *SS;
 const char *name, *cp;
 {
     /* TODO: IMPLEMENT CLUSTER-WIDE ETRN VIA MAILQv2 INTERFACE! */
 
 
-    type(SS,-250,m200,"Attempting ETRN on cluster node: %s", node);
+    type(SS,-250,m200,"Attempting ETRN on cluster node: %s", node->nodename);
     typeflush(SS);
     sleep(1);
     type(SS,-250,m200,"CLUSTER ETRN UNIMPLEMENTED SO FAR!");
@@ -79,11 +80,11 @@ const char *name, *cp;
     int rc, i;
     int some_fail = 0;
 
-    if (etrn_cluster[0] == NULL)
+    if (etrn_cluster[0].nodename == NULL)
       return local_etrn(SS, name, cp, 0);
 
-    for (i = 0; i < MAX_ETRN_CLUSTER_IDX && etrn_cluster[i]; ++i) {
-      rc = etrn_mailqv2(etrn_cluster[i], SS, name, cp);
+    for (i = 0; i < MAX_ETRN_CLUSTER_IDX && etrn_cluster[i].nodename; ++i) {
+      rc = etrn_mailqv2(& etrn_cluster[i], SS, name, cp);
       if (rc)
 	some_fail = 1;
     }

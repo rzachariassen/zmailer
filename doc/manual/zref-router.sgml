@@ -182,80 +182,107 @@ The effects of input and output redirections are predicted
 prior to the execution of a command and its I/O setup.
 </PARA>
 
-<SCREEN>
-{\bf Usage}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM>
 
-{\tt zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...]}
+<SYNOPSIS>
+zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...]
+</SYNOPSIS>
 
+</LISTITEM></VARLISTENTRY>
 
-
-{\bf Parameters}
-
-See the Debugging section for [-CILOPRSY] 
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
+See the Debugging section for <OPTION>[-CILOPRSY]</>
 debugging options. 
+</PARA>
 
-\begin{description}
-\item[{\tt -c command}] \mbox{}
+<VARIABLELIST>
+
+<VARLISTENTRY><TERM><OPTION>-c command</OPTION></TERM><LISTITEM><PARA>
 
 Run the given argument as a shell 
 command script. 
 
-\item[{\tt -a}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-a</OPTION></TERM><LISTITEM><PARA>
 
 Automatically export new or changed shell 
 variables.  
 
-\item[{\tt -e}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-e</OPTION></TERM><LISTITEM><PARA>
 
 Exit on non-zero status return of any command. 
 
-\item[{\tt -f}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-f</OPTION></TERM><LISTITEM><PARA>
 
 Disables filename generation. 
 
-\item[{\tt -h}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-h</OPTION></TERM><LISTITEM><PARA>
 
 Hash and cache the location of Unix commands. 
 The option is set by default. 
 
-\item[{\tt -i}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-i</OPTION></TERM><LISTITEM><PARA>
 
 This shell is interactive, meaning prompts 
-are printed when ready for more input, {\tt SIGTERM} signal 
+are printed when ready for more input, <LITERAL>SIGTERM</> signal 
 is ignored, and the shell does not exit easily. This flag is 
-automatically set if {\tt stdin} and {\tt stderr} are 
-both attached to a {\tt tty}. 
+automatically set if <LITERAL>STDIN</> and <LITERAL>STDERR</> are 
+both attached to a <FILENAME>/dev/tty</>.
 
-\item[{\tt -n}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-n</OPTION></TERM><LISTITEM><PARA>
 
 Read commands but do not execute them. 
 
-\item[{\tt -s}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
 
-Read commands from {\tt stdin}. If there 
-are non-option arguments to the shell, the first of these will 
-be interpreted as a shell script to open on {\tt stdin}, 
+<VARLISTENTRY><TERM><OPTION>-s</OPTION></TERM><LISTITEM><PARA>
+
+Read commands from <LITERAL>STDIN</>.
+If there are non-option arguments to the shell, the first of
+these will be interpreted as a shell script to open on <LITERAL>stdin</>,
 and the rest as arguments to the script. 
 
-\item[{\tt -t}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-t</OPTION></TERM><LISTITEM><PARA>
 
 Exit after running one command. 
 
-\item[{\tt -u}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-u</OPTION></TERM><LISTITEM><PARA>
 
 Unset variables produce an error on 
 substitution. 
 
-\item[{\tt -v}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-v</OPTION></TERM><LISTITEM><PARA>
 
 Print shell input as it is read. 
 
-\item[{\tt -x}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-x</OPTION></TERM><LISTITEM><PARA>
 
 Print commands as they are executed. 
 
-\end{description}
-</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </SECT1>
 
@@ -428,68 +455,68 @@ Error.
 <ITEMIZEDLIST>
 <LISTITEM><PARA> File testing unary prefix functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -b file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-b file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is block special.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -c file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION> -c file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is character special.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -d file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-d file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is a directory.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -f file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is a regular file.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -g file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-g file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is set-group-id.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -k file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-k file</OPTION></TERM><LISTITEM><PARA>
 
 True if file has its ``sticky'' bit set.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -p file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-p file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is a named pipe.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -r file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-r file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is readable.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -s file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and has a size greater than zero.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -t {[fd]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-t {[fd]}</OPTION></TERM><LISTITEM><PARA>
 
-True if {\tt fd} is opened on a terminal. 
-If {\tt fd} is omitted, it defaults to 1 (standard output).
+True if <OPTION>fd</> is opened on a terminal. 
+If <OPTION>fd</> is omitted, it defaults to 1 (standard output).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -u file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-u file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and its set-user-id bit is set.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -w file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-w file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is writable.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -x file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-x file</OPTION></TERM><LISTITEM><PARA>
 
 True if file exists and is executable.
 
@@ -499,12 +526,12 @@ True if file exists and is executable.
 
 <LISTITEM><PARA> String testing binary functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt str1 = str2}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>str1 = str2</OPTION></TERM><LISTITEM><PARA>
 
 True if the strings are equal.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt str1 != str2}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>str1 != str2</OPTION></TERM><LISTITEM><PARA>
 
 True if the strings are not equal.
 
@@ -514,32 +541,32 @@ True if the strings are not equal.
 
 <LISTITEM><PARA> Interget value testing binary functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt iexpr -eq iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -eq iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if values are equal.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt iexpr -ne iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -ne iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if values are not equal.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt iexpr -gt iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -gt iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if value1 is greater than value2.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt iexpr -ge iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -ge iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if value1 is greater or equal than value2.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt iexpr -lt iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -lt iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if value1 is less than value2.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt iexpr -le iexpr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>iexpr -le iexpr</OPTION></TERM><LISTITEM><PARA>
 
 True if value1 is less or equal than value2.
 
@@ -549,17 +576,17 @@ True if value1 is less or equal than value2.
 
 <LISTITEM><PARA> File comparison binary functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt file1 -nt file2}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>file1 -nt file2</OPTION></TERM><LISTITEM><PARA>
 
 True if file1's mtime is newer than file2's.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt file1 -ot file2}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>file1 -ot file2</OPTION></TERM><LISTITEM><PARA>
 
 True if file1's mtime is older than file2's.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt file1 -ef file2}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>file1 -ef file2</OPTION></TERM><LISTITEM><PARA>
 
 True if both files have same inode, and device.
 
@@ -569,22 +596,22 @@ True if both files have same inode, and device.
 
 <LISTITEM><PARA> Logical functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt ! expr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>! expr</OPTION></TERM><LISTITEM><PARA>
 
 Unary NOT
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt expr -a expr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>expr -a expr</OPTION></TERM><LISTITEM><PARA>
 
 Binary AND
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt expr -o expr}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>expr -o expr</OPTION></TERM><LISTITEM><PARA>
 
 Binary OR
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt ( expr )}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>( expr )</OPTION></TERM><LISTITEM><PARA>
 
 Parenthesis
 
@@ -598,8 +625,8 @@ Parenthesis
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This is basically the shell {\tt {[}} a.k.a. 
-{\tt test} program.
+This is basically the shell ``<FUNCTION>[</>'' a.k.a. 
+``<FUNCTION>test</>'' program.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -642,19 +669,19 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt basename pathname [ suffix ]}
-
+<SYNOPSIS>
+basename pathname [ suffix ]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+ok, result string to <LITERAL>STDOUT</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -685,13 +712,26 @@ Prints the base filename of the pathname.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt break}
+<SYNOPSIS>
+while ...
+do
+   ...
+   break
+   ...
+done
+
+case ...
+   ...
+   break
+   ...
+esac
+</>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 
 
@@ -720,14 +760,16 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt builtin}
+<EMPHASIS>NOT IMPLEMENTED!</>
+<SYNOPSIS>
+builtin {builtin command name, and its params}
+</SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
@@ -743,7 +785,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+<EMPHASIS>NOT IMPLEMENTED!</>
+</PARA><PARA>
+
+Ensures that named command is builtin within the scheduler,
+and not a) external, b) script based.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -751,13 +797,14 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!--
 <SECT2><TITLE>builtins</TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt builtins}
+builtins
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -779,20 +826,21 @@ List builtin functions.
 
 
 </SECT2>
+ -->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>car</TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt car object-reference}
-
+<SYNOPSIS>
+car object-reference
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
-object-reference's {\tt car} operation.
+object-reference's <FUNCTION>car</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -802,8 +850,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the {\tt channel} 
-and {\tt first} commands.  
+This command is synonymous to the <FUNCTION>channel</>
+and <FUNCTION>first</> functions.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -817,7 +865,9 @@ and {\tt first} commands.
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt cd [directory]}
+<SYNOPSIS>
+cd [directory]
+</SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1050,44 +1100,44 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt {a[dd]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>a[dd]</OPTION></TERM><LISTITEM><PARA>
 
 Add a {\tt key,value} 
 entry to the database, if possible.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {f[lush]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>f[lush]</OPTION></TERM><LISTITEM><PARA>
 
 Remove all entries from the database, 
 if possible.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {o[wner]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>o[wner]</OPTION></TERM><LISTITEM><PARA>
 
 Print the account name of the owner 
 of the database, if possible. This is usually determined by the 
 files associated with the database.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {p[rint]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>p[rint]</OPTION></TERM><LISTITEM><PARA>
 
 Print all entries of the database, 
 if possible. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {r[emove]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>r[emove]</OPTION></TERM><LISTITEM><PARA>
 
 Remove a {\tt key} entry 
 from the database, if possible.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt {t[oc]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>t[oc]</OPTION></TERM><LISTITEM><PARA>
 
 Print a table of defined relations 
 and their associated information. This table has five columns, 
 in order: the name of the relation, its type and subtype, cache 
 entries and maximum size, flags, and associated files. See the 
-{\tt relation} function for more information.
+<FUNCTION>relation</> function for more information.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

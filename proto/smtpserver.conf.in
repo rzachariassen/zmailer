@@ -139,11 +139,11 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 # the ETRN request to cluster components, here is how:
 # See also:  doc/guides/etrn-cluster
 #
-#PARAM etrn-cluster localhost (node-1-name-or-address)
-#PARAM etrn-cluster node-2-name-or-address
-#PARAM etrn-cluster node-3-name-or-address
+#PARAM etrn-cluster localhost              mq-etrn-user mq-etrn-pw
+#PARAM etrn-cluster node-2-name-or-address mq-etrn-user mq-etrn-pw
+#PARAM etrn-cluster node-3-name-or-address mq-etrn-user mq-etrn-pw
 #...
-#PARAM etrn-cluster node-40-name-or-address
+#PARAM etrn-cluster node-40-name-or-address mq-etrn-user mq-etrn-pw
 
 #
 #

@@ -20,7 +20,7 @@ static void cfparam __((char *));
 static void cfparam(str)
      char *str;
 {
-    char *name, *param1, *param2;
+    char *name, *param1, *param2, *param3;
 
     name = strchr(str, '\n');	/* The trailing newline chopper ... */
     if (name)
@@ -55,13 +55,18 @@ static void cfparam(str)
     }
 
     SKIPWHILE(isspace, str);
-    param1 = str;
+    param1 = *str ? str : NULL;
 
     SKIPWHILE(!isspace, str);
     if (*str != 0)
 	*str++ = 0;
     SKIPWHILE(isspace, str);
-    param2 = str;
+    param2 = *str ? str : NULL;
+    SKIPWHILE(!isspace, str);
+    if (*str != 0)
+	*str++ = 0;
+    SKIPWHILE(isspace, str);
+    param3 = *str ? str : NULL;
     SKIPWHILE(!isspace, str);
     if (*str != 0)
 	*str++ = 0;
@@ -161,14 +166,14 @@ static void cfparam(str)
 	use_tcpwrapper = 1;
     }
 
-    else if (cistrcmp(name, "tarpit") == 0 && param1 && param2) {
+    else if (cistrcmp(name, "tarpit") == 0 && param2 /* 2 params */) {
 	sscanf(param1,"%d",&tarpit_initial);
 	sscanf(param2,"%d",&tarpit_exponent);
     }
 
     /* Two parameter policydb option: DBTYPE and DBPATH */
 
-    else if (cistrcmp(name, "policydb") == 0 && param1 && param2) {
+    else if (cistrcmp(name, "policydb") == 0 && param2 /* 2 params */) {
 	policydefine(&policydb, param1, param2);
     }
 
@@ -280,10 +285,14 @@ static void cfparam(str)
     }
 
     /* Cluster-wide ETRN support for load-balanced smtp relay use */
-    else if (cistrcmp(name, "etrn-cluster") == 0 && param1) {
+    else if (cistrcmp(name, "etrn-cluster") == 0 && param3 /* 3 params */) {
       static int idx = 0;
-      if (idx < MAX_ETRN_CLUSTER_IDX)
-	etrn_cluster[idx++] = strdup(param1);
+      if (idx < MAX_ETRN_CLUSTER_IDX) {
+	etrn_cluster[idx].nodename = strdup(param1);
+	etrn_cluster[idx].username = strdup(param2);
+	etrn_cluster[idx].password = strdup(param3);
+	++idx;
+      }
     }
 
     else {

@@ -259,7 +259,10 @@ extern int etrn_ok;
 extern int starttls_ok;
 extern int msa_mode;
 #define MAX_ETRN_CLUSTER_IDX 40
-extern char *etrn_cluster[];
+typedef struct {
+  char *nodename; char *username; char *password;
+} etrn_cluster_ent;
+extern etrn_cluster_ent etrn_cluster[];
 extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
 extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;

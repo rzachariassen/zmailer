@@ -101,13 +101,19 @@ Things that  don't/might not  work:
 	  happen to hit same node.)  (For *output* there is need for
 	  separate individual certificates per node.)
 
+
+	At least Alteon "switches" have ability to do inverse server
+	mapping, so that outbound connections appear from one single
+	address.  It might be possible to have same certificate for all
+	nodes in&out.
+
 Configuring:
 
 	$MAILSHARE/smtpserver.conf:
-		PARAM etrn-cluster  node-1-name-or-address
-		PARAM etrn-cluster  node-2-name-or-address
-		PARAM etrn-cluster  node-3-name-or-address
-		...
+	   PARAM etrn-cluster  node-1-name-or-address mq-etrn-user mq-etrn-pwd
+	   PARAM etrn-cluster  node-2-name-or-address mq-etrn-user mq-etrn-pwd
+	   PARAM etrn-cluster  node-3-name-or-address mq-etrn-user mq-etrn-pwd
+	   ...
 
 	    These list server nodes, each PARAM entry giving one
 	    of the nodes.  Up to 40 nodes are supported.

@@ -1,3 +1,11 @@
+2000-02-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/cfgread.c, smtpserver/smtpetrn.c,
+	  proto/smtpserver.conf.in, doc/guides/etrn-cluster:
+	    - A bug in '-l SYSLOG' which bite me at Solaris.. Oops..
+	    - some reworking of ETRN-CLUSTER code, but no completition yet.
+
 2000-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
