@@ -2,7 +2,8 @@
 
 	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/mq2.c,
 	  scheduler/threads.c, scheduler/transport.c, scheduler/readconfig.c,
-	  scheduler/qprint.c, scheduler/update.c:
+	  scheduler/qprint.c, scheduler/update.c, proto/scheduler.conf.in,
+	  scheduler/agenda.c:
 	    Implemented changes needed for running multiple TAs at threads.
 
 1999-12-28  Matti Aarnio  <mea@mea.tmt.tele.fi>

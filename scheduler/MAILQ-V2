@@ -31,3 +31,4 @@ that is, lowercase hex characters.
 
 SHOW QUEUE CONDENCED
 SHOW QUEUE THREADS
+SHOW SNMP

@@ -156,13 +156,9 @@ static int qpctlfile(spl)
 	    if (vp->thread->proc) {
 	      sfprintf(qpfp,"(running now, pid=%d ",
 		       (int)vp->thread->proc->pid);
-	      if (vp->thread->proc->pvertex == vp)
+	      /* MULTI-TA-PER-THREAD ?? */
+	      if (vp->thread->nextfeed == vp)
 		sfprintf(qpfp,"NextFeed");
-	      else
-		if (vp->thread->proc->pvertex == NULL)
-		  sfprintf(qpfp,"vtx=NULL??");
-		else
-		  sfprintf(qpfp,"touched");
 	    } else {
 	      sfprintf(qpfp, "(activation pending, thread");
 	      /* A vertex is always on some thread.. */

@@ -46,6 +46,11 @@
 #       transport agent processes available to processing the selector
 #       clause matching the selector.
 #
+#  maxthr:
+#       This limits the number of parallel transport agents within each
+#       *thread*; that is, using higher value than default ``1'' will allow
+#       running more than one TA for the jobs at the thread.
+#
 
 #
 # -------- Some external parameters - name starts from column 0, and -----

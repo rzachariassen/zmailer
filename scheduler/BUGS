@@ -1,9 +1,5 @@
 "BUGS", or rather: "Open Issues" on the ZMailer-3.0 scheduler:
 
-- When activating idle processors, should attempt to use
-  transporter with SAME target host as last time  (so the
-  SMTP-transporter can keep a sort of connection cache...)
-
 - Should implement "idlemin=", which per default is 0, and
   when set would force a minimun wait before the process
   were taken from the idle pool to anything but the task
@@ -14,13 +10,3 @@
    parallel..)
 
 - IETF NOTARY-WG error reports  (mostly done, but..)
-
-- Transport-agents should store error information into the job-
-  files instead of scheduler doing it now, so that in permanent
-  error cases the scheduler can be knocked down, and still have
-  error reports even when using non-synchronous communication
-  ( = overfeeding )
-
-- Sometimes transport-agents and scheduler loose their sync :-(
-  (5-Jan-96: "#resync fileid" responce.. Perhaps they now regain
-	     the sync ?)

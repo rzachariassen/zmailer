@@ -16,6 +16,14 @@
 #include "shmmib.h"
 #include "servauth.h"
 
+/* Some "forward declarations" */
+struct config_entry;
+struct procinfo;
+struct web;
+struct thread;
+struct threadgroup;
+struct vertex;
+
 struct config_entry {
 	struct config_entry *next;
 	char	*channel;	/* channel part of pattern		     */
@@ -40,6 +48,7 @@ struct config_entry {
 	int	maxkids;	/* run command only if # TA's running < this */
 	int	maxkidChannel;	/* run only if # TA's running channel < this */
 	int	maxkidThreads;	/*run only if # TA's running thread-ring<this*/
+	int	maxkidThread;	/*run only if # TA's running thread   < this */
 	int	idlemax;	/* max time to keep idle ta-procs around     */
 	int	skew;		/* retry skew parameter			     */
 	int	mark;		/* non-0 if we started a TA the last time    */
@@ -126,7 +135,10 @@ struct thread {
 	struct vertex	*thvertices;	/* First one of the thread vertices */
 	struct vertex	*lastthvertex;	/* Last one of the thread vertices  */
 	struct procinfo	*proc;		/* NULL or ptr to xport proc	    */
+	int		thrkids;	/* Number of procs at this thread   */
 	int		jobs;		/* How many items in this thread    */
+	struct vertex   *nextfeed;	/* vertex within that thread	    */
+					/* feed_child() forwards nextfeed   */
 };
 
 
@@ -175,10 +187,9 @@ struct procinfo {
 
 	struct thread *pthread;	/* The thread we are processing		*/
 				/* ta_hungry() forwards pthread		*/
-	struct vertex *pvertex;	/* vertex within that thread		*/
-				/* feed_child() forwards pvertex	*/
 
-	struct procinfo *pnext;	/* next one in IDLE queue - else NULL	*/
+	struct procinfo *pnext;	/* next one of procs in idle/thread	*/
+	struct procinfo *pprev;	/* prev one of procs in idle/thread	*/
 
 	char	*carryover;	/* Long responces..			*/
 	int	cmdlen;		/* buffer content size			*/
@@ -222,6 +233,8 @@ struct vertex {
 
 
 /* mailq iterator state -- non-forking reporter mode */
+
+struct mailq; /* forward declarator */
 
 struct mailq {
 	struct mailq	*nextmailq;

@@ -37,6 +37,7 @@ static int rc_interval		RCKEYARGS;
 static int rc_maxchannel	RCKEYARGS;
 static int rc_maxring		RCKEYARGS;
 static int rc_maxta		RCKEYARGS;
+static int rc_maxthr		RCKEYARGS;
 static int rc_idlemax		RCKEYARGS;
 static int rc_retries		RCKEYARGS;
 static int rc_user		RCKEYARGS;
@@ -79,6 +80,7 @@ static struct rckeyword {
 {	"maxring",		rc_maxring	},	/* number */
 {	"maxrings",		rc_maxring	},	/* number */
 {	"maxta",		rc_maxta	},	/* number */
+{	"maxthr",		rc_maxthr	},	/* number */
 {	"maxtransport",		rc_maxta	},	/* number */
 {	"maxtransports",	rc_maxta	},	/* number */
 {	"user",			rc_user		},	/* number */
@@ -118,6 +120,7 @@ defaultconfigentry(ce,defaults)
 	  ce->flags		= defaults->flags;
 	  ce->maxkids		= defaults->maxkids;
 	  ce->maxkidChannel	= defaults->maxkidChannel;
+	  ce->maxkidThread	= defaults->maxkidThread;
 	  ce->maxkidThreads	= defaults->maxkidThreads;
 	  ce->argv		= defaults->argv;
 	  ce->nretries		= defaults->nretries;
@@ -141,6 +144,7 @@ defaultconfigentry(ce,defaults)
 	  ce->flags	= 0;
 	  ce->maxkids	= -1;
 	  ce->maxkidChannel = -1;
+	  ce->maxkidThread  =  1;
 	  ce->maxkidThreads = -1;
 	  ce->argv	= NULL;
 	  ce->nretries	= 0;
@@ -184,6 +188,7 @@ vtxprint(vp)
 	sfprintf(sfstdout,"\n");
 	sfprintf(sfstdout,"\tmaxkids %d\n",	ce->maxkids);
 	sfprintf(sfstdout,"\tmaxkidChannel %d\n",	ce->maxkidChannel);
+	sfprintf(sfstdout,"\tmaxkidThread  %d\n",	ce->maxkidThread);
 	sfprintf(sfstdout,"\tmaxkidThreads %d\n",	ce->maxkidThreads);
 	sfprintf(sfstdout,"\toverfeed %d\n",	ce->overfeed);
 
@@ -237,6 +242,7 @@ celink(ce, headp, tailp)
 	    ce->flags		= (*tailp)->flags;
 	    ce->maxkids		= (*tailp)->maxkids;
 	    ce->maxkidChannel	= (*tailp)->maxkidChannel;
+	    ce->maxkidThread	= (*tailp)->maxkidThread;
 	    ce->maxkidThreads	= (*tailp)->maxkidThreads;
 	    ce->argv		= (*tailp)->argv;
 	    ce->nretries	= (*tailp)->nretries;
@@ -720,6 +726,16 @@ static int rc_maxta(key, arg, ce)
 	  ce->maxkids = 1000;
 	if (ce->maxkids > global_maxkids)
 	  ce->maxkids = global_maxkids;
+	return 0;
+}
+
+static int rc_maxthr(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	ce->maxkidThread = atoi(arg);
+	if (ce->maxkidThread <= 0)
+	  ce->maxkidThread = 1;
 	return 0;
 }
 

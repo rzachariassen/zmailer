@@ -116,17 +116,14 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 
 /* threads.c */
 extern struct thread *thread_head, *thread_tail;
-extern struct threadgroup *create_threadgroup __((struct config_entry *cep, struct web *wc, struct web *wh, int withhost, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
 extern void  delete_threadgroup __((struct threadgroup *thgp));
 extern void  thread_linkin __((struct vertex *cp, struct config_entry *cep, int cfgid, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
 extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr, int queue_only_too));
 extern int   idle_cleanup __((void));
-extern void  assert_pvertex_null __((struct vertex *vp));
 extern int   pick_next_vertex __((struct procinfo * proc));
 extern int   pick_next_thread __((struct procinfo * proc));
-extern void  thread_vertex_shuffle __((struct thread *thr));
 #ifdef _SFIO_H
 extern void  thread_report __((Sfio_t *, int));
 #endif

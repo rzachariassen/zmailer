@@ -45,7 +45,11 @@ extern int mailqmode;	/* 1 or 2 */
 static long groupid  = 0;
 static long threadid = 0;
 
-struct threadgroup *
+static void  thread_vertex_shuffle __((struct thread *thr));
+static struct threadgroup *create_threadgroup __((struct config_entry *cep, struct web *wc, struct web *wh, int withhost, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
+
+
+static struct threadgroup *
 create_threadgroup(cep, wc, wh, withhost, ce_fillin)
 struct config_entry *cep;
 struct web *wc, *wh;
@@ -281,7 +285,7 @@ struct config_entry *cep;
 /*
  * Pick next thread from the group which this process serves.
  *
- * Result is  proc->pthread and proc->pvertex being updated to
+ * Result is  proc->pthread and proc->pthread->nextfeed being updated to
  * new thread, and function returns 1.
  * If no new thread can be picked (all are active, and whatnot),
  * return 0.
@@ -298,9 +302,10 @@ pick_next_thread(proc)
 
 	if (thr0 && thr0->proc) /* Anybody ? */
 	  thr0->proc = NULL; /* Remove it */
+	if (thr0 && thr0->nextfeed)
+	  thr0->nextfeed = NULL;
 
 	proc->pthread = NULL;
-	proc->pvertex = NULL;
 
 	if (thg->cep->flags & CFG_QUEUEONLY)
 	  return 0; /* We are QUEUE ONLY group, no auto-switch! */
@@ -311,21 +316,38 @@ pick_next_thread(proc)
 	      thr && (once || (thr != thg->thread));
 	      thr = thr->nextthg, once = 0 ) {
 
+	  struct vertex  * vp = thr->thvertices;
+	  struct config_entry *ce = &(thr->thgrp->ce);
+
 	  if (thr == thr0)
 	    continue; /* No, can't be what we just were! */
 
 	  if ((thr->wakeup > now) && (thr->attempts > 0))
 	    continue; /* wakeup in future, unless first time around! */
 
-	  if (thr->proc == NULL) {
+	  if (vp && (thr->thrkids < ce->maxkidThread)) {
 
-	    struct vertex  * vp = thr->thvertices;
 	    struct web     * ho = vp->orig[L_HOST];
 	    struct web     * ch = vp->orig[L_CHANNEL];
 
-	    thr->proc     = proc;
+	    if (thr->proc && thr->nextfeed == NULL)
+	      continue; /* Nothing more to feed! See other threads! */
+
 	    proc->pthread = thr;
-	    proc->pvertex = vp;
+	    thr->thrkids += 1;
+
+	    if (thr->proc == NULL) {
+	      /* Randomize the  order of thread vertices
+		 (or sort by spool file mtime, if in AGEORDER..) */
+	      /* Also init thr->nextfeed */
+	      thread_vertex_shuffle(thr);
+	    }
+
+	    if (thr->proc)
+	      proc->pnext = thr->proc;
+	    thr->proc     = proc;
+	    if (proc->pnext)
+	      proc->pnext->pprev = proc;
 
 	    if (proc->ho != NULL && proc->ho != ho) {
 	      /* Get rid of the old host web */
@@ -347,7 +369,7 @@ pick_next_thread(proc)
 	    /* Move the pickup pointer forward.. */
 	    thg->thread = thg->thread->nextthg;
 
-	    return (proc->pvertex != NULL);
+	    return (thr->nextfeed != NULL);
 	  }
 	}
 	/* No result :-( */
@@ -383,9 +405,12 @@ delete_thread(thr, ok)
 	_thread_timechain_unlink(thr);
 
 	if (thr->proc) {
-	  /* If this thread has a process, we detach it! */
-	  thr->proc->pthread = NULL;
-	  thr->proc->pvertex = NULL;
+	  /* If this thread has a process(es), we detach it(them)! */
+	  struct procinfo *proc = thr->proc;
+
+	  for (;proc; proc = proc->pnext)
+	    proc->pthread = NULL;
+
 	  /* These are handled by  transport.c:reclaim():
 	     thr->proc->ho = NULL;
 	     thr->proc->ch = NULL;
@@ -517,9 +542,8 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	    vp->thgrp = thg;
 	    thr->jobs += 1;
 
-	    /* Hookay..  Try to start it, in case it isn't yet running */
-	    if (!thr->proc)
-	      thread_start(thr, 0);
+	    /* Hookay..  Try to start it too... */
+	    thread_start(thr, 0);
 
 	    return;
 	  }
@@ -644,14 +668,6 @@ struct vertex *vtx;
 	vtx->previtem = NULL;
 }
 
-void
-assert_pvertex_null(vtx)
-     struct vertex *vtx;
-{
-  if (vtx->thread->proc->pvertex == vtx) abort();
-}
-
-
 /*
  * Detach the vertex from its chains
  *
@@ -667,8 +683,7 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (thr && thr->proc)
-	  assert_pvertex_null(vp);
+	if (thr && thr->nextfeed == vp) abort();
 
 	unthread(vp);
 
@@ -694,7 +709,8 @@ static int vtx_mtime_cmp(ap, bp)
 }
 
 
-void thread_vertex_shuffle(thr)
+static void
+thread_vertex_shuffle(thr)
 struct thread *thr;
 {
 	register struct vertex *vp;
@@ -753,6 +769,7 @@ struct thread *thr;
 	/* 5) Finish the re-arrangement by saving the head,
 	      and tail pointers */
 	thr->thvertices   = ur_arr[  0];
+	thr->nextfeed     = ur_arr[  0];
 	thr->lastthvertex = ur_arr[n-1];
 }
 
@@ -797,36 +814,46 @@ thread_start(thr, queue_only_too)
 		   ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
 		   thr, thr->jobs);
 
-	if (thr->proc) {
-	  if (verbose)
-	    sfprintf(sfstderr," -- already running; proc=%p\n", thr->proc);
+	if (thr->thrkids < ce->maxkidThread &&
+	    thr->thrkids < thr->jobs) {
+	  if (verbose) {
+	    struct procinfo * proc = thr->proc;
+	    sfprintf(sfstderr," -- already running; thrkids=%d jobs=%d procs={ %p",
+		     thr->thrkids, thr->jobs, proc);
+	    proc = proc->pnext;
+	    while (proc) {
+	      sfprintf(sfstderr, " %p", proc);
+	    }
+	    sfprintf(sfstderr, " }\n");
+	  }
 	  return 0; /* Already running */
 	}
 
       re_pick:
 	if (thg->idleproc) {
-	  struct procinfo *proc, **ipp;
+	  struct procinfo *proc;
 
 	  /* Idle processor(s) exists, try to optimize by finding
 	     an idle proc with matching channel & host from previous
 	     activity. If not found, pick any. */
 	  
-	  ipp = &(thg->idleproc);
 	  /* There is at least one.. */
-	  proc  = *ipp;
+	  proc = thg->idleproc;
 
-	  for (;proc && (proc->ho != ho || proc->ch != ch); ipp  = &(proc->pnext), proc = *ipp) ;
-
-	  if (proc == NULL) {
+	  for (; proc && (proc->ho != ho || proc->ch != ch); proc = proc->pnext) ;
+	  if (!proc) {
 	    /* None of the previous ones matched, pick the first anyway */
-	    ipp = &(thg->idleproc);
-	    /* Well... after all, there is at least one.. */
-	    proc  = *ipp;
+	    proc = thg->idleproc;
 	  }
+
 	  /* Selected one of them.. */
-	  thr->proc     = proc;
-	  *ipp          = proc->pnext;
+
+	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	  if (thg->idleproc == proc) thg->idleproc = proc->pnext;
+
 	  proc->pnext   = NULL;
+	  proc->pprev   = NULL;
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -841,9 +868,6 @@ thread_start(thr, queue_only_too)
 
 	    goto re_pick;
 	  }
-
-	  proc->pthread  = thr;
-	  proc->pvertex  = thr->thvertices;
 
 	  /* Thread-groups are made such that here at thread_start() we
 	     can always switch over in between threads */
@@ -865,11 +889,14 @@ thread_start(thr, queue_only_too)
 	  /* In theory the CHANNEL could be different -- in practice NOT! */
 	  proc->ch = ch;
 
-	  /* Clean vertices 'proc'-pointers,  randomize the
-	     order of thread vertices  (or sort by spool file
-	     mtime, if in AGEORDER..) */
+	  /* MULTI-TA-PER-THREAD -- only the first proc inits feed-state */
+	  if (! thr->proc ) {
 
-	  thread_vertex_shuffle(thr);
+	    /* Randomize the order of thread vertices
+	       (or sort by spool file mtime, if in AGEORDER..) */
+	    /* Also init thr->nextfeed */
+	    thread_vertex_shuffle(thr);
+	  }
 
 	  thr->attempts += 1;
 
@@ -878,10 +905,13 @@ thread_start(thr, queue_only_too)
 	  proc->state   = CFSTATE_LARVA;
 	  proc->overfed = 1; /* A simulated state.. */
 
-	  proc->pvertex = thr->thvertices;
 	  proc->pthread = thr;
 
-	  thr->proc             = proc;
+	  if (thr->proc)   proc->pnext = thr->proc;
+	  if (proc->pnext) proc->pnext->pprev = proc;
+
+	  thr->proc     = proc;
+	  thr->thrkids += 1;
 
 	  if (verbose)
 	    sfprintf(sfstderr, "%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
@@ -904,19 +934,23 @@ thread_start(thr, queue_only_too)
 	  vp->ce_pending = L_CHANNEL;
 	else if (thg->transporters >= ce->maxkidThreads)
 	  vp->ce_pending = L_HOST;
+	else if (thr->thrkids >= ce->maxkidThread)
+	  vp->ce_pending = SIZE_L;
 	else
 	  vp->ce_pending = 0;
 
 	if (vp->ce_pending) {
 	  if (verbose)
-	    sfprintf(sfstdout,"%s: (%d %dC %dT) >= (%d %dC %dT)\n",
+	    sfprintf(sfstdout,"%s: (%d %dC %dT %dTh) >= (%d %dC %dT %dTh)\n",
 		     ce->command,
 		     numkids,
 		     vp->orig[L_CHANNEL]->kids,
 		     thg->transporters,
+		     thr->thrkids,
 		     ce->maxkids,
 		     ce->maxkidChannel,
-		     ce->maxkidThreads);
+		     ce->maxkidThreads,
+		     ce->maxkidThread);
 	  /*
 	   * Would go over limit.  Rescheduling for the next
 	   * (single) interval works ok in many situation.
@@ -932,10 +966,14 @@ thread_start(thr, queue_only_too)
 
 	/* Now we are ready to start a new child to run our bits */
 	
-	/* Clean vertices 'proc'-pointers,  randomize the
-	   order of thread vertices  (or sort by spool file
-	   mtime, if in AGEORDER..) */
-	thread_vertex_shuffle(thr);
+	if (! thr->proc ) {
+	  /* MULTI-TA-PER-THREAD -- first proc inits the feed-state */
+
+	  /* Randomize the order of thread vertices
+	     (or sort by spool file mtime, if in AGEORDER..) */
+	  /* Also init thr->nextfeed */
+	  thread_vertex_shuffle(thr);
+	}
 
 	rc = start_child(thr->thvertices,
 			 thr->thvertices->orig[L_CHANNEL],
@@ -961,43 +999,36 @@ thread_start(thr, queue_only_too)
  * then caller of feed_child() to tune the process state.
  * (From STUFFING to FINISHING and possibly to IDLE.)
  * 
- * - if (proc->pvertex != NULL) proc->pvertex = proc->pvertex->nextitem;
- * - return (proc->pvertex != NULL);
+ * - if (proc->pthread->nextfeed != NULL) ...nextfeed = ...nextfeed->nextitem;
+ * - return (...nextfeed != NULL);
  *
  */
 
-/* Return 0 for errors, 1 for success; result is at  proc->pvertex */
+/* Return 0 for errors, 1 for success; result is at  ...nextfeed */
 
 int
 pick_next_vertex(proc)
      struct procinfo *proc;
 {
 	struct thread * thr = proc->pthread;
-	struct vertex * vtx = proc->pvertex;
+	struct vertex * vtx = NULL;
+
+	if (thr) vtx = thr->nextfeed;
 
 	if (verbose)
 	  sfprintf(sfstdout,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%d\n",
-		   proc, proc->tofd, thr, proc->pvertex,
-		   thr ? thr->jobs : 0, proc->overfed, (int)proc->state);
+		   proc, proc->tofd, thr, vtx, thr ? thr->jobs : 0,
+		   proc->overfed, (int)proc->state);
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "He is dead, Jim!"	*/
-#if 0
-	  if (proc->pthread) {
-	    proc->pthread->proc = NULL;
-	    proc->pthread       = NULL;
-	  }
-#endif
-	  if (proc->pvertex)
-	    proc->pvertex       = NULL;
-
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'He is dead, Jim!'\n");
 	  return 0;
 	}
 
 	if (vtx) /* Pick next item */
-	  proc->pvertex = vtx->nextitem;
+	  thr->nextfeed = vtx = vtx->nextitem;
 
-	return (proc->pvertex != NULL);
+	return (vtx != NULL);
 }
 
 /*
@@ -1020,8 +1051,8 @@ time_t retrytime;
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
 	if (thr->proc) {
-	  /* We also disjoin possible current TA process */
-	  thr->proc->pvertex = NULL;
+	  /* We also disjoin possible current TA processes */
+	  thr->nextfeed      = NULL;
 	  thr->proc->pthread = NULL;
 	  thr->proc = NULL;
 	}
@@ -1145,14 +1176,12 @@ reschedule(vp, factor, index)
 	int factor, index;
 {
 	int skew;
-	struct vertex *ap = NULL, *pap = NULL;
 	struct thread *thr = vp->thread;
 	struct threadgroup *thg = vp->thgrp;
 	struct config_entry *ce = &(thg->ce);
 
 	/* Hmm.. The reschedule() is called only when we have a reason
 	   to call it, doesn't it ?  */
-	/* *** assert_pvertex_null(vp); *** */
 
 	/* find out when to retry */
 	mytime(&now);
@@ -1360,7 +1389,7 @@ void thread_report(fp,mqmode)
 	char timebuf[20];
 
 	int width;
-	int cnt, procs;
+	int cnt, procs, thrkidsum;
 	int rcptsum = 0;
 	struct procinfo *p;
 	struct thread *thr;
@@ -1391,6 +1420,7 @@ void thread_report(fp,mqmode)
 	  cnt   = 0;
 	  procs = 0;
 	  jobsum = 0;
+	  thrkidsum = 0;
 
 #if 1 /* XX: zero for verifying of modified system; turn to 1 for running! */
 
@@ -1448,19 +1478,86 @@ void thread_report(fp,mqmode)
 	    ++cnt;
 	    if (thr->proc != NULL &&
 		thr->proc->pthread == thr) {
-	      ++procs;
+
+	      int thrprocs = 0;
+	      struct procinfo *proc = thr->proc;
+
+	      proc = thr->proc;
+	      while (proc) {
+		++procs;
+		++thrprocs;
+		++thrkidsum;
+		proc = proc->pnext;
+	      }
 
 	      if (mqmode & MQ2MODE_FULL) {
-		sfprintf(fp, " P=%-5d HA=%ds", (int)thr->proc->pid,
-			 (int)(now - thr->proc->hungertime));
+		if (thr->proc->pnext) {
+		  proc = thr->proc;
 
-		if (thr->proc->feedtime == 0)
-		  sfprintf(fp, " FA=never");
-		else {
+		  sfprintf(fp, " Kids=%d", thr->thrkids);
+
+		  if (thr->thrkids != thrprocs) sfprintf(fp, "/%d", thrprocs);
+
+		  sfprintf(fp, " P={");
+		  while (proc) {
+		    sfprintf(fp, "%d", (int)proc->pid);
+		    if (proc->pnext) sfprintf(fp, ",");
+		    proc = proc->pnext;
+		  }
+		  sfprintf(fp, "}");
+		} else
+		  sfprintf(fp, " P=%-5d", (int)thr->proc->pid);
+
+		if (thr->proc->pnext) {
+		  proc = thr->proc;
+		  sfprintf(fp, " HA={");
+		  while (proc) {
+		    sfprintf(fp, "%d", (int)(now - proc->hungertime));
+		    if (proc->pnext) sfprintf(fp, ",");
+		    proc = proc->pnext;
+		  }
+		  sfprintf(fp, "}s");
+		} else
+		  sfprintf(fp, " HA=%ds", (int)(now - thr->proc->hungertime));
+
+		if (thr->proc->pnext) {
+		  proc = thr->proc;
+		  sfprintf(fp, " HA={");
+		  while (proc) {
+		    if (proc->feedtime == 0)
+		      sfprintf(fp, "never");
+		    else
+		      sfprintf(fp, "%d", (int)(now - proc->feedtime));
+		    if (proc->pnext) sfprintf(fp, ",");
+		    proc = proc->pnext;
+		  }
+		  sfprintf(fp, "}s");
+		} else
 		  sfprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
-		}
-		sfprintf(fp," OF=%d S=%d", thr->proc->overfed,
-			 (int)thr->proc->state);
+
+		if (thr->proc->pnext) {
+		  proc = thr->proc;
+		  sfprintf(fp, " OF={");
+		  while (proc) {
+		    sfprintf(fp, "%d", proc->overfed);
+		    if (proc->pnext) sfprintf(fp, ",");
+		    proc = proc->pnext;
+		  }
+		  sfprintf(fp, "}s");
+		} else
+		  sfprintf(fp," OF=%d", thr->proc->overfed);
+
+		if (thr->proc->pnext) {
+		  proc = thr->proc;
+		  sfprintf(fp, " S={");
+		  while (proc) {
+		    sfprintf(fp, "%d", (int)(proc->state));
+		    if (proc->pnext) sfprintf(fp, ",");
+		    proc = proc->pnext;
+		  }
+		  sfprintf(fp, "}s");
+		} else
+		sfprintf(fp," S=%d", (int)thr->proc->state);
 	      }
 
 	    } else if (thr->wakeup > now) {
@@ -1492,8 +1589,8 @@ void thread_report(fp,mqmode)
 
 	    sfprintf(fp, " Msgs: %5d Procs: %3d", jobsum, thg->transporters);
 
-	    /* 	  if (thg->transporters != procs)
-		  sfprintf(fp,"/%d",procs);		*/
+	    if (thg->transporters != procs)
+	      sfprintf(fp,"/%d",procs);
 	  }
 
 	  cnt = 0;

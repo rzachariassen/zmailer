@@ -121,11 +121,9 @@ flush_child(proc)
 
 	}
 	if (proc->tofd < 0) {
-	  if (proc->pvertex)
-	    proc->pvertex       = NULL;
 	  if (proc->pthread) {
-	    proc->pthread->proc = NULL;
-	    proc->pthread       = NULL;
+	    proc->pthread->proc     = NULL;
+	    proc->pthread           = NULL;
 	  }
 	  proc->cmdlen = 0;
 	  proc->state = CFSTATE_ERROR;
@@ -162,11 +160,9 @@ flush_child(proc)
 	    /* Some real failure :-( */
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
-	    if (proc->pvertex)
-	      proc->pvertex       = NULL;
 	    if (proc->pthread) {
-	      proc->pthread->proc = NULL;
-	      proc->pthread       = NULL;
+	      proc->pthread->proc     = NULL;
+	      proc->pthread           = NULL;
 	    }
 	    proc->cmdlen = 0;
 	    proc->state = CFSTATE_ERROR;
@@ -191,7 +187,7 @@ flush_child(proc)
 
 
 /*
- * The 'feed_child()' sends whatever is pointed by   proc->pvertex;
+ * The 'feed_child()' sends whatever is pointed by   proc->pthread->nextfeed;
  * return -1 for failures and incomplete writes, 0 for success!
  */
 
@@ -219,11 +215,11 @@ feed_child(proc)
 
 	  return -1; /* BUG if called without next THREAD.. */
 	}
-	if (proc->pvertex == NULL) {
+	if (proc->pthread->nextfeed == NULL) {
 
 	  if (verbose)
 	    sfprintf(sfstderr,
-		     "%% feed_child(proc=%p pid=%d) proc->pvertex == NULL\n",
+		     "%% feed_child(proc=%p pid=%d) proc->pthread->nextfeed == NULL\n",
 		     proc, proc->pid);
 
 	  return 0; /* Might be called without next thing to process.. */
@@ -239,7 +235,7 @@ feed_child(proc)
 	  return -1; /* No process../No write channel.. */
 	}
 
-	vtx = proc->pvertex;
+	vtx = proc->pthread->nextfeed;
 
 	mytime(&now);
 #if 0
@@ -366,7 +362,7 @@ ta_hungry(proc)
 	case CFSTATE_LARVA:
 
 	  /* Thread selected already along with its first vertex,
-	     which is pointer by  proc->pvertex  */
+	     which is pointer by  proc->pthread->nextfeed  */
 
 	  proc->overfed = 0; /* Should not need setting ... */
 
@@ -381,7 +377,8 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  while (proc->pvertex && (proc->state == CFSTATE_STUFFING)) {
+	  while ((proc->state == CFSTATE_STUFFING) &&
+		 proc->pthread && proc->pthread->nextfeed) {
 
 	    /* As long as:
 	       - we have next vertex to feed
@@ -407,13 +404,17 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  /* If we have a thread here still, reschedule it... */
-	  if (proc->pthread)
-	    thread_reschedule(proc->pthread,0,-1);
-
 	  /* Disconnect the previous thread from the proc. */
-	  if (proc->pthread)
-	    proc->pthread->proc = NULL;
+	  if (proc->pthread) {
+	    if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	    if (proc->pprev) proc->pprev->pnext = proc->pnext;
+	    if (proc->pthread->proc == proc)
+	      proc->pthread->proc = proc->pnext;
+
+	    /* If this was the last process, reschedule the thread */
+	    if (proc->pthread->proc == NULL)
+	      thread_reschedule(proc->pthread,0,-1);
+	  }
 	  proc->pthread = NULL;
 
 	  /* Next: either the thread changes, or
@@ -427,16 +428,7 @@ ta_hungry(proc)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
 		       proc, proc->pthread);
 
-	    /* Clean vertices 'proc'-pointers,  randomize the
-	       order of thread vertices  (or sort by spool file
-	       mtime, if in AGEORDER..) */
-	    thread_vertex_shuffle(thr);
-
 	    thr->attempts += 1;
-	    proc->pvertex  = thr->thvertices;
-	    proc->pthread  = thr;
-
-	    thr->proc      = proc;
 
 	    if (feed_child(proc))
 	      /* non-zero return means things went wrong somehow.. */
@@ -471,12 +463,18 @@ ta_hungry(proc)
 	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
 				proc, proc->overfed);
 
-	  if (proc->pthread)
-	    proc->pthread->proc = NULL;
+	  /* Unlink me from the active chain */
+	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+	  if (proc->pthread->proc == proc) /* Was chain head */
+	    proc->pthread->proc = proc->pnext;
 
 	  proc->pthread = NULL;
-	  proc->pvertex = NULL;
+
 	  proc->pnext   = proc->thg->idleproc;
+	  if (proc->pnext) proc->pnext->pprev = proc;
+	  proc->pprev = NULL;
+
 	  proc->thg->idleproc = proc;
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
@@ -738,6 +736,7 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	memset(proc,0,sizeof(struct procinfo));
 #if 0 /* the memset() does this more efficiently.. */
 	proc->pnext   = NULL;
+	proc->pprev   = NULL;
 	proc->cmdlen = 0;
 	proc->reaped = 0;
 	proc->carryover = NULL;
@@ -754,13 +753,16 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->ho      = howp;
 	howp->kids   += 1;
 
-	proc->pvertex = vhead;
-	proc->pthread = vhead->thread;
-	proc->thg     = vhead->thread->thgrp;
+	proc->pthread            = vhead->thread;
+
+	proc->thg           = vhead->thread->thgrp;
 	proc->thg->transporters += 1;
+	proc->pthread->thrkids  += 1;
 	++numkids;
-	proc->tofd    = tofd;
+	proc->tofd          = tofd;
+	proc->pnext         = proc->pthread->proc;
 	proc->pthread->proc = proc;
+	if (proc->pnext) proc->pnext->pprev = proc;
 
 	mytime(&proc->hungertime); /* Actually it is not yet 'hungry' as
 				      per reporting so, but we store the
@@ -873,47 +875,46 @@ if (verbose)
 	  pipes_shutdown_child(tofd);
 	close(fromfd);
 
+	/* Remove this entry from the chains */
+	if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	if (proc->pprev) proc->pprev->pnext = proc->pnext;
+
 	/* Reschedule the vertices that are left
 	   (that were not reported on).		*/
 
 	/* ... but only if we were not in IDLE chain! */
 	if (proc->pthread) {
-	  /* Reschedule them all .. */
-	  thread_reschedule(proc->pthread,0,-1);
-	  /* Reschedule may destroy this vertex (and thread) */
-	  if (proc->pvertex)
-	    proc->pvertex       = NULL;
-	  if (proc->pthread) {
-	    proc->pthread->proc = NULL;
-	    proc->pthread       = NULL;
-	  }
-	} else {
-	  /* Maybe we were in idle chain! */
-	  struct procinfo *p, **pp;
-	  p  =  proc->thg->idleproc;
-	  pp = &proc->thg->idleproc;
 
-	  while (p && p != proc) {
-	    /* Move to the next possible idle process */
-	    pp = &p->pnext;
-	    p  =  p->pnext;
-	  }
+	  /* Remove this entry from the chains */
+	  if (proc->pthread->proc == proc)
+	    proc->pthread->proc = proc->pnext;
+
+	  /* If this was the last process, reschedule the thread */
+	  if (proc->pthread->proc == NULL)
+	    thread_reschedule(proc->pthread,0,-1);
+
+	  /* Disjoin the thread from the proc */
+	  proc->pthread->thrkids -= 1;
+
+	  proc->pthread = NULL;
+
+	} else {
+
+	  /* Maybe we were in idle chain! */
+	  struct procinfo *p;
+
+	  p  =  proc->thg->idleproc;
+	  while (p && p != proc) p = p->pnext;
 	  if (p == proc) {
-	    /* Remove this entry from the chains */
-	    *pp = p->pnext;
-	    p   = p->pnext;
 	    proc->thg->idlecnt -= 1;
 	    --idleprocs;
-	  } else {
-	    /* It is not in idle chain, it has died somehow else.. */
-	    if (proc->pvertex)
-	      proc->pvertex = NULL;
-	    if (proc->pthread) {
-	      proc->pthread->proc = NULL;
-	      proc->pthread = NULL;
-	    }
+
+	    /* Remove this entry from the chains */
+	    if (proc == proc->thg->idleproc)
+	      proc->thg->idleproc = proc->pnext;
 	  }
 	}
+
 	/* If e.g. RESCHEDULE has not destroyed this thread-group.. */
 	if (proc->thg) {
 	  proc->thg->transporters -= 1;

@@ -6,7 +6,6 @@
  */
 
 #include "scheduler.h"
-#include "prototypes.h"
 #include <ctype.h>
 #include <unistd.h>
 #include "zsyslog.h"
@@ -16,6 +15,7 @@
 #include "ta.h"
 #include "libz.h"
 
+#include "prototypes.h"
 
 #ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
 # include <sys/types.h>

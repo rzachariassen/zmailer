@@ -275,8 +275,8 @@ void unvertex(vp, justfree, ok)
 	  /* Somebody here, move it elsewere! */
 	  /* This MAY happen -- expire() hits when some
 	     thread is coming into processing...            */
-	  if (vp->thread->proc->pvertex == vp)
-	    pick_next_vertex(vp->thread->proc);
+	  if (vp->thread->nextfeed == vp)
+	    vp->thread->nextfeed = vp->nextitem;
 	}
 	for (i = 0; i < SIZE_L; ++i) {
 
@@ -929,12 +929,6 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	 * the heuristic in reschedule() to ignore the request if
 	 * the time is already in the future should help out.
 	 */
-#if 0
-	/* ``vp'' might become expired by  thread_reschedule() .. */
-	if (vp->proc) {
-	  assert_pvertex_null(vp);
-	}
-#endif
 
 	if (vp->thread != NULL)
 	  thread_reschedule(vp->thread, retrytime, index);
