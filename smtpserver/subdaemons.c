@@ -419,6 +419,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		/* If we have things to output, and write is doable ? */
 		if (peer->outlen > 0 && _Z_FD_ISSET(peer->fd, wrset)) {
 		  for (;;) {
+		    {
+		      char pp[50];
+		      sprintf(pp,"/tmp/-write-to-peer-%d",peer->fd);
+		      unlink(pp);
+		    }
 		    rc = write(peer->fd,
 			       peer->outbuf + peer->outptr,
 			       peer->outlen - peer->outptr);
