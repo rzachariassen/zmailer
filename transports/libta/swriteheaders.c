@@ -36,6 +36,7 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	char **msgheaders = *(rp->newmsgheader);
 	int newlinelen = strlen(newline);
 	int hsize = 0;
+	int allocsize = -1;
 
 	if (! WriteTabs) {
 	  WriteTabs = getzenv("RFC822TABS");
@@ -68,12 +69,13 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		linelen = col;
 	      }
 
+	      allocsize = hsize + linelen + newlinelen + 8;
 	      if (*chunkbufp == NULL)
 		/* Actually the SMTP has already malloced a block,
 		   thus this branch should not be needed ... */
-		*chunkbufp = malloc( hsize + linelen + newlinelen );
+		*chunkbufp = malloc( allocsize );
 	      else
-		*chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
+		*chunkbufp = realloc(*chunkbufp, allocsize );
 	      if (*chunkbufp == NULL) return -1;
 
 	      p = hsize + (*chunkbufp);
