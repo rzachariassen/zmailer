@@ -1,3 +1,9 @@
+1998-06-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/rfc822.c:
+	    More gymnastics on getting the possibly missing "From: "
+	    header generated in all possible situations.
+
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/newaliases.in, proto/newdb.in, proto/cf/i-routes.cf,
