@@ -18,7 +18,11 @@
 		the binary file formats of those files ARE NOT COMPATIBLE
 		WITH BSD DB 1.85 PRODUCED ONES!  The databases must be
 		recompiled if that format is used!
-
+			# cd $MAILVAR/db
+			# ../bin/newaliases
+			# ../bin/newfqdnaliases
+			# ../bin/newdb routes  (et.al.)
+			# ../bin/policy-builder.sh -n
 
 	ZMailer-2.99.50-s17
 		The SMTPSERVER no longer per default runs interactive
