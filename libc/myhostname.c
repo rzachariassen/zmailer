@@ -28,6 +28,10 @@ getmyhostname(namebuf, len)
 	char *namebuf;
 	int len;
 {
+#ifdef HAVE_GETADDRINFO
+
+	/* VARIANT WITH  getaddrinfo()  IN ITS LIBC REQUIREMENTS */
+
 	struct addrinfo req, *ai;
 	int i, rc;
 #ifdef	HAVE_SYS_UTSNAME_H
@@ -78,4 +82,52 @@ getmyhostname(namebuf, len)
 	}
 #endif
 	return 0;
+
+#else /* NOT   HAVE_GETADDRINFO */
+
+	/* VARIANT WITHOUT  getaddrinfo()  IN ITS LIBC REQUIREMENTS */
+
+	struct hostent *hp;
+	int i, rc;
+#ifdef	HAVE_SYS_UTSNAME_H
+	struct utsname id;
+	extern int uname();
+
+	if (uname(&id) < 0)
+	  return -1;
+	strncpy(namebuf, id.nodename, len);
+	namebuf[len - 1] = 0;
+#else	/* !HAVE_SYS_UTSNAME_H */
+	extern int gethostname();
+	
+	if (gethostname(namebuf, len) < 0)
+	  return -1;
+#endif	/* USE_UNAME */
+
+	for (i = 0; i < 5; ++i) {
+	  hp = gethostbyname(namebuf);
+	  if (hp)
+	    break; /* We try it again if we fail here with EAI_AGAIN */
+	}
+	if (hp) {
+	  if (hp->h_name)
+	    strncpy(namebuf, hp->h_name, len);
+	  namebuf[len-1] = 0;
+	}
+#if 0
+	/* enable this code if for some reason your PTR name is primary */
+	{ /* XXX:XXX:XXX: FIX TO USE  GETNAMEINFO()  CALL! */
+	  struct in_addr hpaddr;
+	  if (hp != NULL)
+	    memcpy(&hpaddr,hp->h_addr,hp->h_length);
+	  if (hp != NULL
+	      && (hp = gethostbyaddr((void*)&hpaddr, hp->h_length,
+				     hp->h_addrtype)) != NULL) {
+	    strcpy(namebuf,hp->h_name);
+	  } else
+	    return 0; /* Hmm.. Didn't quite knack it ? */
+	}
+#endif
+	return 0;
+#endif
 }

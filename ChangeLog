@@ -1,5 +1,12 @@
 2000-09-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* libc/myhostname.c:
+	    If system does not carry  getaddrinfo(3)  function
+	    in its standard repertoire (or we are told not to use
+	    possibly existing system instance due to e.g. bugs),
+	    then use "old-fashioned"  gethostbyname(3)  function
+	    to resolve canonic hostname.
+
 	* utils/makedb/dblook.c:
 	    The "-dump" mode has been broken for a while.
 	    Turned out that auto-variables for key & data need
