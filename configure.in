@@ -495,67 +495,23 @@ AC_STRUCT_TM_GMTOFF
 AC_STRUCT_ST_BLOCKS
 AC_STRUCT_ST_BLKSIZE
 
+AC_MSG_RESULT([Scanning possible database libraries in preferrence order:])
+AC_MSG_RESULT([   NDBM, SDBM, GDBM, BSD DB 1.x, SleepyCat DB 2.x])
+AC_MSG_RESULT([ ( Hash, Hash, Hash, BTree,      BTree )])
+AC_MSG_RESULT([Last one of them found will be system default DB format.])
+
 DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
 AC_SUBST(DBTYPE) # Default db-type, unless we figure out something.
 AC_SUBST(DBEXT)  # Default db-extension (pag/db) for FILE OPEN
 AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
-AC_CHECK_HEADERS(gdbm.h ndbm.h sdbm.h db.h db1/db.h db_185.h)
+AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h)
 AC_CHECK_HEADERS(db2/db.h db2/db_185.h db3/db.h db3/db_185.h)
-LIBGDBM=""
-# Sometimes it is in libc, sometimes at separate lib...
-# Umm...
-dblocation=""
-if test "$ac_cv_header_gdbm_h" = yes ; then
-  t_found_at="nowhere"
-  if test "$ac_cv_lib_c_gdbm_open" = yes ; then
-    LIBGDBM=""
-    t_found_at="libc"
-  else
-    if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
-      LIBGDBM="-lgdbm"
-      t_found_at="gdbm library"
-      DBTYPE="gdbm"
-    else
-      AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_c_gdbm_open=yes,
-				      ac_cv_lib_c_gdbm_open=no)
-      if test "$ac_cv_lib_c_gdbm_open" = no; then
-	if test "x$ac_cv_lib_gdbm_gdbm_open" = x; then # not set
-	  t_oldLibs="$LIBS"
-	  LIBS="$LIBS -lgdbm"
-	  AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_gdbm_gdbm_open=yes,
-					  ac_cv_lib_gdbm_gdbm_open=no)
-	  LIBS="$t_oldLibs"
-	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes; then
-	    LIBGDBM="-lgdbm"
-	    t_found_at="gdbm library"
-	    DBTYPE="gdbm"
-	  else
-	    AC_MSG_RESULT([??? Has <gdbm.h>, but gdbm_open() is not at libc, nor at libgdbm ???])
-	    
-	  fi
-	else
-	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
-	    AC_MSG_ERROR([config.cache inconsistency! (gdbm) Delete it, and redo!])
-	  fi
-	fi
-      else # Has it in the libc!
-	LIBGDBM=""
-	t_found_at="libc"
-	DBTYPE="gdbm"
-      fi
-    fi
-  fi
-  AC_MSG_RESULT([Located GNU GDBM's  gdbm_open()  routine at $t_found_at])
-  if test "$t_found_at" != nowhere; then
-    dblocation="$dblocation;$t_found_at"
-  fi
-fi
 
 LIBNDBM=""
 if test "$ac_cv_header_ndbm_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbm_open" = yes ; then
-    LIBNDBM=""
+    LIBNDBM="-lc"
     t_found_at="libc"
     DBTYPE="ndbm"
   else
@@ -603,7 +559,7 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
 	    fi
 	  fi
 	else # Has it in the libc!
-	  LIBNDBM=""
+	  LIBNDBM="-lc"
 	  t_found_at="libc"
 	  DBTYPE="ndbm"
 	fi
@@ -672,6 +628,56 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
     fi
   fi
   AC_MSG_RESULT([Located SDBM's  dbm_open()  routine at $t_found_at])
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+LIBGDBM=""
+# Sometimes it is in libc, sometimes at separate lib...
+# Umm...
+dblocation=""
+if test "$ac_cv_header_gdbm_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_gdbm_open" = yes ; then
+    LIBGDBM="-lc"
+    t_found_at="libc"
+  else
+    if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
+      LIBGDBM="-lgdbm"
+      t_found_at="gdbm library"
+      DBTYPE="gdbm"
+    else
+      AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_c_gdbm_open=yes,
+				      ac_cv_lib_c_gdbm_open=no)
+      if test "$ac_cv_lib_c_gdbm_open" = no; then
+	if test "x$ac_cv_lib_gdbm_gdbm_open" = x; then # not set
+	  t_oldLibs="$LIBS"
+	  LIBS="$LIBS -lgdbm"
+	  AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_gdbm_gdbm_open=yes,
+					  ac_cv_lib_gdbm_gdbm_open=no)
+	  LIBS="$t_oldLibs"
+	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes; then
+	    LIBGDBM="-lgdbm"
+	    t_found_at="gdbm library"
+	    DBTYPE="gdbm"
+	  else
+	    AC_MSG_RESULT([??? Has <gdbm.h>, but gdbm_open() is not at libc, nor at libgdbm ???])
+	    
+	  fi
+	else
+	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (gdbm) Delete it, and redo!])
+	  fi
+	fi
+      else # Has it in the libc!
+	LIBGDBM="-lc"
+	t_found_at="libc"
+	DBTYPE="gdbm"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT([Located GNU GDBM's  gdbm_open()  routine at $t_found_at])
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
   fi
@@ -958,6 +964,9 @@ AC_SUBST(LIBLOCALDBMS)
 # GDBM must be last as if we have LIBDB at the system instead of real
 # LIBNDBM, we still have ndbm routines, but want to use (likely)
 # ones from LIBDB instead of LIBGDBM...
+# .. and we have explicite "-lc" for NDBM in case it is at LIBC, as otherwise
+# the linkage order will make a surprise for us by overloading GDBM's
+# compability layer instead of the real NDBM.
 sep=""
 if test "x$LIBNDBM" != "x" ; then
   LIBDBMS="$LIBDBMS$sep$LIBNDBM"

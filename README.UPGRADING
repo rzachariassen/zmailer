@@ -19,6 +19,19 @@
 		(This is due to possible movement from DB 1.x to 2.x and
 		 possibly even to 3.x with different binary db formats.)
 
+		A bit latter other (oldish) SNAFU was understood in the
+		database library linkages.  Namely that most "new" DB
+		libraries do tend to contain an overlay library for "old"
+		database functions so that those old ones won't be loaded
+		in properly in all cases.  Now changes of getting real
+		NDBM beside GDBM and simultaneous BSD/SleepyCat DB are
+		better, but it POSSIBLY means that you must recompile
+		your databases as well!  (E.g. if you have NDBM and GDBM,
+		new system default will be GDBM, while previously it was
+		*called* NDBM, but in reality it was GDBM under a wrapper.
+		Other reason for this default switch is that NDBM has
+		a limit of 1kB for key+data, while GDBM isn't so limited!)
+
 	ZMailer-2.99.53-pre1
 		Router scripts have changed a bit to better accomodate
 		logging in environment where it isn't necessary to

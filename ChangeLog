@@ -1,3 +1,13 @@
+2000-08-01  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* configure.in:
+	    Modifications on how NDBM vs. GDBM vs. BSD DB libraries
+	    are linked to ZMailer.  NDBM must be explicitely linked
+	    as '-lc' if it is at libc, *and* that linkage reference
+	    must be before any other as only then will there be change
+	    to get real NDBM, and not some fake layers which all those
+	    others do provide!
+
 2000-07-31  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/msgerror.c:
