@@ -1,3 +1,10 @@
+2004-04-20  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c:
+	    Run parallel contentfilters in case one isn't
+	    enough..  Startup code side-effect is that when
+	    one is needed, _max_set_ will be started.
+
 2004-04-19  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c, smtpserver/smtpserver.c,

@@ -324,6 +324,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 			/* XOFF .. busy right now, come back again.. */
 		      } else if (rc == 0) {
 			/* XON .. give me more jobs */
+			subdaemon_pick_next_job( peers, top_peer,
+						 subdaemon_handler, statep );
 		      } else {
 			/* Xnone .. ??
 			   Can't handle ?? */
