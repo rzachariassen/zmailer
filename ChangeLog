@@ -1,10 +1,14 @@
 2003-05-13  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.c, smtpserver/smtpserver.c:
+	    Removed  printf()s  from policy-test debug outputs,
+	    and use  type()  instead.
+
 	* smtpserver/policytest.c, proto/db/smtp-policy.src,
 	  doc/guides/smtp-policy:
 	    From  Andrey Blochintsev <bag@iptelecom.net.ua>
 	    a bit more code, and commentary updates in boilerplate.
-	
+
 	* transports/smtp/smtptls.c:
 	    Oops, when "HAVE_OPENSSL" is inactive, still supply
 	    msg_info() function to be used, as well as  FILE *vlog.

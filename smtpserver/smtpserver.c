@@ -2117,7 +2117,7 @@ int insecure;
     {
 	char *s = policymsg(policydb, &SS->policystate);
 	if (insecure)
-	  type(NULL,0,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
+	  type(NULL,0,,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
 	else
 	  type(NULL,0,NULL,"local from uid#%d", (int)getuid());
 	if (SS->policyresult != 0 || s != NULL)
@@ -2606,19 +2606,16 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     int code = Code, buflen;
     char buf[6000];
 
-    if (code < 0) {
+    if (code <= 0) {
 	code = -code;
 	c = '-';
-    } else
+    } else 
 	c = ' ';
 
-    if (!SS)
-      *buf = 0;
-    else {
-      if (code >= 999)
-	sprintf(buf, "000%c", c);
-      else
-	sprintf(buf, "%03d%c", code, c);
+    if (!SS) {
+      sprintf(buf, "%03d%c", code, c);
+    } else {
+      sprintf(buf, "%03d%c", code, c);
       if (enhancedstatusok && status && status[0] != 0)
 	sprintf(buf+4, "%s ", status);
     }
@@ -2696,7 +2693,25 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	break;
     }
 
-#ifdef HAVE_VPRINTF
+
+#ifdef HAVE_VSNPRINTF
+    {
+        int  bufspc  = sizeof(buf) - (s - buf) - 8;
+
+	va_list ap;
+#ifdef HAVE_STDARG_H
+	va_start(ap, fmt);
+#else
+	va_start(ap);
+#endif
+	if (fmt != NULL)
+	    vsnprintf(s, bufspc, fmt, ap);
+	else
+	    vsnprintf(s, bufspc, text, ap);
+	va_end(ap);
+    }
+#else
+#ifdef HAVE_VSRINTF
     {
 	va_list ap;
 #ifdef HAVE_STDARG_H
@@ -2716,6 +2731,8 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     else
 	sprintf(s, text, s1, s2, s3, s4, s5, s6);
 #endif
+#endif
+
     s += strlen(s);
     buflen = s - buf;
 
@@ -2733,7 +2750,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       fflush(logfp);
     }
 
-    if (debug > 1) fprintf(stdout, "%s\n", buf);
+    if (debug && !SS) fprintf(stdout, "%s\n", buf);
     if (!SS) return; /* Only to local log.. */
 
     memcpy(s, "\r\n", 2);

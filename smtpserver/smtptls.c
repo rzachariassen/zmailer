@@ -4,7 +4,7 @@
  *
  *  Contains ALSO code for SMTP Transport Agent!
  *
- *  by Matti Aarnio <mea@nic.funet.fi> 1999
+ *  by Matti Aarnio <mea@nic.funet.fi> 1999, 2003
  *
  *  Reusing TLS code for POSTFIX by:
  *     Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
