@@ -623,7 +623,7 @@ conscell *conststring(s, slen)
 
 const static int  strmagic = 0x53545200; /* 'STR\0' */
 
-#define STRPOSOFFSET 4	/* 5 for debug,		*/
+#define STRPOSOFFSET 0	/* 5 for debug,		*/
 			/* 4 for run w/ check,	*/
 			/* 0 for run w/o check!	*/
 
