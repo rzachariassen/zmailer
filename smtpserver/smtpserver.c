@@ -1791,7 +1791,7 @@ SmtpState *SS;
 {
 #ifdef HAVE_OPENSSL
     if (SS->sslmode)
-      ; /* SSL_flush(SS->ssl); */ /* XX: ???? */
+      Z_SSL_flush(SS);
     else
 #endif
       fflush(SS->outfp);
@@ -1998,7 +1998,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     strcpy(s, "\r\n");
 #ifdef HAVE_OPENSSL
     if (SS->sslmode)
-      SSL_write(SS->ssl, buf, buflen+2); /* XX: check return value */
+      Z_SSL_write(SS, buf, buflen+2); /* XX: check return value */
     else
 #endif
       fwrite(buf, buflen+2, 1, SS->outfp);
@@ -2160,7 +2160,7 @@ va_dcl
       strcpy(bp, "\r\n");
 #ifdef HAVE_OPENSSL
       if (SS->sslmode) {
-	SSL_write(SS->ssl, buf, buflen+2); /* XX: check return value */
+	Z_SSL_write(SS, buf, buflen+2); /* XX: check return value */
       } else
 #endif
 	fwrite(buf, buflen+2, 1, SS->outfp);

@@ -10,8 +10,8 @@
 #ifdef HAVE_OPENSSL
 
 void smtp_starttls(SS, buf, cp)
-SmtpState *SS;
-const char *buf, *cp;
+     SmtpState *SS;
+     const char *buf, *cp;
 {
     int x;
 
@@ -40,6 +40,55 @@ const char *buf, *cp;
       SS->mfp = NULL;
     }
     /* XX: start_servertls(SS) */
+
+    SS->sslwrbuf = emalloc(8192);
+    SS->sslwrspace = 8192;
+    SS->sslwrin = SS->sslwrout = 0;
+}
+
+int Z_SSL_flush(SS)
+     SmtpState * SS;
+{
+    int in = SS->sslwrin;
+    int ou = SS->sslwrout;
+
+    SS->sslwrin = SS->sslwrout = 0;
+
+    if (ou >= in)
+      return 0;
+
+    /* this is blocking write */
+    return SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
+}
+
+int Z_SSL_write(SS, ptr, len)
+     SmtpState * SS;
+     const void *ptr;
+     int len;
+{
+    int i, rc = 0;
+    char *buf = (char *)ptr;
+
+    while (len > 0) {
+      i = SS->sslwrspace - SS->sslwrin; /* space */
+      if (i == 0) {
+	/* The buffer is full! Flush it */
+	i = Z_SSL_flush(SS);
+	if (i < 0) return rc;
+	rc += i;
+	i = SS->sslwrspace;
+      }
+      /* Copy only as much as can fit into current space */
+      if (i > len) i = len;
+      memcpy(SS->sslwrbuf + SS->sslwrin, buf, i);
+      SS->sslwrin += i;
+      buf += i;
+      len -= i;
+      rc += i;
+    }
+
+    /* how much written out ? */
+    return rc;
 }
 
 #endif

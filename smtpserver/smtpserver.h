@@ -173,6 +173,9 @@ typedef struct {
 #ifdef HAVE_OPENSSL
     int   sslmode;
     SSL * ssl;
+    char *sslwrbuf;
+    int   sslwrspace, sslwrin, sslwrout;
+    /* space, how much stuff in, where the output cursor is */
 #endif
 
     int  s_bufread;
@@ -373,10 +376,16 @@ extern void smtp_verify __((SmtpState * SS, const char *buf, const char *cp));
 extern void smtp_expand __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_data   __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_bdata  __((SmtpState * SS, const char *buf, const char *cp));
-extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern void add_to_toplevels __((char *str));
 
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
+
+#ifdef HAVE_OPENSSL
+/* smtptls.c */
+extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
+extern int Z_SSL_write __((SmtpState *, const void *, int));
+extern int Z_SSL_flush __((SmtpState *));
+#endif
 
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 extern int wantconn __((int sock, char *prgname));
