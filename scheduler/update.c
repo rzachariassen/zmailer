@@ -51,7 +51,7 @@ extern char *procselect;
 
 /* dispatch table for diagnostic types */
 
-#define DARGS __((struct vertex *, long, long, long, const char*, const char*))
+#define DARGS __((struct procinfo *, struct vertex *, long, long, long, const char*, const char*))
 
 static int u_ok       DARGS ;
 static int u_ok2      DARGS ;
@@ -75,6 +75,7 @@ static struct diagcodes {
 		{	NULL,		NULL		}
 };
 
+
 void
 update(fd, diagnostic)
 	int fd;
@@ -91,159 +92,94 @@ update(fd, diagnostic)
 
 	if (*diagnostic == 0) {
 	  /* Lone newline.. old-style indications from the transporter */
-	  if (proc->tofd >= 0 &&
-	      proc->hungry == 0) {
-	    proc->hungry += 1;
-	    mytime(&now);
-	    proc->hungertime = now;
-	    ++hungry_childs;
-	  }
-	  /* Things are known to DIE from under us! */
-	  /* .. propably not a good idea to try to pick any next.. */
-	  if (proc->overfed > 0)
-	    proc->overfed -= 1;
-	  pick_next_vertex(proc, 1, 0);
-	  if (proc->hungry)
-	    feed_child(proc);
-	  flush_child(proc);
-	  return;
-	}
-	if (*diagnostic != '#') { /* Not debug diagnostic message */
-	  inum = atol(diagnostic);
-	  if ((cp = strchr(diagnostic, '/')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic1: %s\n",
-		     timestring(), diagnostic);
-	    return;
-	  }
-	  offset = atol(++cp);
-	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic2: %s\n",
-		     timestring(), diagnostic);
-	    return;
-	  }
-	  notary = ++cp;
-	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic3: %s\n",
-		     timestring(), diagnostic);
-	    return;
-	  }
-	  *cp = 0; /* Trailing TAB after notary string, NULL it */
-	  type = ++cp;
-	  while (*cp != '\0' && isascii(*cp) && !isspace(*cp))
-	    ++cp;
-	  if (*cp == '\0') {
-	    message = NULL;
-	  } else {
-	    *cp++ = '\0';
-	    message = cp;
-	  }
-	  if (verbose)
-	    sfprintf(sfstdout,"diagnostic: %ld/%ld\t%s\t%s\n",
-		     inum, offset, notary, type);
-
-	  if ((vp = findvertex(inum, offset, &index)) == NULL)
-	    return;
-
-	  if (vp->notary != NULL)
-	    free(vp->notary);
-	  vp->notary = NULL;
-	  if (*notary)
-	    vp->notary = strsave(notary);
-
-	  /* Select function by the type name: ok/error/retryat/deferred */
-
-	  for (dcp = &diags[0]; dcp->name != NULL; ++dcp) {
-	    /* XX: replace strcmp() with cistrcmp() ??  Should not need,
-	       unless something is wrong with the transporters. */
-	    if (strcmp(dcp->name, type) == 0) {
-	      (dcp->fcn)(vp, index, inum, offset, notary, message);
-	      break;
-	    }
-	  }
-	  if (dcp->name == NULL)
-	    sfprintf(sfstderr, "%s Unknown diagnostic type ignored: %s\n",
-		     timestring(), type);
+	  ta_hungry(proc);
 	  return;
 	}
 
-	/* Now (*diagnostic == '#') */
+	if (*diagnostic == '#') {
+	  /* Now (*diagnostic == '#') */
 
-	if (strncmp(diagnostic,"#hungry",7)==0) {
-	  /* This is an "actor model" behaviour,
-	     where actor tells, when it needs a new
-	     job to be fed to it. */
-	  if (proc->tofd   >= 0) {
-	    proc->hungry += 1;
-	    mytime(&proc->hungertime);
-	    if (proc->overfed > 0) {
-	      /* It was overfed, decrement that counter first.. */
-	      proc->overfed -= 1;
-	    }
+	  if (strncmp(diagnostic,"#hungry",7)==0) {
+	    ta_hungry(proc);
+	    return;
+	  } /* end of '#hungry' processing */
 
-	    if (!proc->overfed) {
+	  if (strncmp(diagnostic,"#resync",7)==0) {
+	    /* The transporter has noticed that the scheduler
+	       gave it a job spec, which does not have anything
+	       left for processing, it is time for the scheduler
+	       to recheck the job file. */
+	    char *p, *s = diagnostic + 7;
+	    while (*s == ' ' || *s == '\t') ++s;
+	    p = strchr(s,'\n');
+	    if (p) *p = 0; /* newline AFTER filename */
+	    if (*s != 0)
+	      resync_file(proc, s);
+	    return;
+	  }
 
-	      ++hungry_childs;
-
-	      /* Unless it is still overfed,
-		 Pick next, and feed it! */
-	      pick_next_vertex(proc, 1, 0);
-
-#if 1 /* YES OVERFEEDING! */
-	      /* While we have a thread, and things to feed.. */
-	      while (!proc->fed && proc->thread) {
-
-		if (proc->hungry)
-		  feed_child(proc);
-
-		if (!proc->fed)
-		  break; /* Huh! Feed/flush failure! */
-
-		/* See if we should, and can feed more! */
-		if (proc->thg == NULL ||
-		    proc->pid == 0    ||
-		    proc->thread == NULL)
-		  break;	/* No new active threads/vertices/proc.. */
-		if (proc->overfed >= proc->thg->ce.overfeed)
-		  break;	/* if the limit is zero, don't overfeed ever.*/
-		/* Ok, increment the counter, and loop back.. */
-		proc->hungry += 1; /* Simulate hunger.. */
-		pick_next_vertex(proc, 1, 0);
-		/* If it got next,  ``proc->fed'' is now zero.. */
-	      }
-#else
-	      /* Feed *one* */
-	      if (proc->hungry)
-		feed_child(proc);
-
-#endif
-	      flush_child(proc);
-	      proc->hungry = 0; /* ... satiated.. */
-	    } else {
-	      if (verbose)
-		sfprintf(sfstdout, "... child pid %d overfed=%d\n",
-			 (int)proc->pid, proc->overfed);
-	    }
-	  } else
-	    if (verbose)
-	      sfprintf(sfstdout,"'#hungry' from child without forward-channel\n");
-	  return;
-	} /* end of '#hungry' processing */
-
-	if (strncmp(diagnostic,"#resync",7)==0) {
-	  /* The transporter has noticed that the scheduler
-	     gave it a job spec, which does not have anything
-	     left for processing, it is time for the scheduler
-	     to recheck the job file. */
-	  char *p, *s = diagnostic + 7;
-	  while (*s == ' ' || *s == '\t') ++s;
-	  p = strchr(s,'\n');
-	  if (p) *p = 0; /* newline AFTER filename */
-	  if (*s != 0)
-	    resync_file(proc, s);
+	  sfprintf(sfstderr, "%s DBGdiag: %s\n", timestring(), diagnostic);
 	  return;
 	}
 
-	sfprintf(sfstderr, "%s DBGdiag: %s\n", timestring(), diagnostic);
+	/* Not debug diagnostic message */
+
+	inum = atol(diagnostic);
+	if ((cp = strchr(diagnostic, '/')) == NULL) {
+	  sfprintf(sfstderr, "%s Misformed diagnostic1: %s\n",
+		   timestring(), diagnostic);
+	  return;
+	}
+	offset = atol(++cp);
+	if ((cp = strchr(cp, '\t')) == NULL) {
+	  sfprintf(sfstderr, "%s Misformed diagnostic2: %s\n",
+		   timestring(), diagnostic);
+	  return;
+	}
+	notary = ++cp;
+	if ((cp = strchr(cp, '\t')) == NULL) {
+	  sfprintf(sfstderr, "%s Misformed diagnostic3: %s\n",
+		   timestring(), diagnostic);
+	  return;
+	}
+	*cp = 0; /* Trailing TAB after notary string, NULL it */
+	type = ++cp;
+	while (*cp != '\0' && isascii(*cp) && !isspace(*cp))
+	  ++cp;
+	if (*cp == '\0') {
+	  message = NULL;
+	} else {
+	  *cp++ = '\0';
+	  message = cp;
+	}
+	if (verbose)
+	  sfprintf(sfstdout,"diagnostic: %ld/%ld\t%s\t%s\n",
+		   inum, offset, notary, type);
+
+	if ((vp = findvertex(inum, offset, &index)) == NULL)
+	  return;
+
+	if (vp->notary != NULL)
+	  free(vp->notary);
+	vp->notary = NULL;
+	if (*notary)
+	  vp->notary = strsave(notary);
+
+	/* Select function by the type name: ok/error/retryat/deferred */
+
+	for (dcp = &diags[0]; dcp->name != NULL; ++dcp) {
+	  /* XX: replace strcmp() with cistrcmp() ??  Should not need,
+	     unless something is wrong with the transporters. */
+	  if (strcmp(dcp->name, type) == 0) {
+	    (dcp->fcn)(proc, vp, index, inum, offset, notary, message);
+	    break;
+	  }
+	}
+
+	if (dcp->name == NULL)
+	  sfprintf(sfstderr, "%s Unknown diagnostic type ignored: %s\n",
+		   timestring(), type);
+
 	return;
 }
 
@@ -342,40 +278,8 @@ void unvertex(vp, justfree, ok)
 	}
 
 	if (vp->proc && vp->proc->vertex == vp) {
-	  vp->proc->fed     = 1; /* Mark it fed just in case.. */
-#if 0 /* No need ? Wrong place ? Propably wrong place/thing! */
-	  vp->proc->overfed = 0; /* .. and clear this .. */
-#endif
-	  /* Pick next, but don't feed it (yet)! */
-	  pick_next_vertex(vp->proc, ok, justfree);
-	  if (vp->proc && vp->proc->vertex == vp){
-	    /* Sigh... Lets see, if we can move the vertex
-	       pointer somewhere. */
-
-	    /* Pick the first one you can find */
-	    vp->proc->vertex = vp->proc->thread->vertices;
-	    if (vp->proc->vertex == vp) {
-	      /* Damn! */
-	      vp->proc->vertex = vp->proc->vertex->nextitem;
-	    }
-	    /* Ok, now the 'vertex' will either differ
-	       from 'vp', or it is NULL. */
-#if 0
-	    sfprintf(sfstderr,
-		     "unvertex(vtx=%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
-		     vp, justfree, ok, vp->cfp->mid);
-	    /* We may become called with child feeder yet unflushed;
-	       shall we kill the kid ? (pick_next_vertex won't change
-	       vertex then..) */
-	    /* abort(); */
-#endif
-	  }
-	}
-	if (vp->thread != NULL &&
-	    vp->thread->proc && vp->thread->proc->vertex == vp) {
-	  /* XX: This is actually vestigal from somewhere, and
-	         should not occur at all.. */
-	  vp->thread->proc->vertex = NULL;
+	  /* Its me, move it elsewere! */
+	  pick_next_vertex(vp->proc);
 	}
 
 	for (i = 0; i < SIZE_L; ++i) {
@@ -405,7 +309,7 @@ void unvertex(vp, justfree, ok)
 	    unctlfile(vp->cfp, justfree);
 	}
 
-	web_disentangle(vp, ok); /* does also unthread() */
+	web_detangle(vp, ok); /* does also unthread() */
 
 	if (vp->message != NULL) free(vp->message);
 	if (vp->notary  != NULL) free(vp->notary);
@@ -740,11 +644,12 @@ expire(vp, index)
 
 
 /*ARGSUSED*/
-static int u_ok(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_ok(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	if (verbose)
 	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->logident, inum,
@@ -774,11 +679,12 @@ static int u_ok(vp, index, inum, offset, notary, message)
 }
 
 /*ARGSUSED*/
-static int u_ok2(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_ok2(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	if (vp->notaryflg & NOT_SUCCESS) {
 	  vp->cfp->haderror = 1; /* The transporter logged it for us! */
@@ -806,11 +712,12 @@ static int u_ok2(vp, index, inum, offset, notary, message)
 }
 
 /*ARGSUSED*/
-static int u_ok3(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_ok3(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	/* Success, but the transporter was able to relay the DSN info
 	   to another system, thus no diagnostics here! */
@@ -837,11 +744,12 @@ static int u_ok3(vp, index, inum, offset, notary, message)
 }
 
 
-static int u_deferred(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_deferred(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	/* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferred %s\n", vp->cfp->logident,
 	   inum, offset, notary, message ? message : "-"); */
@@ -873,11 +781,12 @@ static int u_deferred(vp, index, inum, offset, notary, message)
 	return 1;
 }
 
-static int u_error(vp, index, inum, offset, notary, message)
-	struct vertex  *vp;
-	long		index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_error(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	if (message == NULL)
 	  message = "(unknown)";
@@ -908,11 +817,12 @@ static int u_error(vp, index, inum, offset, notary, message)
 
 /* A variant where the TRANSPORT AGENT has logged the report into
    the file! */
-static int u_error2(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_error2(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	if (message == NULL)
 	  message = "(unknown)";
@@ -946,15 +856,28 @@ static int u_error2(vp, index, inum, offset, notary, message)
  * specify relative (w/ leading +) or absolute (w/o leading +) retry time.
  */
 
-static int u_retryat(vp, index, inum, offset, notary, message)
-	struct vertex *vp;
-	long	index, inum, offset;
-	const char	*notary;
-	const char	*message;
+static int u_retryat(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
 {
 	time_t	retrytime;
 	long    dtvalue;
 	const char * cp;
+
+	/* If a message gets a "retryat" signal, kick this thread at
+	   next  "#hungry"  into FINISHING state */
+
+	if ((proc->state   == CFSTATE_LARVA) &&
+	    (proc->overfed == 1) &&
+	    (proc->tofd    >= 0))
+	  proc->state = CFSTATE_FINISHING;
+	if ((proc->state   == CFSTATE_STUFFING) &&
+	    (proc->tofd    >= 0))
+	  proc->state = CFSTATE_FINISHING;
+
 
 	if (*message == '+')
 	  ++message;

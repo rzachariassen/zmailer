@@ -1,5 +1,14 @@
 1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/update.c,
+	  scheduler/transport.c, scheduler/threads.c:
+	    Reworked the logic of TA child process feeding and job picking.
+	    This is initial edition - not yet confirmed to *work*.
+	    Killed a *lot* of hairy code -- thus must have done something
+	    right...  (Added about 440 lines, removed about 550 lines.)
+
+1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
 	* configure.in:
 	    '--disable-pam' option.
 

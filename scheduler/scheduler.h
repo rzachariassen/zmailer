@@ -139,9 +139,22 @@ struct procinfo {
 	pid_t	pid;		/* Process-id				*/
 	int	reaped;
 	int	tofd;		/* tell transporter job data thru this	*/
-	int	hungry;		/* State of reports from child		*/
-	time_t	hungertime;	/* .. when presented			*/
-	int	fed;
+	int	state;		/* Child-Feed State Machine state	*/
+
+#define CFSTATE_LARVA		1  /* The first feed of the thread	*/
+#define CFSTATE_STUFFING	2  /* More feeds for the thread		*/
+#define CFSTATE_FINISHING	3  /* end of thread, waiting reports	*/
+#define CFSTATE_IDLE		0  /* Idle state			*/
+#define CFSTATE_ERROR		-1 /* Error encountered			*/
+
+  /* State changes:  fork() -> (1) --> (2) -+-> (3) -+-> (0) -+-> death
+                                ^       ^   |        |        |
+                                |       |-<-|        v        v
+                                |---<------------<---|--<-----|
+  */
+                                 
+
+	time_t	hungertime;	/* .. when last state change		*/
 	int	overfed;	/* Now many jobs fed to it over the normal 1?*/
 	time_t	feedtime;	/* .. when fed				*/
 	struct web *ch;		/* Web of CHANNELs			*/

@@ -136,6 +136,8 @@ struct thread *thr;
 {
 	struct threadgroup *thg = thr->thgrp;
 
+	/* Doubly linked linear list */
+
 	if (thr->prevtr != NULL)
 	  thr->prevtr->nexttr = thr->nexttr;
 	if (thr->nexttr != NULL)
@@ -149,15 +151,20 @@ struct thread *thr;
 	thr->nexttr = NULL;
 	thr->prevtr = NULL;
 
-	if (thr->prevthg != NULL)
-	  thr->prevthg->nextthg = thr->nextthg;
-	if (thr->nextthg != NULL)
-	  thr->nextthg->prevthg = thr->prevthg;
+	/* Doubly linked circullar list */
+
+	thr->prevthg->nextthg = thr->nextthg;
+	thr->nextthg->prevthg = thr->prevthg;
 
 	if (thg->thread == thr)
-	  thg->thread = thr->nextthg;
+	  thg->thread = thr->nextthg;	/* pick other */
+	if (thg->thread == thr)
+	  thg->thread = NULL;		/* was the only one! */
+
 	if (thg->thrtail == thr)
-	  thg->thrtail = thr->prevthg;
+	  thg->thrtail = thr->prevthg;	/* pick other */
+	if (thg->thrtail == thr)
+	  thg->thrtail = NULL;		/* was the only one! */
 
 	thr->prevthg = NULL;
 	thr->nextthg = NULL;
@@ -169,7 +176,10 @@ struct thread *thr;
 {
 	struct threadgroup *thg = thr->thgrp;
 
+	/* Doubly linked linear list */
+
 	if (thread_head == NULL) {
+
 	  thread_head = thr;
 	  thread_tail = thr;
 	  thr->nexttr = NULL;
@@ -184,17 +194,19 @@ struct thread *thr;
 
 	}
 
+	/* Doubly linked circullar list */
+
 	if (thg->thread == NULL) {
 
 	  thg->thread  = thr;
 	  thg->thrtail = thr;
-	  thr->nextthg = NULL;
-	  thr->prevthg = NULL;
+	  thr->nextthg = thr;
+	  thr->prevthg = thr;
 
 	} else {
 
 	  thg->thrtail->nextthg = thr;
-	  thr->nextthg = NULL;
+	  thr->nextthg = thg->thread;
 	  thr->prevthg = thg->thrtail;
 	  thg->thrtail = thr;
 
@@ -225,9 +237,10 @@ struct config_entry *cep;
 	++threadid;
 	thr->threadid = threadid;
 
+	/* thr->nextthg = NULL;
+	   thr->prevthg = NULL; */
+
 	thr->thgrp   = thgrp;
-	thr->nextthg = NULL;
-	thr->prevthg = NULL;
 	thr->wchan   = vtx->orig[L_CHANNEL];
 	thr->whost   = vtx->orig[L_HOST];
 
@@ -257,48 +270,67 @@ struct config_entry *cep;
 }
 
 
-static void pick_next_thread __((struct threadgroup *,
-				 struct thread *,
-				 struct procinfo *));
+int pick_next_thread __((struct procinfo *));
 
-static void pick_next_thread(thg, thr0, proc)
-     struct threadgroup *thg;
-     struct thread *thr0;
+/*
+ * Pick next thread from the group which this process serves.
+ * 
+ * Result is  proc->thread and proc->vertex being updated to
+ * new thread, and function returns 1.
+ * If no new thread can be picked (all are active, and whatnot),
+ * return 0.
+ */
+
+int
+pick_next_thread(proc)
      struct procinfo *proc;
 {
-	struct thread *thr;
+	struct thread	    *thr;
+	struct thread       *thr0 = proc->thread;
+	struct threadgroup  *thg  = proc->thg;
+	int once = 1;
 
-	for (thr = thg->thread; thr != NULL; thr = thr->nextthg) {
+	if (thr0 && (thr0->proc == proc))
+	  thr0->proc = NULL; /* Remove ourselves */
+
+	proc->thread = NULL;
+	proc->vertex = NULL;
+
+	if (thg->cep->flags & CFG_QUEUEONLY)
+	  return 0; /* We are QUEUE ONLY group, no auto-switch! */
+
+	mytime(&now);
+
+	thr  = thg->thread;
+	for ( ; once || (thr != thg->thread); thr = thr->nextthg, once = 0 ) {
 
 	  if (thr == thr0)
-	    continue;
+	    continue; /* No, can't be what we just were! */
 
-	  if (thg != thr->thgrp)
-	    continue;
-
-	  if (thr->wakeup > now && thr->attempts > 0 )
+	  if ((thr->wakeup > now) && (thr->attempts > 0))
 	    continue; /* wakeup in future, unless first time around! */
 
-	  if (thr->proc == NULL ||
-	      thr->proc->thread != thr) {
+	  if (thr->proc == NULL) {
 
-	    /* Ok, this thread is not busy, choose it! */
-	    mytime(&now);
+	    /* XXXX: found thread, prepare it for start, shuffle vertices,
+	       if so configured, and set results.. */
 
-	    thread_start(thr);
-	    /* Attempt to  thread_start() may scramble the thr object.. */
-	    return;
+	    proc->thread = thr;
+	    proc->vertex = thr->vertices;
 
+	    return 1;
 	  }
 	}
+	/* No result :-( */
+	return 0;
 }
 
 
 static void delete_thread __((struct thread *, int));
 static void
 delete_thread(thr, ok)
-struct thread *thr;
-int ok;
+     struct thread *thr;
+     int ok;
 {
 	/* Unlink this thread from thread-chain, and thread
 	   group.  Decrement thread-group count		    */
@@ -322,23 +354,23 @@ int ok;
 	_thread_timechain_unlink(thr);
 
 	thg->threads -= 1;
+
 	/* If threads count goes zero.. */
+
 	if (thg->threads == 0) {
 	  thg->thread = NULL;	/* Oops.. we were last!		*/
 	  if (thr->proc &&
-	      thr->proc->thread == thr) { /* There is a process, idle it! */
+	      thr->proc->thread == thr) { /* There is a process, detach it! */
+
 	    thr->proc->thread = NULL;
 	    thr->proc->vertex = NULL;
-	    thr->proc->next   = thg->idleproc;
-	    thg->idleproc     = thr->proc;
-	    /* thr->proc      = NULL; */ /* The `thr' goes into `free()' */
-	    thg->idlecnt     += 1;
-	    idle_child(thr->proc);
-	    ++idleprocs;
-	  } else if (thr->proc != NULL &&
+
+	  } else if (thr->proc &&
 		     thr->proc->pid <= 0) {
+
 	    thr->proc->thread = NULL;
 	    thr->proc->vertex = NULL;
+
 	    if (verbose)
 	      sfprintf(sfstderr,"delete_thread(1) thr->proc=%p pid=%d\n",
 		       thr->proc, (int)thr->proc->pid);
@@ -347,35 +379,34 @@ int ok;
 	      sfprintf(sfstderr,"delete_thread(1b) thr->proc=%p pid=%d\n",
 		       thr->proc, thr->proc ? (int)thr->proc->pid : 0);
 	  }
+
 	} else {
+
 	  /* Some threads left						*/
 	  /* If there is a process, pick another job..  It may be that
 	     the process' current thread is no longer in the ring!	*/
+
 	  if (thr->proc &&
 	      thr->proc->thread == thr) {
-	    /* Move it into the idle pool -- and try to find
-	       a free thread to start!				*/
-	    struct procinfo *proc = thr->proc;
-	    proc->vertex = NULL;
-	    proc->thread = NULL;
-	    proc->next   = thg->idleproc;
-	    thr->proc    = NULL;
-	    thg->idleproc = proc;
-	    thg->idlecnt += 1;
-	    idle_child(proc);
-	    ++idleprocs;
+
+	    /* detach it - ta_hungry() will handle idling.. */
+
+	    thr->proc->vertex = NULL;
+	    thr->proc->thread = NULL;
+
 	    if (verbose)
 	      sfprintf(sfstderr, "delete_thread(2) thr->proc=%p pid=%d\n",
-		       proc, (int)proc->pid);
-	    /* Find a free thread - or stay in idle.. */
-	    pick_next_thread(thg, thr, proc);
+		       thr->proc, (int)thr->proc->pid);
+
 	    if (verbose)
-	      sfprintf(sfstderr,"   proc->thr=%p\n",proc->thread);
+	      sfprintf(sfstderr,"   proc->thr=%p\n", thr->proc->thread);
 
 	  } else if (thr->proc != NULL &&
 		     thr->proc->pid <= 0) {
+
 	    thr->proc->thread = NULL;
 	    thr->proc->vertex = NULL;
+
 	    if (verbose)
 	      sfprintf(sfstderr, "delete_thread(2b) thr->proc=%p pid=%d\n",
 		       thr->proc, (int)thr->proc->pid);
@@ -434,7 +465,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	struct thread *thr;
 
 	/* int matched = 0; */
-	int thg_once = 1;
+	int thg_once;
 
 	struct web *wc = vp->orig[L_CHANNEL];
 	struct web *wh = vp->orig[L_HOST];
@@ -458,13 +489,11 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	 *  is allowed to happen..)
 	 *
 	 */
-	for (thg = thrg_root;
+	for (thg = thrg_root, thg_once = 1;
 	     thg_once || thg != thrg_root;
-	     thg = thg->next) {
+	     thg = thg->next, thg_once = 0) {
 
 	  int thr_once;
-
-	  thg_once = 0;
 
 	  if (thg->cep != cep)	/* Config entries don't match */
 	    continue;
@@ -479,12 +508,10 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	  
 	  /* The config-entry matches, we have changes to match group */
 
-	  thr_once = 1;
-	  for (thr = thg->thread;
-	       thr != NULL && (thr_once || thr != thg->thread);
-	       thr = thr->nextthg) {
+	  for (thr = thg->thread, thr_once = 1;
+	       thr_once || (thr != thg->thread);
+	       thr = thr->nextthg, thr_once = 0) {
 
-	    thr_once = 0;
 #if 0
 	    if (!thr->vertex) abort();	/* No vertices ?? */
 
@@ -507,7 +534,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	    vp->thgrp = thg;
 	    thr->jobs += 1;
 	    /* Hookay..  Try to start it, in case it isn't yet running */
-	    if(!(thg->cep->flags & CFG_QUEUEONLY)) {
+	    if (!(thg->cep->flags & CFG_QUEUEONLY)) {
 		thread_start(thr);
 	    }
 
@@ -634,9 +661,11 @@ struct vertex *vtx;
 
 /*
  * Detach the vertex from its chains
+ *
+ * If here is a process, limbo it!
  */
 void
-web_disentangle(vp, ok)
+web_detangle(vp, ok)
 	struct vertex *vp;
 	int ok;
 {
@@ -644,14 +673,8 @@ web_disentangle(vp, ok)
 	   We do this only when we have reaped the channel program. */
 
 	if (vp->proc != NULL) {
-	  if (vp->proc->vertex == vp) {
-	    /*
-	       vp->proc->vertex = vp->nextitem;
-	       if (vp->proc->vertex != NULL)
-	       vp->proc->vertex->proc = vp->proc;
-	     */
-	    pick_next_vertex(vp->proc, ok, 0);
-	  }
+	  if (vp->proc->vertex == vp)
+	    pick_next_vertex(vp->proc);
 	  vp->proc = NULL;
 	}
 
@@ -850,48 +873,16 @@ struct thread *thr;
 	     order of thread vertices  (or sort by spool file
 	     mtime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
+	  proc->vertex = thr->vertices;
 
 	  thr->attempts += 1;
 
 	  /* Its idle process, feed it! */
 
-	  proc->hungry += 1;	/* Simulate hunger.. */
-	  pick_next_vertex(proc, 1, 0);
-	  if (proc->fed != 0) {
-	    /* Duh! Nothing to feed! */
-	    reschedule(vp, 0, -1);
-	    return 0;
-	  }
-	  feed_child(proc);
+	  proc->state   = CFSTATE_LARVA;
+	  proc->overfed = 1;
+	  ta_hungry(proc);
 
-#if 1
-
-	  /* The initial thread-start will feed only
-	     one job-spec, latter OK will get burst of
-	     feeds... */
-
-#else
-	  /* While we have a thread, and things to feed.. */
-	  while (!proc->fed && proc->thread) {
-	    if (proc->hungry)
-	      feed_child(proc);
-	    if (!proc->fed)
-	      break; /* Huh! Didn't feed it! */
-	    /* See if we should, and can feed more! */
-	    if (proc->thg == NULL ||
-		proc->pid == 0    ||
-		proc->thread == NULL)
-	      break;		/* No new active threads/vertices/proc.. */
-	    if (proc->overfed >= proc->thg->ce.overfeed)
-	      break;		/* if the limit is zero, don't overfeed ever.*/
-	    /* Ok, increment the counter, and loop back.. */
-	    proc->hungry += 1;	/* Simulate hunger.. */
-	    pick_next_vertex(proc, 1, 0);
-	    /* If it got next,  ``proc->fed'' is now zero.. */
-	  }
-	  proc->hungry = 0; /* ... satiated.. */
-	  flush_child(proc);
-#endif
 	  return 1;
 	}
 
@@ -952,34 +943,27 @@ struct thread *thr;
 
 /*
  * pick_next_vertex() -- pick next free to process vertex in this thread
- *   - vertex proc pointer is non-null
- *   - if the "ok" is not set, pick next THREAD for vertices, else use this
- *     thread..
- *   - if the thread exhausts, pick another thread (check our scheduling vars)
- *     if the thread has vertices, but they are marked (proc != NULL),
- *     reschedule the thread, and pick another thread (if exist)
- *   - if all of the threads exhaust, move the process into idle pool
+ *
+ * - if (proc->vertex != NULL) proc->vertex = proc->vertex->nextitem;
+ * - return (proc->vertex != NULL);
+ *
  */
-void
-pick_next_vertex(proc, ok, justfree)
-struct procinfo *proc;
-int ok, justfree;
+
+/* Return 0 for errors, 1 for success; result is at  proc->vertex */
+
+int
+pick_next_vertex(proc)
+     struct procinfo *proc;
 {
-	struct thread      *thr, *thr0;
-	struct threadgroup *thg;
-	struct vertex *vtx;
-
-
-	proc->fed = 1; /* This will be cleared,
-			  when we have something to feed */
+	struct thread      *thr;
 
 	thr  = proc->thread;
 
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d ok=%d justfree=%d OF=%d)\n",
-		 proc->tofd, thr, proc->vertex, thr ? thr->jobs : 0, ok, justfree, proc->overfed);
+	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d)\n",
+		 proc->tofd, thr, proc->vertex, thr ? thr->jobs : 0, proc->overfed);
 
-	if (proc->pid < 0) {	/* "Jim, He is dead!"		*/
+	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
 	  if (proc->thread != NULL)
 	    proc->thread->proc = NULL;
 	  proc->thread = NULL;
@@ -987,138 +971,13 @@ int ok, justfree;
 	    proc->vertex->proc = NULL;
 	  proc->vertex = NULL;
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
-	  return;
+	  return 0;
 	}
 
-	if (thr == NULL) {
-	  if (verbose) sfprintf(sfstdout," ... NONE, we are idle.\n");
-	  return; /* WE ARE IDLE! */
-	}
-/* dead code ?? */
-	if (!justfree && proc->fed == 0 && proc->vertex != NULL) {
-	  if (verbose) sfprintf(sfstdout," ... NONE, current one has not been fed..\n");
-	  return; /* Current one has not been (completely) fed..	*/
-	}
+	if (proc->vertex)
+	  proc->vertex = proc->vertex->nextitem;
 
-	thr0 = thr;
-	thg  = thr->thgrp;
-	/* proc->vertex->proc = NULL; */ /* Mark that we are busy.. */
-
-	/* Ok, if that one was/is busy/marked off, AND we are ok to
-	   use vertices from the same thread: try next vertex */
-	if (ok) {
-	  vtx  = thr->vertices;
-	  while (vtx) {
-
-	    /* Is the current one in processing ? */
-	    if (vtx->proc == NULL
-		/* && proc->vertex != vtx */ ) {
-	      proc->vertex = vtx;
-	      if (verbose) sfprintf(sfstdout," ... thr=same vtx=%p\n",vtx);
-	      proc->fed = 0;
-	      return; /* No, it is eligible! */
-	    }
-
-	    /* Pick next */
-	    vtx = vtx->nextitem;
-	  }
-	}
-	/* Umm.. All vertices on this thread used! */
-
-	if (proc->overfed > 0) {
-	  /* We are/have overfed, DO NOT CHANGE THREAD YET */
-	  proc->fed = 1;
-	  if (verbose) sfprintf(sfstdout," ... overfed=%d, no thread change.\n",proc->overfed);
-	  return;
-	}
-
-	/* We won't change threads, until the buffer has been flushed */
-	/* .. except if ordered by 'justfree' -- damn resync.. */
-	if (!justfree && proc->cmdlen != 0) {
-	  if (verbose) sfprintf(sfstdout," ... NONE, this thread empty, and feeding incomplete..\n");
-	  proc->fed = 1;
-	  return;
-	}
-
-#if 0 /* duplicate code */
-	if (proc->overfed > 0 && proc->fed) {
-	  /* we have an overfeed situation, we are to stop at
-	     the end of the thread, and wait thread purge to
-	     happen -- by timeouts, or whatever.
-	     We don't idle, we don't move, just return.. */
-	  if (verbose) sfprintf(sfstdout," ... OVERFEED - don't change thread yet.\n");
-	  return;
-	}
-#endif
-
-	mytime(&now);
-
-#if 1
-	/* Move current thread to the last of the threads eligible for start */
-	_thread_timechain_unlink(thr);
-	_thread_timechain_append(thr);
-	/* Idle the process, and be happy.. */
-
-#else /* Something wrong below here... */
-
-	/* the threads are in a ring/chain.. */
-	thr = (thr->nextthg ? thr->nextthg : thg->thread);
-	for (;thr != thr0; thr = (thr->nextthg ? thr->nextthg : thg->thread)) {
-	  if (thr->proc != NULL &&
-	      thr->proc->thread == thr)
-	    continue; /* in processing, don't touch! */
-
-	  if (thr->wakeup > now && thr->attempts > 0 )
-	    continue; /* wakeup in future, unless first time around! */
-
-	  /* Ok, this thread isn't busy, pick the first vertex */
-
-	  /* Get rid of the old host web */
-	  proc->ho->kids -= 1;
-	  if (proc->ho->kids == 0 && proc->ho->link == NULL)
-	    unweb(L_HOST,proc->ho);
-
-	  /* Clean vertices 'proc'-pointers,  randomize the
-	     order of thread vertices  (or sort by spool file
-	     mtime, if in AGEORDER..) */
-	  thread_vertex_shuffle(thr);
-
-	  thr->attempts += 1;
-
-	  proc->vertex = thr->vertices;
-	  proc->thread = thr;
-	  proc->ch = thr->vertices->orig[L_CHANNEL];
-
-	  /* Move the kid to the new host web */
-	  proc->ho = thr->vertices->orig[L_HOST];
-	  proc->ho->kids += 1;
-	  thr0->proc = NULL; /* no longer in there .. */
-	  thr->proc = proc;
-	  thg->thread = thr; /* Move the connection point to this
-				thread so that at the next time we
-				pick some other thread when skipping
-				failed threads.. */
-	  if (verbose) sfprintf(sfstdout," ... thr=%p vtx=%p ch=%s ho=%s\n",
-				thr,proc->vertex,
-				proc->ch->name,proc->ho->name);
-	  proc->fed = 0;
-	  return; /* It is eligible to run! */
-	}
-#endif
-
-	/* No free threads/vertices here, idle the process */
-	if (verbose) sfprintf(sfstdout," ... idle the process (of=%d, f=%d), and try to pick next thread.\n",
-			      proc->overfed, proc->fed);
-	proc->thread = NULL;
-	proc->vertex = NULL;
-	proc->next = thg->idleproc;
-	thr0->proc = NULL;
-	thg->idleproc = proc;
-	thg->idlecnt += 1;
-	idle_child(proc);
-	++idleprocs;
-
-	pick_next_thread(thg, thr, proc);
+	return (proc->vertex != NULL);
 }
 
 /*
@@ -1421,26 +1280,35 @@ int
 idle_cleanup()
 {
 	/* global: time_t now */
-	struct threadgroup *thg = thrg_root;
-	int thg_once = 1;
+	struct threadgroup *thg, *nthg;
+	int thg_once;
 	int freecount = 0;
 
 	mytime(&now);
 
 	if (verbose) sfprintf(sfstdout,"idle_cleanup()\n");
 
-	while (thrg_root != NULL && (thg_once || thg != thrg_root)) {
+	if (!thrg_root) return 0; /* No thread group! */
 
-	  struct threadgroup *thgn = thg->next;
-	  thg_once = 0;
+	for (thg = thrg_root, thg_once = 1;
+	     thg_once || (thg != thrg_root);
+	     thg = nthg, thg_once = 0) {
+
+	  nthg = thg->next;
 
 	  if (thg->thread != NULL) {
 	    struct procinfo *p;
-	    struct thread *thr;
+	    struct thread *thr, *nthr;
+	    int thr_once;
 	    
 	    /* Clean-up faulty client  --  KLUDGE :-(  --  OF=0, HA > much */
 
-	    for ( thr = thg->thread; thr != NULL; thr = thr->nextthg) {
+	    for (thr = thg->thread, thr_once = 1;
+		 thr_once || (thr != thg->thread);
+		 thr = nthr, thr_once = 0) {
+
+	      nthr = thr->nextthg;
+
 	      p = thr->proc;
 	      if (thr->thgrp != thg) /* Not of this group ? */
 		continue; /* Next! */
@@ -1457,7 +1325,8 @@ idle_cleanup()
 
 		thr->wakeup = now-1; /* reschedule immediately! */
 
-		write(p->tofd,"\n",1);
+		write(p->tofd,"\n",1); /* XXXX: should this be removed ?? */
+
 		pipes_shutdown_child(p->tofd);
 		p->tofd = -1;
 #if 0
@@ -1470,7 +1339,7 @@ idle_cleanup()
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
 #endif
-		zsyslog((LOG_ERR,"ZMailer scheduler kludge shutdown of TA channel (info for debug only); %s/%s/%d HA=%ds",
+		zsyslog((LOG_ERR, "ZMailer scheduler kludge shutdown of TA channel (info for debug only); %s/%s/%d HA=%ds",
 			 thr->channel, thr->host, thr->thgrp->withhost,
 			 now - p->hungertime));
 	      }
@@ -1531,8 +1400,6 @@ idle_cleanup()
 	      delete_threadgroup(thg);
 	    }
 	  }
-	  /* Next one in thread rings */
-	  thg = thgn;
 	}
 	return freecount;
 }
@@ -1583,7 +1450,8 @@ void thread_report(fp,mqmode)
 	for (thg = thrg_root;
 	     thg && (thg_once || thg != thrg_root);
 	     thg = thg->next) {
-	  int thr_once = 1;
+
+	  int thr_once;
 
 	  thg_once = 0;
 	  if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ)) {
@@ -1594,17 +1462,22 @@ void thread_report(fp,mqmode)
 	  cnt   = 0;
 	  procs = 0;
 	  jobsum = 0;
-	  thr_once = 1;
 
-	  /* for (thr = thg->thread;
-	     thr && (thr_once || thr != thg->thread);
-	     thr = thr->nextthg) */
+#if 0 /* XX: zero for verifying of modified system; turn to 1 for running! */
 
+	  /* We scan thru the local ring of threads */
+
+	  for (thr = thg->thread, thr_once = 1;
+	       thr_once || (thr != thg->thread);
+	       thr = thr->nextthg, thr_once = 0)
+#else
 	  /* We scan there in start order from the  thread_head
 	     chain! */
 
-	  for (thr = thg->thread; thr != NULL ; thr = thr->nextthg) {
-
+	  for (thr = thread_head;
+	       thr != NULL;
+	       thr = thr->nexttr) {
+#endif
 	    if (thr->thgrp != thg) /* Not of this group ? */
 	      continue; /* Next! */
 
@@ -1637,7 +1510,6 @@ void thread_report(fp,mqmode)
 		sfprintf(fp," ");
 	    }
 
-	    thr_once = 0;
 	    jobsum += thr->jobs;
 
 	    if (mqmode & MQ2MODE_FULL) {
@@ -1650,8 +1522,7 @@ void thread_report(fp,mqmode)
 	      ++procs;
 
 	      if (mqmode & MQ2MODE_FULL) {
-		sfprintf(fp, " P=%-5d H=%d HA=%ds", (int)thr->proc->pid,
-			 (int)thr->proc->hungry,
+		sfprintf(fp, " P=%-5d HA=%ds", (int)thr->proc->pid,
 			 (int)(now - thr->proc->hungertime));
 
 		if (thr->proc->feedtime == 0)
@@ -1743,23 +1614,25 @@ int thread_count_recipients()
 {
 	struct threadgroup *thg;
 	struct thread *thr;
-	int thg_once = 1;
-	int jobsum, jobtotal = 0;
+	int thg_once;
+	int jobtotal = 0;
 
 	if (thrg_root == NULL)
 	  return 0;
 
-	for (thg = thrg_root;
+	for (thg = thrg_root, thg_once = 1;
 	     thg_once || thg != thrg_root;
-	     thg = thg->next) {
-	  int thr_once = 1;
+	     thg = thg->next, thg_once = 0) {
 
-	  thg_once = 0;
-	  jobsum = 0;
-	  thr_once = 1;
-	  for (thr = thg->thread; thr && (thr_once || thr != thg->thread); thr = thr->nextthg) {
-	    thr_once = 0;
+	  int thr_once;
+	  int jobsum = 0;
+
+	  for (thr = thg->thread, thr_once = 1;
+	       thr_once || (thr != thg->thread);
+	       thr = thr->nextthg, thr_once = 0) {
+
 	    jobsum += thr->jobs;
+
 	  }
 	  jobtotal += jobsum;
 	}

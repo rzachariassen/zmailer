@@ -98,208 +98,149 @@ cmdbufalloc(newlen, bufp, spcp)
 extern int errno;
 extern int slow_shutdown;
 
-/* Send "#idle\n" -string to the child.. */
 
-void
-idle_child(proc)
-struct procinfo *proc;
-{
-	int len, rc;
 
-	if (proc->tofd < 0) return; /* can't write... */
-
-	/* we are NOT to be called while there is something
-	   left in the cmdbuf[] ! */
-	if (proc->cmdbuf == NULL)
-	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
-
-	if (proc->cmdlen > 0)
-	  flush_child(proc);
-
-	if (proc->cmdlen > 0) {
-	  if (proc->cmdlen >= proc->cmdspc)
-	    cmdbufalloc(proc->cmdlen, &proc->cmdbuf, &proc->cmdspc);
-	  proc->cmdbuf[proc->cmdlen] = 0;
-	  sfprintf(sfstderr,"idle_child(proc->cmdbuf=\"%s\") -> abort()!\n",proc->cmdbuf);
-	  fflush(stderr);
-	  /* abort(); */ /* Hmm.. ??? */
-	  return;
-	}
-	if (slow_shutdown) {
-	  proc->cmdbuf[0] = '\n';
-	  len = 1;
-	} else {
-	  len = 6;
-	  memcpy(proc->cmdbuf,"#idle\n", len);
-	  /* Count this feed as one of normal inputs.
-	     At least we WILL get a "#hungry" message for this */
-	  proc->overfed = 2;
-	}
-	proc->cmdlen = len;
-
-	rc = write(proc->tofd, proc->cmdbuf, len);
-	if (rc < 0 &&
-	    (errno != EAGAIN && errno != EINTR &&
-	     errno != EWOULDBLOCK)) {
-	  /* Some real failure :-( */
-	  pipes_shutdown_child(proc->tofd);
-	  proc->tofd = -1;
-	  if (proc->vertex)
-	    proc->vertex->proc = NULL;
-	  if (proc->thread)
-	    proc->thread->proc = NULL;
-	  proc->thread         = NULL;
-	  proc->cmdlen = 0;
-	  return;
-	}
-	if (rc > 0)
-	  proc->cmdlen -= rc;
-}
-
+/* 
+ * Flush to child;
+ * return -1 for failures and incomplete writes, 0 for success!
+ */
 int
 flush_child(proc)
-struct procinfo *proc;
+     struct procinfo *proc;
 {
-	int rc;
-
 	if (proc->tofd < 0) {
-	  if (proc->vertex)
+	  if (proc->vertex) {
 	    proc->vertex->proc = NULL;
+	    proc->vertex       = NULL;
+	  }
 	  if (proc->thread) {
 	    proc->thread->proc = NULL;
 	    proc->thread       = NULL;
 	  }
 	  proc->cmdlen = 0;
-	  return 0;
+	  proc->state = CFSTATE_ERROR;
+	  return -1;
 	}
-
+#if 0
 	/* Make sure the buffer exists.. */
 	if (proc->cmdbuf == NULL)
-	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
+	  cmdbufalloc(120, &proc->cmdbuf, &proc->cmdspc);
+#endif
+	if (proc->cmdlen == 0 && proc->tofd >= 0)
+	  return 0; /* All done! */
 
-	if (proc->cmdlen != 0 && proc->tofd >= 0) {
-	  /* We have some leftovers from previous feed..
-	     .. feed them now.  */
+	/* We have some leftovers from previous feed..
+	   .. feed them now.  */
 
-	  /* sfprintf(sfstderr,
-	     "flushing to child pid %d, cmdlen=%d, cmdbuf='%s'\n",
-	     proc->pid, proc->cmdlen, proc->cmdbuf);  */
+	/* sfprintf(sfstderr,
+	   "flushing to child pid %d, cmdlen=%d, cmdbuf='%s'\n",
+	   proc->pid, proc->cmdlen, proc->cmdbuf);  */
 
-	  while (proc->tofd >= 0 && proc->cmdlen > 0) {
-	    rc = write(proc->tofd, proc->cmdbuf, proc->cmdlen);
-	    if (rc != proc->cmdlen) {
-	      if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
-			     errno != EWOULDBLOCK)) {
-		/* Some real failure :-( */
-		pipes_shutdown_child(proc->tofd);
-		proc->tofd = -1;
-		if (proc->vertex)
-		  proc->vertex->proc = NULL;
-		if (proc->thread) {
-		  proc->thread->proc = NULL;
-		  proc->thread       = NULL;
-		}
-		proc->cmdlen = 0;
-		return -1;
-	      }
-	      if (rc > 0)
-		memcpy(proc->cmdbuf, proc->cmdbuf+rc, proc->cmdlen - rc +1);
-	      else
-		break;
-	      proc->cmdlen -= rc;
-	    } else {
-	      proc->cmdlen = 0; /* Clean the pending info.. */
+	while (proc->tofd >= 0 && proc->cmdlen > 0) {
+	  int rc = write(proc->tofd, proc->cmdbuf, proc->cmdlen);
+	  if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
+			 errno != EWOULDBLOCK)) {
+	    /* Some real failure :-( */
+	    pipes_shutdown_child(proc->tofd);
+	    proc->tofd = -1;
+	    if (proc->vertex) {
+	      proc->vertex->proc = NULL;
+	      proc->thread       = NULL;
 	    }
+	    if (proc->thread) {
+	      proc->thread->proc = NULL;
+	      proc->thread       = NULL;
+	    }
+	    proc->cmdlen = 0;
+	    proc->state = CFSTATE_ERROR;
+	    return -1;
 	  }
-	  proc->feedtime = now;
-	  return proc->cmdlen; /* We return latter.. */
+	  if (rc > 0) {
+	    memcpy(proc->cmdbuf, proc->cmdbuf + rc, proc->cmdlen - rc);
+	    proc->feedtime = now;
+	  } else
+	    break;
+	  proc->cmdlen -= rc;
 	}
-	return 0;
+	return (proc->cmdlen != 0); /* We return latter.. */
 }
 
-void
+
+/*
+ * The 'feed_child()' sends whatever is pointed by   proc->vertex;
+ * return -1 for failures and incomplete writes, 0 for success!
+ */
+
+int
 feed_child(proc)
-struct procinfo *proc;
+     struct procinfo *proc;
 {
 	struct vertex *vtx;
-	int rc;
-	static char *cmdbuf = NULL;
-	static int cmdbufspc = 0;
 	int cmdlen;
 
-	flush_child(proc);
+	static char *cmdbuf = NULL;
+	static int cmdbufspc = 0;
+
+
+	if (flush_child(proc))
+	  /* Nothing written -> break out -- might not be an error! */
+	  return -1;
 
 	if (proc->thread == NULL) {
-	  return; /* Might be called without next process.. */
+	  proc->state = CFSTATE_ERROR;
+	  return -1; /* Might be called without next process.. */
+	}
+	if (proc->vertex == NULL) {
+	  proc->state = CFSTATE_ERROR;
+	  return -1; /* Might be called without next process.. */
 	}
 	if (proc->pid <= 0 || proc->tofd < 0) {
-	  return; /* No process../No write channel.. */
-	}
-	if (proc->fed) {
-	  /* DON'T RE-FEED! */
-	  if (verbose)
-	    sfprintf(sfstdout," ... no refeeding\n");
-	  return;
+	  proc->state = CFSTATE_ERROR;
+	  return -1; /* No process../No write channel.. */
 	}
 
 	vtx = proc->vertex;
 
-	if (!vtx) { /* No active vertex left, child is in inactive
-		       chain, but has leftover stuff at the output
-		       buffer */
-	  flush_child(proc);
-	  return;
-	}
-
-	if (vtx->wakeup > now)
-	  return; /* No, not yet! */
-
 	if (slow_shutdown) {
+
 	  cmdlen = 1;
-	  cmdbufalloc(cmdlen, &cmdbuf, &cmdbufspc);
+	  cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	  strcpy(cmdbuf,"\n");
+
 	} else if (vtx->cfp->dirind > 0) {
+
 	  const char *d = cfpdirname(vtx->cfp->dirind);
 	  if (proc->thg->withhost) { /* cmd-line was with host */
 	    cmdlen = 2 + strlen(d) + strlen(vtx->cfp->mid);
-	    cmdbufalloc(cmdlen, &cmdbuf, &cmdbufspc);
+	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s/%s\n", d, vtx->cfp->mid);
 	  } else {
 	    cmdlen = 3+strlen(d)+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
-	    cmdbufalloc(cmdlen, &cmdbuf, &cmdbufspc);
+	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s/%s\t%s\n", d, vtx->cfp->mid, proc->ho->name);
 	  }
 	} else {
 	  if (proc->thg->withhost) { /* cmd-line was with host */
 	    cmdlen = 1 + strlen(vtx->cfp->mid);
-	    cmdbufalloc(cmdlen, &cmdbuf, &cmdbufspc);
+	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s\n", vtx->cfp->mid);
 	  } else {
 	    cmdlen = 2+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
-	    cmdbufalloc(cmdlen, &cmdbuf, &cmdbufspc);
+	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s\t%s\n", vtx->cfp->mid, proc->ho->name);
 	  }
 	}
 
-	if (cmdlen >= (proc->cmdspc - proc->cmdlen)) {
-	  /* Does not fit there, flush it! */
-	  rc = flush_child(proc);
-	  if (proc->cmdlen == 0 && cmdlen >= proc->cmdspc) {
-	    /* Wow, this command is bigger than that buffer! */
-	    cmdbufalloc(cmdlen+1, &proc->cmdbuf, &proc->cmdspc);
-	  }
-	  if (cmdlen >= (proc->cmdspc - proc->cmdlen)) {
-	    /* STILL does not fit there, come back latter.. */
-	    return;
-	  }
-	}
-	/* Ok, it does fit in, copy it there.. */
-	memcpy(proc->cmdbuf+proc->cmdlen,cmdbuf, cmdlen+1);
+	if ((proc->cmdlen + cmdlen) >= proc->cmdspc)
+	  cmdbufalloc(proc->cmdlen + cmdlen + 1, &proc->cmdbuf, &proc->cmdspc);
+
+	/* Ok, copy it there.. */
+	memcpy(proc->cmdbuf + proc->cmdlen, cmdbuf, cmdlen+1);
 	proc->cmdlen += cmdlen;
 
 	if (verbose) {
-	  sfprintf(sfstdout,"feed: tofd=%d, fed=%d, chan='%s', proc=0x%p, vtx=0x%p, ",
-		 proc->tofd, proc->fed, proc->ch->name, proc, vtx);
+	  sfprintf(sfstdout,"feed: tofd=%d, chan='%s', proc=0x%p, vtx=0x%p, ",
+		 proc->tofd, proc->ch->name, proc, vtx);
 	  fflush(stdout);
 	}
 
@@ -322,10 +263,7 @@ struct procinfo *proc;
 	vtx->proc = proc;    /* Flag that it is in processing */
 	vtx->ce_pending = 0; /* and clear the pending.. */
 	
-	if (proc->hungry) --hungry_childs;
 	/* It was fed (to buffer), clear this flag.. */
-	proc->hungry  -= 1;
-	proc->fed      = 1;
 	proc->overfed += 1;
 
 	if (verbose)
@@ -334,6 +272,119 @@ struct procinfo *proc;
 	proc->feedtime = now;
 	if (vtx)
 	  vtx->attempts += 1; /* We may get it closed above.. */
+
+	return flush_child(proc);
+}
+
+
+void
+ta_hungry(proc)
+     struct procinfo *proc;
+{
+	/* This is an "actor model" behaviour,
+	   where actor tells, when it needs a new
+	   job to be fed to it. */
+
+	mytime(&proc->hungertime);
+
+	if (proc->tofd < 0) {
+	  --proc->overfed;
+	  return;
+	}
+
+	/* We have valid child-feed state */
+
+	proc->overfed -= 1;
+
+	switch(proc->state) {
+	case CFSTATE_LARVA:
+
+	  /* Thread selected already along with its first vertex,
+	     which is pointer by  proc->vertex  */
+
+	cfstate_larva:
+
+	  proc->state = CFSTATE_STUFFING;
+	  feed_child(proc); /* Result state may be: CFSTATE_ERROR also */
+	  return;
+
+	case CFSTATE_STUFFING:
+
+	  if (proc->overfed > 0) return;
+
+	  for (;;) {
+
+	    if (!pick_next_vertex(proc))
+	      break;
+
+	    if (!feed_child(proc))
+	      return; /* If an error, bail out.. */
+	    if (proc->overfed > proc->thg->ce.overfeed)
+	      return; /* Or over limit ...       */
+
+	  }
+
+	  proc->state = CFSTATE_FINISHING;
+	  /* fall thru ! */
+
+	case CFSTATE_FINISHING:
+
+	  if (proc->overfed > 0) return;
+
+	  /* Next: either the thread changes, or
+	     the process moves into IDLE state */
+
+	  if (pick_next_thread(proc)) {
+	    /* We have WORK ! */
+	    proc->state = CFSTATE_LARVA;
+	    goto cfstate_larva;
+	  }
+
+	  /* No work in sight, queue up '#idle\n' string. */
+
+	  if ((proc->cmdlen + 7) >= proc->cmdspc) {
+	    cmdbufalloc(proc->cmdlen+7, &proc->cmdbuf, &proc->cmdspc);
+	  }
+	  if (slow_shutdown) {
+	    proc->cmdbuf[ proc->cmdlen ] = '\n';
+	    proc->cmdlen += 1;
+	  } else {
+	    memcpy(proc->cmdbuf + proc->cmdlen, "#idle\n", 6);
+	    proc->cmdlen += 6;
+	  }
+	  proc->state = CFSTATE_IDLE;
+	  if (!flush_child(proc)) /* May flip the state to CFSTATE_ERROR */
+	    proc->overfed += 1;
+	  return;
+
+	case CFSTATE_IDLE:
+	  /* The process has arrived into IDLE pool! */
+
+	  /* ASSERT(proc->overfed == 0) ???? */
+
+	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
+				proc, proc->overfed);
+	  proc->thread = NULL;
+	  proc->vertex = NULL;
+	  proc->next   = proc->thg->idleproc;
+	  proc->thg->idleproc = proc;
+	  proc->thg->idlecnt += 1;
+	  ++idleprocs;
+	  
+	  return;
+
+	default: /* CFSTATE_ERROR */
+	  /* Some error was encountered at  feed_child()  at some
+	     point, we do nothing! */
+
+	  /* Some (real?) failure :-( */
+
+	  /* We shut-down the child feed pipe */
+	  pipes_shutdown_child(proc->tofd);
+	  proc->tofd = -1;
+	  break;
+	}
+	return;
 }
 
 /*
@@ -571,10 +622,11 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->cmdlen = 0;
 	proc->reaped = 0;
 	proc->carryover = NULL;
-	proc->hungry = 0;
-	proc->fed    = 0;
-	proc->overfed = 0;
 #endif
+
+	proc->overfed = 1;
+	proc->state   = CFSTATE_LARVA;
+
 	proc->pid    = pid;
 	proc->ch     = chwp;
 	proc->ho     = howp;

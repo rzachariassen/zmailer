@@ -122,21 +122,22 @@ extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr));
 extern int   idle_cleanup __((void));
-extern void  pick_next_vertex __((struct procinfo *proc, int ok, int justfree));
+extern int   pick_next_thread __((struct procinfo *proc));
+extern int   pick_next_vertex __((struct procinfo *proc));
 #ifdef _SFIO_H
 extern void  thread_report __((Sfio_t *, int));
 #endif
 extern int   idleprocs;
-extern void  web_disentangle __((struct vertex *vp, int ok));
+extern void  web_detangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));
 extern void  thread_reschedule __((struct thread *, time_t, int index));
 
 /* transport.c */
 extern struct procinfo *cpids;
 extern int  numkids;
-extern void feed_child      __((struct procinfo *cpidp));
-extern int flush_child      __((struct procinfo *cpidp));
-extern void idle_child      __((struct procinfo *cpidp));
+extern void ta_hungry       __((struct procinfo *cpidp));
+extern int  feed_child      __((struct procinfo *cpidp));
+extern int  flush_child     __((struct procinfo *cpidp));
 extern int  start_child     __((struct vertex *vhead, struct web *channel, struct web *host));
 extern void shutdown_kids   __(( void ));
 extern RETSIGTYPE sig_chld __((int sig));
