@@ -1,12 +1,12 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "21 Sep 1999"
+.TH SMTP 8 "2 Jan 2000"
 .SH NAME
 smtp \- zmailer SMTP client transport agent
 .SH SYNOPSIS
 .B smtp
 [
-.B \-78deEHrPsVxW
+.B \-678deEHrPsVxW
 ]
 [
 .B \-c
@@ -26,7 +26,11 @@ smtp \- zmailer SMTP client transport agent
 ]
 [
 .B \-T
-.I timeout
+.I timeouts
+]
+[
+.B \-S
+.I /path/to/smtp-tls.conf
 ]
 [
 .B \-F
@@ -55,6 +59,8 @@ are found, all matching addresses and messages are transferred in a single
 SMTP conversation.  The destination host might in fact be served by any
 available mail exchanger for that host.
 .SH OPTIONS
+.IP \-6
+Prefer IPv6 type socket and addresses, if available.
 .IP \-7
 forces SMTP channel to be 7-bit, and thus forcing all 8-bit texts to be
 MIME-QP-encoded for the transport.
@@ -117,16 +123,43 @@ public MX knowledge and do exactly what the router says in cases where
 delivering to an explicit IP address is inappropriate.
 .IP \-P
 disable SMTP-PIPELINING usage (ESMTP keyword: PIPELINING)
-.IP \-T\ \fItimeout\fR
-specifies the timeout, in seconds, when waiting for a response to an SMTP
-command.  The timeout applies to all SMTP command\-response exchanges except
-for the acknowledgement after terminating the
-.B DATA
-portion of a message transaction (after sending the "." CRLF sequence).
-The default timeout is 10 minutes, the minimum acceptable value is 5 seconds.
-The timeout on the
-.B DATA
-acknowledgement is very large, at least 24 hours.
+.IP \-S\ \fI/path/to/smtp-tls.conf\fR
+Transport-Layer-Security (a.k.a. Secure-Socket-Layer) feature configuration
+file.  When this is supplied, and system is compiled to possibly use it,
+and the remote system reports EHLO capability of
+.BR STARTTLS ,
+this client attempts to turn on the encryption on the socket.
+There exists also a posssibility of
+.I demanding
+TLS mode of the connection - if so has been demand, but it is not available,
+email is not sent over the connection.
+.IP \-T\ \fItimeouts\fR
+specifies the timeouts,
+.B in seconds,
+when waiting for various things.
+Possible submodes are:
+.sp
+.ta 0.5i 1i 1.5i
+.nf
+	conn=
+		Timeout to wait for the TCP connection establishment.
+		The default is 3 minutes.
+	tcpw=
+		Timeout to wait at lowlevel TCP socket write() routines
+		for the socket to accept some more input.
+		The default is 3 minutes.
+	cmd= (or plain numbers)
+		Waiting for command replies (e.g. MAIL FROM, et.al.)
+		The default is 5 minutes.
+	data=
+		From "DATA" verb issuance until "354" responce.
+		The default is 2 minutes.
+	dot=
+		From "DATA" phase ending "." issuance until "250 OK" report
+		reception (this is \fBafter\fR the TCP write pipeline has completed).
+		The default is 60 minutes. (RFC 1123 gives 10 minutes.)
+.fi
+.sp
 .IP \-V
 prints a version message and exits.
 .IP \-W
@@ -192,6 +225,34 @@ When
 \-header is not present in the headers, and recipient has not declared
 8-bit SMTP capability, mail contents are treated with old 7-bit stripping
 method.
+.SH SECURE SOCKET LAYER SUPPORT
+If you are using a version which has been made to use OpenSSL 0.9.4, or
+latter version, you are able to encrypt the SMTP protocol session in case
+the remote end supports RFC 2487 defined
+.I STARTTLS
+facility.
+.PP
+Possible example of the smtp\-tls.conf  file is given below:
+.PP
+.nf
+#|
+#| This is example configuration file for TLS support at the SMTP TA
+#| programs, e.g. SMTP Client.
+#|
+
+tls-cert-file   @MAILVAR@/db/smtpserver-cert.pem
+tls-key-file    @MAILVAR@/db/smtpserver-key.pem
+tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
+#tls-CApath /path/to/CAdir/
+#tls-loglevel  0  # Value from 0 thru 4
+
+#|
+#| If the TLS mode is MANDATED for a session, copy this file to
+#| e.g. "smtp-tls-mandatory.conf", uncomment following line, and
+#| point those channels to use that new file.
+#|
+#demand-tls-mode
+.fi
 .SH FILES
 .I /etc/zmailer.conf
 .br
@@ -199,7 +260,8 @@ method.
 .SH SEE ALSO
 scheduler(8)
 .br
-RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1653, RFC1428
+RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1870, RFC1428, RFC1830,
+RFC1981, RFC2197, RFC2034, RFC2487
 .SH AUTHOR
 This program authored and copyright by:
 .br
