@@ -1,5 +1,12 @@
 2000-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* INSTALL:
+	    Refer to HTML renderation of ZMailer manual's install part..
+
+	* scheduler/msgerror.c:
+	    Drop leading \r from report data.  No weird looking blank
+	    line in resulting report.
+
 	* transports/smtp/smtp.c:
 	    Don't diagnose TLS status unconditionally, it is annoying
 	    thing to have accumulating into scheduler's log..

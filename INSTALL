@@ -2,13 +2,11 @@
 	MUST BE REPLACED WITH THE TEXT FROM  doc/manual/zmanual.ps,
 	ESPECIALLY THE CHAPTER 2 -- INSTALL.
 
+	Altenatively see:
+		http://www.zmailer.org/zman/zinstall.html
+
 
 Installation procedure:
-
-0.	Consider joining ZMailer user-community email list.
-	The place to meet the Gurus, in case you have problems..
-	See the "Overview"-file.
-
 
 1.	Cornerstone of everything in busy Internet email routing
 	is a well-working DNS server, and modern resolver library.
