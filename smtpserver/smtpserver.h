@@ -664,8 +664,8 @@ struct peerdata {
 	int  fd;
 	int  inlen;
 	int  outlen, outptr;
-	char inpbuf[2000];
-	char outbuf[5000];
+	char inpbuf[1000];
+	char outbuf[2000];
 };
 
 struct subdaemon_handler {
