@@ -129,6 +129,7 @@ notaryreport(arg1,arg2,arg3,arg4)
 	if (A3) len += strlen(A3);
 	if (A4) len += strlen(A4);
 	if (wtthost) len += strlen(wtthost);
+	if (wttip) len += strlen(wttip)+5;
 
 	if (!notarybuf)
 	  notarybuf = (char*) emalloc(len);
@@ -137,6 +138,9 @@ notaryreport(arg1,arg2,arg3,arg4)
 	sprintf(notarybuf,fmt,
 		A1?A1:"",A2?A2:"",A3?A3:"",A4?A4:"",
 		wtthost?wtthost:"");
+	if (wttip) {
+	  sprintf(notarybuf + strlen(notarybuf), " (%s)", wttip);
+	}
 }
 
 

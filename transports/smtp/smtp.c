@@ -297,7 +297,7 @@ typedef struct {
 
   char remotemsg[2*BUFSIZ];
   char remotehost[MAXHOSTNAMELEN+1];
-  char ipaddress[80];
+  char ipaddress[200];
 
   char stdinbuf[8192];
   int  stdinsize; /* Available */
@@ -394,7 +394,7 @@ static char *logtag()
 
 	time(&now);
 
-	sprintf(buf,"%05d%c%05d%05d", pid, id, logcnt, now % 100000);
+	sprintf(buf,"%05d%c%05d%05d", pid, id, logcnt, (int)(now % 100000));
 	++logcnt;
 	return buf;
 }
@@ -2490,6 +2490,8 @@ makeconn(SS, ai, ismx)
 	    si = (struct sockaddr_in *)ai->ai_addr;
 	    i = matchmyaddress((struct sockaddr*)ai->ai_addr);
 	    inet_ntop(AF_INET, &si->sin_addr, SS->ipaddress, sizeof(SS->ipaddress));
+	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
+		    ntohs(si->sin_port));
 	  } else
 #if defined(AF_INET6) && defined(INET6)
 	  if (ai->ai_family == AF_INET6) {
@@ -2497,6 +2499,8 @@ makeconn(SS, ai, ismx)
 	    i = matchmyaddress((struct sockaddr*)ai->ai_addr);
 	    strcpy(SS->ipaddress,"ipv6 ");
 	    inet_ntop(AF_INET6, &si6->sin6_addr, SS->ipaddress+5, sizeof(SS->ipaddress)-5);
+	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
+		    ntohs(si6->sin6_port));
 	  } else
 #endif
 	    sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
@@ -2584,6 +2588,14 @@ vcsetup(SS, sa, fdp, hostname)
 	struct sockaddr_in6 *sai6 = (struct sockaddr_in6 *)sa;
 	struct sockaddr_in6 sad6;
 #endif
+	union {
+	  struct sockaddr_in sai;
+#if defined(AF_INET6) && defined(INET6)
+	  struct sockaddr_in6 sai6;
+#endif
+	} upeername;
+	int upeernamelen;
+
 	u_short p;
 	int errnosave;
 	char *se;
@@ -2800,6 +2812,34 @@ if (SS->verboselog)
 	se = strerror(errnosave);
 
 	alarm(0);
+
+	memset(&upeername, 0, sizeof(upeername));
+	upeernamelen = sizeof(upeername);
+	getpeername(s, (struct sockaddr*) &upeername, &upeernamelen);
+
+#if defined(AF_INET6) && defined(INET6)
+	if (upeername.sai6.sin6_family == AF_INET6) {
+	  int len = strlen(SS->ipaddress);
+	  strcat(SS->ipaddress, "|");
+	  inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
+		    SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
+	  sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
+		  ntohs(upeername.sai6.sin6_port));
+	} else
+#endif
+	  if (upeername.sai.sin_family == AF_INET) {
+	    int len = strlen(SS->ipaddress);
+	    strcat(SS->ipaddress, "|");
+	    inet_ntop(AF_INET, &upeername.sai.sin_addr,
+		      SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
+	    sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
+		    ntohs(upeername.sai.sin_port));
+	  } else
+	    {
+	      strcat(SS->ipaddress, "|UNKNOWN-PEER-ADDRESS");
+	    }
+
+	notary_setwttip(SS->ipaddress);
 
 	sprintf(SS->remotemsg, "smtp; 500 (connect to %.200s [%.200s]: %s)",
 		hostname, SS->ipaddress, se);
