@@ -814,8 +814,8 @@ thread_start(thr, queue_only_too)
 		   ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
 		   thr, thr->jobs);
 
-	if (thr->thrkids < ce->maxkidThread &&
-	    thr->thrkids < thr->jobs) {
+	if ((thr->thrkids >= ce->maxkidThread) ||
+	    (thr->thrkids >= thr->jobs)) {
 	  if (verbose) {
 	    struct procinfo * proc = thr->proc;
 	    sfprintf(sfstderr," -- already running; thrkids=%d jobs=%d procs={ %p",
