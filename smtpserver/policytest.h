@@ -25,6 +25,7 @@ struct policystate {		/* Part of SmtpState structure */
        Corresponding flag is 3rd bit (1 << 3) = 8.
        Flag P_A_ALIAS ( == 1) is ignored.            */
     int request;
+    int origrequest;
     /* Attribute values are stored here. */
     char values[P_A_LastAttr+1];
 

@@ -135,7 +135,8 @@ const struct policystate *state;
 
 	for ( i = P_A_FirstAttr; i <= P_A_LastAttr ; ++i) {
 		printf("%s: %s, value=%c\n",
-		       KA(i),(state->request&(1<<i))?"requested":"not req",
+		       KA(i),
+		       (state->origrequest & (1<<i)) ? "requested" : "not req",
 		       state->values[i]?state->values[i]:'.');
 	}
 }
@@ -313,6 +314,8 @@ int init;
 	/* First call of this function. Not called recursively. */
 	/* Zero return value array. */
 	memset(state->values, 0, sizeof(state->values));
+
+	state->origrequest = state->request;
     }
     --recursions;
 
