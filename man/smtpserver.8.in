@@ -518,6 +518,8 @@ Finally, ``toplimit'' caps the delay value.
 .IP "PARAM tls\-CAfile $MAILVAR/db/smtpserver\-CAcert.pem"
 .IP "PARAM tls\-cert\-file  $MAILVAR/db/smtpserver\-cert.pem"
 .IP "PARAM tls\-key\-file   $MAILVAR/db/smtpserver\-key.pem"
+.IP "PARAM tls\-dcert\-file  $MAILVAR/db/smtpserver\-dcert.pem"
+.IP "PARAM tls\-dkey\-file   $MAILVAR/db/smtpserver\-dkey.pem"
 .RS
 These are TLSv1 parameters, and all parts of this parameter cluster
 must be set for the facility to work!
@@ -528,12 +530,15 @@ http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 .PP
 Also see below section
 .BR "OPENSSL RELATED PARAMETERS" .
+.PP
+The "dcert" and "dkey" are for DSA derived private key, and certificates.
 .RE
 .IP "PARAM tls\-dh512  $MAILVAR/db/smtpserver\-cert\-dh512.pem"
 .IP "PARAM tls\-dh1024 $MAILVAR/db/smtpserver\-cert\-dh1024.pem"
 .RS
-Optional file to supply auxiliary DH parameters for the key exchange,
-in case the certificate is so old, that it does not contain them.
+Optional file to supply auxiliary DH parameters for the DSA related
+key exchange, in case the certificate is so old, that it does not contain
+them.
 The system has built-in default values for these.
 .RE
 .IP "PARAM listen\-ssmtp"
@@ -728,6 +733,8 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
 #PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
 #PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem
+#PARAM  tls-dcert-file  $MAILVAR/db/smtpserver-dcert.pem
+#PARAM  tls-dkey-file   $MAILVAR/db/smtpserver-dkey.pem
 #PARAM  tls-dh512       $MAILVAR/db/smtpserver-dh512.pem
 #PARAM  tls-dh1024      $MAILVAR/db/smtpserver-dh1024.pem
 #  # Then some futher thoughs that may materialize some time..
