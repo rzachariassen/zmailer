@@ -2436,19 +2436,37 @@ prctladdr(info, fp, cfflag, comment)
 	      if (x->string == NULL || *x->string == '\0')
 		putc('-', fp);
 	      else {
-		char *s = strchr(x->string,' ');
-		if (!s) s = strchr(x->string,'\t');
-		if (s && x->string[0] != '"') {
-		  s = x->string;
+		char *s = x->string;
+		int quote = 0;
+		/* Do same scanner as  skip821address()  will do with
+		   our result.  Does it arrive to the end-of-string ?
+		   Does it do it with 'quote' state CLEAR ? */
+		for ( ; *s; ++s) {
+		  int c = *s;
+		  if (c == '\\') {
+		    ++s;
+		    if (*s == 0) break;
+		  }
+		  if (c == quote) /* 'c' is non-zero here */
+		    quote = 0;
+		  else if (c == '"')
+		    quote = c;
+		  else if (!quote && (c == ' ' || c == '\t'))
+		    break;
+		}
+
+		if (*s || quote) {
+		  /* Didn't arrive to the end-of-string with quote clear! */
+
 		  putc('"',fp);
-		  while (*s) {
+		  for (s = x->string; *s; ++s) {
 		    if (*s == '"' || *s == '\\')
 		      putc('\\',fp);
 		    putc(*s,fp);
-		    ++s;
 		  }
 		  putc('"',fp);
 		} else
+		  /* It is clean string not needing extra quotes */
 		  fprintf(fp, "%s", x->string);
 	      }
 	      if (i == 4 && x->string != NULL)

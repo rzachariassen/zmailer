@@ -13,7 +13,8 @@ char *skip821address(s)
 {
   char quote = 0;
   char c;
-  while ((c = *s)) {
+  for ( ; *s; ++s) {
+    c = *s;
     if (c == '\\') {
       ++s;
       if (*s == 0)
@@ -25,7 +26,6 @@ char *skip821address(s)
       quote = '"';
     else if (!quote && (c == ' ' || c == '\t'))
       break;
-    ++s;
   }
   return s;
 }

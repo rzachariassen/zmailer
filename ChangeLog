@@ -1,5 +1,10 @@
 2000-01-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822.c, lib/skip821address.c, transports/libta/ctlopen.c:
+	    Have seen one mighty strange local non-delivery, and learned
+	    ways to use quotes in addresses which are not always safe from
+	    router to scheduler, and to TAs..
+
 	* man/smtp.8, proto/smtp-tls.conf{,.in}, doc/guides/openssl,
 	  configure.in, proto/Makefile.in, proto/scheduler.conf.in,
 	  proto/post-install.sh.in:

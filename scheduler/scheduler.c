@@ -1788,6 +1788,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	register int i, opcnt;
 	register int *lp;
 	int svn;
+	int c_echannel, c_ehost, c_l_echannel, c_l_ehost;
 	char *cp, *channel, *host, *l_channel, *l_host;
 	char *echannel, *ehost, *l_echannel, *l_ehost, mfpath[100], flagstr[2];
 	char *latest_sender = NULL;
@@ -2149,6 +2150,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	 */
 	strcpy(flagstr," ");
 	l_channel = l_echannel = l_host = l_ehost = flagstr;
+	c_echannel = c_ehost = c_l_echannel = c_l_ehost = 0;
 	svn = 0;
 	pvp = NULL;
 	head = NULL;
@@ -2156,12 +2158,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	for (i = 0; i < opcnt; ++i) {
 	  channel = bcp + offarr[i].offset /* - 2 */;
 	  while (*channel == ' ') ++channel; /* Skip possible space(s) */
-	  echannel = strchr(channel, ' ');
-	  if (echannel == NULL) /* error! */
-	    continue;
-	  *echannel = '\0';
-	  host = echannel + 1;
-	  while (*host == ' ') ++host; /* Skip space */
+	  host = echannel = skip821address(channel);
+	  c_l_echannel = *host; if (c_l_echannel) *host++ = '\0';
+	  while (*host == ' ') ++host; /* Skip space(s) */
 #if 1
 	  /* [mea]   channel ((mx.target)(mx.target mx.target)) rest.. */
 	  cp = host;
@@ -2199,7 +2198,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		continue;
 	    }
 
-	  *ehost = '\0';
+	  c_ehost = *ehost; *ehost = '\0';
 	  /* compare with the last ones */
 	  if (strcmp(channel, l_channel) || strcmp(host, l_host)) {
 	    /* wrap and tie the old vertex node */
@@ -2243,11 +2242,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  }
 	  /* stick the current 'r'ecipient  line into the current vertex */
 	  /* restore the characters */
-	  *l_echannel = *l_ehost = ' ';
-	  l_echannel  = echannel;
-	  l_ehost     = ehost;
-	  l_channel   = channel;
-	  l_host      = host;
+	  *l_echannel  = c_l_echannel;
+	  *l_ehost     = c_l_ehost;
+	  l_echannel   = echannel;
+	  l_ehost      = ehost;
+	  c_l_echannel = c_echannel;
+	  c_l_ehost    = c_ehost;
+	  l_channel    = channel;
+	  l_host       = host;
 	} /* for( .. i < opcnt .. ) */
 
 	/* wrap and tie the old vertex node (this is a copy of code above) */
@@ -2285,7 +2287,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  link_in(L_CHANNEL, vp, channel);
 	}
 
-	*l_echannel = *l_ehost = ' ';
+	*l_echannel = c_l_echannel;
+	*l_ehost    = c_l_ehost;
+
 	/*
 	   for (vp = head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	     sfprintf(sfstdout,"--\n");
@@ -2293,6 +2297,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	       sfprintf(sfstdout,"\t%s\n", cfp->contents+cfp->offset[vp->index[i]]);
 	   }
 	*/
+
 	cfp->head = head;
 	free(offarr);
 	if (verbose) {

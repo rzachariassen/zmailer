@@ -181,15 +181,18 @@ ctladdr(cp)
 	if (ap == NULL)
 		return NULL;
 	ap->link = NULL;
+
 	/* While space: */
-	while (*cp != 0 && (*cp == ' ' || *cp == '\t')) ++cp;
+	while (*cp == ' ' || *cp == '\t') ++cp;
+
 	/* CHANNEL: */
 	ap->channel = cp;
-	/* While not space: */
 	cp = skip821address(cp);
-	*cp++ = '\0';
+	if (*cp) *cp++ = '\0';
+
 	/* While space: */
-	while (*cp != 0 && (*cp == ' ' || *cp == '\t')) ++cp;
+	while (*cp == ' ' || *cp == '\t') ++cp;
+
 	/* HOST: */
 	ap->host = cp;
 	ap->routermxes = NULL;
@@ -198,14 +201,18 @@ ctladdr(cp)
 	else {
 	  /* While not space: */
 	  cp = skip821address(cp);
-	  *cp++ = '\0';
+	  if (*cp) *cp++ = '\0';
 	}
+
 	/* While space: */
-	while (*cp != 0 && (*cp == ' ' || *cp == '\t')) ++cp;
+	while (*cp == ' ' || *cp == '\t') ++cp;
+
+	/* USER: */
 	ap->user = cp;
-	/* the user value is allowed to have embedded whitespace */
 	cp = skip821address(cp);
-	*cp++ = '\0';
+	if (*cp) *cp++ = '\0';
+
+	/* PRIVILEGE: */
 	ap->misc = cp;
 	return ap;
 }

@@ -468,7 +468,7 @@ static SSL_SESSION *load_clnt_session(unsigned char *SessionID, int length,
     if (tls_loglevel >= 3)
 	msg_info(NULL, "Trying to reload Session from disc: %s", idstring);
 
-    // FIXME: xxx
+    /* FIXME: xxx */
     buf = (char *)malloc(100 + 2 * uselength + 1);
     mail_queue_path(buf, MAIL_TLS_CLNT_CACHE, idstring);
 
