@@ -486,12 +486,14 @@ int sig;
 #define MAXROUTERCHILDS 20
 struct router_child {
   FILE *tochild;
-  FILE *fromchild;
-  int childpid;
-  int hungry;
+  int   fromchild;
+  int   childpid;
+  int   hungry;
   char *linebuf;
-  int linespace;
-  int linelen;
+  int   linespace;
+  int   linelen;
+  char  readbuf[64];
+  int   readsize, readout;
 };
 
 struct router_child routerchilds[MAXROUTERCHILDS];
@@ -511,18 +513,14 @@ extern void resources_maximize_nofiles __((void));
 extern void resources_limit_nofiles __((int nfiles));
 extern int  resources_query_pipesize __((int fildes));
 
-static void child_server __((void));
-static void start_childs  __((int nchilds));
-static int  start_child   __((int idx));
-static int  parent_reader __((int idx));
-static int  parent_feed_child __((const char *dir, const char *fname));
+static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));
 
 
+static int  start_child   __((int idx));
 static int  start_child(i)
      const int i;
 {
-  FILE *tochld, *frmchld;
   int pid;
   int tofd[2], frmfd[2];
 
@@ -531,43 +529,55 @@ static int  start_child(i)
 
   pid = fork();
   if (pid == 0) { /* child */
+#if 0
     int idx;
+
+    /*fprintf(stderr,"start_child(); tofd=%d fromfd=%d\n",tofd[0],frmfd[1]);*/
+
     pipes_to_child_fds(tofd,frmfd);
     for (idx = resources_query_nofiles(); idx >= 3; --idx)
-      close(idx);
+      if (idx != tofd[0] && idx != frmfd[1])
+	close(idx);
 
     resources_maximize_nofiles();
-    child_server();
 
+    child_server(tofd[0], frmfd[1]);
+
+#else
+
+    resources_maximize_nofiles();
+    child_server(tofd[0], frmfd[1]);
+#endif
     exit(1);
 
   } else if (pid < 0) { /* fork failed - yell and forget it! */
     close(tofd[0]);  close(tofd[1]);
     close(frmfd[0]); close(frmfd[1]);
-    fprintf(stderr, "router: start_childs(): Fork failed!\n");
+    fprintf(stderr, "router: start_child(): Fork failed!\n");
     return -1;
   }
   /* Parent */
 
-  tochld  = fdopen(tofd[1], "w");
-  frmchld = fdopen(frmfd[0],"r");
+  pipes_close_parent(tofd,frmfd);
 
-  fd_nonblockingmode(frmfd[0]);
-
-  routerchilds[i].tochild   = tochld;
-  routerchilds[i].fromchild = frmchld;
+  routerchilds[i].tochild   = fdopen(tofd[1], "w");
+  routerchilds[i].fromchild = frmfd[0];
   routerchilds[i].childpid  = pid;
   routerchilds[i].hungry    = 0;
   return 0;
 }
 
 
+static void start_childs  __((int nchilds));
 static void start_childs(nchilds)
      int nchilds;
 {
   int i;
 
   memset(routerchilds, 0, sizeof(routerchilds));
+
+  for (i = 0; i < nchilds; ++i)
+    routerchilds[i].fromchild = -1;
 
   for (i = 0; i < nchilds; ++i) {
     if (start_child(i))
@@ -579,36 +589,60 @@ static void start_childs(nchilds)
  *  Read whatever there is, detect "#hungry\n" line, and return
  *  status of the hunger flag..
  */
+
+static int reader_getc __((struct router_child *));
+static int reader_getc(rc)
+     struct router_child *rc;
+{
+  unsigned char c;
+  errno = 0;
+  if (rc->readout >= rc->readsize)
+    rc->readout = rc->readsize = 0;
+  if (rc->readsize <= 0)
+    rc->readsize = read(rc->fromchild, rc->readbuf, sizeof(rc->readbuf));
+  /* Now either we have something, or we don't.. */
+
+  /*fprintf(stderr,"reader_getc() readsize=%d readout=%d\n",rc->readsize,rc->readout);*/
+
+  if (rc->readsize < 0) {
+    errno = EAGAIN;
+    return EOF;
+  }
+  if (rc->readsize == 0) {
+    errno = 0;
+    return EOF; /* REAL EOF */
+  }
+
+  c = rc->readbuf[rc->readout++];
+  return (int)c;
+}
+
+
+static int parent_reader __((int idx));
 static int parent_reader(i)
      const int i;
 {
   struct router_child *rc = &routerchilds[i];
-  FILE *fp = rc->fromchild;
   FILE *logfp;
   int c;
 
-  if (!fp) return 0;
+  if (rc->fromchild < 0) return 0;
 
-  while (!feof(fp) && !ferror(fp)) {
-    c = fgetc(fp);
+  fd_nonblockingmode(rc->fromchild);
+
+  for (;;) {
+    c = reader_getc(rc);
     if (c == EOF) {
       /* Because the socket/pipe is in NON-BLOCKING mode, we
 	 may drop here with an ERROR indication, which can be
 	 cleared and thing resume latter.. */
-      if (errno == EAGAIN || errno == EINTR
-#ifdef EWOULDBLOCK
-	  || errno == EWOULDBLOCK
-#endif
-	  ) {
-	clearerr(fp);
+      if (errno)
 	break;
-      }
 
       /* An EOF ? -- child existed ?? */
       fclose(rc->tochild);
       rc->tochild = NULL;
-      fclose(rc->fromchild);
-      rc->fromchild = NULL;
+      rc->fromchild = -1;
       rc->hungry = 0;
       rc->childpid = 0;
       break;
@@ -627,12 +661,15 @@ static int parent_reader(i)
     if (c == '\n') {
       /* End of line */
       rc->linebuf[rc->linelen] = 0;
+
+      /*fprintf(stderr,"parent_reader() len=%d buf='%s'\n",rc->linelen,rc->linebuf);*/
+
       if (rc->linelen == 1) {
 	/* Just a newline.. */
 	rc->linelen = 0;
 	continue;
       }
-      if (rc->linelen == 7 && strcmp(rc->linebuf,"#hungry\n")==0) {
+      if (rc->linelen == 8 && strcmp(rc->linebuf,"#hungry\n")==0) {
 	rc->linelen = 0;
 	rc->hungry = 1;
 	continue;
@@ -658,17 +695,38 @@ static int parent_reader(i)
  * "Priority: xyz" -> process subset 2,3,4
  */
 
-static int parent_feed_child(dir,fname)
-     const char *dir, *fname;
+/* "rd_doit()" at the feeding parent server */
+static int parent_feed_child __((const char *fname, const char *dir));
+static int parent_feed_child(fname,dir)
+     const char *fname, *dir;
 {
   static int rridx = -1;
   struct router_child *rc = NULL;
   FILE *fp;
   int i;
+  char *s;
+
+  s = strchr(fname,'-');
+  if (s && isdigit(*fname)) {
+    long thatpid = atoi(s+1);
+    if (thatpid > 1 &&
+	kill(thatpid,0)==0) {
+      /* Process of that PID does exist, and possibly even something
+	 we can kick.. (we should be *root* here anyway!) */
+      for (i = 0; i < nrouters; ++i) {
+	/* Is it one of ours children ?? */
+	if (routerchilds[i].childpid == thatpid)
+	  return 0; /* Yes! No refeed! */
+      }
+    }
+    /* Hmm..  perhaps it is safe to feed to a subprocess */
+  }
 
   ++rridx; if (rridx >= nrouters) rridx = 0;
   for (i = nrouters; i > 0; --i) {
     rc = &routerchilds[rridx];
+
+    parent_reader(rridx);
 
     /* If no child at this slot, start one!
        (whatever has been the reason for its death..) */
@@ -676,17 +734,18 @@ static int parent_feed_child(dir,fname)
       start_child(rridx);
 
     /* If we have a hungry child with all faculties intact.. */
-    if (rc->tochild && rc->fromchild && rc->hungry)
+    if (rc->tochild && rc->fromchild >= 0 && rc->hungry)
       break;
 
     /* Next index.. */
     ++rridx; if (rridx >= nrouters) rridx = 0;
   }
-  if (!rc || !rc->hungry || !rc->tochild || !rc->fromchild)
-    return -1; /* Failed to find a hungry child!?
+  if (!rc || !rc->hungry || !rc->tochild || rc->fromchild < 0)
+    return 0; /* Failed to find a hungry child!?
 		  We should not have been called in the first place..  */
 
   fp = rc->tochild;
+  fd_blockingmode(FILENO(fp));
 
   if (!dir || *dir == 0)
     fprintf(fp,"%s\n",fname);
@@ -696,12 +755,13 @@ static int parent_feed_child(dir,fname)
 
   if (ferror(fp)) {
     /* A feed error ??? */
+
     fclose(fp);
     rc->tochild = NULL;
-    return -1;
+    return 0;
   }
 
-  return 0; /* Did feed successfully ?? */
+  return 1; /* Did feed successfully ?? */
 }
 
 
@@ -711,10 +771,11 @@ static int parent_feed_child(dir,fname)
  *    The real workhorse at the child, receives work, reports status
  *
  */
-static void child_server()
+static void child_server(tofd,frmfd)
+     int tofd, frmfd;
 {
-  FILE *fromfp = fdopen(0,"r");
-  FILE *tofp   = fdopen(1,"w");
+  FILE *fromfp = fdopen(tofd,"r");
+  FILE *tofp   = fdopen(frmfd,"w");
   char linebuf[8000];
   char *s, *fn;
 
@@ -864,6 +925,8 @@ rd_doit(filename, dirs)
 	char *sh_memlevel = getlevel(MEM_SHCMD);
 	int thatpid;
 	struct stat stbuf;
+
+	router_id = getpid();
 
 	*pathbuf = 0;
 	if (*dirs) {	/* If it is in alternate dir, move to primary one,
@@ -1030,7 +1093,9 @@ rd_stability(dirp,dirs)
 			break;
 		if (gothup) 
 			dohup(0);
-		did_cnt += rd_doit(nbarray + dearray[deindex].f_name, dirs);
+		if (nbarray[dearray[deindex].f_name])
+		  did_cnt += parent_feed_child(nbarray + dearray[deindex].f_name, dirs);
+		nbarray[dearray[deindex].f_name] = 0;
 
 		/* Maybe only process few files out of the low-priority
 		   subdirs, so we can go back and see if any higher-priority
@@ -1072,7 +1137,7 @@ rd_instability(dirp, dirs)
 		if (lstat(pathbuf,&statbuf) != 0) continue; /* ??? */
 		if (!S_ISREG(statbuf.st_mode)) continue; /* Hmm..  */
 
-		did_cnt += rd_doit(dp->d_name, dirs);
+		did_cnt += parent_feed_child(dp->d_name, dirs);
 
 		/* Only process one file out of the low-priority subdirs,
 		   so we can go back and see if any higher-priority
@@ -1123,8 +1188,6 @@ run_daemon(argc, argv)
 	memtypes oval = stickymem;
 	struct stat stb;
 
-	router_id = getpid();
-
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;
 
@@ -1151,7 +1214,7 @@ run_daemon(argc, argv)
 			sprintf(pathbuf,"../%s",rd);
 			/* strcat(pathbuf,"/"); */
 
-			if (stat(pathbuf,&stb) == 0  && S_ISDIR(stb.st_mode)) {
+			if (lstat(pathbuf,&stb) == 0 && S_ISDIR(stb.st_mode)) {
 #if 0
 #ifdef	BSD
 			  dirp[i]->dd_size = 0;
@@ -2414,6 +2477,7 @@ run_filepriv(argc, argv)
 	memcpy(dir, file, cp - file);
 	dir[cp - file] = '\0';
 
+	/* Use stat(2), we fold symlinks to their final files */
 	if (stat(dir, &stbuf) < 0 || !S_ISDIR(stbuf.st_mode)) {
 		fprintf(stderr, "%s: not a directory: \"%s\"!\n",
 			argv0, dir);
@@ -2492,22 +2556,21 @@ run_cat(argc, argv)
 	}
 
 	for ( ;argv[1] != NULL; ++argv) {
-	    /* Must be a regular file (via a symlink, though!), no
-	       pipes, sockets, devices... */
-	    if (stat(argv[1], &stbuf) == 0 && S_ISREG(stbuf.st_mode) &&
-		(fp = fopen(argv[1], "r"))) {
-	      for (;;) {
-		i = fread(buf, 1, sizeof(buf), fp);
-		if (i > 0) {
-		  int j = 0;
-		  while (j < i) {
-		    j += fwrite(buf + j, 1, i - j, stdout);
-		  }
-		} else
-		  break;
-	      }
-	    fclose(fp);
+	  /* Must be a regular file (via a symlink, though!), no
+	     pipes, sockets, devices... */
+	  if (stat(argv[1], &stbuf) == 0 && S_ISREG(stbuf.st_mode) &&
+	      (fp = fopen(argv[1], "r"))) {
+	    for (;!ferror(fp) && !feof(fp);) {
+	      i = fread(buf, 1, sizeof(buf), fp);
+	      if (i > 0) {
+		int j = 0;
+		while (j < i)
+		  j += fwrite(buf + j, 1, i - j, stdout);
+	      } else
+		break;
 	    }
+	    fclose(fp);
+	  }
 	}
 	return 0;
 }

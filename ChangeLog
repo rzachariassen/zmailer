@@ -1,3 +1,12 @@
+1999-11-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/Makefile.in, router/functions.c, router/router.c,
+	  proto/cf/standard.cf:
+	    Revised the way how several things are done:
+	    - files are processed under control of a work-gang leader
+	    - logging isn't done anymore via router logscript
+	      "dribble" redirection, but via a work-gang leader
+
 1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

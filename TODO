@@ -1,11 +1,9 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- router: WORK IN PROGRESS (and old way is now broken!)
-          of running one directory scanning server plus worker
-	  farm.  The server does logging to  '-L' option defined
-	  file (or "$LOGDIR/argv[0]" is nothing defined) by opening
-	  the logfile anew for every *line* of the log..  Makes
-	  logfile rotation *a lot* easier..
+- router: Works now as a work-gang under leadership of one process
+          whose task is to scan the directories for work..
+	  However it is somewhat *slow* to start (30 seconds, or so)
+	  before first messages get processed...
 
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
