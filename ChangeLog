@@ -1,3 +1,33 @@
+1999-12-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/msgerror.c:
+	    Put original (or rewritten) message headers to the end of
+	    the acompanying letter - makes things easier for M$ users
+	    to ask for advice (and me to give it..)
+
+	* scheduler/scheduler.c:
+	    Found curious problems at the resyncing code; sometimes
+	    resulting VTX->NGROUP count was zero, and things didn't
+	    quite work with that..  Such vertices are now thrown away.
+
+	* scheduler/scheduler.c:
+	    A major walk-thru of MIB variables for Recipient counts.
+	    Are they now in control ??
+
+	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
+	    Found out that Lotus SMTPMTA software goes ballistic
+	    if it sees response code it doesn't expect -- its writers
+	    are stupid and expect everybody to always produce only
+	    codes listed at RFC 821 -- without doing the hundred-
+	    series "approximative" processing more common in all
+	    public source based system.. (beginning with sendmail..)
+
+1999-12-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/libta/ctlopen.c, router/rfc822.c, scheduler/scheduler.c,
+	  scheduler/threads.c:
+	    Immediately obvious bugfixes, once the system is under load..
+
 1999-12-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c, transports/mailbox/mailbox.c:

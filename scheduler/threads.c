@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-98
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-1999
  *
  *
  *	These "threads" are for book-keeping of information

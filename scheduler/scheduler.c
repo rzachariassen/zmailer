@@ -283,7 +283,8 @@ struct ctlfile *cfp;
 	if (cfp->head != NULL) {
 	  for (vp = cfp->head; vp != NULL; vp = nvp) {
 	    nvp = vp->next[L_CTLFILE];
-	    MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	    MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
+	    MIBMtaEntry->mtaReceivedRecipientsSc -= vp->ngroup;
 	    vp->ngroup = 0;
 	    unvertex(vp,1,1); /* Don't unlink()! Just free()! */
 	  }
@@ -1209,6 +1210,9 @@ static int sync_cfps(oldcfp, newcfp)
 	    }
 	  }
 
+	  if (ovp->ngroup <= 0)
+	    unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+
 	  ovp = novp;
 	  nvp = nnvp;
 	}
@@ -1338,7 +1342,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	struct vertex *vp;
 
 	/* read and process the control file */
-	if ((cfp = vtxprep(slurp(fd, ino), file, reread)) == NULL) {
+	cfp = vtxprep(slurp(fd, ino), file, reread);
+	if (cfp == NULL) {
 	  if (!vtxprep_skip) {	/* Unless skipped.. */
 	    eunlink(file);	/* everything here has been processed */
 	    if (verbose)
@@ -1355,22 +1360,23 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 				(decrements those counters above!) */
 	  return NULL;
 	}
+
+	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
+	++MIBMtaEntry->mtaStoredMessages;
+	++global_wrkcnt;
+
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
-	  vtxdo(vp, cehead, file);
+	  /* Put into the schedules */
+	  if (!reread)
+	    vtxdo(vp, cehead, file);
 	}
+
 	/* Now we have no more need for the contents in core */
 	if (cfp->contents != NULL) {
 	  free(cfp->contents);
 	  cfp->contents = NULL;
 	}
 
-	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
-	++MIBMtaEntry->mtaStoredMessages;
-	++global_wrkcnt;
-	MIBMtaEntry->mtaStoredRecipients     += (cfp->rcpnts_work +
-						 cfp->rcpnts_failed);
-	MIBMtaEntry->mtaReceivedRecipientsSc += (cfp->rcpnts_work +
-						 cfp->rcpnts_failed);
 	return cfp;
 }
 
@@ -1602,13 +1608,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp + 1;
 	  wakeuptime = 0;
-	  if (*cp == _CFTAG_LOCK) {
+	  if (!rereading && (*cp == _CFTAG_LOCK)) {
 	    /*
 	     * This can happen when we restart the scheduler, and
 	     * some previous transporter is still running.
-	     *
+	     * (and DEFINITELY during resync! when we simply ignore locks)
 	     */
-	    if (!lockverify(cfp, cp, !rereading)) {
+	    if (!lockverify(cfp, cp, 1)) {
 #if 0
 	      long ino = 0;
 	      /*
@@ -1621,7 +1627,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		Sfio_t *vfp = vfp_open(cfp);
 		if (vfp) {
 		  sfprintf(vfp,
-			   "New scheduler: Skipped a job-file because it is held locked by PID=%6.6s\n",cp+1);
+			   "scheduler: Skipped a job-file because it is held locked by PID=%6.6s\n",cp+1);
 		  sfclose(vfp);
 		}
 	      }
@@ -1664,11 +1670,11 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    }
 	  }
 	  if (*cp == _CFTAG_NORMAL ||
+	      (rereading && *cp == _CFTAG_LOCK) ||
 	      *cp == '\n' /* This appears for msg-header entries.. */ ) {
-	    --cp;
-	    switch (*cp) {
+	    ++cp;
+	    switch (cp[-2]) {
 	    case _CF_FORMAT:
-	      ++cp;
 	      sscanf(cp,"%li",&format);
 	      if (format & (~_CF_FORMAT_KNOWN_SET)) {
 
@@ -1682,7 +1688,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      cfp->format = format;
 	      break;
 	    case _CF_SENDER:
-	      ++cp;
 	      while (*cp == ' ') ++cp;
 	      senderchannel = cp;
 	      while (*cp != 0 && *cp != ' ') ++cp; 
@@ -1708,7 +1713,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 						    offspc);
 	      }
 	      offarr[opcnt].offset = *lp + 2;
-	      cp += 2;
 	      strlower(cp);
 	      if ((format & _CF_FORMAT_TA_PID) || *cp == ' ' ||
 		  (*cp >= '0' && *cp <= '9')) {
@@ -1732,12 +1736,16 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      offarr[opcnt].notifyflg = NOT_FAILURE;
 	      prevrcpt = opcnt;
 	      ++opcnt;
+
+	      /* Account for all yet to be delivered recipients */
+	      ++MIBMtaEntry->mtaStoredRecipients;
+	      ++MIBMtaEntry->mtaReceivedRecipientsSc;
+
 	      break;
 	    case _CF_RCPTNOTARY:
 	      /* IETF-NOTARY-DRPT+NOTIFY DATA! */
 	      if (prevrcpt >= 0) {
 		offarr[prevrcpt].drptoffset = *lp + 2;
-		cp += 2;
 		/* Lets parse the input, we want NOTIFY= flags */
 		while (*cp != 0) {
 		  while (*cp == ' ' || *cp == '\t') ++cp;
@@ -1775,40 +1783,40 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      break;
 	    case _CF_DSNRETMODE:
 	      if (cfp->dsnretmode) free(cfp->dsnretmode);
-	      cfp->dsnretmode = strsave(cp+2);
+	      cfp->dsnretmode = strsave(cp);
 	      break;
 	    case _CF_DSNENVID:
 	      if (cfp->envid) free(cfp->envid); /* shouldn't happen.. */
-	      cfp->envid = strsave(cp+2);
+	      cfp->envid = strsave(cp);
 	      break;
 	    case _CF_DIAGNOSTIC:
 	      cfp->haderror = 1;
 	      break;
 	    case _CF_MESSAGEID:
 	      if (cfp->mid != NULL) free(cfp->mid); /* shouldn't happen.. */
-	      cfp->mid = strsave(cp+2);
+	      cfp->mid = strsave(cp);
 	      break;
 	    case _CF_BODYOFFSET:
-	      cfp->msgbodyoffset = atoi(cp+2);
+	      cfp->msgbodyoffset = atoi(cp);
 	      break;
 	    case _CF_LOGIDENT:
 	      if (cfp->logident) free(cfp->logident); /* shouldn't happen..*/
-	      cfp->logident = strsave(cp+2);
+	      cfp->logident = strsave(cp);
 	      break;
 	    case _CF_ERRORADDR:
 	      if (cfp->erroraddr) free(cfp->erroraddr); /* could happen */
-	      cfp->erroraddr = strsave(cp+2);
+	      cfp->erroraddr = strsave(cp);
 	      break;
 	    case _CF_OBSOLETES:
-	      deletemsg(cp+2, cfp);
+	      deletemsg(cp, cfp);
 	      break;
 	    case _CF_VERBOSE:
-	      cfp->vfpfn = strsave(cp+2);
+	      cfp->vfpfn = strsave(cp);
 	      break;
 	    case _CF_TURNME:
-	      sfprintf(sfstdout,"TURNME: %s\n",cp+2);
-	      strlower(cp+2);
-	      turnme(cp+2);
+	      sfprintf(sfstdout,"TURNME: %s\n",cp);
+	      strlower(cp);
+	      turnme(cp);
 	      is_turnme = 1;
 	      break;
 	    }
@@ -1895,8 +1903,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  if (!is_turnme) {
 	    Sfio_t *vfp = vfp_open(cfp);
 	    if (vfp) {
-	      sfprintf(vfp,
-		       "aborted due to missing information\n");
+	      sfprintf(vfp, "aborted due to missing information\n");
 	      sfclose(vfp);
 	    }
 	  }

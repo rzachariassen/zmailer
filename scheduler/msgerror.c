@@ -397,6 +397,7 @@ reporterrs(cfpi)
 	int lastoffset;
 	char path[MAXPATHLEN], mpath[MAXPATHLEN];
 	int mypid;
+	long format;
 	char boundarystr[400];
 
 	if (cfpi->haderror == 0)
@@ -433,8 +434,15 @@ reporterrs(cfpi)
 	cfp->mid = midbuf; /* This is the original one! */
 	wroteheader = 0;
 	lastoffset = cfp->offset[cfp->nlines-1];
+	format = 0L;
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp;
+
+	  if (*cp == _CF_FORMAT) {
+	    ++cp;
+	    sscanf(cp,"%li",&format);
+	    continue;
+	  }
 
 	  if (!(*cp == _CF_DIAGNOSTIC && *++cp == _CFTAG_NORMAL))
 	    continue;
@@ -491,6 +499,9 @@ reporterrs(cfpi)
 	    ++cp;
 	  }
 	  rcpntpointer = cfp->contents + byteidx + 2 + _CFTAG_RCPTPIDSIZE;
+	  if (format & _CF_FORMAT_DELAY1)
+	    rcpntpointer += _CFTAG_RCPTDELAYSIZE;
+
 	  if (do_syslog)
 	    zsyslog((LOG_INFO, "%s: <%s>: %s", cfp->mid, rcpntpointer, cp));
 
@@ -607,6 +618,8 @@ reporterrs(cfpi)
 
 	writeheader(errfp, eaddr, &no_error_report, deliveryform, boundarystr);
 
+
+
 	for (i = 0; i < notarycnt; ++i) {
 	  /* Scan to the start of the message text */
 	  const char *ccp, *s;
@@ -664,6 +677,50 @@ sent you this report, please include this information in your question!\n\
 	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report);
 	}
 
+	sfprintf(errfp,"\n\
+Following is copy of the message headers. Original message content may\n\
+be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
+
+	/* path to the message body */
+	if (cfpi->dirind > 0)
+	  sprintf(path, "../%s/%s/%s",
+		  QUEUEDIR, cfpdirname(cfpi->dirind), cfpi->mid);
+	else
+	  sprintf(path, "../%s/%s",
+		  QUEUEDIR, cfpi->mid);
+
+	fp = sfopen(NULL, path, "r");
+	if (fp != NULL) {
+
+	  char buf[BUFSIZ];
+
+	  if (cfp->msgbodyoffset > 0 && headeridx > 0 ) {
+	    /* We have knowledge about the headers of errored email,
+	       use those headers on output ! */
+	    if (strncmp(cfp->contents + headeridx, "m\n", 2) == 0)
+	      headeridx += 2;
+	    sfprintf(errfp, "%s\n", cfp->contents + headeridx);
+	    /* With a newline in between headers and the body.. */
+	  } else {
+	    /* Scan the input, and drop off the ZMailer
+	       envelope headers */
+	    while (cfgets(buf,sizeof(buf),fp) >= 0) {
+	      const char *s = buf;
+	      while (*s && *s != ':' && *s != ' ' && *s != '\t') ++s;
+	      if (*s == ':') break;
+	      *buf = 0;
+	    }
+	    /* We leave the first scan-phase with  buf[]  containing some
+	       valid RFC-822 -style header, propably "Received:" */
+	    if (*buf)
+	      sfprintf(errfp, "%s", buf);
+	    else {
+	      sfprintf(errfp,"< Eh, no content in the ORIGINAL message ???  >\n");
+	      sfprintf(errfp,"< We will dump also transporter envelope here >\n");
+	      sfseek(fp, (Sfoff_t)0, SEEK_SET);
+	    }
+	  }
+	}
 
 	sfprintf(errfp, "\n");
 	sfprintf(errfp, "--%s\n", boundarystr);
@@ -694,15 +751,6 @@ sent you this report, please include this information in your question!\n\
 	sfprintf(errfp, "--%s\n", boundarystr);
 	sfprintf(errfp, "Content-Type: message/rfc822\n\n");
 
-	/* path to the message body */
-	if (cfpi->dirind > 0)
-	  sprintf(path, "../%s/%s/%s",
-		  QUEUEDIR, cfpdirname(cfpi->dirind), cfpi->mid);
-	else
-	  sprintf(path, "../%s/%s",
-		  QUEUEDIR, cfpi->mid);
-
-	fp = sfopen(NULL, path, "r");
 	if (fp != NULL) {
 
 	  char buf[BUFSIZ];
@@ -718,6 +766,7 @@ sent you this report, please include this information in your question!\n\
 	  } else {
 	    /* Scan the input, and drop off the Zmailer
 	       envelope headers */
+	    sfseek(fp, (Sfoff_t)0, SEEK_SET);
 	    while (cfgets(buf,sizeof(buf),fp) >= 0) {
 	      const char *s = buf;
 	      while (*s && *s != ':' && *s != ' ' && *s != '\t') ++s;

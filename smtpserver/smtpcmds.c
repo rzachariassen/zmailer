@@ -660,59 +660,59 @@ int insecure;
       char *ss = policymsg(policydb, &SS->policystate);
       if (ss != NULL) {
 	smtp_tarpit(SS);
-	type(SS, 453, m471, "Policy analysis reported: %s", ss);
+	type(SS, 450, m471, "Policy analysis reported: %s", ss);
       } else if (SS->policyresult < -99) {
 	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
 	  if (!multilinereplies) {
-	    type(SS,453,m443, "Policy analysis reports temporary DNS error with your source domain.");
+	    type(SS,450,m443, "Policy analysis reports temporary DNS error with your source domain.");
 	  } else {
-	    type(SS, -453, m443, "Policy analysis reports temporary DNS error");
-	    type(SS, -453, m443, "with your source domain.  Retrying may help,");
-	    type(SS, -453, m443, "or if the condition persists, you may need");
-	    type(SS,  453, m443, "to get somebody to fix your DNS servers.");
+	    type(SS, -450, m443, "Policy analysis reports temporary DNS error");
+	    type(SS, -450, m443, "with your source domain.  Retrying may help,");
+	    type(SS, -450, m443, "or if the condition persists, you may need");
+	    type(SS,  450, m443, "to get somebody to fix your DNS servers.");
 	  }
 	} else if (SS->policyresult < -100) {
 	  if (!multilinereplies) {
-	    type(SS,453,m443, "Policy analysis reports DNS error with your source domain.");
+	    type(SS,450,m443, "Policy analysis reports DNS error with your source domain.");
 	  } else {
-	    type(SS, -453, m443, "Policy analysis reports DNS error with your");
-	    type(SS, -453, m443, "source domain.   Please correct your source");
-	    type(SS,  453, m443, "address and/or the info at the DNS.");
+	    type(SS, -450, m443, "Policy analysis reports DNS error with your");
+	    type(SS, -450, m443, "source domain.   Please correct your source");
+	    type(SS,  450, m443, "address and/or the info at the DNS.");
 	  }
 	} else {
 	  if (!multilinereplies) {
-	    type(SS,453,m471, "Access denied by the policy analysis functions.");
+	    type(SS,450,m471, "Access denied by the policy analysis functions.");
 	  } else {
-	    type(SS, -453, m471, "Access denied by the policy analysis functions.");
-	    type(SS, -453, m471, "This may be due to your source IP address,");
-	    type(SS, -453, m471, "the IP reversal domain, the data you gave for");
-	    type(SS, -453, m471, "the HELO/EHLO parameter, or address/domain you");
-	    type(SS,  453, m471, "gave at the MAIL FROM:<...> address.");
+	    type(SS, -450, m471, "Access denied by the policy analysis functions.");
+	    type(SS, -450, m471, "This may be due to your source IP address,");
+	    type(SS, -450, m471, "the IP reversal domain, the data you gave for");
+	    type(SS, -450, m471, "the HELO/EHLO parameter, or address/domain you");
+	    type(SS,  450, m471, "gave at the MAIL FROM:<...> address.");
 	  }
 	}
       } else {
 	char *ss = policymsg(policydb, &SS->policystate);
 	smtp_tarpit(SS);
 	if (ss != NULL) {
-	  type(SS, 553, m571, "Policy analysis reported: %s", ss);
+	  type(SS, 550, m571, "Policy analysis reported: %s", ss);
 	} else if (SS->policyresult < -1) {
 	  if (!multilinereplies) {
-	    type(SS,553,m543,"Policy analysis reports DNS error with your source domain.");
+	    type(SS,550,m543,"Policy analysis reports DNS error with your source domain.");
 	  } else {
-	    type(SS, -553, m543, "Policy analysis reports DNS error with your");
-	    type(SS, -553, m543, "source domain.   Please correct your source");
-	    type(SS,  553, m543, "address and/or the info at the DNS.");
+	    type(SS, -550, m543, "Policy analysis reports DNS error with your");
+	    type(SS, -550, m543, "source domain.   Please correct your source");
+	    type(SS,  550, m543, "address and/or the info at the DNS.");
 	  }
 	} else {
 	  if (!multilinereplies) {
-	    type(SS,553,m571,"Access denied by the policy analysis functions.");
+	    type(SS,550,m571,"Access denied by the policy analysis functions.");
 	  } else {
-	    type(SS, -553, m571, "Access denied by the policy analysis functions.");
-	    type(SS, -553, m571, "This may be due to your source IP address,");
-	    type(SS, -553, m571, "the IP reversal domain, the data you gave for");
-	    type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain you");
-	    type(SS,  553, m571, "gave at the MAIL FROM:<...> address.");
+	    type(SS, -550, m571, "Access denied by the policy analysis functions.");
+	    type(SS, -550, m571, "This may be due to your source IP address,");
+	    type(SS, -550, m571, "the IP reversal domain, the data you gave for");
+	    type(SS, -550, m571, "the HELO/EHLO parameter, or address/domain you");
+	    type(SS,  550, m571, "gave at the MAIL FROM:<...> address.");
 	  }
 	}
       }
@@ -949,13 +949,13 @@ const char *buf, *cp;
 	 policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
       if (!multilinereplies)
-	type(SS, 553, m571, "Access denied by the policy analysis functions.");
+	type(SS, 550, m571, "Access denied by the policy analysis functions.");
       else {
-	type(SS, -553, m571, "Access denied by the policy analysis functions.");
-	type(SS, -553, m571, "This may be due to your source IP address,");
-	type(SS, -553, m571, "the IP reversal domain, the data you gave for");
-	type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain");
-	type(SS,  553, m571, "you gave at the MAIL FROM:<...> address.");
+	type(SS, -550, m571, "Access denied by the policy analysis functions.");
+	type(SS, -550, m571, "This may be due to your source IP address,");
+	type(SS, -550, m571, "the IP reversal domain, the data you gave for");
+	type(SS, -550, m571, "the HELO/EHLO parameter, or address/domain");
+	type(SS,  550, m571, "you gave at the MAIL FROM:<...> address.");
       }
       return;
     }
@@ -1230,67 +1230,67 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
-	    type(SS, 453, m471, "Policy analysis reported: %s", ss);
+	    type(SS, 450, m471, "Policy analysis reported: %s", ss);
 	  } else if (SS->policyresult < -103) { /* -104 */
 	    if (!multilinereplies)
-	      type(SS, 453, m443, "Policy analysis reports temporary DNS error with the target domain.");
+	      type(SS, 450, m443, "Policy analysis reports temporary DNS error with the target domain.");
 	    else {
-	      type(SS, -453, m443, "Policy analysis reports temporary DNS error");
-	      type(SS, -453, m443, "with this target domain. Retrying may help,");
-	      type(SS, -453, m443, "or if the condition persists, some further");
-	      type(SS, -453, m443, "work may be in need with the target domain");
-	      type(SS,  453, m443, "DNS servers.");
+	      type(SS, -450, m443, "Policy analysis reports temporary DNS error");
+	      type(SS, -450, m443, "with this target domain. Retrying may help,");
+	      type(SS, -450, m443, "or if the condition persists, some further");
+	      type(SS, -450, m443, "work may be in need with the target domain");
+	      type(SS,  450, m443, "DNS servers.");
 	    }
 
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
 	    if (!multilinereplies) {
-	      type(SS,453, m471, "This target address is not our MX service client.");
+	      type(SS,450, m471, "This target address is not our MX service client.");
 	    } else {
-	      type(SS,-453, m471, "This target address is not our MX service");
-	      type(SS,-453, m471, "client, nor you are connecting from address");
-	      type(SS,-453, m471, "that is allowed to openly use us to relay");
-	      type(SS,-453, m471, "to any arbitary address thru us.");
-	      type(SS, 453, m471, "We don't accept this recipient.");
+	      type(SS,-450, m471, "This target address is not our MX service");
+	      type(SS,-450, m471, "client, nor you are connecting from address");
+	      type(SS,-450, m471, "that is allowed to openly use us to relay");
+	      type(SS,-450, m471, "to any arbitary address thru us.");
+	      type(SS, 450, m471, "We don't accept this recipient.");
 	    }
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
 	    if (!multilinereplies)
-	      type(SS, 453, m443, "Policy analysis found DNS error on the target address");
+	      type(SS, 450, m443, "Policy analysis found DNS error on the target address");
 	    else {
-	      type(SS,-453, m443, "Policy analysis found DNS error on");
-	      type(SS,-453, m443, "the target address. This address is");
-	      type(SS, 453, m443, "not currently acceptable.");
+	      type(SS,-450, m443, "Policy analysis found DNS error on");
+	      type(SS,-450, m443, "the target address. This address is");
+	      type(SS, 450, m443, "not currently acceptable.");
 	    }
 	  } else {
-	    type(SS, 453, m443, "Policy rejection on the target address");
+	    type(SS, 450, m443, "Policy rejection on the target address");
 	  }
 	} else {
 	  if (ss != NULL) {
-	    type(SS, 553, m571, "Policy analysis reported: %s", ss);
+	    type(SS, 550, m571, "Policy analysis reported: %s", ss);
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    if (!multilinereplies)
-	      type(SS,553,m571, "This target address is not our MX service client.");
+	      type(SS,550,m571, "This target address is not our MX service client.");
 	    else {
-	      type(SS,-553, m571, "This target address is not our MX service");
-	      type(SS,-553, m571, "client, nor you are connecting from address");
-	      type(SS,-553, m571, "that is allowed to openly use us to relay");
-	      type(SS,-553, m571, "to any arbitary address thru us.");
-	      type(SS, 553, m571, "We don't accept this recipient.");
+	      type(SS,-550, m571, "This target address is not our MX service");
+	      type(SS,-550, m571, "client, nor you are connecting from address");
+	      type(SS,-550, m571, "that is allowed to openly use us to relay");
+	      type(SS,-550, m571, "to any arbitary address thru us.");
+	      type(SS, 550, m571, "We don't accept this recipient.");
 	    }
 
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
 	    if (!multilinereplies) {
-	      type(SS,553,m543, "Policy analysis found DNS error on the target domain.");
+	      type(SS,550,m543, "Policy analysis found DNS error on the target domain.");
 	    } else {
-	      type(SS,-553, m543, "Policy analysis found DNS error on");
-	      type(SS,-553, m543, "the target address. This address is");
-	      type(SS, 553, m543, "not currently acceptable.");
+	      type(SS,-550, m543, "Policy analysis found DNS error on");
+	      type(SS,-550, m543, "the target address. This address is");
+	      type(SS, 550, m543, "not currently acceptable.");
 	    }
 	  } else {
-	    type(SS, 553, m571, "Policy rejection on the target address");
+	    type(SS, 550, m571, "Policy rejection on the target address");
 	  }
 	}
 	if (newcp)

@@ -1599,13 +1599,13 @@ int insecure;
 	char *msg = policymsg(policydb, &SS->policystate);
 	smtp_tarpit(SS);
 	if (msg != NULL) {
-	  type(SS, -553, NULL, "%s", msg);
+	  type(SS, -550, NULL, "%s", msg);
 	} else {
-	  type(SS, -553, NULL, "%s - You are on our reject-IP-address -list, GO AWAY!",
+	  type(SS, -550, NULL, "%s - You are on our reject-IP-address -list, GO AWAY!",
 	       SS->myhostname);
 	}
-	type(SS, -553, NULL, "If you feel we mistreat you, do contact us.");
-	type(SS, 553, NULL, "Ask HELP for our contact information.");
+	type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
+	type(SS, 550, NULL, "Ask HELP for our contact information.");
     } else
 #ifdef USE_TRANSLATION
 	if (hdr220lines[0] == NULL) {
@@ -1787,9 +1787,9 @@ int insecure;
 	}
 	if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	    smtp_tarpit(SS);
-	    type(SS, -553, NULL, "You are on our reject-IP-address -list, GO AWAY!");
-	    type(SS, -553, NULL, "If you feel we mistreat you, do contact us.");
-	    type(SS, 553, NULL, "With 'HELP' command you can get out contact information.");
+	    type(SS, -550, NULL, "You are on our reject-IP-address -list, GO AWAY!");
+	    type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
+	    type(SS, 550, NULL, "With 'HELP' command you can get out contact information.");
 	    typeflush(SS);
 	    continue;
 	}
