@@ -670,8 +670,14 @@ int insecure;
     if (SS->policyresult < 0) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (ss != NULL) {
+	int code = 450;
+	const char *mcode = m471;
+	if (SS->policyresult >= -99) {
+	  code = 553;
+	  mcode = m571;
+	}
 	smtp_tarpit(SS);
-	type(SS, 450, m471, "For MAIL FROM address <%.*s> policy analysis reported: %s",
+	type(SS, code, mcode, "For MAIL FROM address <%.*s> policy analysis reported: %s",
 	     addrlen, cp, ss);
       } else if (SS->policyresult < -99) {
 	smtp_tarpit(SS);

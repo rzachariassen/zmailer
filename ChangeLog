@@ -1,3 +1,10 @@
+2000-07-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c:
+	    At MAIL FROM policy reporting we did always yield
+	    400-series reply even when actual code directed us
+	    to yield 500-series..
+
 2000-07-14  Grace He <ghe@scs.Ryerson.CA>
 
 	* router/dateparse.c:
