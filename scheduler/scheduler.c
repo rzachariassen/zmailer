@@ -2524,7 +2524,16 @@ time_t *timep;
 	  return t;
 	}
 #endif
+#ifdef HAVE_GETTIMEOFDAY
+	{
+	  struct timeval tv;
+	  gettimeofday(&tv,NULL);
+	  *timep = tv.tv_sec;
+	  return tv.tv_sec;
+	}
+#else
 	return time(timep); /* The classical old version.. */
+#endif
 }
 
 const char *

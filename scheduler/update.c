@@ -102,8 +102,10 @@ update(fd, diagnostic)
 	  if (proc->overfed > 0)
 	    proc->overfed -= 1;
 	  pick_next_vertex(proc, 1, 0);
-	  if (proc->hungry && proc->fed == 0)
+	  if (proc->hungry)
 	    feed_child(proc);
+	  if (proc->fed)
+	    ++proc->overfed;
 	  flush_child(proc);
 	  return;
 	}
@@ -186,13 +188,20 @@ update(fd, diagnostic)
 	      /* Feed *one* */
 	      if (proc->hungry)
 		feed_child(proc);
+	      if (proc->fed)
+		++proc->overfed;
 #if 0 /* NO OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
+
 		if (proc->hungry)
 		  feed_child(proc);
-		if (!proc->fed)
+
+		if (proc->fed)
+		  ++proc->overfed;
+		else
 		  break; /* Huh! Feed/flush failure! */
+
 		/* See if we should, and can feed more! */
 		if (proc->thg == NULL ||
 		    proc->pid == 0    ||
@@ -968,7 +977,7 @@ static int u_retryat(vp, index, inum, offset, notary, message)
 	}
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  Sfio-t *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
 	    sfprintf(vfp, "%s: retryat %d %s\n",
 		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,

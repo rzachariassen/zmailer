@@ -321,7 +321,6 @@ struct procinfo *proc;
 	/* It was fed (to buffer), clear this flag.. */
 	proc->hungry = 0;
 	proc->fed = 1;
-	proc->overfed += 1;
 
 	if (verbose)
 	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);
@@ -889,7 +888,6 @@ time_t timeout;
 	    struct sockaddr_in raddr;
 	    int	raddrlen;
 
-	    --n;
 	    _Z_FD_CLR(querysocket, rdmask);
 	    raddrlen = sizeof raddr;
 	    i = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
@@ -923,19 +921,21 @@ time_t timeout;
 	    }
 	  }
 	  if (cpids != NULL) {
-	    for (i = 0; i < maxf; ++i) {
-	      if (cpids[i].pid != 0 && _Z_FD_ISSET(i, rdmask)) {
-		--n;
+	    struct procinfo *proc = &cpids[0];
+	    for (i = 0; i < maxf; ++i, ++proc) {
+
+	      if (proc->pid != 0 && _Z_FD_ISSET(i, rdmask)) {
 		_Z_FD_CLR(i, rdmask);
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */
 		readfrom(i);
 	      }
+
 	      /* In case we have non-completed 'feeds', try feeding them */
-	      if (cpids[i].pid > 0    && cpids[i].tofd >= 0 &&
-		  cpids[i].cmdlen > 0 && _Z_FD_ISSET(i, wrmask)) {
-		flush_child(&cpids[i]);
-	      }
+	      if (_Z_FD_ISSET(i, wrmask) && proc->pid > 0 &&
+		  proc->tofd >= 0        && proc->cmdlen > 0)
+		flush_child(proc);
+
 	      /* Because this loop might take a while ... */
 	      queryipccheck();
 	    }

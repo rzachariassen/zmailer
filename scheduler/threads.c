@@ -615,6 +615,8 @@ struct vertex *vtx;
 {
 	struct thread *thr = vtx->thread;
 
+	thr->jobs -= 1;
+
 	if (vtx->previtem != NULL)
 	  vtx->previtem->nextitem = vtx->nextitem;
 	if (vtx->nextitem != NULL)
@@ -653,10 +655,8 @@ web_disentangle(vp, ok)
 	  vp->proc = NULL;
 	}
 
-	if (vp->thread != NULL) {
-	  vp->thread->jobs -= 1;
+	if (vp->thread != NULL)
 	  unthread(vp);
-	}
 
 	/* The thread can now be EMPTY! */
 
@@ -818,7 +818,6 @@ struct thread *thr;
 	  thr->proc     = proc;
 	  *ipp          = proc->next;
 	  proc->next    = NULL;
-	  proc->overfed = 0;
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -856,9 +855,6 @@ struct thread *thr;
 
 	  /* Its idle process, feed it! */
 
-#if 0
-	  proc->fed = 0;
-#else
 	  proc->hungry = 1;	/* Simulate hunger.. */
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->fed != 0) {
@@ -866,7 +862,6 @@ struct thread *thr;
 	    reschedule(vp, 0, -1);
 	    return 0;
 	  }
-#endif
 	  feed_child(proc);
 
 #if 1
@@ -975,6 +970,9 @@ int ok, justfree;
 	struct vertex *vtx;
 
 
+	proc->fed = 1; /* This will be cleared,
+			  when we have something to feed */
+
 	thr  = proc->thread;
 
 	if (verbose)
@@ -998,7 +996,7 @@ int ok, justfree;
 	  proc->fed = 1;
 	  return; /* WE ARE IDLE! */
 	}
-#if 1 /* dead code ?? */
+#if 0 /* dead code ?? */
 	if (!justfree && proc->fed == 0 && proc->vertex != NULL) {
 	  if (verbose) sfprintf(sfstdout," ... NONE, current one has not been fed..\n");
 	  return; /* Current one has not been (completely) fed..	*/
@@ -1371,6 +1369,8 @@ reschedule(vp, factor, index)
 	    if (ap->ce_expiry > vp->ce_expiry) {
 	      /* Link the VP in front of AP */
 	      _thread_linkfront(thr,ap,vp);
+	      thr->jobs += 1;
+
 	      break;
 	    }
 	  } else {
@@ -1379,6 +1379,7 @@ reschedule(vp, factor, index)
 
 	      /* Link the VP in front of AP */
 	      _thread_linkfront(thr,ap,vp);
+	      thr->jobs += 1;
 
 	      break;
 	    }
@@ -1391,6 +1392,7 @@ reschedule(vp, factor, index)
 	if (ap == NULL) {
 	  /* append to list */
 	  _thread_linktail(thr,vp);
+	  thr->jobs += 1;
 	}
 
 	/* Now set thread wakeup value same as first vertex wakeup */
