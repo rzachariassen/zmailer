@@ -118,10 +118,13 @@ const char *buf, *cp;
 	typeflush(SS);
 	if (SS->mfp) {
 	  mail_abort(SS->mfp);
+	  SS->mfp = NULL;
+	}
+	if (SS->rcpt_count)
 	  policytest(&SS->policystate, POLICY_DATAABORT,
 		     NULL, SS->rcpt_count, NULL);
-	  SS->rcpt_count = 0;
-	}
+	SS->rcpt_count = 0;
+
 	return 0;
     }
 

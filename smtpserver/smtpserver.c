@@ -2755,8 +2755,9 @@ int insecure;
     }
 
     /* Report failed RCPT counts. */
-    policytest(&SS->policystate, POLICY_DATAABORT,
-	       NULL, SS->rcpt_count, NULL);
+    if (SS->rcpt_count)
+      policytest(&SS->policystate, POLICY_DATAABORT,
+		 NULL, SS->rcpt_count, NULL);
 
     if (logfp != NULL && SS->tarpit > tarpit_initial ) {
          char *ts = rfc822date(&now);
