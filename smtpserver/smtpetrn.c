@@ -118,7 +118,7 @@ SmtpState *SS;
 const char *name, *cp;
 {
     MD5_CTX CTX;
-    int i;
+    int i, rc;
     int bufsize = 0;
     int bufspace = 0;
     char *challenge = NULL;
@@ -135,9 +135,7 @@ const char *name, *cp;
 
     if (!port || (port && *port == '/')) {
 
-      struct in_addr naddr;
-      struct hostent *hp = NULL, he;
-      struct sockaddr_in sad;
+      struct addrinfo *ai, req, *a;
       struct servent *serv = NULL;
 
       int portnum = 174;
@@ -157,62 +155,90 @@ const char *name, *cp;
       }
 
       if (port) *port = 0;
-      hp = gethostbyname(node->nodename);
 
-      if (hp == NULL) {
-	if (inet_pton(AF_INET, node->nodename, &naddr.s_addr) == 1) {
-	  hp = gethostbyaddr((void*)&naddr, sizeof(naddr), AF_INET);
-	  if (hp == NULL){
-	    hp = &he;
-	    he.h_name = node->nodename;
-	    he.h_length = 4;
-	  }
-	} else if (hp == NULL) {
-	  if (port) *port = '/';
-	  type(SS,-250,m200,"Cannot find address of %s", node->nodename);
-	  goto failure_exit;
+      memset(&req, 0, sizeof(req));
+      req.ai_socktype = SOCK_STREAM;
+      req.ai_protocol = IPPROTO_TCP;
+      req.ai_flags    = AI_CANONNAME;
+      req.ai_family   = PF_INET;
+      ai = NULL;
+
+      if (debug) fprintf(stderr,"INET6 lookup for '%s'\n",node->nodename);
+
+#ifdef HAVE_GETADDRINFO
+      rc = getaddrinfo(node->nodename, "0", &req, &ai);
+#else
+      rc = _getaddrinfo_(node->nodename, "0", &req, &ai, debug ? stderr : NULL);
+#endif
+
+#if defined(AF_INET6) && defined(INET6)
+      {
+	struct addrinfo *ai6;
+	req.ai_family   = AF_INET6;
+	ai6 = NULL;
+
+	if (debug) fprintf(stderr,"INET6 lookup for '%s'\n",node->nodename);
+
+#ifdef HAVE_GETADDRINFO
+	rc = getaddrinfo(node->nodename, "0", &req, &ai6);
+#else
+	rc = _getaddrinfo_(node->nodename, "0", &req, &ai6,
+			   (debug ? stderr : NULL));
+#endif
+	if (!ai && rc == 0)
+	  /* No IPv4, but have IPv6! */
+	  ai = ai6;
+	else if (ai && ai6) {
+	  /* Catenate them, FIRST IPv6, then IPv4 things. */
+	  struct addrinfo **aip;
+	  aip = &ai6->ai_next;
+	  while (*aip) aip = &(*aip)->ai_next;
+	  *aip = ai;
+	  ai = ai6;
 	}
       }
+#endif
 
       if (port) *port = '/';
+      fd = -1;
 
-      /* try grabbing a port */
-      fd = socket(PF_INET, SOCK_STREAM, 0);
-      if (fd < 0) {
-	type(SS,-250,m200,"Socket creation failed!");
-	typeflush(SS);
-	return -1;
-      }
-      sad.sin_family = AF_INET;
-      if (hp == &he)
-	sad.sin_addr.s_addr = htonl(naddr.s_addr);
-      else {
-	char *addr;
+      for (a = ai; a; a = a->ai_next) {
 
-	hp_init(hp);
-	while ((addr = *hp_getaddr()) != NULL) {
-	  sad.sin_port = htons(portnum);
-	  memcpy((void*)&sad.sin_addr, addr, hp->h_length);
-	  if (connect(fd, (void*)&sad, sizeof sad) < 0) {
-	    type(SS,-250,m200,"Connect() failed, will try possible next address");
-	    typeflush(SS);
-	    if ((addr = *hp_nextaddr()) != NULL) {
-	      memcpy((char *)&sad.sin_addr, addr, hp->h_length);
-	    }
-	    close(fd);
-	    if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-	      type(SS,-250,m200,"Socket creation failed!");
-	      goto failure_exit;
-	    }
-	    continue;
-	  }
-	  break;
+	int alen;
+	Usockaddr *sa = (Usockaddr *)a->ai_addr;
+
+	/* try grabbing a port */
+	fd = socket(sa->v4.sin_family, SOCK_STREAM, 0);
+
+	if (fd < 0) {
+	  if (a->ai_next) continue; /* While not last .. */
+	  break; /* LAST! */
 	}
-	if (*hp_getaddr() == NULL) {
-	  type(SS,-250,m200,"Unable to connect() to scheduler");
-	  goto failure_exit;
+
+	alen = sizeof(sa->v4);
+#if defined(AF_INET6) && defined(INET6)
+	if (sa->v4.sin_family == AF_INET6) {
+	  alen = sizeof(sa->v6);
+	  sa->v6.sin6_port = htons(portnum);
+	} else
+#endif
+	  sa->v4.sin_port = htons(portnum);
+
+	while ((rc = connect(fd, (struct sockaddr *)sa, alen)) < 0 &&
+	       (errno == EINTR || errno == EAGAIN));
+	if (rc >= 0) break;
+	if (rc < 0) {
+
+	  type(SS,-250,m200,"Connect() failed, will try possible next address");
+	  typeflush(SS);
+	  close(fd);
+	  fd = -1;
 	}
       }
+    }
+    if (fd < 0) {
+      type(SS,-250,m200,"Unable to connect() to scheduler");
+      goto failure_exit;
     }
 
     fpi = fdopen(fd,"r");

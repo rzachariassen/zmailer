@@ -1,5 +1,8 @@
 2000-09-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* smtpserver/smtpetrn.c:
+	    Teached IPv6 support to the ETRN-Cluster code.
+
 	* scheduler/transport.c, scheduler/mq2auth.c:
 	    If system allows, create the "mailq" port in IPv6 space.
 	    Know how to turn IPv4-Mapped-in-IPv6 address into IPv4 one,
