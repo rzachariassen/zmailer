@@ -7,10 +7,7 @@
 /*
  * TODO:
  *  - Attribute 'request' initializations for resolving
- *  - Addresses in form  <@foo:uu@dd>, <host!user>, <host!user@domain>
- *  - config-file stored messages.. when to pick next, and when not.
- *    (now will pick the first one, but there is no conditionality)
- *  - P_A_LocalDomain use ??
+ *  - Addresses in form  <@foo:uu@dd>, <host!user>
  */
 
 #include "hostenv.h"

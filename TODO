@@ -73,7 +73,7 @@ router + TA library + TA programs:
 	A further complication is need to limit outbound
 	email's sizes when the inbound size is limited so
 	that our system will not send out anything to which
-	error report size is larger than out inbound limit.
+	error report size is larger than our inbound limit.
 
 	Problem being, of course, that outbound channels
 	need to interrogate that same configuration mechanism

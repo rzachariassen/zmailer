@@ -22,6 +22,9 @@
 */
 
 
+#define MAX_HUNGER_AGE 3600 /* Sign of an error ... */
+
+
 struct thread      *thread_head = NULL;
 struct thread      *thread_tail = NULL;
 
@@ -1415,14 +1418,60 @@ idle_cleanup()
 	int thg_once = 1;
 	int freecount = 0;
 
-if (verbose) printf("idle_cleanup()\n");
+	mytime(&now);
 
-	if (idleprocs == 0) return 0; /* If no idle ones, no cleanup.. */
+	if (verbose) printf("idle_cleanup()\n");
 
 	while (thrg_root != NULL && (thg_once || thg != thrg_root)) {
 
 	  struct threadgroup *thgn = thg->next;
 	  thg_once = 0;
+
+	  if (thg->thread != NULL) {
+	    int idlecnt = 0;
+	    int newidlecnt = 0;
+	    struct procinfo *p;
+	    struct thread *thr;
+	    
+	    /* Clean-up faulty client  --  KLUDGE :-(  --  OF=0, HA > much */
+
+	    for ( thr = thg->thread; thr != NULL; thr = thr->nextthg) {
+	      p = thr->proc;
+	      if (thr->thgrp != thg) /* Not of this group ? */
+		continue; /* Next! */
+	      if (!p) /* No process */
+		continue;
+	      if ((p->cmdlen == 0) && (p->overfed == 0) &&
+		  ((p->hungertime == 0) ||
+		   (p->hungertime + MAX_HUNGER_AGE > now))) {
+
+		/* Close the command channel, let it die itself.
+		   Rest of the cleanup happens via mux() service. */
+		if (verbose)
+		  printf("idle_cleanup() killing TA on tofd=%d pid=%d\n",
+			 p->tofd, (int)p->pid);
+
+		write(p->tofd,"\n",1);
+		pipes_shutdown_child(p->tofd);
+
+		p->thg        = NULL;
+		p->thread     = NULL;
+		p->tofd = -1;
+
+		--numkids;
+		++freecount;
+
+		/* The thread-group can be deleted before reclaim() runs! */
+		thg->transporters -= 1;
+	      }
+	    }
+	    if (thg->thread == NULL && thg->idleproc == NULL) {
+	      /* No threads, no idle processes! Delete it! */
+	      delete_threadgroup(thg);
+	    }
+	  }
+
+	  if (idleprocs == 0) return 0; /* If no idle ones, no cleanup.. */
 
 	  if (thg->idleproc != NULL) {
 	    int idlecnt = 0;
