@@ -1,5 +1,13 @@
 2003-05-21  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtprouter.c:
+	    When encountering "*INTERNAL*ERROR*" do report with '400'
+	    status, instead of '500' status...
+
+	* proto/db/smtp-policy.src:
+	    In boilerplate texts, say "Your address is not liked .."
+	    instead of "Your domain is not liked ..".
+
 	* transports/smtp/smtp.c:
 	    The SMTP "NOOP" shall timeout in 30 seconds..
 	    Otherwise it lingers around with DOT-timeout (20 minutes)..

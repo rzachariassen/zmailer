@@ -10,7 +10,6 @@ VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	number of processes needed for ROUTERDIRS ?
 	How will  NOTIFY  messages affect the job pickup ?
 
-
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently

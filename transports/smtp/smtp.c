@@ -1270,7 +1270,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  more_rpp = NULL;
 	}
 
-	if (startrp == NULL || startrp == endrp || getout) {
+	if (startrp == NULL || startrp == endrp
+	    || startrp->lockoffset == 0 /* done that.. */
+	    || getout) {
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
@@ -1286,10 +1288,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    SS->rcptstates = 0;
 
 	    if (statusreport)
-	      report(SS,"RSET");
+	      report(SS,"RSET wait");
 
 	    timeout = timeout_cmd;
-	    r =smtpwrite(SS, 0, "RSET", 0, NULL);
+	    r = smtpwrite(SS, 0, "RSET", 0, NULL);
 
 	    if (statusreport)
 	      report(SS,"RSET rc=%d",r);
@@ -1300,9 +1302,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      goto re_open;
 	    }
 	    
-	    /* We are starting a new pipelined phase */
-	    smtp_flush(SS); /* Flush in every case */
-
 	  } else {
 	    goto re_open;
 	  }

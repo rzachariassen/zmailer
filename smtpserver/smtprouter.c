@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2000.
+ *      Copyright 1991-2003.
  */
 
 #include "smtpserver.h"
@@ -319,7 +319,7 @@ const int holdlast, len;
     } else {
 	/* Uhhh.... No output! */
 	if (!prevb)
-	    type(SS, 500, NULL, "**INTERNAL*ERROR**");
+	    type(SS, 400, NULL, "**INTERNAL*ERROR**");
     }
     typeflush(SS);
 
