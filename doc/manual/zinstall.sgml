@@ -514,6 +514,26 @@ as local.  See below about <FILENAME>localnames</> database.}
 
 <SECT1><TITLE>The Smtpserver subsystem</TITLE>
 
+<PARA>
+The <COMMAND>smtpserver</> implements RFC-821 server along with lots
+of latter extensions.
+</PARA>
+
+<PARA>
+Configurable subsystems are:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+Generic server parametrization with ``<FILENAME>smtpserver.conf</>'' file.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Relaying policy control via ``<FILENAME>smtp-policy</>'' database.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Optional PAM authentication framework for SMTP AUTH extension.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
 <SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
 <!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
 
@@ -547,7 +567,56 @@ at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
 
 </SECT2>
 
+<SECT2><TITLE>Testing smtpserver operationality</TITLE>
+<PARA>
+The <COMMAND>smtpserver</> can be tested fully with fairly simple
+method -- as long as input databases are readable by the test runner:
+</PARA>
 
+<SCREEN>
+  <PROMPT>$ </><USERINPUT>$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'</>
+</SCREEN>
+
+<PARA>
+Above the bracketed dotted decimal address literal is source address
+used at policy function testing, and one should vary there systems
+which <EMPHASIS>are</> allowed to relay thru the server, and also
+systems which are not allowed to relay thru the server.
+</PARA>
+
+<PARA>
+Do testing by issuing normal SMTP protocol transactions, and observing
+the results:
+</PARA>
+
+<SCREEN>
+ 000- Lots of debug information
+ ....
+ 220 some greeting
+ <USERINPUT>EHLO foobar</>
+ 000- Lots of debug information
+ ....
+ 250-local.host.name Hello foobar
+ 250-8BITMIME
+ 250-PIPELINING
+ ....
+ 250 HELP
+ <USERINPUT>MAIL FROM:&lt;&gt</>
+ 000- Lots of debug information
+ ....
+ 250 Ok ...
+ <USERINPUT>RCPT TO:&lt;user@some.where&gt;</>
+ 000- Lots of debug information
+ ....
+ 250 Ok ...
+</SCREEN>
+
+<PARA>
+If you want to do testing without excessive amount of debug information,
+do leave out ``-d 1'' part of the start arguments.
+</PARA>
+
+</SECT2>
 </SECT1>
 
 <SECT1><TITLE>The Router subsystem</TITLE>
