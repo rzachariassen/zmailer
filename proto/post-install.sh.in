@@ -3,9 +3,12 @@
 #
 #  Post-Installation script to complete the installation process.
 #
+#  In case of e.g. Solaris pkg systems, this should be run as one of
+#  post-installation steps at those packages!
+#
 #  - To move into place (conditionally) various prototype files
 #  - To fill in configuration information into MAILSHARE/db/
-#    files, if nothing in there t0 begin with...
+#    files, if nothing in there to begin with...
 #
 
 # - MAILSHARE/forms/proto       --> MAILSHARE/forms (conditionally)
@@ -88,6 +91,65 @@ EOF
 }
 
 
+# ----------  POSTOFFICE DIRECTORY BUILDER ------------
+
+dirprealloc()
+{
+    DIR=$1
+    DSIZE=${2}000
+
+    NAME=1
+    > $DIR/filename.0
+    SIZE=`ls -ld $DIR/.|awk '{print $5}'`
+    while [ $SIZE -lt $DSIZE ]; do
+	ln $DIR/filename.0 $DIR/filename.$NAME
+	SIZE=`ls -ld $DIR/.|awk '{print $5}'`
+	NAME=`expr $NAME + 1`
+    done
+    rm -f $DIR/*
+}
+
+mkpostofficedir()
+{
+    DIR=$1
+    MOD=$2
+    HASH=$3
+    DSIZE=$4
+
+    cd $POSTOFFICE
+    if [ ! -d $DIR ]; then
+	mkdir -p $DIR
+	chmod $MOD $DIR
+	dirprealloc $DIR $DSIZE
+	if [ "$HASH" = "HASH" ]; then
+	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+	    do
+		mkdir -p $DIR/$xx
+		chmod $MOD $DIR/$xx
+		dirprealloc $DIR/$xx $DSIZE
+	    done
+	fi
+	if [ "$HASH" = "HASH2" ]; then
+	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+	    do
+		mkdir -p $DIR/$xx
+		chmod $MOD $DIR/$xx
+		dirprealloc $DIR/$xx $DSIZE
+	    done
+	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+	    do
+		for yy in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+		do
+		    mkdir -p $DIR/$xx/$yy
+		    chmod $MOD $DIR/$xx/$yy
+		    dirprealloc $DIR/$xx/$yy $DSIZE
+		done
+	    done
+	fi
+    fi
+}
+
+
 # ------------------  MAIN PROGRAM --------------------
 
 ZCONFIG=@ZMAILERCFGFILE@
@@ -97,16 +159,19 @@ MKDIR="@MKDIR@"
 
 MD5SUM="@MD5SUM@"
 
+STYLE=""
 if [ "$1" = "-MD5" ] ; then
     STYLE=MD5
+    shift
 elif [ "$1" = "-OLDSTYLE" ] ; then
     STYLE=OLD
+    shift
 else
     echo "post-install.sh [-MD5|-OLDSTYLE]"
     exit
 fi
 
-if [ "$1" = "" ] ; then
+if [ "$STYLE" = "" ] ; then
     echo "post-install.sh [-MD5|-OLDSTYLE]"
     echo " On first time around, it is SUGGESTED that you use"
     echo " the  -OLDSTYLE   option...."
@@ -146,6 +211,21 @@ done
 $MAILBIN/zmailer newdb
 
 $MAILBIN/policy-builder.sh -n
+
+mkdir -p $POSTOFFICE
+chmod 2755 $POSTOFFICE
+chmod g+s $POSTOFFICE
+
+#  subdir protchmod "no"/"HASH"/"HASH2" dirpreallocsize
+mkpostofficedir deferred      750 no    60
+mkpostofficedir TLSsrvrcache  700 HASH  60
+mkpostofficedir TLSclntcache  700 HASH  60
+mkpostofficedir freezer       750 no    60
+mkpostofficedir postman       750 no    60
+mkpostofficedir public       1777 no    60
+mkpostofficedir queue         750 HASH2 60
+mkpostofficedir transport     750 HASH2 60
+mkpostofficedir router       1777 HASH  60
 
 cat <<EOF
 ***

@@ -96,61 +96,9 @@ dirs:	$(PZCONFIG)
 		chmod 2755 $(prefix)$$POSTOFFICE ; \
 		chmod g+s  $(prefix)$$POSTOFFICE ; \
 	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/deferred ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/deferred && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/deferred ; \
-		chmod 750 $(prefix)$$POSTOFFICE/deferred ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/TLSsrvrcache ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/TLSsrvrcache && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/TLSsrvrcache ; \
-		chmod 700 $(prefix)$$POSTOFFICE/TLSsrvrcache ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/TLSclntcache ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/TLSclntcache && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/TLSclntcache ; \
-		chmod 700 $(prefix)$$POSTOFFICE/TLSclntcache ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/freezer ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/freezer && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/freezer ; \
-		chmod 750 $(prefix)$$POSTOFFICE/freezer ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/postman ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/postman && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/postman ; \
-		chmod 750 $(prefix)$$POSTOFFICE/postman ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/public ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/public && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/public ; \
-		chmod 1777 $(prefix)$$POSTOFFICE/public ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/queue ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/queue && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/queue ; \
-		chmod 750 $(prefix)$$POSTOFFICE/queue ; \
-		echo $(MKDIR) "$(prefix)$$POSTOFFICE/queue/{A,B,..,Z}" ; \
-		for hh in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do \
-			$(MKDIR) $(prefix)$$POSTOFFICE/queue/$$hh ;	\
-			chmod 755 $(prefix)$$POSTOFFICE/queue/$$hh ;	\
-		done ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/router ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/router && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/router ; \
-		chmod 1777 $(prefix)$$POSTOFFICE/router ; \
-	fi; \
-	if [ ! -d $(prefix)$$POSTOFFICE/transport ]; then \
-		echo $(MKDIR) $(prefix)$$POSTOFFICE/transport && \
-		$(MKDIR) $(prefix)$$POSTOFFICE/transport ; \
-		chmod 755 $(prefix)$$POSTOFFICE/transport ; \
-		echo $(MKDIR) "$(prefix)$$POSTOFFICE/transport/{A,B,..,Z}" ; \
-		for hh in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do \
-			$(MKDIR) $(prefix)$$POSTOFFICE/transport/$$hh ;	 \
-			chmod 755 $(prefix)$$POSTOFFICE/transport/$$hh ; \
-		done ; \
-	fi ; \
+	echo " " ; \
+	echo "Running  post-install.sh  creates $$POSTOFFICE subdirs!"; \
+	echo " " ; \
 	if [ ! -d $(prefix)$$LOGDIR ]; then \
 		echo $(MKDIR) $(prefix)$$LOGDIR && \
 		$(MKDIR) $(prefix)$$LOGDIR ; \

@@ -1,3 +1,11 @@
+2000-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/Makefilein, proto/post-install.sh.in:
+	    Moved POSTOFFICE directory subdir generation into
+	    the  post-install.sh  script.  Execution of that
+	    script before system becomes ready for running is
+	    now MANDATORY!  (At least at fresh installations.)
+
 2000-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/rfc822.c:

@@ -204,7 +204,7 @@ Installation procedure:
 
 		# make install
 		# $MAILBIN/post-install.sh -MD5
-FIXME:			(See notes about post-install below)
+FIXME:(write!)		(See notes about post-install below)
 
 	(this installs all binaries and the default database files, which
 	 still need editing! See below.)
