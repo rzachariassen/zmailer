@@ -143,7 +143,8 @@ typedef enum {
 #ifdef HAVE_OPENSSL
     StartTLS,
 #endif /* - HAVE_OPENSSL */
-    Hello2, Mail2, Send2, Verify2	/* 8-bit extensions */
+    Hello2, Mail2, Send2, Verify2,	/* 8-bit extensions */
+    Silent		/* One particular client error trap.. */
 } Command;
 
 

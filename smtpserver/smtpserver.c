@@ -85,6 +85,12 @@ struct command command_list[] =
 #ifdef HAVE_OPENSSL
     {"STARTTLS", StartTLS}, /* RFC 2487 */
 #endif /* - HAVE_OPENSSL */
+
+    {"550", Silent},	/* Some Windows SMTP systems are mixing their
+			   threads - they send smtp server error messages
+			   to stream where they should be sending SMTP
+			   client verbs.. */
+
     {0, Null}
 };
 
@@ -1820,6 +1826,9 @@ int insecure;
 	}
 
 	switch (SS->carp->cmd) {
+	case Silent:
+	    /* We are SILENT - no response at all! */
+	    break;
 	case Null:
 	    type(SS, 550, m550, "panic!");
 	    typeflush(SS);
