@@ -1460,12 +1460,17 @@ int signum;
 #endif
 	  if (pid <= 0) break;
 
-	  if (WEXITSTATUS  (statloc) != 0) ok = 1;
-	  if (WSIGNALSTATUS(statloc) != 0) ok = 1;
+	  if (WIFEXITED  (statloc)) ok = 1;
+	  if (WIFSIGNALED(statloc)) ok = 1;
 
-	  if (verbose)
-	    sfprintf(sfstderr,"sig_chld() pid=%d, ok=%d, stat=0x%x\n",
+	  if (verbose) {
+	    sfprintf(sfstderr,"sig_chld() pid=%d, ok=%d, stat=0x%x ",
 		    pid,ok,statloc);
+	    if (WIFEXITED  (statloc))
+	      sfprintf(sfstderr,"EXIT=%d\n", WEXITSTATUS(statloc));
+	    if (WIFSIGNALED(statloc))
+	      sfprintf(sfstderr,"SIGNAL=%d\n", WTERMSIG(statloc));
+	  }
 
 	  if (ok && cpids != NULL) {
 	    /* Only EXIT and SIGxx DEATHS accepted */
