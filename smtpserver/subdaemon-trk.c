@@ -410,9 +410,13 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	}
 	if (!reg) return 0;    /*  alloc failed!  */
 
-	if (incr > 0)
+	if (incr > 0) {
 	  ++ reg->mails;
+	  reg->countsetmsgs [ state->hourslotindex ] += 1;
+	}
 	reg->recipients += incr;
+	reg->countsetrcpts[ state->hourslotindex ] += incr;
+
 	reg->last_recipients = now;
 
 	return reg->recipients;
