@@ -361,8 +361,8 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	    /* something went wrong in unlocking it, concurrency problem? */
 	  }
 	  rp->lockoffset = 0;	/* mark this recipient unlocked */
+
+	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
 	}
 	fflush(stdout);
-
-	tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
 }
