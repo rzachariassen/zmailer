@@ -106,6 +106,8 @@ sh.entry: $(srcdir)/sh.ssl $(SSL)
 $(SSL):
 	cd $(TOPDIR)/ssl ; $(MAKE) $(MFLAGS)
 
+zmsh.o: $(srcdir)/zmsh.c sh-out.i
+
 sh-out.i: sh.sst.h
 	awk 'BEGIN{delay=3;running=0;}			\
 		/Output Tokens/{running+=1;}	\
