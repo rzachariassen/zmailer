@@ -17,6 +17,10 @@ DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 MAILBOX_INCL=	@GENINCL@
 MAILBOX_LIB=	@LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ @GETPWLIB@ 
+
+# Compile & install time: 'make private="private/"'
+private=
+
 #
 SOURCE=		mailbox.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
@@ -42,8 +46,8 @@ all:	$(PROGRAM)-a mboxpath-a # in.rlockd
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
 mboxpath-a:	$(LIBDEB) mboxpath
 
-$(PROGRAM):	$(PROGRAM).o version.o lock.o sieve.o $(LIBDEB)
-	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o sieve.o $(LIB) $(MAILBOX_LIB)
+$(PROGRAM):	$(PROGRAM).o version.o lock.o $(private)sieve.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o $(private)sieve.o $(LIB) $(MAILBOX_LIB)
 
 
 mboxpath:	mboxpath.o version.o $(LIBDEB)
@@ -52,7 +56,7 @@ mboxpath:	mboxpath.o version.o $(LIBDEB)
 $(PROGRAM).o: $(srcdir)/$(PROGRAM).c $(HDRS)
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(PROGRAM).c
 
-sieve.o:	$(srcdir)/sieve.c $(HDRS)
+$(private)sieve.o:	$(srcdir)/$(private)sieve.c $(HDRS)
 
 mboxpath.o:	$(srcdir)/mboxpath.c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/mboxpath.c
