@@ -161,9 +161,11 @@ const char *buf, *cp;
 				  POLICY_HELONAME, cp, strlen(cp));
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
-      fprintf(logfp, "%d\t-- policy result=%d, msg: %s\n", pid,
-	      SS->policyresult, (s ? s : "<NONE!>"));
-      fflush(logfp);
+      if (SS->policyresult != 0 || s != NULL) {
+	fprintf(logfp, "%d\t-- policy result=%d, msg: %s\n", pid,
+		SS->policyresult, (s ? s : "<NONE!>"));
+	fflush(logfp);
+      }
     }
 
     /* actually we accept here about anything, and mark
@@ -527,9 +529,11 @@ int insecure;
 				  POLICY_MAILFROM, cp, addrlen);
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
-      fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-	      SS->policyresult, (s ? s : "<NONE!>"));
-      fflush(logfp);
+      if (SS->policyresult != 0 || s != NULL) {
+	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
+		SS->policyresult, (s ? s : "<NONE!>"));
+	fflush(logfp);
+      }
     }
 
     if (SS->policyresult < 0) {
@@ -852,9 +856,11 @@ const char *buf, *cp;
 				  POLICY_RCPTTO, cp, addrlen);
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
-      fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-	      SS->policyresult, (s ? s : "<NONE!>"));
-      fflush(logfp);
+      if (SS->policyresult != 0 || s != NULL) {
+	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
+		SS->policyresult, (s ? s : "<NONE!>"));
+	fflush(logfp);
+      }
     }
 
     if (SS->postmasteronly ||
@@ -869,9 +875,11 @@ const char *buf, *cp;
 					  POLICY_RCPTPOSTMASTER, cp, addrlen);
 	    if (logfp) {
 	      char *s = policymsg(policydb, &SS->policystate);
-	      fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-		      SS->policyresult, (s ? s : "<NONE!>"));
-	      fflush(logfp);
+	      if (SS->policyresult != 0 || s != NULL) {
+		fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
+			SS->policyresult, (s ? s : "<NONE!>"));
+		fflush(logfp);
+	      }
 	    }
 	  }
       }

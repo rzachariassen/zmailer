@@ -317,3 +317,9 @@ extern void add_to_toplevels __((char *str));
 extern int wantconn __((int sock, char *progname));
 #endif
 extern char *rfc822date __((time_t *));
+
+#ifdef HAVE_STDARG_H		/* Fwd declaration */
+ void report __((SmtpState *, const char *,...));
+#else
+ void report __(());
+#endif

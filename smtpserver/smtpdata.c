@@ -114,6 +114,8 @@ const char *buf, *cp;
     alarm(0);			/* cancel the alarm() */
     tell = ftell(SS->mfp);
 
+    report(SS, "Got '.'; tell=%ld", tell);
+
     if (*msg != 0) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
@@ -264,6 +266,8 @@ const char *buf, *cp;
 	tell = ftell(SS->mfp);
     else
 	tell = 0;
+
+    report(SS, "BDAT; last=%d tell=%ld", bdata_last, tell);
 
     if (SS->state != BData) {
 	switch (SS->state) {

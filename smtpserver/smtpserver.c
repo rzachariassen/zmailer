@@ -137,16 +137,16 @@ long maxsize = 0;
 int ListenQueueSize  = 20000;
 int TcpRcvBufferSize = 0;
 int TcpXmitBufferSize = 0;
-int MaxSameIpSource = 10;	/* Max number of smtp connections in progress
+int MaxSameIpSource = 100;	/* Max number of smtp connections in progress
 				   from same IP address -- this to detect
 				   systems sending lots of mail all in
 				   parallel smtp sessions -- also to detect
 				   some nutty Windows systems opening up
 				   bunches of connections to the remote
-				   system -- and to detect an attempt
-				   on creating a denial-of-service attach by
-				   opening lots and lots of connections to the
-				   remote SMTP server... */
+				   system -- and to detect an attempt on
+				   creating a denial-of-service attach by
+				   opening lots and lots of connections to
+				   the remote SMTP server... */
 int MaxErrorRecipients = 10;	/* Max number of recipients for a message
 				   that has a "box" ( "<>" ) as its source
 				   address. */
@@ -157,8 +157,8 @@ int maxloadavg = 999;		/* Maximum load-average that is tolerated
 				   so that it will never block -- use
 				   "-L 10" to define lower limit (10) */
 
-int allow_source_route = 0;	/* Don't ignore source route "@a,@b:c@d"
-				   by collapsing it into "c@d" */
+int allow_source_route = 0;	/* When zero, do ignore source route address
+				   "@a,@b:c@d" by collapsing it into "c@d" */
 int debugcmdok = 0;
 int expncmdok = 0;
 int vrfycmdok = 0;
@@ -774,6 +774,7 @@ char **argv;
 	    }
 
 
+	    SIGNAL_HOLD(SIGCHLD);
 	    if ((childpid = fork()) < 0) {	/* can't fork! */
 		close(msgfd);
 		fprintf(stderr,
@@ -783,8 +784,12 @@ char **argv;
 		continue;
 	    } else if (childpid > 0) {	/* Parent! */
 		childregister(childpid, &SS.raddr);
+		SIGNAL_RELEASE(SIGCHLD);
+		reaper(0);
 		close(msgfd);
 	    } else {			/* Child */
+		SIGNAL_RELEASE(SIGCHLD);
+
 		close(s);	/* Listening socket.. */
 		pid = getpid();
 
@@ -844,8 +849,8 @@ char **argv;
 		openlogfp(&SS, daemon_flg);
 		if (logfp != NULL)
 		    fprintf(logfp,
-		    "%d#\tconnection from %s ident: %s\n",
-		    pid, SS.rhostname, SS.ident_username);
+		    "%d#\tconnection from %s ipcnt %d ident: %s\n",
+		    pid, SS.rhostname, sameipcount, SS.ident_username);
 
 /* if (logfp) fprintf(logfp,"%d#\tInput fd=%d\n",getpid(),msgfd); */
 
@@ -861,17 +866,24 @@ char **argv;
 		    strcpy(msg, "450 Come again latter\r\n");
 		    len = strlen(msg);
 		    write(msgfd, msg, len);
+		    close(0); close(1);
+#if 0
 		    sleep(2);	/* Not so fast!  We need to do this to
 				   avoid (as much as possible) the child
 				   to exit before the parent has called
 				   childregister() -- not so easy to be
 				   100% reliable (this isn't!) :-( */
+#endif
 		    exit(0);	/* Now exit.. */
 		}
 		smtpserver(&SS, 1);
+		/* Expediated filehandle closes before
+		   the mandatory sleep(2) below. */
+		close(0); close(1);
 
 		if (routerpid > 0)
 		    killr(&SS, routerpid);
+
 		sleep(2);
 		_exit(0);
 	    }
@@ -1020,14 +1032,6 @@ int sig;
     }
     SIGNAL_HANDLE(SIGCHLD, reaper);
 }
-
-
-#ifdef HAVE_STDARG_H		/* Fwd declaration */
-static void report __((SmtpState *, const char *,...));
-#else
-static void report __(());
-#endif
-
 
 void reporterr(SS, tell, msg)
 SmtpState *SS;
@@ -1536,7 +1540,7 @@ SmtpState *SS;
  * where it doesn't work.
  */
 
-static void
+ void
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
  report(SmtpState * SS, const char *cp,...)
@@ -1745,7 +1749,7 @@ void
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
  type821err(SmtpState * SS, const int code, const char *status,
-	    const char *inbuf, const char *msg,...)
+	    const char *inbuf, const char *msg, ...)
 #else
  type821err(SS, code, status, inbuf, msg)
 SmtpState *SS;
