@@ -1739,6 +1739,7 @@ void thread_detail_report(fp,mqmode,channel,host)
 	      sfprintf(fp,"\t%d\t", vp->attempts);
 	      /* ce_pending */
 	      if (vp->wakeup > now) {
+		*buf = 0;
 		saytime((long)(vp->ce_expiry - now), buf, 1);
 		sfprintf(fp,"retry in %s", buf);
 	      } else {
