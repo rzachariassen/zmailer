@@ -84,17 +84,29 @@ appendlet(SS, dp, convertmode, CT)
 
 	  if (convertmode == _CONVERT_NONE) {
 	    bufferfull = 0;
+
+	    if (readalready > 0) {
+	      i = readalready;
+
+	      lastwasnl = (dp->let_buffer[i-1] == '\n');
+	      rc = writebuf(SS, dp->let_buffer, i);
+
+	      if (statusreport)
+		report(SS,"DATA %d/%d (%d%%)",
+		       SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+	      /* We NEVER get timeouts here.. We get anything else.. */
+	      if (rc != i) {
+		goto write_error_processing;
+	      }
+	      goto lastch_processing;
+	    }
+
 	    for (;;) {
 	      /* Optimization:  If the buffer has stuff in it due to
 		 earlier read in some of the check algorithms, we use
 		 it straight away: */
-	      if (readalready == 0 || bufferfull > 0) {
-		i = read(dp->msgfd, (void*)(dp->let_buffer), dp->let_buffer_size);
-		if (i > 0)
-		  readalready = i;
-	      } else if (bufferfull == 0)
-		i = readalready;
-	      if (i == 0)
+	      i = read(dp->msgfd, (void*)(dp->let_buffer), dp->let_buffer_size);
+	      if (i == 0) /*EOF*/
 		break;
 	      if (i < 0) {
 		if (errno == EINTR || errno == EAGAIN)
@@ -103,6 +115,7 @@ appendlet(SS, dp, convertmode, CT)
 		       "smtp; 500 (Read error from message file!?)");
 		return EX_IOERR;
 	      }
+	      readalready = i;
 	      ++bufferfull;
 
 	      lastwasnl = (dp->let_buffer[i-1] == '\n');
@@ -112,6 +125,9 @@ appendlet(SS, dp, convertmode, CT)
 		       SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      /* We NEVER get timeouts here.. We get anything else.. */
 	      if (rc != i) {
+
+	      write_error_processing:;
+
 		if (gotalarm) {
 		  sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 			  SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
@@ -269,6 +285,8 @@ appendlet(SS, dp, convertmode, CT)
 	    
 	  } /* ... end of conversion modes */
 	}
+
+ lastch_processing:;
 
 	/* we must make sure the last thing we transmit is a CRLF sequence */
 	if (!lastwasnl || SS->lastch != '\n') {
