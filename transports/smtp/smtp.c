@@ -1537,7 +1537,7 @@ deliver(SS, dp, startrp, endrp)
 	} else if (SS->hsize >= 0) {
 
 	  fprintf(SS->smtpfp, "\r\n");
-	  fflush(SS->smtpfp);
+	  /* fflush(SS->smtpfp); */
 	  if (ferror(SS->smtpfp))
 	    SS->hsize = -1;
 
@@ -1623,6 +1623,8 @@ deliver(SS, dp, startrp, endrp)
 
 	dotmode = 1;
 
+	gotalarm = 0;
+
 	if (SS->chunking) {
 	  r = bdat_flush(SS, 1);
 	} else {
@@ -1640,13 +1642,11 @@ deliver(SS, dp, startrp, endrp)
 			   "smtp; 566 (Message write failed; possibly remote rejected the message)");
 	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
+
 	  /* Diagnostics are done, protected (failure-)section ends! */
 	  dotmode = 0;
-	  /* The failure occurred during processing and was due to an I/O
-	   * error.  The safe thing to do is to just abort processing.
-	   * Don't send the dot! 2/June/94 edwin@cs.toronto.edu
-	   */
-	  if (SS->smtpfp) {
+
+	  if (SS->smtpfp && gotalarm) {
 	    /* First close the socket so that no FILE buffered stuff
 	       can become flushed out anymore. */
 	    close(FILENO(SS->smtpfp));
@@ -1654,12 +1654,12 @@ deliver(SS, dp, startrp, endrp)
 	       buffer flushes... */
 	    smtpclose(SS);
 	    if (logfp)
-	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
+	      fprintf(logfp, "%s#\t(closed SMTP channel - smtpwrite('.') failure)\n", logtag());
 	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 
-	  return EX_TEMPFAIL;
+	  return r;
 	}
 
 	time(&body_end); /* body endtime */
@@ -1669,7 +1669,7 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(logfp, "%s#\t%s\n", logtag(), SS->remotemsg);
 	  else
 	    fprintf(logfp, "%s#\t%d bytes, %d in header, %d recipients, %d secs for envelope, %d secs for body xfer\n",
-		    logtag(), size, SS->hsize, nrcpt,
+		    logtag(), SS->msize, SS->hsize, nrcpt,
 		    (int)(body_start - env_start),
 		    (int)(body_end   - body_start));
 	}
@@ -1762,7 +1762,7 @@ appendlet(SS, dp, convertmode)
 	if (setjmp(alarmjmp) == 0) {
 
 	  gotalarm = 0;
-	  fflush(SS->smtpfp);
+	  /* fflush(SS->smtpfp); */
 
 	} else {
 	  /*  Alarm jumped here! */
@@ -2026,7 +2026,7 @@ writebuf(SS, buf, len)
 
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
-	    fflush(fp);
+	    /* fflush(fp); */
 	    alarm(timeout);	/* re-arm it */
 
 	    if (statusreport)
@@ -4085,8 +4085,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		fwrite(buf, 1, len, SS->verboselog);
 
 	      r = fwrite(buf, 1, len, SS->smtpfp);
-	      fflush(SS->smtpfp);
 	      err = (r != len);
+	      if (fflush(SS->smtpfp))
+		err = 1;
 	    }
 	  } /* Long-jmp ends */
 	  alarm(0); /* Turn off the alarm */
