@@ -56,22 +56,6 @@ post-install:  Needs a way to define $(prefix) !
 
 mailq: man-page update to match all options
 
-getmxrr()  MX retrieve failure with its merriment:
-  [root@vger mea]# /opt/mail/bin/getmxrr-test cs.lakeheadu.ca
-  DNS lookup reply: len=33 rcode=0 qdcount=1 ancount=0 nscount=0 arcount=0 RD=1 TC=0 AA=0 QR=1 RA=1
-  getmxrr() rc=0 EX_OK; mxcount=0
-   gaih_inet('cs.lakeheadu.ca') gethostbyname() h=(nil)  h_errno=4
-   g->gaih[INET]('cs.lakeheadu.ca',...) rc=261
-  getaddrinfo('cs.lakeheadu.ca','smtp') -> r=-5 (no address associated with name), ai=(nil)
-
-  For a comparison a successfull access has:
-    DNS lookup reply: len=237 rcode=0 qdcount=1 ancount=4 nscount=3 arcount=4 RD=1 TC=0 AA=0 QR=1 RA=1
-
-  CAN I DO ANYTHING ?!  Lack of data *is* valid result, how can those
-  rare bad lacks of data be detected ?  Flags do look the same :-/
-
-
-
 - Everywhere:  Spell-check  (propably -> probably, among others)
 
 - "Overview" -- revise at least the list subscription instructions;
@@ -179,32 +163,6 @@ transports/smtp:
 	recipient address before DATA, not them all..
 
 
-   BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
-	and the final DATA is then rejected with 500 series code, DON'T
-	abort with permanent error -- plus retry..
-		Fixed ? (20000314)
-	Not.  Apparently some combinations still conspire to produce
-	rejections in cases which should retry.
-		Fixed ? (20000619)
-
-   DRUMS/SMTPUPD:
-	If MX set after the backup-prune is empty (and initially was non-
-	empty), reject the message with suitable report, don't continue
-	to try to use A-record -- parametrized somehow..
-	E.g. go to use of A in this case only if WKS checking is enabled.
-		Conditionalized on non-usage of -W option
-		Works ? (20000314)
-   BUG?
-	Bad interaction with scheduler in some instances.  If e.g.
-	message goes to retry because MAIL FROM or some RCPT TO
-	addresses yield 400 series code, it should not kick queue
-	processing back the same way as 'connection timed out' does.
-	(But no response within timeout from remote server should be
-	 treated the same way as 'conn timeout' -- I think ?)
-		Fixed ? (20000314)
-	Not fixed on 20000314 ...
-		Fixed ? (20000619)
-
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
 
@@ -230,13 +188,6 @@ transports/smtp:
 	Worthwhileness of this is *not* unambiguous.
 	How many domains really are served by same system ?
 	At some places a lot, but elsewere perhaps not...
-
-   FEATURE:
-	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
-	and at RCPT TO the domain parts MUST be primary DNS objects,
-	*not* CNAMEs.  We never rewrite...
-	   ... 3-Apr-2003: We process RCPT TO domains. Should we do MAIL FROM ?
-
 
    BUG?
 	smtp TA to ETRN type destinations (usually not reachable) work
@@ -289,10 +240,6 @@ transports/smtp:
     BUG:
 	When scheduler does resyncing, the  mtaMessageCount & global_wrkcnt
 	will decrement below the real count.  "leak negative" so to speak.
-
-    FEATURE:
-	scheduler + mailq: Complete the V2 protocol authentication,
-	and turn it into mandated default mode.
 
     FEATURE/BUG:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
@@ -475,10 +422,9 @@ transports/smtp:
 	- At the router:run_rfc822(): if the message has these headers,
 	  purge them away.
 
-
-mailbox:
-	When doing delivery into a pipe, give  MAIL  variable to
-	tell what would be this user's mailbox ?
+- transports/mailbox/mailbox.c:
+	- When doing delivery into a pipe, give  MAIL  variable to
+	  tell what would be this user's mailbox ?
 
 
 
@@ -519,12 +465,6 @@ mailbox:
   When all childs are dead, it can exit.
 	20-Jan-97: Sort of facility exists now..
 
-- DSN (Delivery Status Notification) mechanism does not (yet) report
-  on "DELAY". (Dec-1999: placeholders for mechanism exist:
-	r+          smtp zimage.com method@zimage.com 60000
-	  123456ABCD  - 1-thru-6 are TA process PID space, A-thru-D are
-		        a 'delay has been reported' flag storage.)
-
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)
   (Rayan wrote it, but never released it..)
@@ -546,11 +486,3 @@ mailbox:
    accumulated message.  Thus there SHOULD be enough resources for all
    uses -- except when the system runs out of FDs per any individual
    process..)
-
-- Processing of several headers is questionable/lack of:
-	Generic: header wrapping within N chars (like to 80-chars
-		 space of BITNET) and also infinite wide systems,
-		 like News.. (transports/libta/writeheaders.c ?)
-
-	Generic: RFC-1342 aka. non-US-ASCII chars in the headers..
-		 Auto-conversion and wrapping

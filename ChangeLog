@@ -1,5 +1,23 @@
 2003-04-17  Matti Aarnio  <mea@zmailer.org>
 
+	* man/zmailer.1, proto/zmailer.sh.in, router/router.c, man/router.8,
+	  scheduler/scheduler.c, man/scheduler.8, smtpserver/smtpserver.c,
+	  man/smtpserver.8, transports/sm/sm.c, transports/smtp/smtp.c,
+	  transports/errormail/errormail.c, transports/hold/hold.c,
+	  transports/mailbox/mailbox.c, transports/reroute/reroute.c,
+	  proto/newdb.in, proto/newdbprocessor.in:
+	    - Zmailer, Router, Scheduler, Smtpserver: explicite options
+	      to define non-compiled-in path to  ZCONFIG  ZENV file.
+	    - Transport Agents: if  ZCONFIG _environment_  variable is set,
+	      read ZCONFIG from that file.  Inherits that from scheduler...
+	    - Some tools: if  ZCONFIG _environment_  variable is set,
+	      read ZCONFIG from that file.  Inherits that from zmailer(1).
+
+	* scheduler/scheduler.c scheduler/agenda.c, scheduler/mq2.c,
+	  scheduler/msgerror.c, scheduler/prototypes.h, proto/zmailer.sh.in,
+	  scheduler/transport.c, scheduler/update.c:
+	    Automated (within 30 seconds of previous) log-file re-opening
+
 	* man/manual-rerouter.8, man/reroute.8, man/Makefile.in:
 	    Man-pages for the reroute transport-agent.
 
