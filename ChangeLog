@@ -1,3 +1,17 @@
+1999-09-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/zpwmatch.c:
+	    Missed one part in previous HAVE_SHADOW_H related patch :-(
+
+	* proto/smtpserver.conf.in:
+	    Place 'ESMTP' at both lines of the 220 message (sigh,
+	    PostFix MTA violates RFC 1869 part 4, and propably isn't
+	    the only one...)
+
+	* smtpserver/smtpserver.c, smtpserver/smtptls.c:
+	    Missed one instance of  read()  from converting to  Z_read()
+	    wrapper for OpenSSL call support...
+
 1999-09-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

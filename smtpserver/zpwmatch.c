@@ -192,21 +192,22 @@ char * zpwmatch(uname, password, uidp)
 
     runastrusteduser();
 
-    if (!spw) return 0; /* No such user */
+    if (!spw) goto final_out; /* No such user */
     pw = getpwnam(uname);
-    if (!pw) return 0;  /* No such user! HUH! (had shadow-entry, though!) */
+    if (!pw) goto final_out; /*No such user! HUH! (had shadow-entry, though! */
 
     /* Either the   getpwnam()  returns working password out of
        the shadow dataset, or a third-party shadow set must be used
        to pick also the encrypted data..  Both fetches are done,
        and now we do comparisons presuming the first fetch result
-       usable encrypted password ...  (Thanks to Eugene Crosser for report.)
+       is usable encrypted password ...  (Thanks to Eugene Crosser for report.)
     */
 
     cr = crypt(password, pw->pw_passwd);
     if (strcmp(cp, pw->pw_passwd) == 0)
       ok = 1;
     else {
+      /* Ok, perhaps the second one contains usable encrypted password ? */
       cr = crypt(password, spw->sp_pwdp);
       if (strcmp(cp, spw->sp_pwdp) == 0)
 	ok = 1;
@@ -214,7 +215,8 @@ char * zpwmatch(uname, password, uidp)
 
     *uidp = pw->pw_uid;
 
-    return (strcmp(cr, spw->sp_pwdp) == 0) ? NULL : "Authentication Failed";
+ final_out:
+    return (ok ? NULL : "Authentication Failed");
 }
 
 # else
@@ -232,11 +234,13 @@ char * zpwmatch(uname,password,uidp)
 
     runastrusteduser();
 
-    if (!pw) return 0; /* No such user */
-    cr = crypt(password, pw->pw_passwd);
-    *uidp = pw->pw_uid;
+    if (pw) {
+      cr = crypt(password, pw->pw_passwd);
+      *uidp = pw->pw_uid;
+    }
 
-    return (strcmp(cr, pw->pw_passwd) == 0) ? NULL : "Authentication Failed";
+    return ((pw && (strcmp(cr, pw->pw_passwd) == 0))
+	    ? NULL : "Authentication Failed");
 }
 # endif /* HAVE_SHADOW_H */
 #endif

@@ -1330,7 +1330,7 @@ SmtpState *SS;
 #else
 	fcntl(SS->inputfd, F_SETFL, flags | FNDELAY);
 #endif
-	SS->s_bufread = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
+	SS->s_bufread = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	fcntl(SS->inputfd, F_SETFL, flags);
 	if (SS->s_bufread > 0)
 	    return SS->s_bufread;

@@ -90,8 +90,11 @@ Z_read(SS, ptr, len)
      void *ptr;
      int len;
 {
-    if (SS->sslmode)
-      return SSL_read(SS->ssl, (char*)ptr, len);
+    if (SS->sslmode) {
+      /* This can be Non-Blocking READ */
+      int rc = SSL_read(SS->ssl, (char*)ptr, len);
+      return rc;
+    }
     return read(SS->inputfd, (char*)ptr, len);
 }
 

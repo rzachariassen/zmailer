@@ -71,7 +71,12 @@ PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
 #  %X -- xlatelang parameter
 #
 #PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Propulsion Inc
-#PARAM hdr220 %H (NO UCE)(NO UBE) our local time is now %T
+#PARAM hdr220 %H ESMTP (NO UCE)(NO UBE) our local time is now %T
+#
+# Note above the "ESMTP" words are present because *some* MTA systems won't
+# do EHLO greeting, unless they see "ESMTP" - against RFC 1869 part 4.
+# "EHLO is to be done blindly, server responses are not to be studied for
+#  any possible 'ESMTP' keyword!"
 #
 PARAM help -------------------------------------------------------------
 PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
