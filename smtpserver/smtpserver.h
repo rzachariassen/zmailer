@@ -128,7 +128,7 @@ typedef enum {
     RecipientOrData, Data, Send, SendOrMail,
     SendAndMail, Reset, Verify, Expand, Help,
     NoOp, Quit, Turn, Tick, Verbose, DebugIdent,
-    Turnme, BData, DebugMode,
+    Turnme, BData, DebugMode, Auth,
     Hello2, Mail2, Send2, Verify2	/* 8-bit extensions */
 } Command;
 
@@ -172,6 +172,7 @@ typedef struct {
     /* For BDAT -command */
     int  bdata_blocknum;
     int  mvbstate;
+    char *authuser;
 
     char ident_username[MAXHOSTNAMELEN + MAXHOSTNAMELEN + 2];
     char helobuf[SMTPLINESIZE];
@@ -215,6 +216,7 @@ extern int chunkingok;
 extern int enhancedstatusok;
 extern int multilinereplies;
 extern int dsn_ok;
+extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int strict_protocol;
@@ -325,6 +327,7 @@ extern void s_setup __((SmtpState * SS, int fd, FILE * fp));
 extern int s_feof __((SmtpState * SS));
 extern int s_getc __((SmtpState * SS));
 extern int s_hasinput __((SmtpState * SS));
+extern int s_gets __((SmtpState *SS, char *buf, int buflen, int *rcp, char *cop, char *cp));
 
 extern int errno;
 extern int optind;
@@ -356,6 +359,8 @@ extern int  smtp_data   __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_bdata  __((SmtpState * SS, const char *buf, const char *cp));
 extern void add_to_toplevels __((char *str));
 
+extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
+
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 extern int wantconn __((int sock, char *prgname));
 #endif
@@ -366,3 +371,6 @@ extern char *rfc822date __((time_t *));
 #else
  void report __(());
 #endif
+
+extern int encodebase64string __((const char *instr, int inlen, char *outstr, int outspc));
+extern int decodebase64string __((const char *instr, int inlen, char *outstr, int outspc));

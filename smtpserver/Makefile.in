@@ -31,12 +31,12 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o wantconn.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
-		smtprouter.o smtpchild.o mxverify.o contentpolicy.o
+		smtprouter.o smtpchild.o mxverify.o contentpolicy.o smtpauth.o
 # loadaver.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c wantconn.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
-		smtprouter.c smtpchild.c mxverify.c contentpolicy.c
+		smtprouter.c smtpchild.c mxverify.c contentpolicy.c smtpauth.c
 # loadaver.c
 
 all: $(PROGRAM)-a
@@ -49,6 +49,7 @@ smtpserver.o: $(srcdir)/smtpserver.c $(srcdir)/smtpserver.h	\
 cfgread.o:    $(srcdir)/cfgread.c $(srcdir)/smtpserver.h
 smtpcmds.o:   $(srcdir)/smtpcmds.c $(srcdir)/smtpserver.h	\
 		$(srcdir)/policytest.h
+smtpauth.o:   $(srcdir)/smtpauth.c $(srcdir)/smtpserver.h
 smtpdata.o:   $(srcdir)/smtpdata.c $(srcdir)/smtpserver.h
 smtphelp.o:   $(srcdir)/smtphelp.c $(srcdir)/smtpserver.h
 smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h

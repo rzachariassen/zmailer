@@ -190,8 +190,7 @@ RFC 2554                  SMTP Authentication                 March 1999
          C: AUTH FOOBAR
          S: 504 Unrecognized authentication type.
          C: AUTH CRAM-MD5
-         S: 334
-         PENCeUxFREJoU0NnbmhNWitOMjNGNndAZWx3b29kLmlubm9zb2Z0LmNvbT4=
+         S: 334 PENCeUxFREJoU0NnbmhNWitOMjNGNndAZWx3b29kLmlubm9zb2Z0LmNvbT4=
          C: ZnJlZCA5ZTk1YWVlMDljNDBhZjJiODRhMGMyYjNiYmFlNzg2ZQ==
          S: 235 Authentication successful.
 

@@ -57,9 +57,12 @@ struct command command_list[] =
     {"HELP", Help},
     {"NOOP", NoOp},
     {"QUIT", Quit},
+
 			/* ZMailer speciality, and an alias for it */
-    {"ETRN", Turnme},
     {"TURNME", Turnme},
+    {"ETRN", Turnme},	/* RFC 1985 */
+			/* SMTP AUTH -- NetScape Way.. (RFC 2554) */
+    {"AUTH", Auth},
 			/* sendmail extensions */
     {"VERB", Verbose},
     {"ONEX", NoOp},
@@ -191,6 +194,7 @@ int enhancedstatusok = 1;
 int multilinereplies = 1;
 int mime8bitok = 1;
 int dsn_ok = 1;
+int auth_ok = 1;
 int ehlo_ok = 1;
 int etrn_ok = 1;
 #ifndef	IDENT_TIMEOUT
@@ -1000,14 +1004,16 @@ char **argv;
 		if (routerpid > 0)
 		    killr(&SS, routerpid);
 
-		sleep(2);
+		if (netconnected_flg)
+		  sleep(2);
 		_exit(0);
 	    }
 	}
     }
     if (routerpid > 0)
 	killr(&SS, routerpid);
-    sleep(2);
+    if (netconnected_flg)
+      sleep(2);
     exit(0);
     /* NOTREACHED */
     return 0;
@@ -1212,6 +1218,69 @@ SmtpState *SS;
     }
     return (SS->s_bufread - SS->s_readout);
 }
+
+
+int s_gets(SS, buf, buflen, rcp, cop, cp)
+SmtpState *SS;
+char *buf, *cop, *cp;
+int buflen, *rcp;
+{
+	int c, co = -1;
+	int i, rc;
+
+	rc = -1;
+
+	if (!pipeliningok || !s_hasinput(SS))
+	    typeflush(SS);
+	else
+	    /* if (verbose) */
+	if (logfp)
+	    fprintf(logfp, "%d#\t-- pipeline input exists %d bytes\n", pid, s_hasinput(SS));
+
+	/* Alarm processing on the SMTP protocol channel */
+	alarm(SMTP_COMMAND_ALARM_IVAL);
+
+	/* Our own  fgets() -- gets also NULs, flags illegals.. */
+	i = 0;
+	--buflen;
+	while ((c = s_getc(SS)) != EOF && i < buflen) {
+	    if (c == '\n') {
+		buf[i++] = c;
+		break;
+	    } else if (co == '\r' && rc < 0)
+		rc = i;		/* Spurious CR on the input.. */
+
+	    if (c == '\0' && rc < 0)
+		rc = i;
+	    if ((c & 0x80) != 0 && rc < 0)
+		rc = i;
+	    if (c != '\r' && c != '\t' &&
+		(c < 32 || c == 127) && rc < 0)
+		rc = i;
+	    buf[i++] = c;
+	    co = c;
+	}
+	buf[i] = '\0';
+	alarm(0);		/* Cancel the alarm */
+
+	if (c == EOF && i == 0) {
+	    /* XX: ???  Uh, Hung up on us ? */
+	    if (SS->mfp != NULL)
+		mail_abort(SS->mfp);
+	    SS->mfp = NULL;
+	}
+
+	/* Zap the ending newline */
+	if (c  == '\n') buf[--i] = '\0';
+	/* Zap the possible preceeding \r */
+	if (co == '\r') buf[--i] = '\0';
+
+	*cop = co;
+	*cp  = c;
+	*rcp = rc;
+	return i;
+}
+
 
 void s_setup(SS, infd, outfp)
 SmtpState *SS;
@@ -1428,54 +1497,14 @@ int insecure;
 	char buf[SMTPLINESIZE];	/* limits size of SMTP commands...
 				   On the other hand, limit is asked
 				   to be only 1000 chars, not 8k.. */
-	int c, co = -1;
+	char *eobuf, c, co;
 	int i;
-	char *eobuf;
 
-	rc = -1;
+	i = s_gets(SS, buf, sizeof(buf), &rc, &co, &c );
+	if (i == 0)	/* EOF ??? */
+	  break;
 
-	if (!pipeliningok || !s_hasinput(SS))
-	    typeflush(SS);
-	else
-	    /* if (verbose) */
-	if (logfp)
-	    fprintf(logfp, "%d#\t-- pipeline input exists %d bytes\n", pid, s_hasinput(SS));
-
-	/* Alarm processing on the SMTP protocol channel */
-	alarm(SMTP_COMMAND_ALARM_IVAL);
-
-	/* Our own  fgets() -- gets also NULs, flags illegals.. */
-	i = 0;
-	while ((c = s_getc(SS)) != EOF && i < (sizeof(buf) - 1)) {
-	    if (c == '\n') {
-		/* *s++ = c; *//* Don't save it! No need */
-		break;
-	    } else if (co == '\r' && rc < 0)
-		rc = i;		/* Spurious CR on the input.. */
-
-	    if (c == '\0' && rc < 0)
-		rc = i;
-	    if ((c & 0x80) != 0 && rc < 0)
-		rc = i;
-	    if (c != '\r' && c != '\t' &&
-		(c < 32 || c == 127) && rc < 0)
-		rc = i;
-	    buf[i++] = c;
-	    co = c;
-	}
-	buf[i] = '\0';
-	eobuf = &buf[i];	/* Buf end ptr.. */
-	alarm(0);		/* Cancel the alarm */
-	if (c == EOF && i == 0) {
-	    /* XX: ???  Uh, Hung up on us ? */
-	    if (SS->mfp != NULL)
-		mail_abort(SS->mfp);
-	    SS->mfp = NULL;
-	    break;
-	}
-	/* Zap the possible trailing  \r */
-	if ((eobuf > buf) && (eobuf[-1] == '\r'))
-	    *--eobuf = '\0';
+	eobuf = &buf[i-1];	/* Buf end ptr.. */
 
 	/* Chop the trailing spaces */
 	if (!strict_protocol) {
@@ -1522,9 +1551,9 @@ int insecure;
 	}
 	if ((strict_protocol && (c != '\n' || co != '\r')) || (c != '\n')) {
 	    if (i < (sizeof(buf)-1))
-	      type(SS, 500, m552, "Line not terminated with CRLF..");
+		type(SS, 500, m552, "Line not terminated with CRLF..");
 	    else
-	      type(SS, 500, m552, "Line too long (%d chars)", i);
+		type(SS, 500, m552, "Line too long (%d chars)", i);
 	    continue;
 	}
 	if (verbose && !daemon_flg)
@@ -1571,6 +1600,8 @@ int insecure;
 	  goto unknown_command;
 	if (SS->carp->cmd == Turnme    && ! etrn_ok)
 	  goto unknown_command;
+	if (SS->carp->cmd == Auth      && ! auth_ok)
+	  goto unknown_command;
 	if (SS->carp->cmd == BData     && ! chunkingok)
 	  goto unknown_command;
 
@@ -1600,6 +1631,10 @@ int insecure;
 	case Hello2:
 	    /* This code is LONG.. */
 	    smtp_helo(SS, buf, cp);
+	    typeflush(SS);
+	    break;
+	case Auth:
+	    smtp_auth(SS, buf, cp);
 	    typeflush(SS);
 	    break;
 	case Mail:

@@ -235,6 +235,7 @@ direct attacks with them.  (That we know of.)
 .IP PARAM\ NoEHLO
 .IP PARAM\ NoENCHANCEDSTATUS(CODES)
 .IP PARAM\ NoETRN
+.IP PARAM\ NoAUTH
 .IP PARAM\ NoPIPELINING
 This set are
 .B disablers

@@ -303,6 +303,9 @@ const char *buf, *cp;
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 #endif
 
+	if (auth_ok)
+	  type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
+						 Sun Solstice/M$ Exchange */
 	if (etrn_ok)
 	  type(SS, -250, NULL, "ETRN");
 	type(SS, 250, NULL, "HELP");
@@ -317,20 +320,22 @@ SmtpState *SS;
 const char *buf, *cp;
 int insecure;
 {
-    const char *s;
+    const char *s, *p;
     int rc;
     const char *drpt_envid;
     const char *drpt_ret;
     const char *bodytype = NULL;
     const char *newcp = NULL;
     const char *srcrtestatus = "";
-    int addrlen, drptret_len, drptenvid_len;
+    const char *auth_param;
+    int addrlen, drptret_len, drptenvid_len, authparam_len;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
 
     addrlen = 0;
     drptret_len = 0;
     drptenvid_len = 0;
+    authparam_len = 0;
 
     SS->sender_ok = 0;		/* Set it, when we are sure.. */
 
@@ -442,7 +447,8 @@ int insecure;
     SS->sizeoptval = -1;
     SS->sizeoptsum = -1;
     drpt_envid = NULL;
-    drpt_ret = NULL;
+    drpt_ret   = NULL;
+    auth_param = NULL;
     rc = 0;
     while (*s) {
 	while (*s == ' ' || (sloppy && *s == '\t')) {
@@ -524,22 +530,44 @@ int insecure;
 		break;
 	    }
 	    drpt_envid = s + 6;
-	    s = xtext_string(s + 6);
-	    if (s == s + 6) {
+	    p = xtext_string(s + 6);
+	    if (p == (s + 6)) {
 		type821err(SS, -501, m554, buf, "Invalid ENVID value '%.200s'", drpt_envid);
 		type(SS, 501, m554, "ENVID data contains illegal characters!");
 		rc = 1;
 		break;
 	    }
+	    s = p;
 	    drptenvid_len = s - drpt_envid;
-	    s++;
-	    if (*drpt_envid == 0) {
+	    ++s;
+	    if (drptenvid_len == 0) {
 		type(SS, 501, m554, "ENVID= without data!");
 		rc = 1;
 		break;
 	    }
 	    continue;
 	}
+	if (auth_ok && CISTREQN("AUTH=", s, 5)) {
+	    /* RFC 2554 AUTH extension */
+	    auth_param = s + 5;
+	    p = xtext_string(s + 5);
+	    if (p == (s + 5)) {
+		type821err(SS, -501, m554, buf, "Invalid AUTH value '%.200s'", auth_param);
+		type(SS, 501, m554, "AUTH data contains illegal characters!");
+		rc = 1;
+		break;
+	    }
+	    s = p;
+	    authparam_len = s - auth_param;
+	    ++s;
+	    if (authparam_len == 0) {
+		type(SS, 501, m554, "AUTH= without data!");
+		rc = 1;
+		break;
+	    }
+	    continue;
+	}
+
 	type(SS, 501, m554, "Unknown MAIL FROM:<> parameter: %s", s);
 	rc = 1;
 	break;

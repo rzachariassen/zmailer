@@ -491,10 +491,114 @@ static char indexnum[256 + 1] =
 };
 
 /*
+ * BASE64 DECODER index table, and ENCODER map array...
+ */
+static int base64decode_index[128] = {
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+	52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+	-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+	15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+	-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
+};
+#define decodechar64(c)  (((c) < 0 || (c) > 127) ? -1 : base64decode_index[(c)])
+
+static char base64encode_array[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+int decodebase64string(instr,inlen,outstr,outspc)
+     const char * instr;
+     char *outstr;
+     int inlen, outspc;
+{
+    int b64decoding = 1, outlen = 0;
+    int b64eod = 0, b64i = 0, i, c;
+    char b64c[4];
+
+    while (inlen > 0 && outlen < outspc && !b64eod) {
+      c = *instr++; --inlen;
+
+      if (c == '=' || !b64decoding) {
+	b64eod = 1;
+	continue;
+      }
+      i = decodechar64(c);
+      if (i < 0) continue;
+
+      b64c[b64i++] = i;
+      if (b64i < 2)
+	continue;
+      if (b64i == 2) {
+	c = (b64c[0] << 2) | ((b64c[1] & 0x30) >> 4);
+      } else if (b64i == 3) {
+	c = ((b64c[1] & 0x0f) << 4) | ((b64c[2] & 0x3c) >> 2);
+      } else {
+	c = (b64c[2] << 6) | b64c[3];
+	b64i = 0;
+	if (b64eod)
+	  b64decoding = 0;
+      }
+
+      outstr[outlen] = c;
+      ++outlen;
+    }
+    if (outlen < outspc)
+      outstr[outlen] = 0;
+    return outlen;
+}
+
+int encodebase64string(instr,inlen,outstr,outspc)
+     const char * instr;
+     char *outstr;
+     int inlen, outspc; /* Always positive values .. */
+{
+    /* Build groups of 3 bytes, encode them in 4 chars; if some byte
+       is not filled, mark the incomplete byte with '=' */
+    u_char b64out[4];
+    int b64i, outlen = 0, b64val;
+    while (inlen > 0 && outlen < outspc) {
+      b64i = inlen > 3 ? 3 : inlen;
+
+      b64val    = ((unsigned char) instr[0]) << 16;
+      if (b64i > 1)
+	b64val |= ((unsigned char) instr[1]) << 8;
+      if (b64i > 2)
+	b64val |= ((unsigned char) instr[2]);
+
+      b64out[3] = base64encode_array[ b64val & 63 ]; b64val >>= 6;
+      b64out[2] = base64encode_array[ b64val & 63 ]; b64val >>= 6;
+      b64out[1] = base64encode_array[ b64val & 63 ]; b64val >>= 6;
+      b64out[0] = base64encode_array[ b64val & 63 ];
+
+      switch(b64i) {
+      case 1:
+	b64out[2] = '=';
+      case 2:
+	b64out[3] = '=';
+      }
+
+      instr += b64i;
+      inlen -= b64i;
+
+      b64i = (b64i == 1) ? 3 : 4;
+      if ((outlen + b64i) < outspc) {	/* Can fit in .. */
+	memcpy(outstr+outlen, b64out, b64i);
+	outlen += b64i;
+      } else {				/* Can't fit in :-( */
+	memcpy(outstr+outlen, b64out, outspc-outlen);
+	outlen = outspc;
+      }
+    }
+    return outlen;
+}
+
+/*
  * Copy bytes from stdin to out, obeying sensible SMTP DATA input heuristics.
  *
- * If you can improve on this heavily optimized routine, I'd like to see it.
- * This version goes at better than 100kB/cpu-sec on a Sun 3/180.
+ * Rayan back in 1988:
+ *  "If you can improve on this heavily optimized routine, I'd like to see it.
+ *   This version goes at better than 100kB/cpu-sec on a Sun 3/180."
  */
 
 static int /* count of bytes */ mvdata(SS, msg)
@@ -520,9 +624,8 @@ char *msg;
     int insubject = 0;
     int has8bit = 0;		/* In headers */
     int has8bitsum = 0;
-    int from__err = 0;
+    /* int from__err = 0; */
     int linecnt = 0;
-    int was8bit = 0;
 #ifdef USE_TRANSLATION
     int wi;
     char hdr_cte[4000], hdr_ct[4000];
@@ -536,18 +639,6 @@ char *msg;
     int qp_chars = 0, qp_hex = 0;
     int b64decoding = 1, b64eod = 0, b64i = 0;
     char b64c[4];
-    static char index_64[128] =
-    {
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-	52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
-	-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-	15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-	-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-    };
-#define char64(c)  (((c) < 0 || (c) > 127) ? -1 : index_64[(c)])
 #endif				/* USE_TRANSLATION */
 
     typeflush(SS);
@@ -987,7 +1078,7 @@ char *msg;
 		    if ((c == ' ') || (c == '\t') ||
 			(c == '\n') || (c == '\r'))
 			continue;
-		    b64c[b64i++] = char64(c);
+		    b64c[b64i++] = decodechar64(c);
 		    if (c == '=') {
 			b64eod = 1;
 			continue;
