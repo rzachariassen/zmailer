@@ -3398,21 +3398,25 @@ smtp_sync(SS, r, nonblocking)
 {
 	char *s, *eof, *eol;
 	int infd = FILENO(SS->smtpfp);
-	int idx = 0, code;
+	int idx = 0, code = 0;
 	int rc = EX_OK, len;
 	int some_ok = 0;
 	int datafail = EX_OK;
 	int err;
-	char buf[8192];
+	char buf[512];
 	char *p;
 	static int continuation_line = 0;
 	static int first_line = 1;
 
-	alarm(timeout);
-	gotalarm = 0;
-	if (setjmp(alarmjmp) == 0)
-	  fflush(SS->smtpfp);			/* Flush output */
-	alarm(0);
+	if (!nonblocking) {
+
+	  alarm(timeout);
+	  gotalarm = 0;
+	  if (setjmp(alarmjmp) == 0)
+	    fflush(SS->smtpfp);			/* Flush output */
+	  alarm(0);
+
+	}
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -3621,7 +3625,9 @@ smtp_sync(SS, r, nonblocking)
 		diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
 	    } else {
 	      /* XX: No reports for  MAIL FROM:<> nor for DATA/BDAT phases ? */
-	      if (idx == 0) {
+	      if (idx == 0 && SS->pipecmds[idx] != NULL &&
+		  strncmp(SS->pipecmds[idx],"MAIL", 4) == 0) {
+		/* We are working on MAIL FROM:<...> command here */
 		if (code >= 500)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
@@ -3705,7 +3711,7 @@ SmtpState *SS;
 {
 	int infd = FILENO(SS->smtpfp);
 	int r;
-	char buf[1024];
+	char buf[512];
 
 	/* BLOCKALARM; */
 	if (SS->block_written && has_readable(infd)) {
