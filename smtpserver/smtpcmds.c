@@ -744,7 +744,7 @@ int insecure;
 	    SS->deliverby_time  = time(NULL) + val;
 	    SS->deliverby_flags = neg;
 	    s = p;
-	    MIBMtaEntry->ss.IncomingSMTP_OPT_BY ++;
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_DELIVERBY ++;
 	    continue;
 	}
 

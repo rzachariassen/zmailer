@@ -120,7 +120,7 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTP_OPT_ENVID;
   uint		IncomingSMTP_OPT_SIZE;
   uint		IncomingSMTP_OPT_AUTH;
-  uint		IncomingSMTP_OPT_BY;
+  uint		IncomingSMTP_OPT_DELIVERBY;
   uint		IncomingSMTP_OPT_BODY_8BITMIME;
   uint		IncomingSMTP_OPT_BODY_BINARYMIME;
   uint		IncomingSMTP_OPT_BODY_7BIT;
