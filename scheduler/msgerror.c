@@ -214,7 +214,7 @@ msgerror(vp, offset, message)
 }
 
 void printenvaddr __((FILE *, const char *));
-void printenvaddr(fp,addr)
+void printenvaddr(fp, addr)
 FILE *fp;
 const char *addr;
 {
@@ -255,10 +255,10 @@ FILE *mfp;
 	  s = strrchr(buf,'>');
 	  if (s) *s = 0;
 	  else return; /* No trailing '>' ? BAD BAD! */
-	  printenvaddr(mfp,buf);
+	  printenvaddr(mfp, buf);
 	} else {
 	  /*  Cc: some-address  */
-	  printenvaddr(mfp,buf);
+	  printenvaddr(mfp, buf);
 	}
 }
 
@@ -285,7 +285,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 	fprintf(errfp, "channel error\n");
 
 	if (!*no_error_reportp)
-	  printenvaddr(errfp,eaddr);
+	  printenvaddr(errfp, eaddr);
 	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR,
 		deliveryform ? deliveryform : "delivery");
 	fp = fopen(path, "r");
