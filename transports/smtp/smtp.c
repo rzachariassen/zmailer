@@ -1057,6 +1057,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	int pipelining = 0;
 	time_t env_start, body_start, body_end;
 	struct rcpt *more_rp = NULL;
+	struct rcpt **more_rpp = NULL;
 	char **chunkblkptr = NULL;
 	char *chunkblk = NULL;
 	int early_bdat_sync = 0;
@@ -1253,9 +1254,22 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
     more_recipients:
 	if (more_rp != NULL) {
-	  startrp = more_rp;
-	  more_rp = NULL;
+
+	  startrp   = more_rp;
+	  *more_rpp = more_rp;
+
+	  more_rp  = NULL;
+	  more_rpp = NULL;
 	}
+
+	if (startrp == NULL || startrp == endrp || getout) {
+
+	  if (SS->chunkbuf) free(SS->chunkbuf);
+	  SS->chunkbuf = NULL;
+
+	  return r;
+	}
+
 
 	if (SS->do_rset) {
 
@@ -1443,7 +1457,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    }
 	  }
 
-	  return r;
+	  /* More recipients to send ? */
+	  goto more_recipients;
 	}
 
 	nrcpt = 0;
@@ -1459,17 +1474,20 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  if (++rcpt_cnt >= SS->rcpt_limit) {
 	    /* Limit Count full */
-	    more_rp = rp->next;
+	    more_rp  = rp->next;
+	    more_rpp = & rp->next;
 	    rp->next = NULL;
 	  }
 	  if (rp->ezmlm) {
 	    /* THIS recipient is EZMLM one */
-	    more_rp = rp->next;
+	    more_rp  = rp->next;
+	    more_rpp = & rp->next;
 	    rp->next = NULL;
 	  }
 	  if (!rp->ezmlm && rp->next && rp->next->ezmlm) {
 	    /* THIS recipient isn't EZMLM one, but NEXT one is! */
-	    more_rp = rp->next;
+	    more_rp  = rp->next;
+	    more_rpp = & rp->next;
 	    rp->next = NULL;
 	  }
 
@@ -1610,28 +1628,26 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  SS->cmdstate     = SMTPSTATE_DATA; /* 1 + RCPTTO.. */
 
-	  /* Next time around will need to do "RSET" before MAIL FROM */
-#if 1
-	  if (more_rp)
-	    /* EZMLM or some such thing runs with more recipients.. */
-	    goto more_recipients;
-#else
-	  if ((r == EX_OK) && more_rp)
-	    /* we have more recipients,
-	       and things have worked ok so far.. */
-	    goto more_recipients;
-#endif
 
+	  r = EX_UNAVAILABLE;
 	  if (SS->rcptstates & RCPTSTATE_400)
 	    /* The smtpfp != NULL -> no retry for these
 	       recipients -- at least not right away! */
-	    return EX_TEMPFAIL; /* Even ONE temp failure -> total result
+	    r = EX_TEMPFAIL; /* Even ONE temp failure -> total result
 				   is then TEMPFAIL */
-	  return EX_UNAVAILABLE;
+
+	  /* Next time around will need to do "RSET" before MAIL FROM */
+
+	  /* EZMLM or some such thing runs with more recipients.. */
+	  goto more_recipients;
 	}
 
-	if (!SS->smtpfp)
-	  return EX_TEMPFAIL; /* Doing quick retry on these rcpts! */
+	if (!SS->smtpfp) {
+
+	  r = EX_TEMPFAIL;  /* Doing quick retry on these rcpts! */
+	  /* More recipients to send ? */
+	  goto more_recipients;
+	}
 
 	chunkblkptr   = NULL;
 	SS->chunksize = 0;
@@ -1688,11 +1704,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      }
 	    }
 
-	    /* Next time around will need to do "RSET" before MAIL FROM */
-	    /* XX: Set  r = EX_TEMPFAIL;  ??? */
 
-	    return r; /* The smtpfp != NULL -> no retry for these
-			 recipients -- at least not right away! */
+	    /* More recipients to send ? */
+	    goto more_recipients;
 	  }
 
 	  /* OK, we synced, lets continue with BDAT ...
@@ -1765,7 +1779,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		}
 	      }
 
-	    return r;
+	    /* More recipients to send ? */
+	    goto more_recipients;
 	  }
 
 	  timeout = timeout_dot;
@@ -1855,13 +1870,17 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
 
-	  /* Next time around will need to do "RSET" before MAIL FROM */
-	  /* XX: Set  r = EX_TEMPFAIL;  ??? */
+	  if (SS->smtpfp) {
+	    smtpclose(SS, 1);
+	    if (logfp)
+	      fprintf(logfp, "%s#\t(closed SMTP channel - message header write failure, status=%d  msg='%s')\n", logtag(), rp ? rp->status : -999, SS->remotemsg);
+	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
 
-	  return r;
+	  /* More recipients to send ? */
+	  goto more_recipients;
 	}
 
 	/* Add the header size to the initial body size */
@@ -1909,8 +1928,14 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  report(SS, "%s", SS->remotemsg);
 
-	  return EX_TEMPFAIL;
+	  r = EX_TEMPFAIL; /* ?? */
+
+	  /* More recipients to send ? */
+	  goto more_recipients;
 	}
+
+
+
 	/*
 	 * This is the one place where we *have* to wait forever because
 	 * there is no reliable way of aborting the transaction.
@@ -2007,7 +2032,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
 
-	  return r;
+	  /* More recipients to send ? */
+	  goto more_recipients;
 	}
 
 	time(&body_end); /* body endtime */
@@ -2076,14 +2102,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 
 	/* More recipients to send ? */
-	if (r == EX_OK && more_rp && !getout)
-	  goto more_recipients;
-
-
-	if (SS->chunkbuf) free(SS->chunkbuf);
-	SS->chunkbuf = NULL;
-
-	return r;
+	goto more_recipients;
 }
 
 

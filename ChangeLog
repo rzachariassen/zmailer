@@ -1,5 +1,14 @@
 2003-05-21  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c:
+	    In EZMLM mode the SMTP TA didn't unlock all recipients,
+	    which did cause considerable amount of  "#resync" activity
+	    in between the scheduler, and SMTP TA.
+	    Replaced a ton of 'return's with 'goto more_recipients;'
+	    in order to coherently handle the EZMLM mode in all of
+	    its forms.  Also unbroke the rp-chain (which is broken in
+	    EZMLM detection)
+
 	* sfio/src/lib/sfio/sfsetbuf.c, sfio/src/lib/sfio/sftable.c,
 	  sfio/src/lib/sfio/sfvprintf.c, sfio/src/lib/sfio/Sfio_dc/sfdcdio.c:
 	    Small fixes to silence the compilation warnings.
