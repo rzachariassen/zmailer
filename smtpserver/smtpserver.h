@@ -373,6 +373,7 @@ extern void smtp_verify __((SmtpState * SS, const char *buf, const char *cp));
 extern void smtp_expand __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_data   __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_bdata  __((SmtpState * SS, const char *buf, const char *cp));
+extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern void add_to_toplevels __((char *str));
 
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));

@@ -9,7 +9,7 @@
 
 #ifdef HAVE_OPENSSL
 
-void smtp_mail(SS, buf, cp)
+void smtp_starttls(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
 {
@@ -41,4 +41,5 @@ const char *buf, *cp;
     }
     /* XX: start_servertls(SS) */
 }
+
 #endif

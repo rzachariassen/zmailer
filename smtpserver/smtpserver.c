@@ -43,7 +43,6 @@ const char *Copyright2 = "Copyright 1991-1999 Matti Aarnio";
 
 struct command command_list[] =
 {
-			/* 8-bit smtp extensions */
     {"EHLO", Hello2},
 			/* Normal stuff.. */
     {"HELO", Hello},
@@ -83,6 +82,9 @@ struct command command_list[] =
     {"IDENT", DebugIdent},
     {"DEBUG", DebugMode},
 			/* End of the list */
+#ifdef HAVE_OPENSSL
+    {"STARTTLS", StartTLS}, /* RFC 2487 */
+#endif
     {0, Null}
 };
 
@@ -1642,6 +1644,11 @@ int insecure;
 	    type(SS, 550, m550, "panic!");
 	    typeflush(SS);
 	    break;
+#ifdef HAVE_OPENSSL
+	case StartTLS:
+	    smtp_starttls(SS, buf, cp);
+	    break;
+#endif
 	case Hello:
 	case Hello2:
 	    /* This code is LONG.. */
@@ -1784,7 +1791,7 @@ SmtpState *SS;
 {
 #ifdef HAVE_OPENSSL
     if (SS->sslmode)
-      SSL_flush(SS->ssl); /* XX: ???? */
+      ; /* SSL_flush(SS->ssl); */ /* XX: ???? */
     else
 #endif
       fflush(SS->outfp);

@@ -1377,7 +1377,7 @@ const int len;
       return 0;
 
     if (state->authuser == NULL)
-      state->authuser = authuser;
+      state->authuser = (char*)authuser;
 
     if (debug) {
 	printf("000- policytest what=%d\n", what);
