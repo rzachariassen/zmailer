@@ -250,7 +250,11 @@ cf:	FRC  $(MD5SUM)
 	fi ; \
 	if [ ! -d $$MAILSHARE/cf ]; then \
 		$(MKDIR) $$MAILSHARE/cf ; \
+	fi ; \
+	if [ ! -d $$MAILSHARE/cf/proto ]; then \
 		$(MKDIR) $$MAILSHARE/cf/proto ; \
+	fi ; \
+	if [ ! -d $$MAILSHARE/cf/fc ]; then \
 		$(MKDIR) $$MAILSHARE/cf/fc ; \
 	fi ; \
 	cp -p $(srcdir)/cf/*.cf $$MAILSHARE/cf/proto ; \

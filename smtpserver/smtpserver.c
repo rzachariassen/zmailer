@@ -118,7 +118,7 @@ int gotalarm;
 
 char logtag[16];
 
-jmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
+sigjmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
 
 
@@ -1479,7 +1479,7 @@ int insecure;
     if (!netconnected_flg)
       strict_protocol = 0;
 
-    rc = setjmp(jmpalarm);
+    rc = sigsetjmp(jmpalarm);
     if (rc != 0) {
 	/* Oooo...  We are returning here via  longjmp(),
 	   which means we just got a timeout (SIGALRM),

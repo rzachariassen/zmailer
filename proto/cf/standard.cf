@@ -95,7 +95,7 @@ else
     else
         relation -lmt unordered -f $MAILVAR/db/localnames -d pathalias thishost
     fi
-else
+  else
 	# The default set of hostnames is:
 	#	$rawhostname - system hostname, from /bin/hostname (or whatever)
 	#	$hostname - the canonicalized version of $rawhostname
@@ -122,6 +122,7 @@ else
 		return $(thishostdb "$name")	# XX: Will it work and produce
 						#     the canonic name/err ?
 	}
+  fi
 fi
 
 #| If the localnames file does not exist, assume we must do local

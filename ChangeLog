@@ -1,11 +1,11 @@
 2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/threads.c:
-	    Sometimes adding new tasks unto long-running thread did cause
-	    the "unfed" count to go to *negative* value.  Now adding tasks
+	    Sometimes adding new tasks into a long-running thread did cause
+	    the "unfed" count to go to *negative* value.  Now counting tasks
 	    there always when they arrive to the thread, not only when all
-	    previous ones have already been fed.. (caring only when a process
-	    is active in the thread.)
+	    previous ones have already been fed.. (caring about it only when
+	    a process is active on the thread.)
 
 	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf, proto/cf/i-iprouter.cf,
 	  proto/cf/i-router.cf, proto/cf/standard.cf, proto/db/dbases.conf:
