@@ -1942,7 +1942,7 @@ run_condquote_(argc, argv, condq)
 	*/
 
 
-	if (mustquote == 1) {
+	if (!condq || mustquote == 1) {
 	  /* Well, we can actually DEQUOTE the thing just fine! */
 	  quoted = 0;
 	  for (; *s; ++s) {
