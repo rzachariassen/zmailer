@@ -136,7 +136,7 @@ SmtpState *SS;
 
 	s = *bufp;
 	buflen = 0;
-	bufsiz = *bufsizp -1;
+	bufsiz = *bufsizp -3;
 
 outbuf_fillup:
 	while (SS->stdinsize > SS->stdincurs) {
@@ -161,7 +161,7 @@ outbuf_fillup:
 	    *bufsizp <<= 1;
 	    bufsiz = *bufsizp;
 	    *bufp = realloc(*bufp, bufsiz);
-	    --bufsiz;
+	    bufsiz -= 3;
 	    if (!*bufp) return NULL; /* OUT OF MEMORY! */
 	    s = *bufp + buflen;
 	  }

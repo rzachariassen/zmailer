@@ -1,5 +1,10 @@
 2000-07-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Possibly  ssfgets()  fell on over-by-one allocation/storage
+	    error so that the buffer tail got stomped over, and some
+	    systems didn't like it --> they crashed.
+
 	* configure.in, router/db.c, router/libdb/bsdbtree.c,
 	  router/libdb/bsdhash.c, smtpserver/policytest.h,
 	  smtpserver/policytest.c, utils/makedb/makedb.c,
