@@ -1453,7 +1453,7 @@ idle_cleanup()
 
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
-
+#if 0
 		p->thg        = NULL;
 		p->thread     = NULL;
 		p->tofd = -1;
@@ -1463,7 +1463,7 @@ idle_cleanup()
 
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
-
+#endif
 		zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only)."));
 	      }
 	    }
