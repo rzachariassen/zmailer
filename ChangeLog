@@ -1,3 +1,15 @@
+2003-05-06  Matti Aarnio  <mea@zmailer.org>
+
+	* include/mail.h.in, scheduler/readconfig.c, scheduler/scheduler.c,
+	  smtpserver/debugreport.c, transports/errormail/errormail.c,
+	  transports/expirer/expirer.c, transports/hold/hold.c,
+	  transports/sm/sm.c, transports/libta/lockaddr.c,
+	  transports/libta/tasysyslog.c, transports/mailbox/mailbox.c,
+	  transports/reroute/reroute.c:
+	    Further cleanup after inserting Eugene's patch-cluster.
+	    Adding   #include "libc.h"  usually, and various other
+	    merryments it involves.
+
 2003-05-05  Matti Aarnio  <mea@zmailer.org>
 
 	* SiteConfig.in, configure.in, include/libz.h, scheduler/transport.c,
