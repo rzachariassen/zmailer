@@ -2234,6 +2234,7 @@ int policytest(state, what, str, len, authuser)
 	/* type(NULL,0,NULL," call_rate_counter(): DABORT: i=%d",len); */
 	break;
     case POLICY_AUTHFAIL:
+	/* FIXME: usernamestr, or NULL, is available at the 'str' .. */
 	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL);
 	/*type(NULL,0,NULL," call_rate_counter(): AUTHFAIL: i=%d",len);*/
 	break;

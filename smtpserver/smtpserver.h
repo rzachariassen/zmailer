@@ -335,7 +335,8 @@ typedef struct SmtpState {
     int  s_readout;
     int  s_status;
     int  s_readerrno;
-    char s_buffer[SMTPLINESIZE];
+    int  s_seen_eof;
+    char s_buffer[64*1024];	/* 64 kB */
     int  s_ungetcbuf;
     int  s_seen_pipeline;
 
@@ -571,6 +572,7 @@ extern const char *xtext_string __((const char *str));
 extern void s_setup  __((SmtpState * SS, int infd, int outfd));
 extern void s_ungetc __((SmtpState *SS, int ch));
 extern int s_feof __((SmtpState * SS));
+extern int s_seen_eof __((SmtpState * SS));
 extern int s_getc __((SmtpState * SS, int timeout_is_fatal));
 extern int s_hasinput __((SmtpState * SS));
 extern int s_gets __((SmtpState *SS, char *buf, int buflen, int *rcp, char *cop, char *cp));
@@ -693,6 +695,10 @@ extern int subdaemon_send_to_peer __((struct peerdata *, const char *, int));
 
 extern struct subdaemon_handler subdaemon_handler_ratetracker;
 extern struct subdaemon_handler subdaemon_handler_contentfilter;
+
+extern void subdaemon_router        __((int fd));
+extern void subdaemon_ratetracker   __((int fd));
+extern void subdaemon_contentfilter __((int fd));
 
 /* subdaemon-rtr.c */
 extern char * call_subdaemon_rtr __((void **, const char*, const char *, int, int*));

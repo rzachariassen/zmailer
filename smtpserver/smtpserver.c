@@ -1894,6 +1894,18 @@ int
 Z_pending(SS)
      SmtpState * SS;
 {
+    int rc;
+    struct timeval tv;
+    fd_set rdset;
+
+    _Z_FD_ZERO(rdset);
+    _Z_FD_SET(SS->inputfd, rdset);
+    tv.tv_sec = tv.tv_usec = 0;
+
+    rc = select(SS->inputfd+1, &rdset, NULL, NULL, &tv);
+
+    if (rc > 0) return 1;
+
     return 0;
 }
 
@@ -1905,6 +1917,15 @@ int s_feof(SS)
 SmtpState *SS;
 {
     return SS->s_status;
+}
+
+int s_seen_eof(SS)
+SmtpState *SS;
+{
+    /* There can be up to  sizeof(SS->s_buffer)  data
+       before this is actual reality!
+    */
+    return SS->s_seen_eof;
 }
 
 int s_getc(SS, timeout_is_fatal)
@@ -1998,18 +2019,32 @@ int s_hasinput(SS)
 SmtpState *SS;
 {
     int i = Z_pending(SS);
-    if (i) return i;
 
-    if (SS->s_readout >= SS->s_bufread) {
-        /* So if it did dry up, try non-blocking read */
-	SS->s_readout = 0;
-	
-	SS->s_bufread = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
-	if (SS->s_bufread > 0)
-	    return SS->s_bufread;
-	return 0;
+    if (SS->s_readout >= SS->s_bufread)
+      SS->s_readout = SS->s_bufread = 0;
+
+    if ((SS->s_readout > 0) && (SS->s_readout < SS->s_bufread)) {
+      /* Compact the buffer */
+      memmove(SS->s_buffer, SS->s_buffer + SS->s_readout,
+	      SS->s_bufread - SS->s_readout);
+      SS->s_bufread -= SS->s_readout;
+      SS->s_readout = 0;
     }
-    return (SS->s_bufread - SS->s_readout);
+
+    /* No new input pending.. return buffer content */
+    if (!i) return SS->s_bufread;
+
+    if (SS->s_bufread < sizeof(SS->s_buffer)) {
+      /* Can fit in some new data.. */
+      i = sizeof(SS->s_buffer) - SS->s_bufread;
+      i = Z_read(SS, SS->s_buffer + SS->s_bufread, i);
+      if (i > 0)
+	SS->s_bufread += i;
+      if (i == 0)
+	SS->s_seen_eof = 1;
+    }
+
+    return SS->s_bufread;
 }
 
 void s_ungetc(SS, ch)
@@ -2384,13 +2419,18 @@ int insecure;
 
 	MIBMtaEntry->ss.IncomingCommands ++;
 
-				   
 	time( & now );
 
 	if (s_hasinput(SS)) {
 	  if (logfp || logfp_to_syslog)
 	    type(NULL,0,NULL,
-		 "-- pipeline input exists %d bytes", s_hasinput(SS));
+		 "-- pipeline input exists %d bytes; %sseen EOF",
+		 s_hasinput(SS), s_seen_eof(SS) ? "" : "not " );
+
+	  if (s_seen_eof(SS) &&  (SS->tarpit > 0.9999)) {
+	    type(NULL,0,NULL,"BAILING OUT");
+	    break;
+	  }
 	  if (!SS->s_seen_pipeline)
 	    MIBMtaEntry->ss.IncomingClientPipelines ++;
 	  SS->s_seen_pipeline = 1;

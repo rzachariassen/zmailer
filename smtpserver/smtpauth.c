@@ -214,7 +214,7 @@ void smtp_auth(SS,buf,cp)
 
 	char c, co;
 	int i, rc;
-	char *uname;
+	char *uname = NULL;
 	long uid;
 	char *zpw;
 
@@ -285,6 +285,8 @@ void smtp_auth(SS,buf,cp)
 	    if (*cp == ' ') ++cp;
 	    if (strict_protocol < 1)
 	      while (*cp == ' ' || *cp == '\t') ++cp;
+
+	    uname = NULL;
 	    
 	    if (*cp != 0) {
 
@@ -293,13 +295,15 @@ void smtp_auth(SS,buf,cp)
 	      bbuf[sizeof(bbuf)-1] = 0;
 	      if (debug)
 		type(SS, 0, NULL, "-> %s", bbuf);
-	      uname = strdup(bbuf);
+
 	      if (*ccp != 0) {
 		type(SS, 501, m552, "unrecognized input/extra junk ??");
 		policytest(&SS->policystate, POLICY_AUTHFAIL,
 			   uname, 1, SS->authuser);
 		return;
 	      }
+
+	      uname = strdup(bbuf);
 
 	    } else {
 	      
@@ -514,6 +518,11 @@ void smtp_auth(SS,buf,cp)
 	    type(SS, 334, "", "%s", out2);
 	    authenticating = SASL_PROC_AUTH;
 	  }
+
+
+
+
+	  /* Now we start spinning the SASL call state.. */
 
 	  while (authenticating == SASL_PROC_AUTH) {
 

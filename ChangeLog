@@ -1,3 +1,16 @@
+2004-05-09  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtptls.c:
+	    Detect if there is known EOF coming up in read pipe.
+	    This is meaningfull to check in case we are very early
+	    in SMTP session, and somebody is feeding us spam...
+
+	* smtpserver/policytest.c, smpserver/smtpauth.c:
+	    Compiler said "uname might be used uninitialized"..
+	    Actually it is not used in the policy code
+	    either, but that is another story...
+
 2004-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/subdaemons.c:

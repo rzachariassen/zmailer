@@ -144,8 +144,21 @@ int
 Z_pending(SS)
      SmtpState * SS;
 {
+    int rc;
+    struct timeval tv;
+    fd_set rdset;
+
     if (SS->sslmode)
       return SSL_pending(SS->TLS.ssl);
+
+    _Z_FD_ZERO(rdset);
+    _Z_FD_SET(SS->inputfd, rdset);
+    tv.tv_sec = tv.tv_usec = 0;
+
+    rc = select(SS->inputfd+1, &rdset, NULL, NULL, &tv);
+
+    if (rc > 0) return 1;
+
     return 0;
 }
 
