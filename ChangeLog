@@ -1,3 +1,10 @@
+2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    When reporting '-- pipeline input exists', do that immediately
+	    after collecting previous input line, not after SYNCing out
+	    previous reply.
+
 2000-02-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/appendlet.c, transports/smtp/smtp.h,

@@ -1375,12 +1375,7 @@ int buflen, *rcp;
 	int i = -1, rc = -1;
 
 	if (!pipeliningok || !s_hasinput(SS))
-	    typeflush(SS);
-	else
-	    /* if (verbose) */
-	if (logfp)
-	  type(NULL,0,NULL,
-	       "-- pipeline input exists %d bytes", s_hasinput(SS));
+	  typeflush(SS);
 
 	/* Alarm processing on the SMTP protocol channel */
 	alarm(SMTP_COMMAND_ALARM_IVAL);
@@ -1671,6 +1666,12 @@ int insecure;
 
 	if (i <= 0)	/* EOF ??? */
 	  break;
+
+	if (s_hasinput(SS))
+	  if (logfp)
+	    type(NULL,0,NULL,
+		 "-- pipeline input exists %d bytes", s_hasinput(SS));
+
 
 	eobuf = &buf[i-1];	/* Buf end ptr.. */
 
