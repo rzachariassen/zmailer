@@ -2930,10 +2930,10 @@ vcsetup(SS, sa, fdp, hostname)
 	  struct sockaddr_in6 sai6;
 #endif
 	} upeername;
-	int upeernamelen;
+	int upeernamelen = 0;
 
 	u_short p;
-	int errnosave;
+	int errnosave, flg;
 	char *se;
 
 #if 0
@@ -3123,72 +3123,114 @@ if (SS->verboselog)
 		  hostname, SS->ipaddress, ntohs(sai->sin_port));
 
 
-	alarm(conntimeout);
+	alarm(0); /* Stop any alarm, just in case ... */
 	gotalarm = 0;
 
-	if (setjmp(alarmjmp) == 0) {
-	  if (connect(sk, sa, addrsiz) == 0) {
-	    int on = 1;
-	    /* setreuid(0,0); */
-	    *fdp = sk;
-	    alarm(0);
-#if 1
-	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
-#else
-#if	defined(__svr4__) || defined(BSD) && (BSD-0) >= 43
-	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
-#else  /* BSD < 43 */
-	    setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
-#endif /* BSD >= 43 */
+	flg = fcntl(sk, F_GETFL, 0);
+	fcntl(sk, F_SETFL, flg|O_NONBLOCK);
+
+	if (connect(sk, sa, addrsiz) < 0 &&
+	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
+
+	  /* Wait for the connection -- or timeout.. */
+
+	  struct timeval tv;
+	  fd_set wrset;
+	  int rc;
+
+	  /* Pick our local socket name */
+
+	  memset(&upeername, 0, sizeof(upeername));
+	  upeernamelen = sizeof(upeername);
+	  getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
+
+	  /* Select for the establishment, or for the timeout */
+
+	  tv.tv_sec = conntimeout;
+	  tv.tv_usec = 0;
+	  _Z_FD_ZERO(wrset);
+	  _Z_FD_SET(sk, wrset);
+
+	  rc = select(sk+1, NULL, &wrset, NULL, &tv);
+
+	  errno = 0; /* All fine ? */
+	  if (rc == 0) {
+	    /* Timed out :-( */
+	    gotalarm = 1; /* Well, sort of ... */
+	    errno = ETIMEDOUT;
+	  }
+	}
+
+	errnosave = errno;
+	fcntl(sk, F_SETFL, flg);
+#ifdef SO_ERROR
+	flg = 0;
+	{
+	  int flglen = sizeof(flg);
+	  getsockopt(sk, SOL_SOCKET, SO_ERROR, (void*)&flg, &flglen);
+	}
+	if (flg != 0 && errnosave == 0)
+	  errnosave = flg;
+	/* "flg" contains socket specific error condition data */
 #endif
-	    if (conndebug)
-	      fprintf(stderr, "connected!\n");
 
-	    /* We have successfull connection,
-	       lets record its peering data */
+	if (errnosave == 0) {
+	  /* We have successfull connection,
+	     lets record its peering data */
 
-	    memset(&upeername, 0, sizeof(upeername));
-	    upeernamelen = sizeof(upeername);
-	    getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
+	  memset(&upeername, 0, sizeof(upeername));
+	  upeernamelen = sizeof(upeername);
+	  getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
+	}
 
+	if (upeernamelen != 0) {
 #if defined(AF_INET6) && defined(INET6)
-	    if (upeername.sai6.sin6_family == AF_INET6) {
+	  if (upeername.sai6.sin6_family == AF_INET6) {
+	    int len = strlen(SS->ipaddress);
+	    char *s = SS->ipaddress + len;
+	    strcat(s++, "|");
+	    inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
+		      s, sizeof(SS->ipaddress)-len-9);
+	    s = s + strlen(s);
+	    sprintf(s, "|%d", ntohs(upeername.sai6.sin6_port));
+	  } else
+#endif
+	    if (upeername.sai.sin_family == AF_INET) {
 	      int len = strlen(SS->ipaddress);
 	      char *s = SS->ipaddress + len;
 	      strcat(s++, "|");
-	      inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
+	      inet_ntop(AF_INET, &upeername.sai.sin_addr,
 			s, sizeof(SS->ipaddress)-len-9);
-		s = s + strlen(s);
-	      sprintf(s, "|%d", ntohs(upeername.sai6.sin6_port));
-	    } else
-#endif
-	      if (upeername.sai.sin_family == AF_INET) {
-		int len = strlen(SS->ipaddress);
-		char *s = SS->ipaddress + len;
-		strcat(s++, "|");
-		inet_ntop(AF_INET, &upeername.sai.sin_addr,
-			  s, sizeof(SS->ipaddress)-len-9);
-		s = s + strlen(s);
-		sprintf(s, "|%d", ntohs(upeername.sai.sin_port));
-	      } else {
-		strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
-	      }
+	      s = s + strlen(s);
+	      sprintf(s, "|%d", ntohs(upeername.sai.sin_port));
+	    } else {
+	      strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
+	    }
 
-	    notary_setwttip(SS->ipaddress);
-
-	    return EX_OK;
-	  }
-	  /* setreuid(0,0); */
-	} else {
-	  errno = ETIMEDOUT;
+	  notary_setwttip(SS->ipaddress);
 	}
 
-	if (errno == EINTR && gotalarm)
-	  errno = ETIMEDOUT; /* We use ALARM to limit the timeout.
-				At some systems the tcp connection setup
-				timeout is RATHER LONG ... */
+	if (errnosave == 0) {
+	  int on = 1;
+	  /* setreuid(0,0); */
+	  *fdp = sk;
+	  alarm(0);
+#if 1
+	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
+#else
+#if	defined(__svr4__) || defined(BSD) && (BSD-0) >= 43
+	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
+#else  /* BSD < 43 */
+	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
+#endif /* BSD >= 43 */
+#endif
+	  if (conndebug)
+	    fprintf(stderr, "connected!\n");
 
-	errnosave = errno;
+	  return EX_OK;
+	}
+	/* setreuid(0,0); */
+
 	se = strerror(errnosave);
 
 	alarm(0);
@@ -3252,11 +3294,11 @@ int sig;
 	errno = EINTR;
 	SIGNAL_HANDLE(sig, sig_alarm);
 	SIGNAL_RELEASE(sig);
-	if (!noalarmjmp) {
 #ifdef __alpha
 	  zsyslog((LOG_ERR,"sigalrm(PC=%lx SP=%lx)",
 		   alarmjmp[2], alarmjmp[34]));
 #endif
+	if (!noalarmjmp) {
 	  longjmp(alarmjmp, 1);
 	}
 }
