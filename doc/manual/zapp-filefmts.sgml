@@ -1,23 +1,45 @@
 <APPENDIX ID="zapp.msg-file-format"><?dbhtml filename="zapp-filefmts.html">
 <TITLE>Internal File Data Formats</TITLE>
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zapp-filefmts>
+<TITLE>ZMailer's Files and Formats </TITLE>
+
+
+<FIGURE PGWIDE=1 FLOAT=1 ID=fig.zappffmt.zmdirs>
+  <TITLE ID=figtit.zappffmt.zmdirs>ZMailer's <FILENAME>$<VARNAME>POSTOFFICE</>/</> directories and files</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmdirs.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zapp-filefmts-envelope-header-lines>
+<TITLE>Envelope Header Lines</TITLE>
+
 <PARA>
-As mentioned, the <EMPHASIS>router</> picks up message files from
-a specific directory.
+As the <COMMAND>router</> picks up message files from a specific directory.
 Normally, message file names can be arbitrary valid file names, and indeed
 this is convenient when debugging.
-However, because the <EMPHASIS>router</> daemon scans its own current
+However, because the <COMMAND>router</> daemon scans its own current
 directory, miscellaneous output from the <EMPHASIS>router</> process
 may show up in this directory (e.g. profiling data, or core dumps
 (unthinkable as that is)).
 Furthermore, it is useful to be able to hide files from
-the <EMPHASIS>router</> scanning (indeed the <EMPHASIS>router</> may
+the <COMMAND>router</> scanning (indeed the <COMMAND>router</> may
 wish to do so itself).
 </PARA>
 
 <PARA>
-When the <EMPHASIS>router</> process is scanning for message files then,
-it only considers at file names that have a certain format.
+When the <COMMAND>process</> is scanning for message files, it only
+considers file names that have a certain format.
 Specifically, the message file name must start with a digit.
 This method was chosen to accomodate the message file names, as generated
 by the standard submission interface library routines, which will be strings
@@ -43,11 +65,6 @@ The semantics of the two message file sections is quite different, and
 will be covered later.
 </PARA>
 
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-
-<SECT1 ID=zapp-filefmts-envelope-header-lines>
-<TITLE>Envelope Header Lines</TITLE>
-
 <PARA>
 The message envelope headers are used to carry meta-information about
 the message.
@@ -62,17 +79,21 @@ At first the message starts with a set of envelope headers
  *errormsg \n
  *with %s \n
  *identinfo %s \n
+
 <EMPHASIS>Either:</>
-   from &lt;%s&gt; \n
+  from &lt;%s&gt; \n
 <EMPHASIS>Or:</>
-   channel error \n
+  channel error \n
+
  *envid %s \n
  *notaryret %s \n
+
 <EMPHASIS>Then for each recipient pairs of:</>
  *todsn [NOTIFY=...] [ORCPT=...] \n
- to &lt;%s&gt; \n
+  to &lt;%s&gt; \n
+
 <EMPHASIS>Just before the data starts, a magic entry:</>
- env-end \n
+  env-end \n
 </SCREEN>
 Then starts the message RFC-822 headers, and below it, the body.
 </PARA>
@@ -80,35 +101,35 @@ Then starts the message RFC-822 headers, and below it, the body.
 <PARA>
 The header fields recognized by ZMailer in the message envelope are:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>bodytype <EMPHASIS>word</></TERM>
+<VARLISTENTRY><TERM><OPTION>bodytype </><EMPHASIS>word</></TERM>
 <LISTITEM><PARA>
 not used. Compatibility with the <APPLICATION>sendmail</> feature 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>channel <EMPHASIS>word</></TERM>
+<VARLISTENTRY><TERM><OPTION>channel </><EMPHASIS>word</></TERM>
 <LISTITEM><PARA>
 sets the channel corresponding to the message origin(*),
-usually as ``channel error''
+usually as ``<LITERAL>channel error</>''
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>comment <EMPHASIS>string</></TERM>
+<VARLISTENTRY><TERM><OPTION>comment </><EMPHASIS>string</></TERM>
 <LISTITEM><PARA>
 arbitrary comment
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>env-end</TERM>
+<VARLISTENTRY><TERM><OPTION>env-end</></TERM>
 <LISTITEM><PARA>
-separator between the envelope and the RFC822 headers
+separator flag-word in between the envelope and the RFC822 headers
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>env-eof</TERM>
+<VARLISTENTRY><TERM><OPTION>env-eof</></TERM>
 <LISTITEM><PARA>
-alias to env-end
+alias to <OPTION>env-end</>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>errormsg</TERM>
+<VARLISTENTRY><TERM><OPTION>errormsg</></TERM>
 <LISTITEM><PARA>
-Special internal flag telling that the message in question
+Special internal flag-word telling that the message in question
 has been produced by <COMMAND>scheduler</> or <COMMAND>errormail</>,
 and is considered an error message.
 </PARA><PARA>
@@ -117,57 +138,58 @@ default route lookup key for recipients in this case.
 See file <FILENAME>p-routes.cf</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>envid <EMPHASIS>xtext</></TERM>
+<VARLISTENTRY><TERM><OPTION>envid </><EMPHASIS>xtext</></TERM>
 <LISTITEM><PARA>
 ESMTP DSN ENVID value
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>external</TERM>
+<VARLISTENTRY><TERM><OPTION>external</></TERM>
 <LISTITEM><PARA>
-keyword indicating the external origin of a message
+A flag-word indicating the external origin of a message
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>from <EMPHASIS>``address''</></TERM>
+<VARLISTENTRY><TERM><OPTION>from </><EMPHASIS>``address''</></TERM>
 <LISTITEM><PARA>
 a source address(*)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>fullname <EMPHASIS>``phrase''</></TERM>
+<VARLISTENTRY><TERM><OPTION>fullname </><EMPHASIS>``phrase''</></TERM>
 <LISTITEM><PARA>
 sets the full name of the local sender
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>identinfo <EMPHASIS>``string''</></TERM>
+<VARLISTENTRY><TERM><OPTION>identinfo </><EMPHASIS>``string''</></TERM>
 <LISTITEM><PARA>
 The SMTP server's ident lookup result, this does not guarantee anything
 about the sender though.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>loginname <EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>loginname </><EMPHASIS>``word''</></TERM>
 <LISTITEM><PARA>
 requests using this mail id for the local sender
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>notaryret <EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>notaryret </><EMPHASIS>``word''</></TERM>
 <LISTITEM><PARA>
-ESMTP DSN RET=<EMPHASIS>word</>, either ``FULL'' ``HDRS''
+ESMTP DSN RET=<EMPHASIS>word</>, either ``<LITERAL>FULL</>'',
+or ``<LITERAL>HDRS</>''
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>rcvdfrom <EMPHASIS>``domain'' (opt comment)</></TERM>
+<VARLISTENTRY><TERM><OPTION>rcvdfrom </><EMPHASIS>``domain'' (opt comment)</></TERM>
 <LISTITEM><PARA>
-An optional envelope entry, which sets ``Received:'' header's
-``from'' field value.
+An optional envelope entry, which sets ``<LITERAL>Received:</>'' header's
+``<LITERAL>from</>'' field value.
 </PARA>
 
 <PARA>
 This should <EMPHASIS>only</> be used on messages that are originated
 thru ``trusted'' mechanisms, and especially <EMPHASIS ROLE="BOLD">not</>
 be used when the message is originated by some John Doe in the system.
-(E.g. this is reserved for <EMPHASIS>smtpserver</> and friends, not
+(E.g. this is reserved for <COMMAND>smtpserver</> and friends, not
  for arbitrary users.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>to <EMPHASIS>``address-list''</></TERM>
+<VARLISTENTRY><TERM><OPTION>to </><EMPHASIS>``address-list''</></TERM>
 <LISTITEM><PARA>
 Normal recipient address list; usually used in form of listing
 one address in angle braces:
@@ -176,14 +198,14 @@ one address in angle braces:
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>todsn <EMPHASIS>``phrase''</></TERM>
+<VARLISTENTRY><TERM><OPTION>todsn </><EMPHASIS>``phrase''</></TERM>
 <LISTITEM><PARA>
 ESMTP DSN recipient parameters.
-Note: this must be before the recipient ``to'' line for which
+Note: this must be before the recipient ``<OPTION>to</>'' line for which
 this gives the extra parameters.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>user <EMPHASIS>``local-part''</></TERM>
+<VARLISTENTRY><TERM><OPTION>user </><EMPHASIS>``local-part''</></TERM>
 <LISTITEM><PARA>
 Optional envelope entry telling who the message originating user
 was.   The system is extremely suspicuous on this entry, and will
@@ -191,7 +213,7 @@ check it against system account database, unless the spool file
 owner uid is known to belong to trusted users.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>verbose <EMPHASIS>``filename''</></TERM>
+<VARLISTENTRY><TERM><OPTION>verbose </><EMPHASIS>``filename''</></TERM>
 <LISTITEM><PARA>
 This optional envelope entry tells the router, what filename
 the sending client expects the subsystems to use as a feedback
@@ -205,23 +227,23 @@ directory, and has been preopened by the same uid as has created
 the message spool file.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>via <EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>via </><EMPHASIS>``word''</></TERM>
 <LISTITEM><PARA>
-An optional envelope entry that will define ``Received:'' header's
-optional ``via'' tag telling what physical transport mechanism was
-used.
+An optional envelope entry that will define ``<LITERAL>Received:</>''
+header's optional ``<LITERAL>via</>'' tag telling what physical transport
+mechanism was used.
 </PARA><PARA>
 Usually this entry is <EMPHASIS>not</> used.
-(For an exceptions, see <EMPHASIS>rmail</> and
- <EMPHASIS>listexpand</> utility.)
+(For an exceptions, see <COMMAND>rmail</> and
+ <COMMAND>listexpand</> utility.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>with <EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>with </><EMPHASIS>``word''</></TERM>
 <LISTITEM><PARA>
-An optional envelope entry that will define ``Received:'' header's
-optional ``with'' tag telling what protocol was used.
+An optional envelope entry that will define ``<LITERAL>Received:</>''
+header's optional ``<LITERAL>with</>'' tag telling what protocol was used.
 </PARA><PARA>
-Unlike RFC-822 tells, ZMailer supports only one ``with'' instance.
+Unlike RFC-822 tells, ZMailer supports only one ``<LITERAL>with</>'' instance.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -229,10 +251,10 @@ Unlike RFC-822 tells, ZMailer supports only one ``with'' instance.
 <PARA>
 The (*)'s beside the descriptions indicate this is a privileged field.
 That is, the action will only happen if ZMailer trusts the owner of the
-message file (*Note Security: security.). 
+message file (*Note Security: security. XREF ??). 
 As with a normal RFC822 header, other fields are allowed (though they
 will be ignored), and case is not significant in the field name.
-The <EMPHASIS>router</> will do appropriate checks for the fields that
+The <COMMAND>router</> will do appropriate checks for the fields that
 require it.
 </PARA>
 
@@ -284,9 +306,9 @@ message header.  A more sophisticated example in the same vein:
 
 <PARA>
 If the <EMPHASIS>Classification:</> header is paid attention to in ZMailer,
-this requires that the <EMPHASIS>router</> recognize it in the message
+this requires that the <COMMAND>router</> recognize it in the message
 header, and take appropriate action.
-In general the <EMPHASIS>router</> can extract most of the information in
+In general the <COMMAND>router</> can extract most of the information in
 the message header, and make use of it if the information is lacking in
 the envelope.
 The envelope headers in the above message are superfluous, since the same
@@ -310,7 +332,7 @@ ZMailer will complain in case of unexpected errors in the envelope headers.
 
 <PARA>
 The message body is not interpreted by ZMailer itself.
-As far as the <EMPHASIS>router</> is concerned, it can be arbitrary data.
+As far as the <COMMAND>router</> is concerned, it can be arbitrary data.
 However, certain <EMPHASIS>Transport Agents</> may require limitations on
 the message body data.
 For example, the SMTP only deals with ASCII data with a small guaranteed
@@ -325,10 +347,10 @@ line length.
 <TITLE>Message Control File</TITLE>
 
 <PARA>
-A message control file is a file created by the <EMPHASIS>router</> to
+A message control file is a file created by the <COMMAND>router</> to
 contain all the information necessary for delivery of a message submitted
 in a corresponding message file.
-It is interpreted by the <EMPHASIS>scheduler</>, which needs to know
+It is interpreted by the <COMMAND>scheduler</>, which needs to know
 at all times which messages are pending to go where, and how.
 It is also interpreted by one or more <EMPHASIS>Transport Agents</>,
 possibly concurrently, that extract the delivery information relevant
@@ -353,7 +375,7 @@ update the same file.
 <PARA>
 Apart from necessary envelope and control information, a control file also
 contains the new message header for the message, which contains the header
-addresses as rewritten by the <EMPHASIS>router</>.
+addresses as rewritten by the <COMMAND>router</>.
 Since a message may have several destinations with incompatible address
 format requirements, there may be several corresponding groups of message
 headers.
@@ -381,12 +403,13 @@ Here is a simple control file produced by a test message, just before it
 was removed by the Scheduler:
 <SCREEN>
   ====================
+  @ 0x00000007
   i 24700
   o 72
   l &lt;88Jan10.003129est.24700@bay.csri.toronto.edu&gt;
   e Rayan Zachariassen &lt;rayan&gt;
   s local - rayan
-  r+local - rayan 2003
+  r+          local - rayan 2003
   m
   Received: by bay.csri.toronto.edu id 24700; Sun, 10 Jan 88 00:31:29 EST
   From:   Rayan Zachariassen &lt;rayan&gt;
@@ -396,7 +419,7 @@ was removed by the Scheduler:
   Date:   Sun, 10 Jan 88 00:31:24 EST
   
   s local - rayan@bay.csri.toronto.edu
-  r+smtp ephemeral.ai.toronto.edu rayan@ephemeral.ai.toronto.edu 2003
+  r+          smtp ephemeral.ai.toronto.edu rayan@ephemeral.ai.toronto.edu 2003
   m
   Received: by bay.csri.toronto.edu id 24700; Sun, 10 Jan 88 00:31:29 EST
   From:   Rayan Zachariassen &lt;rayan@csri.toronto.edu&gt;
@@ -411,89 +434,171 @@ was removed by the Scheduler:
 
 <PARA>
 The id character values are defined in
-the <FILENAME CLASS="HEADERFILE">mail.h</> system header file,
+the <FILENAME CLASS=HEADERFILE>mail.h</> system header file,
 which currently contains:
 <SCREEN>
+/* These are in order (roughly) what the router writes out. */
+#define _CF_FORMAT      '@'     /* What format variant are we ?? */
+
+#define _CF_FORMAT_TA_PID       0x00000001 /* At 'r' or 'X' lines */
+#define _CF_FORMAT_DELAY1       0x00000002 /* At 'r' or 'X' lines */
+#define _CF_FORMAT_MIMESTRUCT   0x00000004 /* The 'M' block       */
+#define _CF_FORMAT_KNOWN_SET (_CF_FORMAT_DELAY1|_CF_FORMAT_TA_PID | \
+                              _CF_FORMAT_MIMESTRUCT)
+
+#define _CF_VERBOSE     'v'     /* log file name for verbose log (mail -v) */
 #define _CF_MESSAGEID   'i'     /* inode number of file containing message */
 #define _CF_BODYOFFSET  'o'     /* byte offset into message file of body */
+#define _CF_LOGIDENT    'l'     /* identification string for log entries */
 #define _CF_BODYFILE    'b'     /* alternate message file for new body */
+#define _CF_ERRORADDR   'e'     /* return address for error messages */
+#define _CF_OBSOLETES   'x'     /* message id of message obsoleted by this */
+#define _CF_TURNME      'T'     /* trigger scheduler to attempt delivery now */
 #define _CF_SENDER      's'     /* sender triple (channel, host, user) */
-#define _CF_RECIPIENT   'r'     /* recipient n-tuple, n &gt;= 3 */
+#define _CF_RECIPIENT   'r'     /* recipient n-tuple, n >= 3 */
 #define _CF_DSNRETMODE  'R'     /* DSN message body return control */
 #define _CF_XORECIPIENT 'X'     /* one of XOR set of recipient n-tuples */
 #define _CF_RCPTNOTARY  'N'     /* DSN parameters for previous recipient */
-#define _CF_DSNENVID    'n'     /* DSN 'MAIL FROM&lt;&gt; ENVID=XXXX' data */
-#define _CF_ERRORADDR   'e'     /* return address for error messages */
-#define _CF_DIAGNOSTIC  'd'     /* diagnostic message for ctlfile offset */
+#define _CF_DSNENVID    'n'     /* DSN 'MAIL FROM&lt;> ENVID=XXXX' data */
 #define _CF_MSGHEADERS  'm'     /* message header for preceeding recipients */
-#define _CF_LOGIDENT    'l'     /* identification string for log entries */
-#define _CF_OBSOLETES   'x'     /* message id of message obsoleted by this */
-#define _CF_VERBOSE     'v'     /* log file name for verbose log (mail -v) */
-#define _CF_TURNME      'T'     /* trigger scheduler to attempt delivery now */
-#define _CF_RCVFROM     'F'     /* Where-from we are coming ? */               
+#define _CF_MIMESTRUCT  'M'     /* compacted MIME structure data for message */
+#define _CF_DIAGNOSTIC  'd'     /* diagnostic message for ctlfile offset */
+
+/* The following characters may appear in the second column after most _CF_* */
+#define _CFTAG_NORMAL   ' '     /* what the router sets it to be */
+#define _CFTAG_LOCK     '~'     /* that line is being processed, lock it */
+#define _CFTAG_OK       '+'     /* positive outcome of processing */
+#define _CFTAG_NOTOK    '-'     /* something went wrong */
+#define _CFTAG_DEFER    _CFTAG_NORMAL   /* try again later */
 </SCREEN>
 </PARA>
 
 <PARA>
-There is one field per line, except for <CONSTANT>_CF_MSGHEADERS</> which
-has some special semantics described below.
+There is one field per line, except for <CONSTANT>_CF_MSGHEADERS</>,
+and <CONSTANT>_CF_MIMESTRUCT</>, which have some special semantics
+described below.
+</PARA>
+
+<PARA>
 The following describes the fields in detail:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>i</TERM><LISTITEM><PARA>
-This field identifies the message file corresponding to this control file.
-It is the name of the message file in the <EMPHASIS>QUEUE</> directory
-(<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>).
-This is typically the same as the inode number for that file, but need not be.
-It is used by <EMPHASIS>Transport Agents</> when copying the message body,
-and by the <EMPHASIS>Scheduler</> when unlinking the file after all
-the destination addresses have been processed.
+<VARLISTENTRY><TERM><OPTION>@</> <EMPHASIS>hex-encoded-bitflagset</></TERM><LISTITEM><PARA>
+This carries a hex-encoded bitflag set which is used by
+the <COMMAND>scheduler</>, and <EMPHASIS>Transport Agents</> to detect
+if the <COMMAND>router</> produces files with incompatible features to
+what the latter programs know.
+</PARA><PARA>
+This is used to ensure that there stays a capability relation of:
+<SCREEN>
+  router <= scheduler <= transport-agents
+</SCREEN>
+</PARA><PARA>
 For example:
 <SCREEN>
-  i 21456
+  @ 0x00000007
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>o</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>v</> <EMPHASIS>relative-file-path</></TERM><LISTITEM><PARA>
+Log file name for verbose log (<USERINPUT>mail -v</>):
+<SCREEN>
+ v ../public/v_some_magic_tmpfile
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY><TERM><OPTION>i</> <EMPHASIS>filename</></TERM><LISTITEM><PARA>
+This field identifies the message file corresponding to this control file.
+It is the name of the message file in the <EMPHASIS>QUEUE</> directory
+(<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>).
+</PARA><PARA>
+This is typically the same as the inode number for that file, but need not be.
+It is used by <EMPHASIS>Transport Agents</> when copying the message body,
+and by the <COMMAND>scheduler</> when unlinking the file after all of
+the destination addresses have been processed.
+</PARA><PARA>
+For example:
+<SCREEN>
+  i 21456-789
+</SCREEN>
+
+
+<INFORMALFIGURE PGWIDE=0 FLOAT=0 ID=fig.zappffmt.zmsched1>
+<!--  <TITLE ID=figtit.zappffmt.zmsched1>The ``<LITERAL>i</>'' reference meaning</TITLE> -->
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmsched1.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</INFORMALFIGURE>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>o</> <EMPHASIS>decimal-number</></TERM><LISTITEM><PARA>
 Specifies the byte offset of the message body in the message file.
 It is used by <EMPHASIS>Transport Agents</> in order to copy
 the message body quickly, without parsing the message file.
+</PARA><PARA>
 For example:
 <SCREEN>
   o 466
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>b</TERM><LISTITEM><PARA>
-Alternate message file for new body.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>e</TERM><LISTITEM><PARA>
-Gives an address to which delivery errors should be sent.
-The address must be an RFC822 mailbox.
-For example:
-<SCREEN>
-  e "Operations Directorate" &lt;d-ops@sis.mod.uk&gt;
-</SCREEN>
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>l</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>l</> <EMPHASIS>message-id-string</></TERM><LISTITEM><PARA>
 The field value is an uninterpreted string which should prefix all log
 messages and accounting records associated with this message.
 This value is typically the message id string.
+</PARA><PARA>
 For example:
 <SCREEN>
   l &lt;88Jan6.103158gmt.24694@sis.mod.uk&gt;
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>s</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>b</> <EMPHASIS>filename</></TERM><LISTITEM><PARA>
+Alternate message file for new body.
+(<EMPHASIS>Currently not supported!</>)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>e</> <EMPHASIS>error-address</></TERM><LISTITEM><PARA>
+Gives an address to which delivery errors should be sent.
+The address must be a RFC822 mailbox.
+</PARA><PARA>
+For example:
+<SCREEN>
+  e "Operations Directorate" &lt;d-ops@sis.mod.uk&gt;
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>x</> <EMPHASIS>message-id-string</></TERM><LISTITEM><PARA>
+Message id of message obsoleted by this.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>T</></TERM><LISTITEM><PARA>
+This is mainly <COMMAND>smtpserver</> created message directing
+the <COMMAND>scheduler</> to trigger sending of given queue
+(or other parameter) right (resources permitting).
+This is mainly superceded by <EMPHASIS>MAILQv2</> ETRN IPC mechanism.
+</PARA><PARA>
+For example:
+<SCREEN>
+  T some.specific.domain (trigger originator IP address)
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY><TERM><OPTION>s</> <EMPHASIS>sender-quad</></TERM><LISTITEM><PARA>
 This field specifies an originator (sender) address triple, in the
 sequence: previous channel, previous host, return address.
 It remains the current sender address until the next instance of this field.
+</PARA><PARA>
 Since there can only be one sender of a message, multiple instances of
 the field will correspond to different return address formats as
-produced by the <FUNCTION>crossbar</> algorithm in the <EMPHASIS>router</>.
+produced by the <FUNCTION>crossbar</> algorithm in the <COMMAND>router</>.
+</PARA><PARA>
 For example:
 <SCREEN>
   s smtp sis.mod.uk @lab.sis.mod.uk:q@deadly-sun.lab.sis.mod.uk
@@ -501,49 +606,83 @@ For example:
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>r</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>r</> <EMPHASIS>10-spaces rcpt-quad</></TERM><LISTITEM><PARA>
 This field specifies a destination (recipient) address triple, in the
 sequence: next channel, next host, address for next host.
 Optional information to be passed to the <EMPHASIS>Transport Agent</>
 may be placed after the mandatory fields; this currently refers to
 the delivery privilege of the destination address.
 Since the optional values of this field are only interpreted by the
-<EMPHASIS>Transport Agent</>, changes in what the <EMPHASIS>router</>
+<EMPHASIS>Transport Agent</>, changes in what the <COMMAND>router</>
 writes must be coordinated with the code of the <EMPHASIS>Transport Agents</>
 that might interpret this field.
+</PARA><PARA>
+For recipient processing interlocks, and delay report flags there is
+6+4 spaces before the actual recipient address quad.
+</PARA><PARA>
 For example:
 <SCREEN>
-  r local - bond 0
-  r uucp uunet sisops!bond -2
+  ==123456ABCD....
+  r           local - bond 0
+  r           uucp uunet sisops!bond -2
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>R</TERM><LISTITEM><PARA>
-DSN message body return control.
+<VARLISTENTRY><TERM><OPTION>X</></TERM><LISTITEM><PARA>
+One of XOR set of recipient 4-tuples.
+(<EMPHASIS>Not used so far.</>)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>X</TERM><LISTITEM><PARA>
-One of XOR set of recipient n-tuples.
-</PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>N</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>N</></TERM><LISTITEM><PARA>
 DSN parameters for previous recipient.
+</PARA><PARA>
+For example:
+<SCREEN>
+  ==123456ABCD....
+  r           local - bond 0
+  N ORCPT=rfc822;bond NOTIFY=DELAY,FAILURE
+</SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>n</TERM><LISTITEM><PARA>
-DSN <COMPUTEROUTPUT>MAIL FROM&lt;&gt; ENVID=XXXX</> data.
+<VARLISTENTRY><TERM><OPTION>R</></TERM><LISTITEM><PARA>
+DSN message body return control flag.
+(While this is stored once per every message
+</PARA><PARA>
+For example:
+<SCREEN>
+  ==123456ABCD....
+  r           local - bond 0
+  N ORCPT=rfc822;bond NOTIFY=DELAY,FAILURE
+  R HDRS
+</SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>m</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>n</></TERM><LISTITEM><PARA>
+DSN <LITERAL>MAIL FROM&lt;..&gt; ENVID=XXXX</> data.
+</PARA><PARA>
+For example:
+<SCREEN>
+  ==123456ABCD....
+  r           local - bond 0
+  N ORCPT=rfc822;bond NOTIFY=DELAY,FAILURE
+  R HDRS
+  n XXXX
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>m</></TERM><LISTITEM><PARA>
 Apart from a message body, a <EMPHASIS>Transport Agent</>
 needs the message headers to construct the message it delivers.
 These message headers are stored as the value of this field.
+</PARA><PARA>
 Since message headers obviously can span lines, the syntax for
 this field is somewhat different than for the others.
 The field id is immediately followed by a newline, which is followed
 by a complete set of message headers.
 These are terminated (in the usual fashion) by an empty line, which also
 terminates this field.
+</PARA><PARA>
 In the following example, the last line of text is followed by an empty line,
 after which another field may start:
 <SCREEN>
@@ -551,45 +690,39 @@ after which another field may start:
   From: M
   To: Bond
   Subject: do get a receipt, 007!
+  
+  s ...
+  r ...
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>d</TERM><LISTITEM><PARA>
-This field is <EMPHASIS>not</> written by the <EMPHASIS>router</>.
-t is written by the <EMPHASIS>Scheduler</> or <EMPHASIS>transport agents</>
+<VARLISTENTRY><TERM><OPTION>M</></TERM><LISTITEM><PARA>
+This is another multi-line structure reserved for latter support of
+pre-scanned MIME structure data so that the transport-agents have
+easier work ahead of them when planning things like content transformations
+during the transport action. (12-Mar-2001)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>d</></TERM><LISTITEM><PARA>
+This field is <EMPHASIS>not</> written by the <COMMAND>router</>.
+It is written by the <COMMAND>scheduler</> or <EMPHASIS>Transport Agents</>
 to remember errors associated with specific addresses.
 The field value has two parts, the first being the byte offset in the control
 file of the destination (recipient) address causing the error, and the rest
 of the line being an error message.
 The <EMPHASIS>Transport Agents</> discover these errors and report them
-to the <EMPHASIS>Scheduler</>.
-The <EMPHASIS>Scheduler</> will collect them and report them to
+to the <COMMAND>scheduler</>.
+</PARA><PARA>
+The <COMMAND>scheduler</> will collect them and report them to
 the error return address (if any) after all the destinations have been
 processed.
-For example:
+</PARA><PARA>
+For example: (FIXME! XREF to detail data ?)
 <SCREEN>
   d 878 No such local user: 'bond'.
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>x</TERM><LISTITEM><PARA>
-Message id of message obsoleted by this.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>v</TERM><LISTITEM><PARA>
-Log file name for verbose log (<USERINPUT>mail -v</>):
-<SCREEN>
- v ../public/v_some_magic_tmpfile
-</SCREEN>
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>T</TERM><LISTITEM><PARA>
-Trigger scheduler to attempt delivery now. (ETRN)
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>F</TERM><LISTITEM><PARA>
-Where-from we are coming ?               
-</PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
 
@@ -714,12 +847,12 @@ Sample of <FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file:
 #| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active       -lm
 
 
-aliases		$DBTYPE	0:0:644    -la $MAILVAR/db/aliases	-lm
-fqdnaliases	$DBTYPE	root:0:644 -la $MAILVAR/db/fqdnaliases	-lm%
-userdb		$DBTYPE	root:0:644 -la $MAILVAR/db/userdb	-lm
+aliases         $DBTYPE 0:0:644    -la $MAILVAR/db/aliases      -lm
+fqdnaliases     $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases  -lm%
+userdb          $DBTYPE root:0:644 -la $MAILVAR/db/userdb       -lm
 
-routesdb	$DBTYPE	-   -l  $MAILVAR/db/routes	-lm%:d pathalias
-thishost	$DBTYPE -   -l  $MAILVAR/db/localnames	-lm%d  pathalias
+routesdb        $DBTYPE -   -l  $MAILVAR/db/routes      -lm%:d pathalias
+thishost        $DBTYPE -   -l  $MAILVAR/db/localnames  -lm%d  pathalias
 
 #| =================================================================
 #|    Set of boilerplate tail-keepers, these lookups fail ALWAYS.
@@ -728,17 +861,17 @@ thishost	$DBTYPE -   -l  $MAILVAR/db/localnames	-lm%d  pathalias
 #| just magically disappear!
 #| =================================================================
 
-aliases		NONE - - - -
-expired		NONE - - - -
-fqdnaliasesldap	NONE - - - -
-fqdnaliases	NONE - - - -
-fullnamemap	NONE - - - -
-iproutesdb	NONE - - - -
-newsgroup	NONE - - - -
-otherservers	NONE - - - -
-routesdb	NONE - - - -
-thishost	NONE - - - -
-userdb		NONE - - - -
+aliases         NONE - - - -
+expired         NONE - - - -
+fqdnaliasesldap NONE - - - -
+fqdnaliases     NONE - - - -
+fullnamemap     NONE - - - -
+iproutesdb      NONE - - - -
+newsgroup       NONE - - - -
+otherservers    NONE - - - -
+routesdb        NONE - - - -
+thishost        NONE - - - -
+userdb          NONE - - - -
 
 #| NOTE:  mboxmap  MUST NOT exist at all if its secondary-effects
 #|        are to be avoided!
@@ -781,6 +914,7 @@ characters terminating on double-colon + whitespace
 
   nobody: /dev/null
   no-one: /dev/null
+  "no body": /dev/null
   junk-trap: /dev/null
 
   #test-gw: "|/..."
@@ -823,14 +957,15 @@ Matches given address, including possible incoming
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><LITERAL>@domain:</></TERM><LISTITEM><PARA>
-This matches all addresses with given domain, and can thus be
-used to map e.g. <LITERAL>user@domain1</> to <LITERAL>user@domain2</>.
+This matches all addresses with given domain.
 </PARA><PARA>
-The data may contain ``<LITERAL>%1</>'' which is filled with <LITERAL>user</>
+The result data may contain ``<LITERAL>%1</>'' which is filled
+with <LITERAL>user</>
 part of the input address, example:
 <SCREEN>
-@domain:  %1@domain2
+  @domain:  %1@domain2
 </SCREEN>
+It can thus be used to map e.g. <LITERAL>user@domain1</> to <LITERAL>user@domain2</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST>
@@ -1138,7 +1273,7 @@ in the system, and should be long-term unique, even.  (Per system.)
 <TITLE><COMMAND>Router</>'s Syslog Format</TITLE>
 
 <PARA>
-The <EMPHASIS>router</> does <FUNCTION>syslog</>() in following format:
+The <COMMAND>router</> does <FUNCTION>syslog</>() in following format:
 </PARA>
 
 <PARA>

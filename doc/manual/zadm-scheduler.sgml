@@ -323,22 +323,19 @@ up default values.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- a  clause  matching  the  local delivery channel
-(usually local).
+a clause matching the local delivery channel (usually local).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- a clause matching the deferred    delivery  channel
-(usually hold).
+a clause matching the deferred delivery channel (usually hold).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- a  clause  matching  the error reporting channel
-(usually error).
+a clause matching the error reporting channel (usually error).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-clauses specific to the other channels  known  by
+clauses specific to the other channels known by
 the <COMMAND>router</>, for example: smtp and uucp.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>

@@ -1,10 +1,9 @@
-#! /bin/bash
+#! /bin/sh
 output=docbook2html-dir
 skip=0
 for arg in $*
 do
-  #a=$arg
-  if [ $skip -gt 1 ]
+  if [ $skip -gt 0 ]
   then
     skip=$(($skip - 1))
     continue
@@ -12,11 +11,11 @@ do
   case $arg in
   -h|--help|-v|--version)	break
 				;;
-  -n|--nostd|-u|--nochunks|-html-index)	skip=1
-				;;
-  -*)				skip=2
+  -n|--nostd|-u|--nochunks)	;;
+  -*)				skip=1
 				;;
   *)	output="$(echo $arg | sed 's,\.sgml$,,;s,\.sgm$,,')"
+	echo "output is $output"
 	break
 	;;
   esac
@@ -27,4 +26,4 @@ then
   mv ${output} ${output}.junk
 fi
 mkdir ${output}
-jw -f docbook -b html -o ${output} $*
+jw -f docbook -b html -o ${output} "$@"

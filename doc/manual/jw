@@ -155,7 +155,10 @@ then
   echo -e $SGML_HELP_MESSAGE >&2
   exit 1
 fi
-SGML_FRONTEND=$SGML_BASE_DIR/docbook/utils-0.6/frontends/$SGML_FRONTEND
+if [ -n "${SGML_FRONTEND%%/*}" ]
+then
+  SGML_FRONTEND=$SGML_BASE_DIR/docbook/utils-0.6/frontends/$SGML_FRONTEND
+fi
 if [ ! -s $SGML_FRONTEND ]
 then
   echo "`basename $0`: There is no frontend called \"$SGML_FRONTEND\"." >&2
@@ -168,7 +171,10 @@ then
   echo -e $SGML_HELP_MESSAGE >&2
   exit 1
 fi
-SGML_BACKEND=$SGML_BASE_DIR/docbook/utils-0.6/backends/$SGML_BACKEND
+if [ -n "${SGML_BACKEND%%/*}" ]
+then
+  SGML_BACKEND=$SGML_BASE_DIR/docbook/utils-0.6/backends/$SGML_BACKEND
+fi
 if [ ! -s $SGML_BACKEND ]
 then
   echo "`basename $0`: There is no backend called \"$SGML_BACKEND\"." >&2

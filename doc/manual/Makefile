@@ -2,14 +2,13 @@
 # GNU-Makefile for ZMailer manual
 #
 
+VERSION = "v1.99.23"
+
 #
-#  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, jade-1.2.2(+)
+#  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, openjade-1.3
 #
-#  All relevant bits are available at for example in redhat 6.2 beta
-#  as RPM packages (February 2000)
-#
-#  (Well, not all, I have CUSTOMIZED JADE - I break certain ligatures
-#   at TeX source in a rather ugly manner, should have a better way..)
+#  All relevant bits are available at for example in redhat 7.1 beta
+#  as RPM packages (February 2001)
 #
 #  When your "make pdf" run complains about running out of some resource
 #  in TeX, go and edit file:  /usr/share/texmf/web2c/texmf.cnf
@@ -55,7 +54,8 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
 		zmdirs.fig zmprocs.fig zmprocs-smtps.fig \
 		zmprocs-router.fig zmprocs-scheduler.fig \
-		zmprocs-tragents.fig zadm-sch-threads.fig
+		zmprocs-tragents.fig zadm-sch-threads.fig \
+		zmsched1.fig
 
 .SUFFIXES: .eps .pdf .ps .gif .fig .gif-green .png
 
@@ -88,6 +88,10 @@ gifs: $(FIGGIF)
 
 $(L2HGIFS):
 
+z-version.txt: ${PARTS} ${FIGS}
+	echo "${VERSION}.`TZ=UTC date +%Y%m%d%H%M`" > z-version.txt
+
+
 OJCAT = /usr/share/sgml/openjade-1.3/catalog
 
 zmanual.html: gifs $(PARTS)
@@ -95,6 +99,7 @@ zmanual.html: gifs $(PARTS)
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
 	echo '<!ENTITY GEXT "gif">' > z-gext.txt
+	make z-version.txt
 	make index-html
 	./db2html -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#html' zmanual.sgml
 	cp -p *.gif zmanual/
@@ -115,6 +120,7 @@ zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PostScript" > z-what.txt
 	echo '<!ENTITY GEXT "eps">' > z-gext.txt
+	make z-version.txt
 	make index-dvi
 	db2dvi -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#print' zmanual.sgml
 
@@ -122,6 +128,7 @@ zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PDF" > z-what.txt
 	echo '<!ENTITY GEXT "pdf">' > z-gext.txt
+	make z-version.txt
 	make index-pdf
 	db2pdf -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#pdf'  zmanual.sgml
 

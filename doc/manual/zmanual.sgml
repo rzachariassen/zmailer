@@ -12,7 +12,7 @@
 <!ENTITY % local.notation.class "| PDF">
 <!NOTATION PDF SYSTEM "PDF">
 
-<!ENTITY ZManVersion     "v1.99.22">
+<!ENTITY ZManVersion     SYSTEM "z-version.txt">
 
 <!-- double-dash -->
 <!ENTITY ddash    SDATA "[ddash]"    -- Double-Dash for ZMailer docs       -->
