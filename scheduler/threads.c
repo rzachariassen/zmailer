@@ -1499,15 +1499,17 @@ int fullmode;
 
 	mytime(&now);
 
+#if 0
 	if (thrg_root == NULL) {
 	  *timebuf = 0;
 	  saytime((long)(now - sched_starttime), timebuf, 1);
 	  fprintf(fp,"No threads/processes.  Uptime: %s\n",timebuf);
 	  return;
 	}
+#endif
 
 	for (thg = thrg_root;
-	     thg_once || thg != thrg_root;
+	     thg && (thg_once || thg != thrg_root);
 	     thg = thg->next) {
 	  int cnt, procs;
 	  struct procinfo *p;

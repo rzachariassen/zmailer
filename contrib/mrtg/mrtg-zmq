@@ -3,6 +3,8 @@
 # Copyright Telecom Finland 1998
 #  Heikki Hannikainen <heikki.hannikainen@tele.fi>
 #
+# (this initial comment boilerplate by Matti Aarnio)
+#
 # This is ZMailer queue poller script to produce data poll results
 # for the MRTG monitoring grapher utility
 #
@@ -17,8 +19,27 @@
 # How to do those is left as an excercise to the reader; the reader
 # is assumed to be quite bright when s/he is playing with MRTG.
 #
+# The output is space separates sequence of tokens -- numbers
+# in following order:
+#
+#  - router queue (by directory scan)
+#  - transport queue (by directory scan)
+#  - number of scheduler kids
+#  - number of idle scheduler kids
+#  - number of message files in transporter per scheduler's knowledge
+#    (this should equal with transport queue, or be very close!)
+#  - number of threads; different destination domains to be sent to
+#  - number of recipients; sum of message counts per destinations
+#  - Triplets of:
+#     - channel/host selector
+#     - number of threads (different destination domains)
+#     - sum of number of messages in all these group
+#
+# Only the first seven (7) fields are there always, and the triplets
+# may or may not exist, plus their order is somewhat unpredictable.
+#
 
-open(f, "/usr/bin/mailq -svQ|") || crash("Cannot open mailq: $!");
+open(f, "/usr/bin/mailq -sQQ |") || crash("Cannot open mailq: $!");
 
 ($routerq) = split(' ', <f>);
 ($transpq) = split(' ', <f>);

@@ -1,5 +1,16 @@
 1998-02-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/threads.c, contrib/mrtg/mrtg-zmq:
+	    Noticed that "mailq -sQQ" output does not produce
+	    consistent results when the scheduler has no jobs
+	    in queues, nor any children.  Changed the reporting
+	    a bit to give out a line of zeroes, if nothing else.
+
+	    Added a bit more comments and explanations into
+	    the  mrtg-zmq  script; it is a tool, but in itself
+	    it is NOT sufficient for graph producing, just to
+	    produce the data.
+
 	* smtpserver/smtpserver.c:
 	    Recognize several error conditions within  s_getc()
 	    in connection with read(2) call.
