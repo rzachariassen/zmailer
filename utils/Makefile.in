@@ -14,6 +14,7 @@ CPPDEP=		@CPPDEP@
 TOPDIR=		..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
+MD5SUM=		@MD5SUM@
 INSTALL=	@INSTALL@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
@@ -27,7 +28,7 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
 	$(srcdir)/make-incore.sh $(srcdir)/bitbucket
 
-all:	listexpand
+all:	listexpand md5sum
 	cd makedb ; $(MAKE) $(MFLAGS)
 	cd vacation ; $(MAKE) $(MFLAGS)
 
@@ -49,6 +50,10 @@ install:
 
 listexpand:	listexpand.o
 	$(CC) $(CFLAGS) -o $@.x listexpand.o $(LIB)
+	mv $@.x $@
+
+md5sum: md5sum.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@.x md5sum.o $(LIB)
 	mv $@.x $@
 
 FRC:

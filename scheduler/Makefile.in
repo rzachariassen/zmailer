@@ -30,9 +30,11 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
 #
 OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o \
-	update.o qprint.o msgerror.o resources.o threads.o wantconn.o
+	update.o qprint.o msgerror.o resources.o threads.o wantconn.o \
+	mq2.o
 SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c \
-	update.c qprint.c msgerror.c resources.c threads.c wantconn.c
+	update.c qprint.c msgerror.c resources.c threads.c wantconn.c \
+	mq2.c
 
 all:	$(LIBDEB) $(PROGRAM) mailq
 

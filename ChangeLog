@@ -1,7 +1,25 @@
+1999-11-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, utils/Makefile.in, utils/md5sum.c:
+	    Initial attempt at writing (from scratch)a MD5SUM
+	    program, but for some reason the result is *not* the
+	    same as GNU textutils one gives :-/  Perhaps it will
+	    not matter in the end, though..
+
+	* scheduler/Makefile.in, scheduler/transport.c, scheduler/mq2.c,
+	  scheduler/scheduler.h, scheduler/prototypes.h:
+	    Some more work on MAILQ-V2; now needs fleshing out only
+	    the real protocol interpreter at  mq2.c: mq2interpret(),
+	    and corresponding things in the system..
+
+	* utils/policy-builder.sh.in:
+	    Some script tweaks; removed externally sourced 'bad source
+	    addresses' list pickups.
+
 1999-11-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* include/md5.h, libc/md5c.c:
-	    More call-interface renaming (macro) into more
+	    Move call-interface renaming macro into more
 	    appropriate place..
 
 	* proto/cf/server.cf:

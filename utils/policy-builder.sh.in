@@ -94,6 +94,7 @@ if [ f$FLAG != fn ]; then
 #		echo "Please try again."
 # 		exit 1
 #	    fi
+	    :
 	fi
     fi
 fi
@@ -137,11 +138,11 @@ fi
 	cat smtp-policy.spam.manual
       fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \
     awk '/^\[/{ # an address block to reject
-	    printf "%s rejectnet +\n", $1;
+	    printf "%s  %s %s %s %s %s %s %s %s rejectnet +\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;
 	    next;
 	}
 	NF > 0 { # All other cases are usernames with their domains
-	  printf "%s = _bulk_mail\n", $1;
+	    printf "%s  %s %s %s %s %s %s %s %s = _bulk_mail\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;
 	}'
   fi
 

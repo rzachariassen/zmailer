@@ -128,6 +128,7 @@ AC_PROG_RANLIB
 AC_PATH_PROG(AR, ar, ar)dnl
 AC_PATH_PROG(LD, ld, ld)dnl
 AC_PATH_PROG(PROCMAIL, procmail, procmail)dnl
+AC_PATH_PROG(MD5SUM, md5sum, md5sum)dnl
 AC_PROG_YACC
 AC_PROG_LN_S
 AC_HEADER_MAJOR

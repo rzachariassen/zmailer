@@ -197,14 +197,17 @@ struct mailq {
 	int		auth;		/* what can do */
 	int		fd;		/* FD for I/O (nonblocking-IO) */
 
-	int		inbufspace;
+	int		inbufspace;	/* Raw input buffer stuff */
 	int		inbufsize;
 	int		inbufcount;
 	char		*inbuf;
 
-	int		outbufspace;
+	int		inplinespace;	/* Split into lines */
+	int		inplinesize;
+	char		*inpline;
+
+	int		outbufspace;	/* Output buffer */
 	int		outbufsize;
 	int		outbufcount;
 	char		*outbuf;
-
 };
