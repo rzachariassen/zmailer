@@ -62,13 +62,15 @@ const char * zshopts = "-O";
 int	nosyslog = 1;
 int	routerdirloops = 0;
 int	do_hdr_warning = 0;
+int	workermode = 0;
+int	nrouters = 1;
 
 int
 main(argc, argv)
 	int	    argc;
 	const char *argv[];
 {
-	int c, errflg, daemonflg, killflg, interactiveflg, tac, nrouters;
+	int c, errflg, daemonflg, killflg, interactiveflg, tac;
 	int version;
 	long offout, offerr;
 	char *config, *cp;
@@ -107,7 +109,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVW");
+		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwW");
 		if (c == EOF)
 			break;
 	  
@@ -173,6 +175,9 @@ main(argc, argv)
 			break;
 		case 'V':
 			version = 1;
+			break;
+		case 'w':
+			workermode = 1;
 			break;
 		case 'W':
 			do_hdr_warning = !do_hdr_warning;
@@ -294,17 +299,8 @@ main(argc, argv)
 		    fprintf(stderr, "%s: daemon not started.\n", progname);
 		    die(1, "capability error during startup");
 		  }
-		  for (router_id = 2; router_id <= nrouters; ++router_id){
-		    if (fork() <= 0) /* child or error */
-		      break;
-		    /* parent */
-		  }
-		  printf("%s: number %d started as pid %d\n",
-			 progname, router_id, (int)getpid());
-		  router_id = getpid();
 		}
-		else
-		  router_id = getpid();
+		router_id = getpid();
 	}
 
 	/* Each (sub-)process does openlog() all by themselves */

@@ -1,11 +1,14 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- router: WORK IN PROGRESS (and old way is now broken!)
+          of running one directory scanning server plus worker
+	  farm.  The server does logging to  '-L' option defined
+	  file (or "$LOGDIR/argv[0]" is nothing defined) by opening
+	  the logfile anew for every *line* of the log..  Makes
+	  logfile rotation *a lot* easier..
+
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
-
-- header rewriter has still problems; at least when "Received:"
-  gets a conversion note added, some pointers get confused..
-	(maybe not ?  perhaps it was far delayed report ?)
 
 - "./configure --without-rfc822-tabs"  doesn't really :-/
 

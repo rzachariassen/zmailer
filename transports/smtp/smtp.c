@@ -2976,7 +2976,7 @@ vcsetup(SS, sa, fdp, hostname)
 {
 	int af, port;
 	volatile int addrsiz;
-	register int sk;
+	int sk;
 	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
 	struct sockaddr_in sad;
 #if defined(AF_INET6) && defined(INET6)

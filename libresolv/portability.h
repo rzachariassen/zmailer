@@ -592,7 +592,7 @@ extern int gettimeofday __P((struct timeval *, struct _TIMEZONE *));
 #endif
 
 #if defined(SVR4) && defined(sun)
-extern int gethostname __P((char *, size_t));
+extern int gethostname __P((char *, int));
 #endif
 
 #ifdef NEED_STRDUP

@@ -477,6 +477,283 @@ int sig;
  */
 
 /*
+ * We run in multiple processes mode; much of the same how scheduler
+ * does its magic:  Children send log messages, and hunger announcements
+ * to the master, and the master feeds jobs to the children.
+ * Minimum number of child processes started is 1.
+ */
+
+#define MAXROUTERCHILDS 20
+struct router_child {
+  FILE *tochild;
+  FILE *fromchild;
+  int childpid;
+  int hungry;
+  char *linebuf;
+  int linespace;
+  int linelen;
+};
+
+struct router_child routerchilds[MAXROUTERCHILDS];
+
+extern int nrouters;
+extern const char *logfn;
+
+/* ../scheduler/pipes.c */
+extern int  pipes_create         __((int *tochild, int *fromchild));
+extern void pipes_close_parent   __((int *tochild, int *fromchild));
+extern void pipes_to_child_fds   __((int *tochild, int *fromchild));
+extern void pipes_shutdown_child __((int fd)); /* At parent, shutdown channel towards child */
+
+/* ../scheduler/resources.c */
+extern int  resources_query_nofiles  __((void));
+extern void resources_maximize_nofiles __((void));
+extern void resources_limit_nofiles __((int nfiles));
+extern int  resources_query_pipesize __((int fildes));
+
+static void child_server __((void));
+static void start_childs  __((int nchilds));
+static int  start_child   __((int idx));
+static int  parent_reader __((int idx));
+static int  parent_feed_child __((const char *dir, const char *fname));
+static int  rd_doit __((const char *filename, const char *dirs));
+
+
+static int  start_child(i)
+     const int i;
+{
+  FILE *tochld, *frmchld;
+  int pid;
+  int tofd[2], frmfd[2];
+
+  if (pipes_create(tofd, frmfd) < 0)
+    return -1; /* D'uh :-( */
+
+  pid = fork();
+  if (pid == 0) { /* child */
+    int idx;
+    pipes_to_child_fds(tofd,frmfd);
+    for (idx = resources_query_nofiles(); idx >= 3; --idx)
+      close(idx);
+
+    resources_maximize_nofiles();
+    child_server();
+
+    exit(1);
+
+  } else if (pid < 0) { /* fork failed - yell and forget it! */
+    close(tofd[0]);  close(tofd[1]);
+    close(frmfd[0]); close(frmfd[1]);
+    fprintf(stderr, "router: start_childs(): Fork failed!\n");
+    return -1;
+  }
+  /* Parent */
+
+  tochld  = fdopen(tofd[1], "w");
+  frmchld = fdopen(frmfd[0],"r");
+
+  fd_nonblockingmode(frmfd[0]);
+
+  routerchilds[i].tochild   = tochld;
+  routerchilds[i].fromchild = frmchld;
+  routerchilds[i].childpid  = pid;
+  routerchilds[i].hungry    = 0;
+  return 0;
+}
+
+
+static void start_childs(nchilds)
+     int nchilds;
+{
+  int i;
+
+  memset(routerchilds, 0, sizeof(routerchilds));
+
+  for (i = 0; i < nchilds; ++i) {
+    if (start_child(i))
+      break; /* fork failed.. */
+  }
+}
+
+/*
+ *  Read whatever there is, detect "#hungry\n" line, and return
+ *  status of the hunger flag..
+ */
+static int parent_reader(i)
+     const int i;
+{
+  struct router_child *rc = &routerchilds[i];
+  FILE *fp = rc->fromchild;
+  FILE *logfp;
+  int c;
+
+  if (!fp) return 0;
+
+  while (!feof(fp) && !ferror(fp)) {
+    c = fgetc(fp);
+    if (c == EOF) {
+      /* Because the socket/pipe is in NON-BLOCKING mode, we
+	 may drop here with an ERROR indication, which can be
+	 cleared and thing resume latter.. */
+      if (errno == EAGAIN || errno == EINTR
+#ifdef EWOULDBLOCK
+	  || errno == EWOULDBLOCK
+#endif
+	  ) {
+	clearerr(fp);
+	break;
+      }
+
+      /* An EOF ? -- child existed ?? */
+      fclose(rc->tochild);
+      rc->tochild = NULL;
+      fclose(rc->fromchild);
+      rc->fromchild = NULL;
+      rc->hungry = 0;
+      rc->childpid = 0;
+      break;
+
+    }
+    if (rc->linebuf == NULL) {
+      rc->linespace = 120;
+      rc->linelen  = 0;
+      rc->linebuf = emalloc(rc->linespace+2);
+    }
+    if (rc->linelen+2 >= rc->linespace) {
+      rc->linespace <<= 1; /* Double the size */
+      rc->linebuf = erealloc(rc->linebuf, rc->linespace+2);
+    }
+    rc->linebuf[rc->linelen++] = c;
+    if (c == '\n') {
+      /* End of line */
+      rc->linebuf[rc->linelen] = 0;
+      if (rc->linelen == 1) {
+	/* Just a newline.. */
+	rc->linelen = 0;
+	continue;
+      }
+      if (rc->linelen == 7 && strcmp(rc->linebuf,"#hungry\n")==0) {
+	rc->linelen = 0;
+	rc->hungry = 1;
+	continue;
+      }
+
+      /* LOG THIS LINE! */
+
+      if (logfn && (logfp = fopen(logfn,"a"))) {
+	fprintf(logfp, "[%d] ", rc->childpid);
+	fputs(rc->linebuf, logfp);
+	fclose(logfp);
+      }
+
+      rc->linelen = 0;
+    }
+  }
+  return rc->hungry;
+}
+
+/*
+ * Child-process job feeder - distributes jobs in even round-robin
+ * manner to all children.  Might some day do resource control a'la
+ * "Priority: xyz" -> process subset 2,3,4
+ */
+
+static int parent_feed_child(dir,fname)
+     const char *dir, *fname;
+{
+  static int rridx = -1;
+  struct router_child *rc = NULL;
+  FILE *fp;
+  int i;
+
+  ++rridx; if (rridx >= nrouters) rridx = 0;
+  for (i = nrouters; i > 0; --i) {
+    rc = &routerchilds[rridx];
+
+    /* If no child at this slot, start one!
+       (whatever has been the reason for its death..) */
+    if (rc->childpid == 0)
+      start_child(rridx);
+
+    /* If we have a hungry child with all faculties intact.. */
+    if (rc->tochild && rc->fromchild && rc->hungry)
+      break;
+
+    /* Next index.. */
+    ++rridx; if (rridx >= nrouters) rridx = 0;
+  }
+  if (!rc || !rc->hungry || !rc->tochild || !rc->fromchild)
+    return -1; /* Failed to find a hungry child!?
+		  We should not have been called in the first place..  */
+
+  fp = rc->tochild;
+
+  if (!dir || *dir == 0)
+    fprintf(fp,"%s\n",fname);
+  else
+    fprintf(fp,"%s/%s\n",dir,fname);
+  fflush(fp);
+
+  if (ferror(fp)) {
+    /* A feed error ??? */
+    fclose(fp);
+    rc->tochild = NULL;
+    return -1;
+  }
+
+  return 0; /* Did feed successfully ?? */
+}
+
+
+
+/*
+ * child_server()
+ *    The real workhorse at the child, receives work, reports status
+ *
+ */
+static void child_server()
+{
+  FILE *fromfp = fdopen(0,"r");
+  FILE *tofp   = fdopen(1,"w");
+  char linebuf[8000];
+  char *s, *fn;
+
+  setvbuf(fromfp, NULL, _IOLBF, 0);
+  setvbuf(tofp,   NULL, _IOFBF, 0);
+
+  linebuf[sizeof(linebuf)-1] = 0;
+
+  while (!feof(fromfp) && !ferror(fromfp)) {
+    fprintf(tofp, "\n#hungry\n");
+    fflush(tofp);
+    if (fgets(linebuf, sizeof(linebuf)-1, fromfp) == NULL)
+      break; /* EOF ?? */
+
+    s = strchr(linebuf,'\n');
+    if (s) *s = 0;
+    if (*linebuf == 0)
+      break; /* A newline -> exit */
+
+    /* Input is either:  "file.name" or "../path/file.name" */
+
+    fn = strrchr(linebuf,'/');
+    if (fn) {
+      *fn++ = 0;
+      s = linebuf; /* 'Dirs' */
+    } else {
+      fn = linebuf;
+      s = linebuf + strlen(linebuf);
+    }
+    rd_doit(fn, s);
+  }
+  /* Loop ends for some reason, perhaps parent died and
+     pipe got an EOF ?  We leave... Our caller exits. */
+}
+
+
+
+
+/*
  * STABILITY option will make the router process incoming messages in
  * arrival (modtime) order, instead of randomly determined by position
  * in the router directory.  The scheme is to read in all the names,
@@ -566,7 +843,6 @@ run_doit(argc, argv)
 	return r;
 }
 
-static int rd_doit __((const char *filename, const char *dirs));
 static int
 rd_doit(filename, dirs)
 	const char *filename, *dirs;
@@ -649,7 +925,7 @@ rd_doit(filename, dirs)
 	  }
 #endif
 	  /* Figure out its inode number */
-	  if (stat(pathbuf,&stbuf) != 0) return 0; /* Failed ?  Well, skip it */
+	  if (lstat(pathbuf,&stbuf) != 0) return 0; /* Failed ?  Well, skip it */
 	  if (!S_ISREG(stbuf.st_mode))   return 0; /* Not a regular file ??   */
 
 	  sprintf(buf, "%ld-%d", (long)stbuf.st_ino, router_id);
@@ -793,7 +1069,7 @@ rd_instability(dirp, dirs)
 
 		/* See that the file is a regular file! */
 		sprintf(pathbuf,"%s%s%s", dirs, *dirs?"/":"", dp->d_name);
-		if (stat(pathbuf,&statbuf) != 0) continue; /* ??? */
+		if (lstat(pathbuf,&statbuf) != 0) continue; /* ??? */
 		if (!S_ISREG(statbuf.st_mode)) continue; /* Hmm..  */
 
 		did_cnt += rd_doit(dp->d_name, dirs);
@@ -848,6 +1124,11 @@ run_daemon(argc, argv)
 	struct stat stb;
 
 	router_id = getpid();
+
+	if (nrouters > MAXROUTERCHILDS)
+	  nrouters = MAXROUTERCHILDS;
+
+	start_childs(nrouters);
 
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
 	for (i=0; i<ROUTERDIR_CNT; ++i) {
