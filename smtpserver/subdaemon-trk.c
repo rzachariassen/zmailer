@@ -237,7 +237,14 @@ static int count_ipv4( state, ipv4addr, lastlimitm, lastlimitr, lastlimitmd, las
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	int i, sum1, sum2;
 
-	if (!reg) {
+#if 0
+	if ( !reg && 
+	     (lastlimitm  <= 0 && lastlimitr <= 0 &&
+	      lastlimitmd <= 0 && lastlimitrd <= 0) )
+	  return 0; /* Not alloced already, and no limit value
+		       to be stored.. */
+#endif
+	if ( !reg ) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
 	  if (reg) reg->mails = 0;
 	}
