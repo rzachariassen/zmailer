@@ -1,5 +1,14 @@
 2003-05-09  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/cf/fqdnalias.cf, proto/cf/aliases.cf, router/functions.c:
+	    Correcting a bit of the 'listexpand'  treatment of DSN data
+	    in expanded addresses.  When expanding thru LISTS, new ORCPT
+	    (and new Return-Path) will result.on each recipient address,
+	    but when expanding thru ALIASES (and .forward), ORCPT and
+	    Return-Path will stay unmodified.
+	    Disabled former (now unused)  "listaddresses"  function,
+	    which does a small part of the job...
+
 	* scheduler/scheduler.c:
 	    Andrey Blochintsev reported typo in  setproctitle()
 	    call.  (***BSD specific thing.)

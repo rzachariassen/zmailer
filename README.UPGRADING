@@ -21,6 +21,8 @@
 
 		Removal of '$(listaddress ...)'  function is also
 		being contemplated, but hasn't been done yet.
+		... is done.   Do use   $(listexpand ..)  for all
+		your actions.
 
 
 	ZMailer-2.99.56pre3:
