@@ -434,17 +434,14 @@ matchmyaddress(sa)
 	/* Match loopback net.. */
 	if (sa->sa_family == AF_INET) {
 	  struct sockaddr_in *si;
+	  int net;
 	  si = (struct sockaddr_in *)sa;
 
-#ifndef INADDR_LOOPBACK /* FreeBSD does not have this in  <netinet/in.h> ! */
-# define INADDR_LOOPBACK 0x7f000001UL
-#endif
-#define INADDR_LOOPBACKNET (IN_CLASSA_NET & INADDR_LOOPBACK)
-
-	  if ((ntohl(si->sin_addr.s_addr) & IN_CLASSA_NET)
-	      == INADDR_LOOPBACKNET) {
-	    return 2;
-	  }
+	  net = (ntohl(si->sin_addr.s_addr) >> 24) & 0xFF;
+	  if (net == 127)
+	    return 2; /* Loopback network */
+	  if (net == 0 || net == 127 || net > 223)
+	    return 3;
 	}
 
 	/* ... and then the normal thing -- listed interfaces */
