@@ -1,3 +1,10 @@
+2000-09-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/getmxrr.c:
+	    Even when we have seen EAI_AGAIN results, be a happy
+	    camper in the end if we get ANY MX entries which have
+	    valid address records.
+
 2000-09-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* router/libdb/bsdbtree.c router/libdb/gdbm.c:

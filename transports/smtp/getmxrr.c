@@ -745,7 +745,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	}
 	mx[nmx].host = NULL;
 	SS->mxcount = nmx;
-	if (had_eai_again)
+	/* Even with errors in data retrieval, if we get
+	   ANY   MX entries, we are a happy camper! */
+	if (had_eai_again && nmx == 0)
 	  return EX_TEMPFAIL;
 	return EX_OK;
 }
