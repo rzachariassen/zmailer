@@ -953,6 +953,29 @@ int sourceaddr;
 	printf("000-  rc=%d\n", rc);
       return rc;
     }
+
+    /* bag = Andrey Blochintsev <bag@iptelecom.net.ua>  */
+    /* bag + */
+    if (state->values[P_A_RcptDnsRBL] &&
+	state->values[P_A_RcptDnsRBL][0] == '_') {
+      int rc = 1;
+      if (debug)
+	printf("000- policytestaddr: 'rcpt-dns-rbl %s' found;\n",
+	       state->values[P_A_RcptDnsRBL]);
+      if (state->values[P_A_RcptDnsRBL][1] != '+') {
+      	if (state->rblmsg != NULL)
+	  free(state->rblmsg);
+	state->rblmsg = strdup(state->values[P_A_RcptDnsRBL] + 1);
+	rc = 0;
+      }
+      if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
+      if (debug)
+	printf("000-  rc=%d\n", rc);
+      return 0; /* We report error LATER */
+
+    }
+    /* bag - */
+
     if (state->values[P_A_RcptDnsRBL] &&
 	!valueeq(state->values[P_A_RcptDnsRBL], "-")) {
       int rc;

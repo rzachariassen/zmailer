@@ -1,7 +1,50 @@
+2003-05-10  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Increase the timeout_data to 5 minutes by default to
+	    match timeout_cmd -- in PIPELINING mode we had a bit
+	    too low timeouts..
+
+	* proto/scheduler.conf.in:
+	    By default, comment away the "ageorder" flag.
+	    When a troublesome message jams the queue, allow
+	    the queue to be randomized so that the troublesome
+	    message won't stay in its head.
+
+	* smtpserver/policytest.c:
+	    From  Andrey Blochintsev <bag@iptelecom.net.ua>:
+	
+    Is it possible to setup smtp-policy to block
+    almost all mail (exept to: abuse@ or to: postmaster@)
+    from some networks?
+
+    It seems for me settings like:
+	_rbl0          rcpt-dns-rbl      +:dul.maps.vix.com....
+	_rbl1          test-rcpt-dns-rbl +
+    doing that for RBL-listed network[s], but it is not possible
+    to have analogous setup for locally listed (in smtp-policy.*)
+    networks.
+
+    The patch below solves this problem.
+    To activete you need add rcpt-dns-rbl attributes starting
+    with '_' ('_' symbol is not allowed in dns names).
+
+    With this patch settings
+	[10.10.10.25]/32      rcpt-dns-rbl "_+"
+	[10.10.10.0]/24       rcpt-dns-rbl "_TEST reject msg"
+	postmaster@my.domain = _full_rights
+    means that:
+    Mail from 10.10.10.0/24 to postmaster@my.domain -- accepted
+         from 10.10.10.25 accepted/rejected by other rules (relaytarget +/- ...)
+         from 10.10.10.0/24 to other will be rejected with
+           "550 5.7.1 Policy analysis reported: TEST reject msg rcpt=<bag@i.kiev.ua>"
+    diagnostic
+	
+
 2003-05-09  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/io.h, libsh/io.h, libsh/builtins.c:
-	    While trying to implement a sh_read(), which is least
+	    While trying to implement a sh_read(), with a lot less
 	    incomprehensible code, had to introduce fgetc() redirecting.
 
 	* proto/cf/fqdnalias.cf, proto/cf/aliases.cf, router/functions.c:

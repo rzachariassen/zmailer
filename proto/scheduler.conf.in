@@ -171,7 +171,7 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 	#
 	# A flag telling about queue-order..
 	#
-	ageorder
+	# ageorder
 	overfeed=150
 	#
 	# Possible nice/setpriority values in case one wants to run

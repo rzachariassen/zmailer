@@ -19,7 +19,7 @@
  */
 int timeout = 0;		/* how long do we wait for response? (sec.) */
 int timeout_cmd  =  5*60;
-int timeout_data =  2*60;
+int timeout_data =  5*60;	/* in PIPELINING mode, 5 minutes is better! */
 int timeout_tcpw =  5*60;	/* All tcp writes ?? */
 int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
