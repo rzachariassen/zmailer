@@ -1,3 +1,18 @@
+1998-08-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/mailbox.8, doc/manual/zref-transport-agents.tex:
+	    nroff formatting corrections, spelling fixes
+
+	* man/router.8, router/router.c, router/rfc822.c,
+	  router/prototypes.h, router/rfc822hdr.c:
+	    Router got new commandline option: '-W'
+	    Existence of that option activates OLD behaviour of
+	    the router where it writes 'Illegal-Object:' headers
+	    to the file...
+
+	* utils/policy-builder.sh.in:
+	    Modifications to handle non-clean spam-domain input better.
+
 1998-08-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:

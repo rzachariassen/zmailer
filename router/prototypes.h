@@ -163,6 +163,7 @@ extern int   canexit;
 extern int   deferit;
 extern int   router_id;
 extern int   savefile;
+extern int   do_hdr_warning;
 
 /* File: rtsyslog.c */
 extern void rtsyslog __(( time_t msgmtime, const char *msgfile, const char *from, const char *smtprelay, int size, int nrcpts, const char *msgid ));

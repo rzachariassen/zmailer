@@ -222,8 +222,10 @@ severely sanitized environment variables, and with only the file
 descriptors STDIN, STDOUT, and STDERR. Programs are refused from
 running, if address analysis has found suspicuous data; external
 messages cannot directly run programs, nor those addresses that
-have had a security breach detected during (Same applies also
-with writing into explicitely named files.)
+have had a security breach detected during {\tt .forward}- or other
+aliasing analysis.
+(Same applies also with writing into explicitely named files.)
+
 The pipe subprogram is run with user-id it gets thru the address
 privilege analysis during message routing, and it gets the groupid 
 through lookup of {\tt getpwuid(uid)}. That is, if you have multiple

@@ -6,7 +6,7 @@ router \- zmailer message routing daemon
 .SH SYNOPSIS
 .B router
 [
-.B \-diksSV
+.B \-diksSVW
 ]
 [
 .B \-f
@@ -114,6 +114,11 @@ The currently known options are: \fBassign\fR, \fBbind\fR,
 \fBrewrite\fR, \fBrouter\fR, and \fBsequencer\fR.
 .IP \-V
 print version message and run interactively.
+.IP \-W
+Warn about syntax errors in the RFC-822 headers when this option is on.
+Without this, bad headers are shown in their original form, not by
+rendering them thru any formatting RFC-822 engine.
+.I This deviates from old behaviour of the ZMailer major way!
 .PP
 To restart a
 .I router

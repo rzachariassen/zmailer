@@ -59,9 +59,10 @@ if [ f$FLAG != fn ]; then
 	    #
 	    > smtp-policy.spam.new
 	    lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+		| sed -e '1,$s/^@/./' \
 		>> smtp-policy.spam.new
 	    lynx -source http://www.sprocket.com/Security/SpamDomains | \
-		awk '{print $1}' >> smtp-policy.spam.new
+		awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
 	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
 		    sort | uniq > smtp-policy.spam.new2
 	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
@@ -116,7 +117,7 @@ fi
 	    printf "%s rejectnet +\n", $1;
 	    next;
 	}
-	{ # All other cases are usernames with their domains
+	NF > 0 { # All other cases are usernames with their domains
 	  printf "%s = _bulk_mail\n", $1;
 	}'
   fi

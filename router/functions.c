@@ -823,6 +823,13 @@ rd_stability(dirp,dirs)
 		if (gothup) 
 			dohup(0);
 		did_cnt += rd_doit(nbarray + dearray[deindex].f_name, dirs);
+
+		/* Only process one file out of the low-priority subdirs,
+		   so we can go back and see if any higher-priority
+		   jobs have been created */
+		if (*dirs)
+			break;
+
 	}
 	return did_cnt;
 }
@@ -857,6 +864,13 @@ rd_instability(dirp, dirs)
 		if (!S_ISREG(statbuf.st_mode)) continue; /* Hmm..  */
 
 		did_cnt += rd_doit(dp->d_name, dirs);
+
+		/* Only process one file out of the low-priority subdirs,
+		   so we can go back and see if any higher-priority
+		   jobs have been created */
+		if (*dirs)
+			break;
+
 	}
 	return did_cnt;
 }
@@ -1011,6 +1025,7 @@ run_daemon(argc, argv)
 		close(dirp[i]->dd_fd);
 #endif
 		closedir(dirp[i]);
+		dirp[i] = NULL;
 #endif
 
 		if (mustexit)

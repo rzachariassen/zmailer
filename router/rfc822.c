@@ -1551,24 +1551,25 @@ sequencer(e, file)
 	}
 
 	dprintf("Nuke Bcc/Return-Path/X-Orcpt/X-Envid headers, if any\n");
-	oh = NULL;
-	for (h = e->e_headers; h != NULL; oh = h, h = h->h_next) {
-	  if (h->h_descriptor->hdr_name == NULL)
-	    continue;
-	  if ((h->h_descriptor->class == normal &&
-	       (CISTREQ(h->h_descriptor->hdr_name,"bcc") ||
-		CISTREQ(h->h_descriptor->hdr_name,"return-path") ||
-		CISTREQ(h->h_descriptor->hdr_name,"x-orcpt")     ||
-		CISTREQ(h->h_descriptor->hdr_name,"x-envid")        ))
-	      || (h->h_descriptor->class == Resent &&
-		  (CISTREQ(h->h_descriptor->hdr_name,"resent-BCC")         ||
-		   CISTREQ(h->h_descriptor->hdr_name,"resent-return-path") ||
-		   CISTREQ(h->h_descriptor->hdr_name,"resent-x-orcpt")     ||
-		   CISTREQ(h->h_descriptor->hdr_name,"resent-x-envid")    ))) {
-	    if (oh == NULL)
-	      e->e_headers = h->h_next;
-	    else
-	      oh->h_next = h->h_next;
+	hp = & e->e_headers;
+	while (*hp != NULL) {
+	  h = *hp;
+	  if (h->h_descriptor->hdr_name != NULL &&
+	      ((h->h_descriptor->class == normal &&
+		(CISTREQ(h->h_descriptor->hdr_name,"bcc") ||
+		 CISTREQ(h->h_descriptor->hdr_name,"return-path") ||
+		 CISTREQ(h->h_descriptor->hdr_name,"x-orcpt")     ||
+		 CISTREQ(h->h_descriptor->hdr_name,"x-envid")        ))
+	       || (h->h_descriptor->class == Resent &&
+		   (CISTREQ(h->h_descriptor->hdr_name,"resent-BCC")         ||
+		    CISTREQ(h->h_descriptor->hdr_name,"resent-return-path") ||
+		    CISTREQ(h->h_descriptor->hdr_name,"resent-x-orcpt")     ||
+		    CISTREQ(h->h_descriptor->hdr_name,"resent-x-envid")  )))) {
+	    /* Skip this one */
+	    *hp = h->h_next;
+	  } else {
+	    /* No header dropping here */
+	    hp = & h->h_next;
 	  }
 	}
 
@@ -1587,7 +1588,7 @@ sequencer(e, file)
 		}
 		dprintf("Emit warning headers\n");
 		for (ph = NULL, h = e->e_headers; h != NULL; ph=h,h=h->h_next) {
-			if (h->h_stamp == BadHeader) {
+			if (h->h_stamp == BadHeader && do_hdr_warning) {
 				if (ph == NULL)
 					e->e_headers = hdr_warning(h);
 				else

@@ -59,6 +59,7 @@ int	origoptind;
 int	savefile = 0;
 const char * zshopts = "-O";
 int	nosyslog = 1;
+int	do_hdr_warning = 0;
 
 int
 main(argc, argv)
@@ -92,7 +93,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:sSV");
+		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:sSVW");
 		if (c == EOF)
 			break;
 	  
@@ -158,6 +159,9 @@ main(argc, argv)
 			break;
 		case 'V':
 			version = 1;
+			break;
+		case 'W':
+			do_hdr_warning = 1;
 			break;
 		case '?':
 		default:
