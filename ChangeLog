@@ -1,5 +1,10 @@
 2003-08-22  Matti Aarnio  <mea@zmailer.org>
 
+	* utils/policy-builder.sh.in, utils/makedb/makedb.c:
+	    "makedb -p" crashed in some situations, fixed
+	    NULL referral.  Also report about exit code of
+	    the makedb  in  policy-builder.sh  script.
+
 	* configure.in:
 	    Version 2.99.56.pre9
 

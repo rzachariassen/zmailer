@@ -183,7 +183,14 @@ umask 022 # Make sure the resulting db file(s) are readable by all
 # has same key repeating, append latter data instances to the first
 # one (-A):
 
-$MAILBIN/makedb -A -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
+if $MAILBIN/makedb -A -p $DBTYPE smtp-policy-new smtp-policy.dat
+then
+  :
+else
+  rc=$?
+  echo "smtp-policy control database makedb failure rc= $rc"
+  exit $rc
+fi
 
 case $DBTYPE in
 dbm)
