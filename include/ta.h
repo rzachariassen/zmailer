@@ -171,9 +171,9 @@ extern void            notary_setwttip __(( const char *ip ));
 extern void            notary_settaid __(( const char *name, int ));
 extern void            notary_setcvtmode __(( CONVERTMODE ));
 #if defined(HAVE_STDARG_H)
-extern void	       diagnostic __((struct rcpt *rp, int rc, int timeout, const char *fmt, ... ));
+extern void	       diagnostic __((FILE *verboselog, struct rcpt *rp, int rc, int timeout, const char *fmt, ... ));
 #else
-extern void	       diagnostic __((/* struct rcpt *, int, int, char *,... */));
+extern void	       diagnostic __((/* FILE *verboselog, struct rcpt *, int, int, char *,... */));
 #endif
 
 

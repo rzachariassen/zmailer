@@ -283,6 +283,7 @@ extern int use_ipv6;
 #define ESMTP_STARTTLS    0x0040 /* RFC 2487	 */
 #endif /* - HAVE_OPENSSL */
 #define ESMTP_DELIVERBY   0x0080 /* RFC 2852      */
+#define ESMTP_AUTH        0x0100 /* RFC 2554+++   */
 
 
 typedef union {

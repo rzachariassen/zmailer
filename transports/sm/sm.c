@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1994-2000 by Matti Aarnio -- MIME processings
+ *	Copyright 1994-2000,2002 by Matti Aarnio -- MIME processings, etc.
  */
 
 #define DefCharset "ISO-8859-1"
@@ -67,7 +67,6 @@ char	*progname;
 int	readalready = 0;	/* does buffer contain valid message data? */
 #endif
 int	mimeqpnarrow = 0;	/* Can't send TAB thru without MIME-QP */
-FILE	*verboselog = NULL;
 FILE	*logfp   = NULL;
 int	maxwidth = 0;
 int	can_8bit = 0;		/* Can do 8-bit stuff! */
@@ -200,6 +199,7 @@ main(argc, argv)
 	int errflg, c;
 	struct maildesc *mp;
 	RETSIGTYPE (*oldsig)();
+	FILE *verboselog = NULL;
 
 	SIGNAL_HANDLESAVE(SIGINT, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
@@ -513,7 +513,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    notaryreport(rp->addr->user,"failed",
 			 "5.3.0 (Out of system resources, pipe creation failed)",
 			 "x-local; 500 (pipe creation error, out of system resources ?)");
-	    diagnostic(rp, EX_OSERR, 0,
+	    diagnostic(verboselog, rp, EX_OSERR, 0,
 		       "cannot create pipe from \"%s\"",
 		       mp->command);
 	  }
@@ -524,7 +524,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    notaryreport(rp->addr->user,"failed",
 			 "5.3.0 (Out of system resources, pipe creation failed)",
 			 "x-local; 500 (pipe creation error, out of system resources ?)");
-	    diagnostic(rp, EX_OSERR, 0,
+	    diagnostic(verboselog, rp, EX_OSERR, 0,
 		       "cannot create pipe to \"%s\"",
 		       mp->command);
 	  }
@@ -574,7 +574,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    notaryreport(rp->addr->user,"failed",
 			 "5.3.0 (Out of system resources, fork failed)",
 			 "x-local; 500 (fork failure, out of system resources ?)");
-	    diagnostic(rp, EX_OSERR, 0, "cannot fork");
+	    diagnostic(verboselog, rp, EX_OSERR, 0, "cannot fork");
 	  }
 	  return;
 	}
@@ -807,7 +807,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 			 /* Could indicate: 4.3.1 - mail system full ?? */
 			 "5.3.0 (Write to target failed for some reason)",
 			 "x-local; 500 (Write to target failed for some reason)");
-	    diagnostic(rp, i, 0, "write error");
+	    diagnostic(verboselog, rp, i, 0, "write error");
 	  }
 	  /* just to make sure nothing will get delivered */
 	  kill(pid, SIGTERM);
@@ -871,15 +871,13 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  /* sprintf(cp+strlen(cp), " of command: %s", mp->command); */
 	  strcat(cp, "]");
 	}
-	if (verboselog)
-	  fprintf(verboselog,"Diagnostic: %s\n",cp);
 	for (rp = startrp; rp != endrp; rp = rp->next) {
 	  if (i == EX_OK)
 	    notaryreport(rp->addr->user, "relayed",
 			 "2.5.0", "smtp;250 (Delivered)");
 	  else
 	    notaryreport(rp->addr->user, "failed", exs, exd);
-	  diagnostic(rp, i, 0, "%s", buf);
+	  diagnostic(verboselog, rp, i, 0, "%s", buf);
 	}
 	/* XX: still need to deal with MO_STRIPQUOTES */
 }

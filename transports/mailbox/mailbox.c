@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2001 Matti Aarnio -- MIME processing et.al.
+ *	Copyright 1992-2002 Matti Aarnio -- MIME processing et.al.
  */
 
 /* History:
@@ -209,18 +209,18 @@ const char *maildirs[] = {
 #endif	/* USE_NFSMBOX */
 
 
-#define	DIAGNOSTIC(R,U,E,A1,A2)	diagnostic((R), \
+#define	DIAGNOSTIC(R,U,E,A1,A2)	diagnostic(verboselog, (R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
 					      EX_UNAVAILABLE : (E), 0, (A1), (A2))
-#define	DIAGNOSTIC3(R,U,E,A1,A2,A3)   diagnostic((R), \
+#define	DIAGNOSTIC3(R,U,E,A1,A2,A3)   diagnostic(verboselog, (R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
 					      EX_UNAVAILABLE : (E), 0, \
 						(A1), (A2), (A3))
-#define	DIAGNOSTIC4(R,U,E,A1,A2,A3,A4) diagnostic((R), \
+#define	DIAGNOSTIC4(R,U,E,A1,A2,A3,A4) diagnostic(verboselog, (R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
@@ -266,6 +266,7 @@ struct wsdisc {
 struct writestate {
 	Sfio_t *fp;
 	int  lastch;
+	int  lasterrno;
 	char expect;
 	char frombuf[8];
 	char *fromp;
@@ -1814,6 +1815,7 @@ mbox_sfwrite(sfp, vp, len, discp)
        *then* silently ignore it.. */
 
     if (WS->epipe_seen > 0) return len; /* We ignore - fast - the EPIPE */
+    if (WS->lasterrno != 0) return -1;
 
     while (len > 0) {
       int rc = write(sffileno(sfp), p, len);
@@ -1831,7 +1833,8 @@ if (verboselog)
 	/* Retry on interrupts */
 	if (e == EINTR)
 	  continue;
-	errno = e;
+
+	WS->lasterrno = errno = e;
 	/* All other errors, return written amount, or if none, then error! */
 	if (outlen == 0)
 	  return rc;
@@ -1883,6 +1886,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	WS.frombuf[0] = 0;
 	WS.fromp = WS.frombuf;
 	WS.epipe_seen = topipe ? 0 : -1;
+	WS.lasterrno = 0;
 
 	memset(&WS.WSdisc, 0, sizeof(WS.WSdisc));
 	WS.WSdisc.D.readf   = NULL;
@@ -1985,18 +1989,12 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	/* Add the From_ line and print out the header */
 
-	if ((sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0) ||
-	    (swriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0))
-	  failed = 1;
+	sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring);
+	swriteheaders(rp, fp, "\n", convert_qp, 0, NULL);
 
-	if (!failed && sferror(fp)) failed = 1;
-
-	if (!failed)
-	  sfprintf(fp, "X-Envelope-To: <%s> (uid %d)\n", rp->addr->user, uid);
-
-	if (!failed && sferror(fp)) failed = 1;
-
-	if (!failed && rp->orcpt) {
+	sfprintf(fp, "X-Envelope-To: <%s> (uid %d)\n", rp->addr->user, uid);
+	
+	if (rp->orcpt) {
 	  sfprintf(fp, "X-Orcpt: ");
 	  decodeXtext(fp, rp->orcpt);
 	  sfprintf(fp, "\n");
@@ -2006,9 +2004,8 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  decodeXtext(fp, rp->orcpt);
 	  sfprintf(fp, "\n");
 	}
-	if (!failed && sferror(fp)) failed = 1;
 
-	if (!failed && dp->envid) {
+	if (dp->envid) {
 	  sfprintf(fp, "X-Envid: ");
 	  decodeXtext(fp, dp->envid);
 	  sfprintf(fp, "\n");
@@ -2017,48 +2014,41 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  decodeXtext(fp, dp->envid);
 	  sfprintf(fp, "\n");
 	}
-	if (!failed && sferror(fp)) failed = 1;
 
-	if (!failed && do_xuidl && !topipe) {
+	if (do_xuidl && !topipe) {
 	  struct timeval tv;
 	  gettimeofday(&tv, NULL);
 
 	  sfprintf(fp, "X-UIDL: %ld.%ld.%d\n",
 		  (long)tv.tv_sec, (long)tv.tv_usec, (int)getpid());
 	}
-	if (!failed && sferror(fp)) failed = 1;
 
-	if (!failed)
-	  sfprintf(fp, "\n");
-	if (!failed && sferror(fp)) failed = 1;
+	sfprintf(fp, "\n");
 
-	if (!failed)
-	  sfsync(fp); /* Headers written, sync possible errors here! */
+	sfsync(fp); /* Headers written, sync possible errors here! */
 
-	if (!failed && sferror(fp)) failed = 1;
-
+	if (sferror(fp) || WS.lasterrno != 0) failed = 1;
 	if (failed) goto write_failure;
+
 
 	/* From now on, write errors to PIPE will not cause errors */
 
 	if (!failed)
 	  lastch = appendlet(dp, rp, &WS, file, is_mime);
 
+	sfsync(fp);
 	if (!failed && sferror(fp)) failed = 1;
-
-	if (!failed) sfsync(fp);
-
-	if (!failed && sferror(fp)) failed = 1;
+	if (!failed && WS.lasterrno != 0) failed = 1;
 
 	mw = 1;
-	if (!topipe)
+	if (!topipe) { /* We skip this is we are writing to a pipe */
 
 	  if (lastch < -128 || failed) {
 
 	  write_failure:
 
 	    /* Does the 'errno' really have correct data in all paths ? */
-	    err = errno;
+	    err = WS.lasterrno;
 
 	    notaryreport(NULL,NULL,NULL,NULL);
 	    DIAGNOSTIC4(rp, file, EX_IOERR,
@@ -2095,6 +2085,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    fp = NULL;
 	    goto time_reset;
 	  }
+	} /* if (!topipe) */
 
 	if (verboselog)
 	  fprintf(verboselog," end of putmail(file='%s'), topipe=%d\n",
@@ -3013,8 +3004,11 @@ appendlet(dp, rp, WS, file, ismime)
 		++s; ++linelen; ++readidx;
 	      }
 	      if (writemimeline(WS, s0, linelen) != linelen) {
-		DIAGNOSTIC(rp, file, EX_IOERR,
-			   "write to \"%s\" failed(1)", file);
+#if 0
+		DIAGNOSTIC3(rp, file, EX_IOERR,
+			    "write to \"%s\" failed(1); %s",
+			    file, strerror(WS->lasterrno));
+#endif
 		return -256;
 	      }
 	      s0 = s;
@@ -3042,7 +3036,10 @@ appendlet(dp, rp, WS, file, ismime)
 	      ismime = 0;
 	    /* Ok, write the line */
 	    if (writemimeline(WS, let_buffer, i) != i) {
-	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(2)", file);
+#if 0
+	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(2); %s",
+			  file, strerror(WS->lasterrno));
+#endif
  	      MFPCLOSE;
 	      return -256;
 	    }
@@ -3060,8 +3057,10 @@ appendlet(dp, rp, WS, file, ismime)
 	  /* can we use cache of message body data ? */
 	  if (readalready != 0) {
 	    if (writebuf(WS, let_buffer, readalready) != readalready) {
-	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed(3)", file);
+#if 0
+	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(3); %s",
+			  file, strerror(WS->lasterrno));
+#endif
 	      return -256;
 	    }
 	    rp->status = EX_OK;
@@ -3083,7 +3082,10 @@ appendlet(dp, rp, WS, file, ismime)
 	      return -256;
 	    }
 	    if (writebuf(WS, let_buffer, i) != i) {
-	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(4)", file);
+#if 0
+	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(4); %s",
+			  file, strerror(WS->lasterrno));
+#endif
 	      readalready = 0;
 	      return -256;
 	    }
@@ -3105,16 +3107,20 @@ appendlet(dp, rp, WS, file, ismime)
 	    while (s2 < dp->let_end && *s2 != '\n') ++s2, ++i;
 	    if (s2 < dp->let_end && *s2 == '\n') ++s2, ++i;
 	    if (writemimeline(WS, s, i) != i) {
-	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed(5)", file);
+#if 0
+	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(5); %s",
+			  file, strerror(WS->lasterrno));
+#endif
 	      return -256;
 	    }
 	    s = s2;
 	  }
 	} else {
 	  if (writebuf(WS, s, dp->let_end - s) != (dp->let_end - s)) {
-	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed(6)", file);
+#if 0
+	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(6); %s",
+		  file, strerror(WS->lasterrno));
+#endif
 	      return -256;
 	  }
 	}

@@ -53,13 +53,12 @@ const char *progname;
 const char *channel;
 const char *logfile;
 FILE *logfp = NULL;
-FILE *verboselog = NULL;
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
 extern char *optarg;
 extern void prversion __((const char *));
-extern void process __((struct ctldesc *dp, const char *optmsg, const int));
+extern void process __((struct ctldesc *dp, const char *optmsg, const int, FILE *verboselog));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp));
 
 extern void hp_init();
@@ -103,6 +102,7 @@ main(argc, argv)
 	char *host = NULL;	/* .. and what is my host ? */
 	int matchhost = 0;
 	struct ctldesc *dp;
+	FILE *verboselog = NULL;
 
 	RETSIGTYPE (*oldsig) __((int));
 
@@ -243,7 +243,7 @@ main(argc, argv)
 	      fcntl(FILENO(verboselog), F_SETFD, 1);
 	    }
 	  }
-	  process(dp, optmsg, silent);
+	  process(dp, optmsg, silent, verboselog);
 	  ctlclose(dp);
 
 	}
@@ -254,10 +254,11 @@ main(argc, argv)
 
 
 void
-process(dp, optmsg, silent)
+process(dp, optmsg, silent, verboselog)
 	struct ctldesc *dp;
 	const char *optmsg;
 	const int silent;
+	FILE *verboselog;
 {
 	struct rcpt *rp;
 
@@ -269,10 +270,10 @@ process(dp, optmsg, silent)
 	  notary_setxdelay(0);
 	  if (silent) {
 	    notaryreport(rp->addr->user, "delivered", "2.0.0 (Silent ok)", "");
-	    diagnostic(rp, EX_OK, 0, "");
+	    diagnostic(verboselog, rp, EX_OK, 0, "");
 	  } else {
 	    notaryreport(rp->addr->user, "failed", "5.7.0 (Administrative deletion command)", optmsg);
-	    diagnostic(rp, EX_UNAVAILABLE, 0, "%s", optmsg);
+	    diagnostic(verboselog, rp, EX_UNAVAILABLE, 0, "%s", optmsg);
 	  }
 	}
 }

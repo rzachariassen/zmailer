@@ -1,6 +1,6 @@
 /*
  * tasyslog() -- support routine for ZMailer transport agents.
- * Copyright 1997-1999,2001, Matti Aarnio <mea@nic.funet.fi>
+ * Copyright 1997-1999,2001  Matti Aarnio <mea@nic.funet.fi>
  *
  * The purpose of this routine is to produce similar syslog entries
  * to those that sendmail(8) does for its message processing.

@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2001 Matti Aarnio -- this & that smaller, and
+ *	Copyright 1992-2002 Matti Aarnio -- this & that smaller, and
  *	larger changes...
  */
 
@@ -41,6 +41,8 @@ char *progname;
 extern char *optarg;
 extern int  optind;
 extern void process __((struct ctldesc *));
+
+FILE *verboselog = NULL;
 
 #ifndef strchr
 extern char *strrchr(), *strchr();
@@ -256,13 +258,13 @@ process(dp)
 	   * instead just drop it on the floor.
 	   */
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
-	    diagnostic(rp, EX_OK, 0, "error bounce dropped");
+	    diagnostic(verboselog, rp, EX_OK, 0, "error bounce dropped");
 	  return;
 	}
 
 	if ((mfp = sfmail_open(MSG_RFC822)) == NULL) {
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
-	    diagnostic(rp, EX_TEMPFAIL, 0, "sfmail_open failure");
+	    diagnostic(verboselog, rp, EX_TEMPFAIL, 0, "sfmail_open failure");
 	  warning("Cannot open mail file!");
 	  return;
 	}
@@ -366,7 +368,7 @@ process(dp)
 	  sfmail_abort(mfp);
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
 	    if (!(rp->notifyflgs & _DSN_NOTIFY_FAILURE))
-	      diagnostic(rp, EX_OK, 0, NULL);
+	      diagnostic(verboselog, rp, EX_OK, 0, NULL);
 	  return;
 	}
 
@@ -459,7 +461,7 @@ process(dp)
 	  taspoolid(taspid, mtime, inum);
 
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
-	    diagnostic(rp, n, 0, taspid);
+	    diagnostic(verboselog, rp, n, 0, taspid);
 	  }
 	}
 }

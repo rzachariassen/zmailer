@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-2001
+ *	<mea@nic.funet.fi>, copyright 1992-2002
  */
 
 /*
@@ -59,7 +59,6 @@ int zmalloc_failure = 0;
 
 char *notarybuf = NULL;
 time_t retryat_time = 0; /* Used at SMTP to avoid trying same host too soon.. */
-
 
 const char *
 notaryacct(rc,okstr)
@@ -200,10 +199,11 @@ notaryreport(arg1,arg2,arg3,arg4)
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
 void
-diagnostic(struct rcpt *rp, int rc, int timeout, const char *fmt, ...)
+diagnostic(FILE *verboselog, struct rcpt *rp, int rc, int timeout, const char *fmt, ...)
 #else /* Not ANSI-C */
 void
-diagnostic(rp, rc, timeout, fmt) /* (rp, rc, timeout, "fmtstr", remotemsg) */
+diagnostic(verboselog, rp, rc, timeout, fmt) /* (rp, rc, timeout, "fmtstr", remotemsg) */
+	FILE *verboselog;
 	struct rcpt *rp;
 	int rc, timeout;
 	const char *fmt;
@@ -211,7 +211,8 @@ diagnostic(rp, rc, timeout, fmt) /* (rp, rc, timeout, "fmtstr", remotemsg) */
 #else
 /*VARARGS*/
 void
-diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remotemsg) */
+diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, timeout, "fmtstr", remotemsg) */
+	FILE *verboselog;
 	struct rcpt *rp;
 	int rc, timeout;
 	const char *fmt;
@@ -221,7 +222,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	char	message[8192];
 	char	statmsgbuf[32+16];
 	const char * statmsg;
-	const char * syslogmsg;
+	const char * syslogmsg = NULL;
 	char	mark;
 	register char *s, *es, *s2;
 	va_list	ap;
@@ -479,4 +480,17 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, syslogmsg);
 	}
 	fflush(stdout);
+
+	if (verboselog) {
+	  syslogmsg = strrchr(message, '\r');
+	  if (!syslogmsg) syslogmsg = message;
+
+	  fprintf(verboselog,
+		  "DIAG: C='%s' H='%s' U='%s' P='%s' -- stat='%s' ",
+		  rp->addr->channel, rp->addr->host, rp->addr->user,
+		  rp->addr->misc, statmsg);
+	  if (wtthost)
+	    fprintf(verboselog, "WTT='%s' ", wtthost);
+	  fprintf(verboselog, " MSG='%s'\n", syslogmsg);
+	}
 }

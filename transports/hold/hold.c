@@ -1,6 +1,7 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *	Copyright 1992-2002 Matti Aarnio -- MIME processing et.al.
  */
 
 #include "mailer.h"
@@ -138,6 +139,8 @@ extern char *strchr(), *strrchr();
 #undef	putc
 #define	putc	fputc
 #endif	/* lint */
+
+FILE *verboselog = NULL;
 
 static char filename[MAXPATHLEN+8000];
 
@@ -285,7 +288,7 @@ process(dp)
 	      break;
 	    }
 	    notaryreport(rp->addr->user,action,status,diagnostics);
-	    diagnostic(rp, rp->status, 0, "%s", rp->addr->user);
+	    diagnostic(verboselog, rp, rp->status, 0, "%s", rp->addr->user);
 	  }
 	}
 
@@ -304,7 +307,7 @@ process(dp)
 	      notaryreport(rp->addr->user,"delayed",
 			   "4.3.1 (System spool full?)",
 			   "x-local; 400 (Cannot resubmit anything, out of spool space?)");
-	      diagnostic(rp, EX_TEMPFAIL, 0,
+	      diagnostic(verboselog, rp, EX_TEMPFAIL, 0,
 			 "cannot resubmit anything!");
 	    }
 	  SETEUID(getuid());
@@ -379,7 +382,7 @@ process(dp)
 	    notaryreport(rp->addr->user,"relayed",
 			 "2.2.0 (Relayed via deferral channel)",
 			 "x-local; 250 (Relayed via deferral channel)");
-	    diagnostic(rp, code, 0, cp);
+	    diagnostic(verboselog, rp, code, 0, cp);
 	  }
 }
 

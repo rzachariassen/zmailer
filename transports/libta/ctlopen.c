@@ -114,7 +114,7 @@ ctlclose(dp)
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  if (rp->lockoffset == 0)
 	    continue;
-	  diagnostic(rp, EX_TEMPFAIL, 0, "address was left locked!!");
+	  diagnostic(NULL, rp, EX_TEMPFAIL, 0, "address was left locked!!");
 	}
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
 	if (dp->let_buffer != NULL)
@@ -722,7 +722,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	if ((d.msgfd = open(mfpath, O_RDONLY, 0)) < 0) {
 	  int e = errno;
 	  for (rp = d.recipients; rp != NULL; rp = rp->next) {
-	    diagnostic(rp, EX_UNAVAILABLE, 0,
+	    diagnostic(NULL, rp, EX_UNAVAILABLE, 0,
 		       "message file is missing(!) -- possibly due to delivery scheduler restart.  Consider resending your message");
 	  }
 	  errno = e;
@@ -739,7 +739,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	}
 	if (!S_ISREG(stbuf.st_mode)) {
 	  for (rp = d.recipients; rp != NULL; rp = rp->next) {
-	    diagnostic(rp, EX_UNAVAILABLE, 0,
+	    diagnostic(NULL, rp, EX_UNAVAILABLE, 0,
 		       "Message file is not a regular file!");
 	  }
 	  warning("Cannot open message file \"%s\"! (%m)", mfpath);
