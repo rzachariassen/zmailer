@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Modifications/maintance, Matti Aarnio, over years 1990-1998
+ *	Modifications/maintance, Matti Aarnio, over years 1990-2000
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
  */
@@ -30,6 +30,13 @@
 #include "splay.h"
 
 #include "prototypes.h"
+
+/* Uncomment following if you think that negative cache at DB lookups
+   has merits..   Mathias Urlichs <smurf@noris.de> does think they do
+   have merit, but in practice I see cache used rather rarely, and
+   to be really usefull, the cache sizes should be largeish, and thus
+   current O(n) lookup (although with small internal C) is suboptimal... */
+/* #define DO_NEGATIVE_CACHE */
 
 extern long crc32  __((const void *));
 extern long crc32n __((const void *, int));
@@ -886,11 +893,13 @@ db(dbname, key)
 	} else {
 		if (D_db)
 			fprintf(stderr, "NIL\n");
+#ifndef DO_NEGATIVE_CACHE
 		if (dbip->cache_size > 0) {
 			free(realkey);
 		}
 		UNGCPRO3;
 		return NULL;
+#endif
 	}
 	if (!deferit && dbip->cache_size > 0) {
 		/* insert new cache entry at head of cache */

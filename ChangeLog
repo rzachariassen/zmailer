@@ -1,3 +1,10 @@
+2000-04-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/db.c:
+	    Mathias Ulrichs <smurf@noris.de> suggest negative cache
+	    for DB lookup related caches.  It is simple to do, but
+	    not so simple to explain to be usefull...
+
 2000-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/msgerror.c, scheduler/prototypes.h, scheduler/threads.c,
