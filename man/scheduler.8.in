@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "10 Dec 2001"
+.TH SCHEDULER 8 "11 Feb 2002"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS

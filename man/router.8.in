@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "10 Dec 2001"
+.TH ROUTER 8 "11 Feb 2002"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS

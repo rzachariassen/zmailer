@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 3 "5 Nov 1996"
+.TH ZMAILER 3 "11 Feb 2002"
 .SH NAME
 mail_open, mail_priority, mail_abort, mail_close, mail_close_alternate, mail_alloc, mail_free, mail_host
 \- zmailer message submission interface
