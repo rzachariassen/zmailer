@@ -584,11 +584,12 @@ static void expaux(vp, index, buf)
 	    msgerror(vp, vp->cfp->offset[index], buf);
 	    break;
 	  }
-
+#if 0
 	/* Log something into the scheduler log */
 	sfprintf(sfstderr, "%s %s: %s/%s from %s %s\n", timestring(), progname,
 		 vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name,
 		 vp->cfp->erroraddr == NULL ? "?" : vp->cfp->erroraddr, buf);
+#endif
 
 	logstat(vp,"expire");
 
@@ -788,10 +789,11 @@ static int u_error(proc, vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
+#if 0
 	sfprintf(sfstderr,
 		 "%s %s: %ld/%ld/%s/error %s\n", timestring(),
 		 vp->thgrp->ce.command, inum, offset, notary, message);
-
+#endif
 	if (!procselect && vp->notaryflg & NOT_FAILURE)
 	  msgerror(vp, offset, message);
 #if 0
@@ -824,10 +826,11 @@ static int u_error2(proc, vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
+#if 0
 	sfprintf(sfstderr,
 		"%s %s: %ld/%ld/%s/error2 %s\n", timestring(),
 		vp->thgrp->ce.command, inum, offset, notary, message);
-
+#endif
 	/* We don't need to log it! */
 	vp->cfp->haderror = 1; /* Mark it into the incore dataset */
 #if 0

@@ -13,6 +13,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 
 - BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
   CommuniGate Pro 3.2 ... Suspect CommuniGate.  Or perhaps OpenSSL ?
+	--> OpenSSL with read-ahead set doesn't always read all
+	    input from the read ahead buffer before wanting more input..
 
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..

@@ -1,3 +1,16 @@
+2000-04-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/update.c:
+	    Log only really important diagnostics about error
+	    conditions in the system, not errors in email receiving.
+
+	* scheduler/threads.c:
+	    One instance of vertex free() has been processed
+	    improperly.  If the 'nextfeed' is still pointing
+	    to the vertex which is being deleted, it must be
+	    advanced..  Although getting this means that the
+	    scheduler has just fed the same job twice to TAs..
+
 2000-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtptls.c:

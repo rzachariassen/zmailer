@@ -560,7 +560,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 
 	    if (thr->proc && (thr->nextfeed == NULL)) {
 	      /* It is running, but no nextfeed is set (anymore),
-		 tack this vertex into the tail */
+		 tackle this vertex into the tail */
 
 	      thr->nextfeed = vp;
 	    }
@@ -677,6 +677,8 @@ struct vertex *vtx;
 	if (thr) {
 	  thr->jobs -= 1;
 
+	  if (thr->nextfeed     == vtx)
+	    thr->nextfeed       = thr->nextfeed->nextitem;
 	  if (thr->thvertices   == vtx)
 	    thr->thvertices     = vtx->nextitem;
 	  if (thr->lastthvertex == vtx)
@@ -1049,7 +1051,7 @@ thread_start(thr, queueonly_too)
  * pick_next_vertex() -- pick next free to process vertex in this thread
  *
  * This is called *only* by  feed_child(), and  proc->vertex  directs
- * then caller of feed_child() to tune the process state.
+ * then the caller of feed_child() to tune the process state.
  * (From STUFFING to FINISHING and possibly to IDLE.)
  * 
  * - if (proc->pthread->nextfeed != NULL) ...nextfeed = ...nextfeed->nextitem;
