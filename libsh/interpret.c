@@ -2206,26 +2206,24 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			break;
 		case sLocalVariable:
 			/* create the variable in the current scope */
-			stickytmp = stickymem;
-			stickymem = MEM_MALLOC;
 			d = NIL;
 			{
 			  int slen = strlen(arg1);
+#if 0
 			  tmp = newstring(dupnstr(arg1,slen),slen); /* must allocate a fresh! */
+#else
+			  tmp = constcell(arg1, slen);
+#endif
 			}
 			cdr(d) = caar(envarlist);
 			cdr(tmp) = d;
 			caar(envarlist) = tmp;
-			stickymem = stickytmp;
 			if (isset('I'))
 				grindef("Scopes = ", envarlist);
 			break;
 		case sScopePush:
-			stickytmp = stickymem;
-			stickymem = MEM_MALLOC;
 			d = NIL;
 			s_push(d, envarlist);
-			stickymem = stickytmp;
 			/* fvcache.namesymbol = 0; */
 			break;
 		case sScopePop:
@@ -2482,10 +2480,7 @@ std_printf("found %x at %d\n", tre, argi1-1);
 			tre = NULL;
 			if (command->buffer != NULL) {
 			  if (cdr(command->buffer)) {
-			    stickytmp = stickymem;
-			    stickymem = MEM_PERM;
 			    d = s_catstring(command->buffer);
-			    stickymem = stickytmp;
 			  } else
 			    d = command->buffer;
 			  if (STRING(d))

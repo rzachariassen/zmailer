@@ -439,9 +439,16 @@ conscell *
     /* At first, see if we are to do some GC ... */
 
     if (D_conscell)
-      fprintf(stderr,"newcell() called\n");
+      fprintf(stderr," newcell() called\n");
 
     ++newcell_callcount;
+
+    if (newcell_gc_internal < consblock_cellcounf)
+      if (++newcell_gc_callcount >= newcell_gc_interval) {
+	cons_garbage_collect();
+	newcell_gc_callcount = 0;
+      }
+
     if (conscell_freechain == NULL) {
 
       cons_garbage_collect();

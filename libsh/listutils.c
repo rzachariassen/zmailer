@@ -225,14 +225,14 @@ s_catstring(s)
 		return s;
 	len = 0;
 	for (sp = s; sp != NULL; sp = cdr(sp))
-		if (sp->string)
+		if (STRING(sp) && sp->cstring)
 			len += sp->slen;
 	quoted = 0;
 	cp = buf = mallocstr(len);
 	for (sp = s; sp != NULL; sp = cdr(sp)) {
-		if (sp->string) {
-			memcpy(cp, sp->string, sp->slen);
-			cp += sp->slen;
+		if (STRING(sp) && sp->cstring) {
+			memcpy(cp, sp->cstring, sp->slen);
+			cp     += sp->slen;
 			quoted += ISQUOTED(sp);
 		}
 	}
