@@ -334,6 +334,7 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 struct v4_dataprint {
 	FILE *fp;
 	int *tr;
+	int cnt;
 };
 
 static int
@@ -380,6 +381,9 @@ dump_v4_rcptline(p, spl)
 		rp->recipients, rp->recipients2, rp->recipients3);
 
 	fprintf(fp, "\n");
+
+	++ dp->cnt;
+
 	return 0;
 }
 
@@ -488,11 +492,12 @@ dump_trk(state, peerdata)
 
 	rhead = state->ipv4_regs_head;
 
-	fprintf(fp, "200-DUMP BEGINS\n");
+	fprintf(fp, "200-DUMP BEGINS; %s\n", rfc822date(&now));
 	fflush(fp);
 
 	dp4.fp = fp;
 	dp4.tr = tr;
+	dp4.cnt = 0;
 
 #if 1
 	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
@@ -506,7 +511,7 @@ dump_trk(state, peerdata)
 	  } /* All entries in this block */
 	} /* All blocks.. */
 #endif
-	fprintf(fp, "200 DUMP ENDS\n");
+	fprintf(fp, "200 DUMP ENDS; cnt=%d\n", dp4.cnt);
 	fflush(fp);
 	fclose(fp);
 

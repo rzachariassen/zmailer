@@ -1,5 +1,18 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemon-trk.c:
+	    When outputing the "Z-REPORT DUMP", start it with date,
+	    and end it with data line count..
+
+	* smtpserver/subdaemons.c:
+	    Deep within fdgets() a read(2) call did yield EBADFD,
+	    treat that as "EOF", and let auto-recovery handle it.
+
+	* smtpserver/smtpserver.h:
+	    Shrunk memory block pre-allocated for each potential
+	    client from 7 kB to about 3 kB.  In systems with 1024
+	    as "ulimit -n", this shrinks process image by 4 MB...
+
 	* smtpserver/policytest.c, smtpserver/subdaemon-trk.c:
 	    Styling beauty-warts, and correcting internal
 	    communications primitives to match client, and
