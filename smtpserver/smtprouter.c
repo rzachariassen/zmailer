@@ -7,10 +7,6 @@
  *      Copyright 1991-1999.
  */
 
-/*
- *  CONTAINS TLS INCOMPATIBLE DEBUG CODE -- prints to STDOUT ...
- */
-
 #include "smtpserver.h"
 
 /*
@@ -200,7 +196,7 @@ const char *function, *args;
 const int holdlast, len;
 {
     char *bufp, *prevb = NULL;
-    int sawend = 0, i;
+    int sawend = 0, i, j, s;
     const char *args0 = args;
 
     if (args == NULL) {
@@ -215,31 +211,44 @@ const int holdlast, len;
 	type(SS, 451, NULL, NULL);
 	return NULL;
     }
-    fprintf(tofp, "%s %s '", ROUTER_SERVER, function);
-    if (debug) {
-      typeflush(SS);
-      fprintf(stdout, "000 ==> %s %s '", ROUTER_SERVER, function);
+
+    j = 20 + strlen(ROUTER_SERVER) + strlen(function);
+    bufp = malloc(j);
+    if (!bufp) {
+      type(SS, 400, NULL, "Huh! Out of memory!");
+      return NULL;
     }
+    sprintf(bufp, "%s %s '", ROUTER_SERVER, function);
+    s = strlen(bufp);
 
     /* Wrap the user input string into simple quotes, then if
        the input string contains said character, do (difficult)
        '...'"'"'...' juggling of the quotes. */
+
     for (i = 0; *args && i < len; ++args, ++i) {
-	if (*args == '\'') {
-	  fputs("'\"'\"", tofp);
-	  if (debug)
-	    fputs("'\"'\"", stdout);
+	if ((s + 10) >= j) {
+	  j += 20;
+	  bufp = realloc(bufp,j);
+	  if (!bufp) {
+	    type(SS, 400, NULL, "Huh! Out of memory!");
+	    return NULL;
+	  }
 	}
-	fputc(*args, tofp);
-	if (debug)
-	  fputc(*args, stdout);
+	if (*args == '\'') {
+	  strcpy(bufp+s, "'\"'\"");
+	  s += strlen(bufp+s);
+	}
+	bufp[s++] = *args;
     }
-    fprintf(tofp, "'\n");
+    bufp[s++] = '\'';
+    bufp[s] = 0;
+
+    fprintf(tofp, "%s\n", bufp);
     fflush(tofp);
-    if (debug) {
-      fprintf(stdout, "'\r\n");
-      fflush(stdout);
-    }
+    if (debug)
+      type(SS, 0, NULL, "==> %s", bufp);
+
+    free(bufp); /* Its done its job, throw it away.. */
 
     for ( ;!sawend; ) {
 	/*
@@ -271,8 +280,7 @@ const int holdlast, len;
 		&& (prevb[3] == ' ' || prevb[3] == '-')) {
 
 	        int code = atoi(prevb);
-		if (prevb[3] == '-') code = -code;
-		type(SS, code, NULL, "%s", prevb+4);
+		type(SS, -code, NULL, "%s", prevb+4);
 
 	    } else {
 
@@ -291,11 +299,10 @@ const int holdlast, len;
 	    && (prevb[3] == ' ')) {
 
 	    int code = atoi(prevb);
-	    if (prevb[3] == '-') code = -code;
-	    type(SS, code, NULL, "%s", prevb+4);
+	    type(SS,  code, NULL, "%s", prevb+4);
 
 	} else {
-	    type(SS, -250, NULL, "%s", prevb);
+	    type(SS,  250, NULL, "%s", prevb);
 	}
 	strncpy(prevb, "dummy-replacement-string", strlen(prevb));
     } else {

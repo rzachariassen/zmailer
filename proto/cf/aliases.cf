@@ -136,13 +136,15 @@ fi
 routeuser (quad, plustail, domain) {
 	local chan user host lcuser mxh al a l
 	local key attr pobox didexpand nattr homedir
-	local plustail2 forward priv hashomedir
+	local plustail2 forward priv hashomedir type
 
 	plustail2=""
 	attr="$(attributes $quad)"
 	chan="$(channel $quad)"
 	
-	case "$(get $attr type)" in
+	type="$(get $attr type)"
+
+	case "$type" in
 	sender)	return (($quad)) ;;
 	esac
 
@@ -386,7 +388,10 @@ routeuser (quad, plustail, domain) {
 	tfiss
 
 
-if false ; then
+# Define something like following in your  zmailer.conf  file to enable this !
+#	LISTSERV="/v/net/listserv.funet.fi"
+
+if [ -n "$LISTSERV" ] ; then 
 
 # listserv automatic list alias mapping support, the listserv home
 # probably should go to zmailer.conf or elsewhere at some time
@@ -394,7 +399,7 @@ if false ; then
 # We check first zmailer lists that can override listserv in an
 # emergency, for example.
 #
-	LISTSERV="/v/net/listserv.funet.fi"
+
 	a="$LISTSERV/home/$lcuser.list"
   
 	if [ -f "$a" ] ; then
@@ -535,7 +540,7 @@ fi
 
 	forward="$homedir/.forward"
 
-	case "$(get $attr type)" in
+	case "$type" in
 	expandsender)	[ -f "$forward" ] && return (($quad))
 			;;
 	esac
@@ -590,20 +595,17 @@ fi
 		;;
 	esac
 
+#
+#  Problem below is that '$(homedirectory )' function can't quite
+#  be overridden in virtual-ISP mode, where "/etc/passwd" isn't
+#  the real account database...
+#
 
-# Ending case 1: If not POBOX, let local channel handle it
-	case "x$POBOX" in
-	x)	db add expansions "$key" local
-		if [ -z "$localdoesdomain" ]; then
-			domain=""
-		fi
-		quad=($chan "$host" "$user$plustail$domain" $attr)
-		return (($quad))
-		;;
-	esac
 
-# Ending case 2: If not POBOX, nor homedirectory defined, then
-#                fall to "error" case below.
+if [ -z "$ROUTEUSER_IN_ABNORMAL_UNIX" ] ; then
+
+# Ending case: If not POBOX, nor homedirectory defined, then
+#              fall to "error" case below.
 
 	case "${hashomedir}x$POBOX" in
 	1x)	db add expansions "$key" local
@@ -615,7 +617,23 @@ fi
 		;;
 	esac
 
-	return (((error err.nosuchuser "$user$plustail$domain" $attr)))
+else
+
+# Ending case: If not POBOX, then fall to "error" case below.
+
+	case "x$POBOX" in
+	x)	db add expansions "$key" local
+		if [ -z "$localdoesdomain" ]; then
+			domain=""
+		fi
+		quad=($chan "$host" "$user$plustail$domain" $attr)
+		return (($quad))
+		;;
+	esac
+
+fi
+
+	return (((error nosuchuser "$user$plustail$domain" $attr)))
 }
 
 # Usage: getpriv <maxperm> <present privilege> <filename> <filename type>

@@ -603,14 +603,20 @@ sh_glob(avl,il)
 
 
 conscell *
-expand(d)
+expand(d, variant)
 	conscell *d; /* input protected */
+	int variant;
 {
 	conscell *tmp, *head, *next, *orig;
 	conscell *globbed = NULL, **pav;
 	register char *cp, *cp0;
 	int slen, slen0;
 	GCVARS6;
+
+/* Ok, following is MAGIC - sVariablePush when the
+   data is $(elements ..) produced list */
+
+if (variant == 2 && ISELEMENT(d)) return d;
 
 	tmp = head = next = orig = globbed = NULL;
 	GCPRO6(tmp, head, next, orig, globbed, d);

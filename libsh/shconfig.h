@@ -84,4 +84,4 @@ fi\n"
 #define	CANNOT_OPEN		"cannot open"
 #define	PIPE			"pipe"
 /* sh.c */
-#define	USAGE	"Usage: %s [ -isaefhkntuvx ] [ -c command ] [ argument ... ]\n"
+#define	USAGE	"Usage: %s [ -isaefhkntuvx[CGILMOPRSY] ] [ -c command ] [ argument ... ]\n"

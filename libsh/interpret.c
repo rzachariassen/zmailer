@@ -1486,7 +1486,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 		case sArgVpush:
 			if (command->buffer == NULL)
 				break;
-			d = expand(command->buffer);
+			d = expand(command->buffer,1);
 			if (command->argv == NULL && STRING(d)) {
 				/* what kind of command is this? */
 				functype(d->string,
@@ -1626,7 +1626,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 			if (command->buffer == NULL)
 				variable = NULL;
 			else {
-				variable = expand(command->buffer);
+				variable = expand(command->buffer,2);
 				variable = ncons(variable);
 			}
 
@@ -1658,7 +1658,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 		case sVariableAppend:
 			if (command->buffer == NULL)
 				break;
-			d = expand(command->buffer);
+			d = expand(command->buffer,3);
 			if (variable == NULL)
 				variable = ncons(d);
 			else if (car(variable) == NULL)

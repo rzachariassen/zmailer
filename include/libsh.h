@@ -23,7 +23,7 @@ extern char       globchars[];
 extern void       glob_init __((void));
 extern int        pathcmp __((const void *ap, const void *bp));
 extern int        squish  __((conscell *d, char **bufp, int **ibufp, int doglob));
-extern conscell * expand  __((conscell *d));
+extern conscell * expand  __((conscell *d, int variant));
 
 /* libsh/interpret.c */
 extern int  magic_number;

@@ -12,6 +12,16 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.52-pre3
+		SiteConfig.in has new 'ROUTEUSER_IN_ABNORMAL_UNIX'
+		definition, which guides the way, how  aliases.cf
+		file reacts to lack of homedirectory for given user.
+		(E.g. to very likely lack of user...)
+		Clearing the resulting /etc/zmailer.conf (or whatever)
+		file to have   ROUTEUSER_IN_ABNORMAL_UNIX=     will
+		allow online router under smtpserver to yield instant
+		'no such user' reports.
+
 	ZMailer-2.99.51-patch1
 		The default behaviour of ssift and tsift of stripping
 		away top-most double quotes (and single quotes?) is

@@ -198,9 +198,9 @@ zshinit(argc, argv)
 			setopt(c, 1);
 			if (runiofp == stdout) {
 				io = open("/dev/tty", O_WRONLY, 0);
-				dup2(io, 19);
+				dup2(io, 60);
 				close(io);
-				runiofp = fdopen(19 /* out of the way */, "w");
+				runiofp = fdopen(60 /* out of the way */, "w");
 			}
 			break;
 		/* these are the normal shell-external flags */
