@@ -29,7 +29,7 @@ BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
 	$(srcdir)/make-incore.sh $(srcdir)/bitbucket md5sum	\
 	smtpserver-log-parser.pl
 
-all:	listexpand md5sum
+all:	listexpand md5sum mxverify-cgi
 	cd makedb ; $(MAKE) $(MFLAGS)
 	cd vacation ; $(MAKE) $(MFLAGS)
 
@@ -56,6 +56,10 @@ listexpand:	listexpand.o
 
 md5sum: md5sum.o $(LIBDEB)
 	$(CC) $(CFLAGS) -o $@.x md5sum.o $(LIB)
+	mv $@.x $@
+
+mxverify-cgi: mxverify-cgi.o
+	$(CC) $(CFLAGS) -o $@.x $@.o $(LIB)
 	mv $@.x $@
 
 FRC:
