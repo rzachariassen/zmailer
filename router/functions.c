@@ -63,7 +63,9 @@ extern int run_stability ARGCV;
 extern int run_process   ARGCV;
 
 static int run_grpmems   ARGCV;
+#if 0 /* dead code */
 static int run_praliases ARGCV;
+#endif
 static int run_listaddresses ARGCV;
 static int zap_DSN_notify ARGCV;
 static int post_zap_DSN_notify ARGCV;

@@ -298,7 +298,7 @@ extern void type220headers __((SmtpState *SS, const int identflg, const char *xl
 
 
 extern void openlogfp __((SmtpState * SS, int insecure));
-extern char taspid_encodechars[];
+extern const char taspid_encodechars[];
 
 void openlogfp(SS, insecure)
 SmtpState *SS;

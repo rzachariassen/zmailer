@@ -361,17 +361,19 @@ mkMessageId(e, unixtime)
 	  }
 	  *p = '\0';
 	  cp = tzbuf;
-	  sprintf(buf, "<%02d%s%d.%02d%02d%02d%.20s.%.20s+%d@%.90s>",
+	  sprintf(buf, "<%s/%02d%s%d.%02d%02d%02d%.20s.%.20s+%d@%.90s>",
+		  e->e_spoolid,
 		  ts->tm_year % 100, monthname[ts->tm_mon], ts->tm_mday,
 		  ts->tm_hour, ts->tm_min, ts->tm_sec,
 		  cp, e->e_file, ++genseq, myhostname);
 	}
 #else /* New way to do this .. more compressed one.. */
 	ts = gmtime(&unixtime);
-	sprintf(buf, "<%04d%02d%02d%02d%02d%02dZ%.20s+%d@%.90s>",
+	sprintf(buf, "<%s/%04d%02d%02d%02d%02d%02dZ+%d@%.90s>",
+		e->e_spoolid,
 		ts->tm_year + 1900, ts->tm_mon + 1, ts->tm_mday,
 		ts->tm_hour,        ts->tm_min,     ts->tm_sec,
-		e->e_file,          ++genseq,       myhostname);
+		++genseq,       myhostname);
 #endif
 	h->h_lines = makeToken(buf, strlen(buf));
 	h->h_lines->t_type = Line;

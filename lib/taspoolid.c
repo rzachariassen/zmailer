@@ -2,6 +2,10 @@
  *
  * Minimum spoolid space is about 17 chars!  Have at least 32 !
  * (8 for a timestamp, 8+1 for the i-node number and terminating null..)
+ *      64-bit decimal integer:    20 ch +
+ *      compact encoded timestamp:  9 ch +
+ *      string end NUL:             1 ch
+ *  Total: 30 chars.
  */
 
 #include <sys/types.h>
@@ -12,7 +16,7 @@
 
 /* These ARE NOT MIME BASE64 characters, but something by which it is
    fairly easily to MANUALLY decode the following result.. */
-char taspid_encodechars[] =
+const char taspid_encodechars[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123abcdefghijklmnopqrstuvwxyz4567890-=";
 
 void taspoolid(buf,mtime,inodenum)

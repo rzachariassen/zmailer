@@ -237,6 +237,10 @@ struct envelope {
 	const char	*e_file;	/* message file name		*/
 	FILE		*e_fp;		/* message file pointer		*/
 	const char	*e_messageid;	/* message id string		*/
+	char		e_spoolid[32];  /* spoolid of the message file;
+					   64-bit decimal integer: 20 ch +
+					   compact encoded timestamp: 9 ch +
+					   string end NUL: 1  */
 };
 
 #ifdef	RFC976

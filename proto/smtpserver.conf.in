@@ -62,18 +62,19 @@
 #                       # smtp-policy.src file).
 #
 #PARAM  use-tcp-wrapper
-#               # If TCP-WRAPPER is configured in, uncommenting this
-#               # will activate its use to look service name:  smtp-receiver
+#           # If TCP-WRAPPER is configured in, uncommenting this
+#           # will activate its use to look service name:  smtp-receiver
 #
 # Disablers of some facility adverticements
+#
 #PARAM  NoEHLO
 #PARAM  NoPIPELINING
 #PARAM  No8BITMIME
 #PARAM  NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
-PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
-#PARAM  force-rcpt-notify-never # Some want to hide the delivery knowledge..
+PARAM   no-multiline-replies    # except to EHLO (Bloody M$ RFC821/AppE violators)
+#PARAM   force-rcpt-notify-never   # Some want to hide the delivery knowledge..
 #
 # HDR220 metatags:
 #  %%  =  '%' character
@@ -91,16 +92,16 @@ PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
 # "EHLO is to be done blindly, server responses are not to be studied for
 #  any possible 'ESMTP' keyword!"
 #
-PARAM help =============================================================
-PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
-PARAM help  Our telephone number is: +1-234-567-8900, and
-PARAM help  telefax number is: +1-234-567-8999
-PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
-PARAM help
-PARAM help  Questions regarding our email service should be sent via
-PARAM help  email to address  <postmaster@OURDOMAIN>
-PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
-PARAM help =============================================================
+#PARAM help =============================================================
+#PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+#PARAM help  Our telephone number is: +1-234-567-8900, and
+#PARAM help  telefax number is: +1-234-567-8999
+#PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
+#PARAM help
+#PARAM help  Questions regarding our email service should be sent via
+#PARAM help  email to address  <postmaster@OURDOMAIN>
+#PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
+#PARAM help =============================================================
 #
 # Uncomment following for not to strip incoming addresses of format:
 # <@aa,@bb:cc@dd> into non-source-routed base form: <cc@dd>

@@ -26,13 +26,11 @@
 static char lbuf[8000];	/* Should be aplenty..		*/
 
 void
-rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid,starttime)
-const time_t msgmtime, starttime;
-const long msgino;
-const char *from, *smtprelay, *msgid;
+rtsyslog(spoolid,msgmtime,from,smtprelay,size,nrcpts,msgid,starttime)
+const time_t starttime, msgmtime;
+const char *spoolid, *from, *smtprelay, *msgid;
 const int size, nrcpts;
 {
-  char spoolid[30];		/* Min. space: 6+8+1 chars	*/
   char delays[16], xdelays[16]; /* Min. space: 8+1 chars	*/
   time_t now;
   static const char *syslogflg = NULL;
@@ -52,8 +50,6 @@ const int size, nrcpts;
   }
   if (*t == '\0')
     return;  /* If no 'R' flag in SYSLOGFLG, no router sysloging! */
-
-  taspoolid(spoolid, msgmtime, msgino);
 
   time(&now);
 

@@ -166,7 +166,7 @@ extern int   savefile;
 extern int   do_hdr_warning;
 
 /* File: rtsyslog.c */
-extern void rtsyslog __(( time_t msgmtime, long msgino, const char *from, const char *smtprelay, const int size, const int nrcpts, const char *msgid, const time_t starttime ));
+extern void rtsyslog __(( const char *spoolid, const time_t msgmtime, const char *from, const char *smtprelay, const int size, const int nrcpts, const char *msgid, const time_t starttime ));
 
 extern int	main __((int argc, const char *argv[]));
 extern int	login_to_uid __((const char *name));

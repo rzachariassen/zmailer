@@ -280,6 +280,10 @@ makeLetter(e)
 	initzline(4096);
 #endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 
+
+	taspoolid(e->e_spoolid, e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino);
+
+
 	inheader = 0; /* 0: envelope, 1: RFC-822 */
 
 	/* Line of length 1 is LIKELY just "\n" */
@@ -1244,16 +1248,13 @@ mkTrace(e, rcvdhdr)
 		th->h_contents.r->r_with = h->h_contents.a->a_tokens->p_tokens;
 	} else
 		th->h_contents.r->r_with = NULL;
-	/* id */
-	{
-	  char taspid[32];
-	  taspoolid(taspid, e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino);
 
-	  na = (struct addr *)tmalloc(sizeof (struct addr));
-	  na->p_tokens = makeToken(taspid, strlen(taspid));
-	  na->p_next = NULL;
-	  na->p_type = anAddress;	/* really a message id */
-	}
+	/* id */
+	na = (struct addr *)tmalloc(sizeof (struct addr));
+	na->p_tokens = makeToken(e->e_spoolid, strlen(e->e_spoolid));
+	na->p_next = NULL;
+	na->p_type = anAddress;	/* really a spool-id */
+
 	ap = (struct address *)tmalloc(sizeof (struct address));
 	ap->a_tokens = na;
 	ap->a_next = NULL;
@@ -2649,7 +2650,7 @@ sequencer(e, file)
 		fclose(vfp);
 	}
 
-	rtsyslog(e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino,
+	rtsyslog(e->e_spoolid, e->e_statbuf.st_mtime,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
 		 nrcpts, msgidstr, start_now);
 #ifdef AF_UNIX
