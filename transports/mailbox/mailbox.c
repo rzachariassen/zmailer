@@ -2182,7 +2182,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  /* We report following status codes to the system as is,
 	     all the rest are treated as EX_TEMPFAIL, and retried.. */
 	  if (!(i == EX_NOPERM || i == EX_UNAVAILABLE || i == EX_NOHOST ||
-		i == EX_NOUSER || i == EX_DATAERR))
+		i == EX_NOUSER || i == EX_DATAERR || i == EX_OK))
 	    i = EX_TEMPFAIL;
 	}
 
