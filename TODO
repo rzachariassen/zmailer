@@ -9,6 +9,11 @@ Wanted done for 3.0:
   - LICENSE state cleanup.
   - A work-over of the documentation
 
+libc/*mail.c, router/rfc822.c:
+  Can the AF_UNIX/DGRAM  sendto()  sometimes yield SIGPIPE ?
+  Should the code be armored against that ?  (I do think so,
+  thus this is a TODO item..)
+
 
 OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
          match code selections!  Brr..
