@@ -173,21 +173,21 @@ mailshare:	$(PZCONFIG) $(PMAILSHARE)
 	done
 
 
-forms:	$(srcdir)/forms/???*
+forms:	FRC
 	@. $(PZCONFIG) ; \
-	FORMSDIR=$(prefix)$$MAILSHARE/forms ; \
-	if [ ! -d $$FORMSDIR/bak ]; then \
-		$(MKDIR) $$FORMSDIR/bak ; \
+	FORMSDIR="$(prefix)$$MAILSHARE/forms" ; \
+	if [ ! -d "$$FORMSDIR/bak" ]; then \
+		$(MKDIR) "$$FORMSDIR/bak" ; \
 	fi ; \
 	cd $(srcdir)/forms; \
 	for file in ???* ; \
 	do \
-		name=`expr $$file : '.*/\(.*\)'` ; \
-		if [ $$name != bak -a -f $$FORMSDIR/$$name ]; then \
+		name="`basename $$file`" ; \
+		if [ "$$name" != bak -a -f "$$FORMSDIR/$$name" ]; then \
 			echo mv -f $$FORMSDIR/$$name $$FORMSDIR/bak/$$name ; \
 			mv -f $$FORMSDIR/$$name $$FORMSDIR/bak/$$name ; \
 		fi ; \
-		if [ $$name != bak ]; then \
+		if [ "$$name" != bak ]; then \
 			echo $(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
 			$(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
 		fi ; \
