@@ -157,6 +157,7 @@ main(argc, argv)
 	char	*envidstr = NULL;
 	const char * newcp = NULL;
 	int	save_from = 0;
+	int	outcount = 0;
 
 	cp = strrchr(argv[0], '/');
 	if (cp != NULL)
@@ -599,6 +600,7 @@ otherprog:
 		  while ((n = read(0, buf, sizeof buf)) > 0) {
 		    if (fwrite(buf, sizeof buf[0], n, mfp) != n)
 		      break;
+		    outcount += n;
 		  }
 		} else {
 		  /* cmd line can only set dotiseof to 0.. improvement? */
@@ -670,6 +672,7 @@ otherprog:
 		    if (dotiseof && *s == '.' && *++s == '\n')
 		      break;
 		    fputs(buf, mfp);
+		    ++outcount;
 		  }
 		}
 
@@ -683,6 +686,12 @@ otherprog:
 		  if (vfd >= 0)
 		    unlink(verbfile);
 		  exit(EX_IOERR);
+		} else if (outcount == 0) {
+		  /* No input ?? Ignore silently */
+		  mail_abort(mfp);
+		  if (vfd >= 0)
+		    unlink(verbfile);
+		  exit(EX_OK);
 		} else if (mail_close(mfp) == EOF) {
 		  fprintf(stderr, "%s: message not submitted!\n",
 			  zmailer);
