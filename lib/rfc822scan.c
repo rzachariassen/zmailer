@@ -141,30 +141,27 @@ _hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
 	token822	*tp, **tlist, **tlistp;
 {
 	token822 *tn;
+	int nest = 1;
 
 	if (*cp != cstart)
 		abort(); /* Sanity check!  Call fault! */
 	++cp, --n;
 nextline:
-	for (; n > 0 && *cp != cend; ++cp, --n) {
-		if (*cp == cstart && type == Comment) {
-			u_long nleft;
-			nleft = _hdr_compound(cp, n, cstart, cend,
-					      type, tp, tlist, tlistp);
-			cp += (n - nleft);
-			n   = nleft+1; /* for-loop's --n ! */
-#if 0
-			/* Under certain pathological conditions the "tlistp"
-			   is NULL pointer in here! */
-			if (tlistp == NULL)
-				break;
-			cp = (*tlistp)->t_pname + TOKENLEN(*tlistp) - n;
-#endif
+	for (; n > 0; ++cp, --n) {
+		if (*cp == cend) {
+			if (--nest <= 0)
+			    break;
+		} else if (*cp == cstart) {
+			if (type == Comment)
+				++nest;
+			else
+				MKERROR("illegal char in compound", *tlist);
 		} else if (*cp == '\\') {
 			if (n == 1) {
 				MKERROR("missing character after backslash",
 					*tlist);
-				n = 0; /* Continue with next line, if existing! */
+				/* Continue with next line, if existing! */
+				n = 0;
 				break;
 			}
 			++cp, --n;
