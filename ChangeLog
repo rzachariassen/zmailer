@@ -1,3 +1,12 @@
+1999-08-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/rfc822scan.c:
+	    _unfold() had problems at detecting the termination condition.
+
+	* router/rfc822hdrs.c:
+	    One fine-tuning of "Received:" header generation; leaves
+	    off one space character when no 'from' clause is present.
+
 1999-08-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:

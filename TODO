@@ -1,5 +1,3 @@
-- some one-off error in rfc822-scanner at the router ??
-
 Known/suspected bugs/Missing Features on current Zmailer sources
 
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.

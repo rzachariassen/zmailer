@@ -419,7 +419,7 @@ hdr_print(h, fp)
 	struct address *ap;
 	struct addr *pp;
 	HeaderSemantics sem;
-	int foldcol;
+	int foldcol, hadspc;
 	int canprefold = 0;
 
 	if (h == NULL)
@@ -467,8 +467,10 @@ hdr_print(h, fp)
 	}
 
 	/* Fill to column 8 in all cases.. */
-	for ( ; col < 8; ++col)
-	  putc(' ', fp), ++foldcol;
+	for ( ; col < 8; ++col) {
+	  putc(' ', fp);
+	  ++foldcol;
+	}
 
 	if (!foldcol) {
 	  /* Always at least one space! */
@@ -498,6 +500,7 @@ hdr_print(h, fp)
 		  }
 		  break;
 		}
+		hadspc = 1;
 		if ((ap = h->h_contents.r->r_from) != NULL) {
 		    if (ap->a_tokens == NULL) {
 			if (ap->a_pname[0] != '(') {
@@ -522,13 +525,14 @@ hdr_print(h, fp)
 			else
 			  fprintf(fp, "(nil??)"), col += 7;
 		    }
+		    hadspc = 0;
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
 			cl = printAddress(NULL, ap->a_tokens, col+4);
 			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
-			} else
+			} else if (!hadspc)
 			  putc(' ',fp), ++col;
 			fprintf(fp, "by ");
 			col = printLAddress(fp, ap->a_tokens, col+3, 8, 0);
