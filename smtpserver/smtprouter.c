@@ -200,29 +200,37 @@ const int holdlast, len;
 	type(SS, 451, NULL, NULL);
 	return NULL;
     }
-    fprintf(tofp, "%s %s \"", ROUTER_SERVER, function);
+    fprintf(tofp, "%s %s '", ROUTER_SERVER, function);
     if (debug) {
       typeflush(SS);
-      fprintf(stdout, "000 ==> %s %s \"", ROUTER_SERVER, function);
+      fprintf(stdout, "000 ==> %s %s '", ROUTER_SERVER, function);
     }
 
     /* Process all double-quotes and backslashes so that
        no surprises happen.. */
 
     for (i = 0; *args && i < len; ++args, ++i) {
-	if (*args == '\\' || *args == '"') {
+#if 0
+	if (*args == '\\' || *args == '"' || *args == '`') {
 	    putc('\\', tofp);
 	    if (debug)
 	      putc('\\', stdout);
 	}
+#else
+	if (*args == '\'') {
+	  fputs("'\"'\"", tofp);
+	  if (debug)
+	    fputs("'\"'\"", stdout);
+	}
+#endif
 	putc(*args, tofp);
 	if (debug)
 	  putc(*args, stdout);
     }
-    fprintf(tofp, "\"\n");
+    fprintf(tofp, "'\n");
     fflush(tofp);
     if (debug) {
-      fprintf(stdout, "\"\n");
+      fprintf(stdout, "'\n");
       fflush(stdout);
     }
 

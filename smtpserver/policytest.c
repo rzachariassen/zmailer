@@ -802,8 +802,10 @@ Usockaddr *raddr;
 
     state->message = NULL; /* This is early initial clearing */
 
-    if (raddr->v4.sin_family == 0)
+    if (raddr->v4.sin_family == 0){
+      state->full_trust = 1;
       return 0; /* Interactive testing... */
+    }
 
     if (raddr->v4.sin_family == AF_INET) {
       si4 = & (raddr->v4);
