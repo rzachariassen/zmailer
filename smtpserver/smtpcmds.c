@@ -850,7 +850,9 @@ int insecure;
     fflush(SS->mfp);
     rewind(SS->mfp);
 #ifdef HAVE_FTRUNCATE
-    ftruncate(FILENO(SS->mfp), 0);
+    while (ftruncate(FILENO(SS->mfp), 0) < 0)
+      if (errno != EINTR && errno != EAGAIN)
+	break;
 #endif
     if (insecure)
 	fprintf(SS->mfp, "external\n");

@@ -1163,7 +1163,9 @@ deliver(dp, rp, usernam, timestring)
 	      return;
 	    }
 #ifdef HAVE_FSYNC
-	    fsync(fdmail);
+	    while (fsync(fdmail) < 0)
+	      if (errno != EINTR && errno != EAGAIN)
+		break;
 #endif
 	    close(fdmail);
 	  }
@@ -2021,10 +2023,14 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    break;
 	  }
 	  if (eofindex >= 0)
-	    ftruncate(sffileno(fp), (u_long)eofindex);
-#endif
+	    while (ftruncate(sffileno(fp), (u_long)eofindex) < 0)
+	      if (errno != EINTR && errno != EAGAIN)
+		break;
+#endif /* HAVE_FTRUNCATE */
 #ifdef HAVE_FSYNC
-	  fsync(sffileno(fp));
+	  while (fsync(sffileno(fp)) < 0)
+	    if (errno != EINTR && errno != EAGAIN)
+	      break;
 #endif
 	  sfclose(fp);
 	  fp = NULL;
@@ -2048,10 +2054,14 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    /* XX: should I really do this? */
 	    sfsync(fp);
 	    if (eofindex >= 0)
-	      ftruncate(sffileno(fp), (off_t)eofindex);
-#endif
+	      while (ftruncate(sffileno(fp), (off_t)eofindex) < 0)
+		if (errno != EINTR && errno != EAGAIN)
+		  break;
+#endif /* HAVE_FTRUNCATE */
 #ifdef HAVE_FSYNC
-	    fsync(sffileno(fp));
+	    while (fsync(sffileno(fp)) < 0)
+	      if (errno != EINTR && errno != EAGAIN)
+		break;
 #endif
 	    sfclose(fp);
 	    eofindex = -1;
@@ -2105,10 +2115,14 @@ if (verboselog)
 	      /* XX: should I really do this? */
 	      sfsync(fp);
 	      if (eofindex >= 0)
-		ftruncate(sffileno(fp), (off_t)eofindex);
+		while (ftruncate(sffileno(fp), (off_t)eofindex) < 0)
+		  if (errno != EINTR && errno != EAGAIN)
+		    break;
 #endif /* HAVE_FTRUNCATE */
 #ifdef HAVE_FSYNC
-	      fsync(sffileno(fp));
+	      while (fsync(sffileno(fp)) < 0)
+		if (errno != EINTR && errno != EAGAIN)
+		  break;
 #endif
 	      sfclose(fp);
 	      fp = NULL;
@@ -2132,7 +2146,13 @@ if (verboselog)
 	  goto write_failure;
 	}
 #ifdef HAVE_FSYNC
-	fsync(fdmail);
+	if (mmfd_mode <= 1) {
+	  while (fsync(fdmail) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    goto write_failure;
+	  }
+	}
 #endif
 
 

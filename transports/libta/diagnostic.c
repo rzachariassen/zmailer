@@ -412,13 +412,19 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	    if (rc2 != len || rc2 < 0 || len < 0) {
 	      /* UAARGH! -- write failed, must have disk full! */
 #ifdef HAVE_FTRUNCATE
-	      ftruncate(rp->desc->ctlfd, ctlsize); /* Sigh.. */
-#endif
+	      while (ftruncate(rp->desc->ctlfd, ctlsize) < 0) /* Sigh.. */
+		if (errno != EINTR && errno != EAGAIN)
+		  break;
+#endif /* HAVE_FTRUNCATE */
 	      fprintf(stdout,"#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
 	      exit(EX_DATAERR);
 	    }
 #ifdef HAVE_FSYNC
-	    fsync(rp->desc->ctlfd);
+	    while (fsync(rp->desc->ctlfd) < 0) {
+	      if (errno == EINTR || errno == EAGAIN)
+		continue;
+	      break;
+	    }
 #endif
 	    if (oldalarm)		/* Restore it, if it was ticking. */
 	      alarm(oldalarm);

@@ -2363,7 +2363,11 @@ sequencer(e, file)
 	sprintf(qpath, "../%s/%s%s", QUEUEDIR, subdirhash, file);
 	fflush(ofp);
 #ifdef HAVE_FSYNC
-	fsync(FILENO(ofp));
+	while (fsync(FILENO(ofp)) < 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
+	  break;
+	}
 #endif
 	ofperrors |= ferror(ofp);
 
@@ -2403,7 +2407,11 @@ sequencer(e, file)
 		fprintf(vfp, "router done processing; F='%s' TF='%s'\n", file, path);
 		fflush(vfp);
 #ifdef HAVE_FSYNC
-		fsync(FILENO(vfp));
+		while (fsync(FILENO(vfp)) < 0) {
+		  if (errno == EINTR || errno == EAGAIN)
+		    continue;
+		  break;
+		}
 #endif
 		fclose(vfp);
 	}

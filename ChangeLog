@@ -1,3 +1,20 @@
+2000-12-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/mailbox/mailbox.c:
+	    At normal success path, do proper  fsync(2)  return
+	    status analysis - if the filesystem where the write
+	    goes to is ever truly asynchronous, the only way to
+	    know if it runs out of diskspace, or whatever is after
+	    the return of fsync(2).
+
+	* libc/mail.c, libc/sfmail.c, scheduler/msgerror.c,
+	  router/rfc822.c, transports/libta/diagnostic.c:
+	    More of carefull  fsync(2)  calls.
+
+	* transports/mailbox/mailbox.c, smtpserver/smtpcmds.c,
+	  transports/libta/diagnostic.c:
+	    Also carefull wrappers for  ftruncate(2)  calls.
+
 2000-12-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/libta/mimeheaders.c:

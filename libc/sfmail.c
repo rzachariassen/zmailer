@@ -468,17 +468,29 @@ _sfmail_close_(fp,inop, mtimep)
 	 * data without being told about it.
 	 */
 
-	if (sfsync(fp) != 0
-#ifdef HAVE_FSYNC
-	    || fsync(fn) < 0
-#endif
-	    || sfclose(fp) != 0) {
-		if (ftype) mail_free(ftype);
-		mail_free(message);
-		errno = EIO;
-		return -1;
-	}
 
+	if (sfsync(fp) != 0) {
+	  mail_free(message);
+	  if (ftype) mail_free(ftype);
+	  errno = EIO;
+	  return -1;
+	}
+#ifdef HAVE_FSYNC
+	while (fsync(fn) < 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
+	  if (ftype) mail_free(ftype);
+	  mail_free(message);
+	  errno = EIO;
+	  return -1;
+	}
+#endif
+	if (sfclose(fp) == EOF) {
+	  mail_free(message);
+	  if (ftype) mail_free(ftype);
+	  errno = EIO;
+	  return -1;
+	}
 
 	routerdir = ROUTERDIR;
 	nmessage  = NULL;
@@ -621,15 +633,29 @@ sfmail_close_alternate(fp,where,suffix)
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
-	if (sfsync(fp) < 0
+
+
+	if (sfsync(fp) != 0) {
+	  mail_free(message);
+	  if (ftype) mail_free(ftype);
+	  errno = EIO;
+	  return -1;
+	}
 #ifdef HAVE_FSYNC
-	    || fsync(fn) < 0
+	while (fsync(fn) < 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
+	  if (ftype) mail_free(ftype);
+	  mail_free(message);
+	  errno = EIO;
+	  return -1;
+	}
 #endif
-	    || sfclose(fp) == EOF) {
-		mail_free(message);
-		if (ftype) mail_free(ftype);
-		errno = EIO;
-		return -1;
+	if (sfclose(fp) == EOF) {
+	  mail_free(message);
+	  if (ftype) mail_free(ftype);
+	  errno = EIO;
+	  return -1;
 	}
 
 	/* Find the base name (we know format is PUBLICDIR/basename) */

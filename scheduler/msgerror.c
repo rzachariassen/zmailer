@@ -228,7 +228,11 @@ msgerror(vp, offset, message)
 		 time(NULL), notary, message);
 	sfsync(fp);
 #ifdef HAVE_FSYNC
-	fsync(sffileno(fp));
+	while (fsync(sffileno(fp)) < 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
+	  break;
+	}
 #endif
 	sfclose(fp);
 }
@@ -1060,7 +1064,11 @@ msgdelayed(vp, offset, notary, message)
 	sfprintf(fp, "\t%s\n", message);
 	sfsync(fp);
 #ifdef HAVE_FSYNC
-	fsync(sffileno(fp));
+	while (fsync(sffileno(fp)) < 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
+	  break;
+	}
 #endif
 	sfclose(fp);
 }
