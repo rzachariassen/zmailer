@@ -35,7 +35,6 @@ msg_info(SS, va_alist)
 #endif
 {
 	va_list	ap;
-	FILE *fp;
 #ifdef HAVE_STDARG_H
 	va_start(ap, fmt);
 #else
@@ -45,24 +44,42 @@ msg_info(SS, va_alist)
 #endif
 
 	if (vlog) {
-	  fp = vlog;
-	  fprintf(fp, "# ");
-	} else if (logfp) {
-	  fp = logfp;
-	  fprintf(fp, "%s#\t", logtag());
-	} else {
-	  fp = stderr; /* No LOGFP, to STDERR with DBGdiag prefix.. */
-	  fprintf(fp, "# ");
-	}
+	  fprintf(vlog, "# ");
 
 #ifdef	HAVE_VPRINTF
-	vfprintf(fp, fmt, ap);
+	  vfprintf(vlog, fmt, ap);
 #else	/* !HAVE_VPRINTF */
  ERROR:ERROR:ERROR:No 
 #endif	/* HAVE_VPRINTF */
 
-	fprintf(fp,"\n");
-	fflush(fp);
+	  fprintf(vlog,"\n");
+	  fflush(vlog);
+
+	}
+	if (logfp) {
+	  fprintf(logfp, "%s#\t", logtag());
+#ifdef	HAVE_VPRINTF
+	  vfprintf(logfp, fmt, ap);
+#else	/* !HAVE_VPRINTF */
+ ERROR:ERROR:ERROR:No 
+#endif	/* HAVE_VPRINTF */
+
+	  fprintf(logfp,"\n");
+	  fflush(logfp);
+	}
+#if 0
+	if (stderr) {
+	  fprintf(stderr, "%s#\t", logtag());
+#ifdef	HAVE_VPRINTF
+	  vfprintf(stderr, fmt, ap);
+#else	/* !HAVE_VPRINTF */
+ ERROR:ERROR:ERROR:No 
+#endif	/* HAVE_VPRINTF */
+
+	  fprintf(stderr,"\n");
+	  fflush(stderr);
+	}
+#endif
 
 	va_end(ap);
 }

@@ -2,6 +2,9 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 
 "zmailer newfqdnroute" runs wrong thing... (no thing, actually..)
 
+smtp-ta: TLS mode demands a bit too much of remote server's certificates..
+	 How to relax it more ?
+
 VERIFY:  router/rfc822hdrs.c line 720 onwards "NillHeaderSemantics"
 	processing.  Can it break headers sometimes ?
 	What abour line 655 onwards ?  Earlier in that routine ?

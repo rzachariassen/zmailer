@@ -1,3 +1,14 @@
+2003-06-19  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtptls.c:
+	    When there was no logging file of any kind, this used to
+	    send TLS related diagnostics to the scheduler's log, which
+	    didn't work very nicely in one of my systems..
+	    Now changed so that if there is verbose-log, printouts go
+	    there, and independent of that, if there is smtp transport-agent
+	    log,  printouts go also there.  If there are neither, nothing is
+	    printed.
+
 2003-06-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
