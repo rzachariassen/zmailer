@@ -49,6 +49,12 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	if (!msgheaders) return -1;
 
 	if (chunkbufp) {
+
+	  int allocsize = -1;
+	  int chunkspace = 20;
+	  if (*chunkbufp == NULL)
+	    *chunkbufp = malloc( chunkspace );
+
 	  for ( ; *msgheaders; ++msgheaders ) {
 	    char *s = *msgheaders;
 	    while (*s) {
@@ -61,19 +67,18 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		p = s;
 		for (; linelen > 0; --linelen, ++p) {
 		  if (*p == '\t')
-		    col += 8 - (col & 7);
+		    col += 8 - (col & 7); /* 1 thru 8 */
 		  else
 		    ++col;
 		}
 		linelen = col;
 	      }
 
-	      if (*chunkbufp == NULL)
-		/* Actually the SMTP has already malloced a block,
-		   thus this branch should not be needed ... */
-		*chunkbufp = malloc( hsize + linelen + newlinelen );
-	      else
-		*chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
+	      allocsize = hsize + linelen + newlinelen + 8;
+	      if (allocsize >= chunkspace) {
+		chunkspace = allocsize + 1;
+		*chunkbufp = realloc(*chunkbufp, chunkspace );
+	      }
 	      if (*chunkbufp == NULL) return -1;
 
 	      p = hsize + (*chunkbufp);
@@ -81,16 +86,19 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	      if (*WriteTabs == '0') {
 		/* Expand line TABs */
 		int col = 0;
+		/* Here the LINELEN is EXPANDED size, not input size! */
 		for (; linelen > 0; --linelen, ++s) {
 		  char c1 = *s;
 		  if (c1 == '\t') {
 		    int c2 = col + 8 - (col & 7);
-		    while (col < c2) {
+		    while (col < c2) { /* 1 thru 8 loops */
 		      *p = ' ';
 		      ++p;
 		      ++col;
 		      ++hsize;
+		      --linelen;
 		    }
+		    ++linelen; /* Compensate the for(;;--linelen) */
 		  } else {
 		    *p = c1;
 		    ++p;
