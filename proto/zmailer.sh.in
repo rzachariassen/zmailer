@@ -276,7 +276,7 @@ do
 		find . -type f -print |				\
 		@PERL@ -ne 'chomp; $new = $_; $new =~ s#^.*/##;	\
 			    rename($_, "../router/" . $new) or	\
-	printf STDERR "rename %s -> ../router/%s failed; $!\n, $_, $new;' )
+	printf STDERR "rename %s -> ../router/%s failed; %s\n", $_, $new, $!;' )
             ;;
 
         bootclean)
