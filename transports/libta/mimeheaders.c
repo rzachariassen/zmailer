@@ -668,9 +668,13 @@ static const char * _skip_822atom(p, tspecial)
 	    break;
 	  }
 
-
+	  /* We have gathered non-special string so far, and this is
+	     some delimitter, cut it here! */
 	  if (isdelim && s > p) break;
 
+
+	  /* We didn't have any gathered string so far, but if it
+	     happens to be special, we count them as single chars! */
 	  ++s;
 	  if (c == ':' && *s == ':')
 	    ++s; /* Consider '::' as single atom -- DECNET token */
