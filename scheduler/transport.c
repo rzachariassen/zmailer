@@ -133,7 +133,7 @@ struct procinfo *proc;
 	  len = 6;
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
-	  proc->overfed = 2;
+	  proc->overfed += 1;
 	}
 	rc = write(proc->tofd, proc->cmdbuf, len);
 	if (rc < 0 &&
@@ -317,7 +317,7 @@ struct procinfo *proc;
 	vtx->proc = proc;    /* Flag that it is in processing */
 	vtx->ce_pending = 0; /* and clear the pending.. */
 	
-	if (proc->hungry > 0) --hungry_childs;
+	if (proc->hungry) --hungry_childs;
 	/* It was fed (to buffer), clear this flag.. */
 	proc->hungry = 0;
 	proc->fed = 1;

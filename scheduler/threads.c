@@ -657,7 +657,6 @@ web_disentangle(vp, ok)
 	  vp->thread->jobs -= 1;
 	  unthread(vp);
 	}
-	
 
 	/* The thread can now be EMPTY! */
 
@@ -732,7 +731,7 @@ struct thread *thr;
 	    ur_arr[i]->nextitem = ur_arr[i+1];
 	  /* 4b) Clear vertex proc pointer */
 	  ur_arr[i]->proc   = NULL;
-#if 0
+#if 1
 	  /* 4c) Clear wakeup timer; the feed_child() will refuse
 	     to feed us, if this one is not cleared.. */
 	  ur_arr[i]->wakeup = 0;
@@ -879,7 +878,7 @@ struct thread *thr;
 #else
 	  /* While we have a thread, and things to feed.. */
 	  while (!proc->fed && proc->thread) {
-	    if (proc->hungry > 0)
+	    if (proc->hungry)
 	      feed_child(proc);
 	    if (!proc->fed)
 	      break; /* Huh! Didn't feed it! */
@@ -996,6 +995,7 @@ int ok, justfree;
 
 	if (thr == NULL) {
 	  if (verbose) sfprintf(sfstdout," ... NONE, we are idle.\n");
+	  proc->fed = 1;
 	  return; /* WE ARE IDLE! */
 	}
 #if 0 /* dead code ?? */

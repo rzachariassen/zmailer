@@ -92,7 +92,7 @@ update(fd, diagnostic)
 	if (*diagnostic == 0) {
 	  /* Lone newline.. old-style indications from the transporter */
 	  if (proc->tofd >= 0) {
-	    proc->hungry += 1;
+	    proc->hungry = 1;
 	    mytime(&now);
 	    proc->hungertime = now;
 	    ++hungry_childs;
@@ -102,7 +102,7 @@ update(fd, diagnostic)
 	  if (proc->overfed > 0)
 	    proc->overfed -= 1;
 	  pick_next_vertex(proc, 1, 0);
-	  if (proc->hungry > 0 && proc->fed == 0)
+	  if (proc->hungry && proc->fed == 0)
 	    feed_child(proc);
 	  flush_child(proc);
 	  return;
@@ -177,22 +177,16 @@ update(fd, diagnostic)
 	    if (proc->overfed > 0) {
 	      /* It was overfed, decrement that counter first.. */
 	      proc->overfed -= 1;
-#if 1
-	      /* We were "simulated hungry" */
-	      proc->hungry  -= 1;
-#endif
 	    }
 	    if (!proc->overfed) {
 	      ++hungry_childs;
 	      /* Unless it is still overfed,
 		 Pick next, and feed it! */
 	      pick_next_vertex(proc, 1, 0);
-	      if (proc->hungry > 0)
-		feed_child(proc);
 #if 1 /* YES OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
-		if (proc->hungry > 0)
+		if (proc->hungry)
 		  feed_child(proc);
 		if (!proc->fed)
 		  break; /* Huh! Feed/flush failure! */
@@ -204,9 +198,7 @@ update(fd, diagnostic)
 		if (proc->overfed >= proc->thg->ce.overfeed)
 		  break;	/* if the limit is zero, don't overfeed ever.*/
 		/* Ok, increment the counter, and loop back.. */
-#if 1
-		proc->hungry += 1; /* Simulate hunger.. */
-#endif
+		proc->hungry = 1; /* Simulate hunger.. */
 		pick_next_vertex(proc, 1, 0);
 		/* If it got next,  ``proc->fed'' is now zero.. */
 	      }
