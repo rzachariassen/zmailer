@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-1998 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-1999 by Matti Aarnio -- modifications, including MIME
  */
 
 #define	RFC974		/* If BIND, check that TCP SMTP service is enabled */
@@ -1034,10 +1034,10 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		    openstatus = smtpopen(SS, host, noMX);
 		    if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
-		      for (;rphead && rphead != rp->next; rphead = rphead->next){
+		      for ( ; rphead != rp->next; rphead = rphead->next) {
 			if (rphead->lockoffset != 0) {
-			  notaryreport(NULL, FAILED, NULL, NULL);
-			  diagnostic(rphead, openstatus, 0, "%s", SS->remotemsg);
+			  notaryreport(rphead->addr->user, FAILED, NULL, NULL);
+			  diagnostic(rphead,openstatus,0, "%s", SS->remotemsg);
 			}
 		      }
 		      break;
@@ -1067,7 +1067,7 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		  if (rphead->lockoffset != 0) {
-		    notaryreport(NULL, FAILED, NULL, NULL);
+		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
 		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 		  }
 		}
