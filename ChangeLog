@@ -1,3 +1,34 @@
+1999-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* TODO:
+	    Found major pain (problem, if you will) in the
+	    LDAP interface code for the router.  It does server
+	    connection and DB bind for *every* query :-(
+	
+	* transports/smtp/smtp.c:
+	    Arkadiusz Mi?kiewicz <misiek@pld.org.pl> reported
+	    compilation and operation problems in his IPv6
+	    environment.  Turns out a  getnameinfo()  request
+	    block parametrization bug prevented 'IPv6 AAAA only'
+	    hosts from even being *found* for the data lookup.
+
+	* configure.in, config.h.in, acconfig.h, libc.h:
+	    Autoconfigure compilation sense of  'socklen_t' for
+	    possible use of --with-ipv6-replacement-libc and then
+	    smtp.c in mode where  getnameinfo() routine can be
+	    debugged...
+
+	* scheduler/threads.c, scheduler/transports.c:
+	    Kludgeish "cure" to ``OF=0, HA=lots..'' problem.
+	    If the HA exceeds now fixed value (3600 sec), the
+	    system does client shutdown, and then recovers.
+
+	* lib/rfc822scan.c:
+	    Patch from <zack@bitmover.com> for RFC822 comment
+	    nesting.  In the end result the comments disappear
+	    entirely (not so great) but now properly nested
+	    omments are not flagged as an error!
+
 1999-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.c, smtpserver/smtpcmds.c,

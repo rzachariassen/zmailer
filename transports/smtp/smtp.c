@@ -953,12 +953,8 @@ main(argc, argv)
 	    if (SS.verboselog)
 	      setvbuf(SS.verboselog, NULL, _IONBF, 0);
 	  }
-	  if (setjmp(procabortjmp) == 0) {
-	    procabortset = 1;
-	    smtpstatus = process(&SS, (struct ctldesc *)dp, smtpstatus,
-				 (char*)smtphost, noMX);
-	  }
-	  procabortset = 0;
+	  smtpstatus = process(&SS, (struct ctldesc *)dp, smtpstatus,
+			       (char*)smtphost, noMX);
 
 	  if (SS.verboselog)
 	    fclose(SS.verboselog);
@@ -991,104 +987,115 @@ int
 process(SS, dp, smtpstatus, host, noMX)
 	SmtpState *SS;
 	struct ctldesc *dp;
-	int smtpstatus;
+	volatile int smtpstatus;
 	const char *host;
 	int noMX;
 {
-	struct rcpt *rp, *rphead;
-	int loggedid;
-	int openstatus = EX_OK;
+	if (setjmp(procabortjmp) == 0) {
 
+	  struct rcpt *rp, *rphead;
+	  int loggedid;
+	  int openstatus = EX_OK;
 
-	smtpstatus = EX_OK; /* Hmm... */
-	loggedid = 0;
+	  procabortset = 1;
 
-	SS->firstmx = 0; /* If need be to connect to a new host,
-			    because the socket is not on, we start
-			    from the begin of the MX list */
+	  smtpstatus = EX_OK; /* Hmm... */
+	  loggedid = 0;
 
-	*SS->remotemsg = 0;
+	  SS->firstmx = 0; /* If need be to connect to a new host,
+			      because the socket is not on, we start
+			      from the begin of the MX list */
 
-	for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
-	  if (rp->next == NULL
-	      || rp->addr->link   != rp->next->addr->link
-	      || rp->newmsgheader != rp->next->newmsgheader) {
+	  *SS->remotemsg = 0;
 
-	    if (smtpstatus == EX_OK && openstatus == EX_OK) {
-	      if (logfp != NULL && !loggedid) {
-		loggedid = 1;
-		fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
-	      }
+	  for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
+	    if (rp->next == NULL
+		|| rp->addr->link   != rp->next->addr->link
+		|| rp->newmsgheader != rp->next->newmsgheader) {
 
-	      do {
+	      if (smtpstatus == EX_OK && openstatus == EX_OK) {
+		if (logfp != NULL && !loggedid) {
+		  loggedid = 1;
+		  fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
+		}
 
-		if (!SS->smtpfp) {
+		do {
+
+		  if (!SS->smtpfp) {
 	
-		  /* Make the opening connect with the UID of the
-		     sender (atoi(rp->addr->misc)), unless it is
-		     "nobody", in which case use "daemon"      */
-		  if ((first_uid = atoi(dp->senders->misc)) < 0 ||
-		      first_uid == nobody)
-		    first_uid = daemon_uid;
+		    /* Make the opening connect with the UID of the
+		       sender (atoi(rp->addr->misc)), unless it is
+		       "nobody", in which case use "daemon"      */
+		    if ((first_uid = atoi(dp->senders->misc)) < 0 ||
+			first_uid == nobody)
+		      first_uid = daemon_uid;
 
-		  openstatus = smtpopen(SS, host, noMX);
-		  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
-		    for (;rphead && rphead != rp->next; rphead = rphead->next){
-		      if (rphead->lockoffset != 0) {
-			notaryreport(NULL, FAILED, NULL, NULL);
-			diagnostic(rphead, openstatus, 0, "%s", SS->remotemsg);
+		    openstatus = smtpopen(SS, host, noMX);
+		    if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
+		      for (;rphead && rphead != rp->next; rphead = rphead->next){
+			if (rphead->lockoffset != 0) {
+			  notaryreport(NULL, FAILED, NULL, NULL);
+			  diagnostic(rphead, openstatus, 0, "%s", SS->remotemsg);
+			}
 		      }
+		      break;
 		    }
-		    break;
+		  }
+
+		  if (openstatus == EX_OK)
+		    smtpstatus = deliver(SS, dp, rphead, rp->next);
+
+		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
+		  if (smtpstatus == EX_TEMPFAIL) {
+		    smtpclose(SS);
+		    notary_setwtt(NULL);
+		    notary_setwttip(NULL);
+		    if (logfp)
+		      fprintf(logfp, "%s#\t(closed SMTP channel - after delivery failure)\n", logtag());
+		    if (SS->verboselog)
+		      fprintf(SS->verboselog, "(closed SMTP channel - after delivery failure; firstmx = %d, mxcount=%d)\n",SS->firstmx,SS->mxcount);
+		  }
+
+		  /* If delivery fails, try other MX hosts */
+		} while ((smtpstatus == EX_TEMPFAIL) &&
+			 (SS->firstmx < SS->mxcount));
+
+		/* Report (and unlock) all those recipients which aren't
+		   otherwise diagnosed.. */
+
+		for (;rphead && rphead != rp->next; rphead = rphead->next) {
+		  if (rphead->lockoffset != 0) {
+		    notaryreport(NULL, FAILED, NULL, NULL);
+		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 		  }
 		}
 
-		if (openstatus == EX_OK)
-		  smtpstatus = deliver(SS, dp, rphead, rp->next);
+		rphead = rp->next;
+	      } else {
+		time(&endtime);
+		notary_setxdelay((int)(endtime-starttime));
+		while (rphead != rp->next) {
+		  /* SMTP open -- meaning (propably) that we got reject
+		     from the remote server */
+		  /* NOTARY: address / action / status / diagnostic */
+		  notaryreport(rp->addr->user,FAILED,
+			       "5.0.0 (Target status indeterminable)",
+			       NULL);
+		  diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
 
-		/* Only for EX_TEMPFAIL, or for any non EX_OK ? */
-		if (smtpstatus == EX_TEMPFAIL) {
-		  smtpclose(SS);
-		  notary_setwtt(NULL);
-		  notary_setwttip(NULL);
-		  if (logfp)
-		    fprintf(logfp, "%s#\t(closed SMTP channel - after delivery failure)\n", logtag());
-		  if (SS->verboselog)
-		    fprintf(SS->verboselog, "(closed SMTP channel - after delivery failure; firstmx = %d, mxcount=%d)\n",SS->firstmx,SS->mxcount);
+		  rphead = rphead->next;
 		}
-
-		/* If delivery fails, try other MX hosts */
-	      } while ((smtpstatus == EX_TEMPFAIL) &&
-		       (SS->firstmx < SS->mxcount));
-
-	      /* Report (and unlock) all those recipients which aren't
-		 otherwise diagnosed.. */
-
-	      for (;rphead && rphead != rp->next; rphead = rphead->next) {
-		if (rphead->lockoffset != 0) {
-		  notaryreport(NULL, FAILED, NULL, NULL);
-		  diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
-		}
-	      }
-
-	      rphead = rp->next;
-	    } else {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      while (rphead != rp->next) {
-		/* SMTP open -- meaning (propably) that we got reject
-		   from the remote server */
-		/* NOTARY: address / action / status / diagnostic */
-		notaryreport(rp->addr->user,FAILED,
-			     "5.0.0 (Target status indeterminable)",
-			     NULL);
-		diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
-
-		rphead = rphead->next;
 	      }
 	    }
 	  }
+
+	} else {
+	  /* processing fails entirely is PROCABORT is received */
+	  smtpstatus = EX_UNAVAILABLE;
+	  smtpclose(SS);
 	}
+
+	procabortset = 0;
 
 	return smtpstatus;
 }
@@ -2403,7 +2410,7 @@ smtpconn(SS, host, noMX)
 	req.ai_socktype = SOCK_STREAM;
 	req.ai_protocol = IPPROTO_TCP;
 	req.ai_flags    = AI_CANONNAME;
-	req.ai_family   = PF_INET;
+	req.ai_family   = 0; /* Either IPv4 or IPv6 ok */
 	ai = NULL;
 
 	SS->literalport = -1;
@@ -2470,6 +2477,7 @@ smtpconn(SS, host, noMX)
 #endif
 	    {
 	      /* Definitely only IPv4 address ... */
+	      req.ai_family = PF_INET;
 #if !GETADDRINFODEBUG
 	      rc = getaddrinfo(buf, "smtp", &req, &ai);
 #else

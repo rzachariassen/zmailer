@@ -4,6 +4,12 @@ libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
+router/libdb/ldap.c:
+	Reorganize things:
+		Do connect+bind to DB at  ldap_open() !
+		Do ONLY queries at ldap_search() !
+		Do dissociation at ldap_close() !
+
 smtpserver:
 	Implement policy analysis of %-hack addresses..
 	(And !-paths too ?)

@@ -30,6 +30,10 @@
    all systems.  Though in systems without IPv6 those
    routines don't support AF_INET6 ... */
 #undef INET6
+
+/* socklen_t type can be found by including <sys/socket.h> */
+#undef HAVE_SOCKLEN_T
+
 #undef HAVE_NETINET_IN_H
 /* Sigh....  Linux 2.1.x series with IPv6  */
 #undef HAVE_NETINET_IN6_H

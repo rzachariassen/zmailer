@@ -140,7 +140,7 @@ _hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
 	TokenType	type;
 	token822	*tp, **tlist, **tlistp;
 {
-	token822 *tn;
+	token822 *tn = NULL;
 	int nest = 1;
 
 	if (*cp != cstart)

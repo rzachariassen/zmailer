@@ -291,7 +291,7 @@ int flags;
 
 int getnameinfo(sa, addrlen, host, hostlen, serv, servlen, flags)
 const struct sockaddr *sa;
-size_t addrlen;
+socklen_t addrlen;
 char *host;
 size_t hostlen;
 char *serv;

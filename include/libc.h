@@ -64,8 +64,11 @@ extern       int   inet_pton __((int, const char *, void *));
 extern       int   _getaddrinfo_ __((const char *, const char *, const struct addrinfo *, struct addrinfo **, FILE *));
 extern       int   getaddrinfo __((const char *, const char *, const struct addrinfo *, struct addrinfo **));
 #endif
+#ifndef HAVE_SOCKLEN_T
+typedef unsigned int socklen_t;
+#endif
 #ifndef HAVE_GETNAMEINFO
-extern       int   getnameinfo __((const struct sockaddr *, size_t, char *, size_t, char *, size_t, int));
+extern       int   getnameinfo __((const struct sockaddr *, socklen_t, char *, size_t, char *, size_t, int));
 #endif
 #ifndef HAVE_GETADDRINFO
 extern       void  freeaddrinfo __((struct addrinfo *));

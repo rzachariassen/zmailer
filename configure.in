@@ -944,6 +944,9 @@ if test "$ac_cv_header_netinet_in_h" = no ; then
   AC_MSG_RESULT([%%% AIEEE!  NO  <netinet/in.h>  HEADER ?!])
 fi
 
+AC_TRY_COMPILE([#include <sys/socket.h>],[socklen_t sl = 2;],
+	AC_DEFINE(HAVE_SOCKLEN_T))
+
 AC_ARG_WITH(ipv6,[  --with-ipv6              Have IPv6 in system, and want to use it],
 	AC_DEFINE(INET6)
 	ac_with_ipv6=yes
