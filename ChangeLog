@@ -1,3 +1,26 @@
+2003-03-06  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/rfc821scn.c:
+	    Turned off the code assigning semantic meaning
+	    to the local-part contained % and ! characters.
+	    Relaying policy control will look at them, but
+	    only when the address domain is _local_, and
+	    the address is on  RCPT TO.
+
+	* man/smtpserver.8:
+	    Cleaned up a bit the OpenSSL/TLS related documentation.
+	    Added missing 'h' option document.
+
+	* smtpserver/smtptls.c:
+	    Changed couple internal warning texts into a lot less
+	    alarmistic "could not load .. from file, will use
+	    built-in default" (of DH pamaters.)
+
+	* transports/libta/mime2headers.c:
+	    Limit the length of produced "MIME-2" header tokens.
+	    This is mostly a beauty-wart, but might in some cases
+	    be usefull thing.
+
 2003-03-05  Matti Aarnio  <mea@zmailer.org>
 
 	* include/mailer.h, router/rfc822.c, router/rfc822hdrs.c,
