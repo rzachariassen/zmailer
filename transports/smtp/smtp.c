@@ -3040,6 +3040,8 @@ makeconn(SS, hostname, ai, ismx)
 	int mfd;
 	int isreconnect = (ai == &SS->ai);
 
+	MIBMtaEntry->tasmtp.SmtpStarts += 1;
+
 
 #ifdef	BIND
 #ifdef	RFC974
@@ -3072,10 +3074,6 @@ makeconn(SS, hostname, ai, ismx)
 	  }
 #endif	/* RFC974 */
 #endif	/* BIND */
-
-
-	MIBMtaEntry->tasmtp.SmtpStarts += 1;
-
 
 	retval = EX_DEFERALL;
 #if 0

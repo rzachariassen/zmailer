@@ -93,6 +93,10 @@ groff  -c -t -man -Tascii "$1" | \
 	    my $n = $1; $n =~ s/ /_/g;
 	    printf "<A NAME=\"%s\"></A>",$n;
 	}
+	if (m{^   <B>(.*)</B>$}o) {
+	    my $n = $1; $n =~ s/ /_/g;
+	    printf "<A NAME=\"%s\"></A>",$n;
+	}
 	print;
 	'
 echo "</PRE></BODY></HTML>"

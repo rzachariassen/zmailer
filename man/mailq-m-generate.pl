@@ -59,7 +59,12 @@ for (;;) {
 	    my $l = $2; chomp $l;chomp $l;chomp $l;
 	    printf "%s\n",$l;
 	    printf ".RE\n";
-	}
+	} elsif ($thisvar =~ m{\s*<HEAD>\s*(.*)\S*</HEAD>\s*<DESC>\s*(.*)\s*</DESC>\s*}) {
+	    my $l = $1; chomp $l;chomp $l;chomp $l;
+	    printf ".SS \"%s\"\n",$l;
+	    my $l = $2; chomp $l;chomp $l;chomp $l;
+	    printf "%s\n",$l;
+        }
     } else {
 	last; ## No more vars ...
     }

@@ -9,6 +9,11 @@
 
 #define M  (*MIBMtaEntry)
 
+/*<VAR><HEAD>SHM segment header</HEAD><DESC>
+Basic SHM segment identifier, and references.
+</DESC></VAR>*/
+
+
   sfprintf(fp,"ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
 /*<VAR><NAME>SHM segment Magic</NAME><DESC>
 Magic value used to ensure that active segment,
@@ -31,7 +36,7 @@ as this is backed on mmap(2)ed file.
   sfprintf(fp,"\n");
 
 
-/*<VAR><NAME>SYS.*</NAME><DESC>
+/*<VAR><HEAD>SYS.*</HEAD><DESC>
 Various top-level things, e.g. process group leader PIDs et.al.
 </DESC></VAR>*/
 
@@ -131,19 +136,19 @@ This should match with  SYS.SchedulerMasterStartTime.
 	   M.sys.SmtpServerMasterPID);
   if (i) sfprintf(fp," NOT PRESENT!");
   sfprintf(fp,"\n");
-/*<VAR><NAME>SC.SmtpServerMasterPID</NAME><DESC>
+/*<VAR><NAME>SYS.SmtpServerMasterPID</NAME><DESC>
 PID of SMTP-server's master instance.
 This process does listen(2) on defined inbound sockets,
 and forks actual receiver instances.
 </DESC></VAR>*/
   sfprintf(fp,"SYS.SmtpServerMasterStartTime   %10lu\n",
 	   (unsigned long)M.sys.SmtpServerMasterStartTime);
-/*<VAR><NAME>SC.SmtpServerMasterStartTime</NAME><DESC>
+/*<VAR><NAME>SYS.SmtpServerMasterStartTime</NAME><DESC>
 When the SMTP-server's master instance was started the lattest time.
 </DESC></VAR>*/
   sfprintf(fp,"SYS.SmtpServerMasterStarts      %10u\n",
 	   M.sys.SmtpServerMasterStarts);
-/*<VAR><NAME>SC.SmtpServerMasterStarts</NAME><DESC>
+/*<VAR><NAME>SYS.SmtpServerMasterStarts</NAME><DESC>
 How many times the SMTP-server's master instance has been started
 during the existence of this SHM segment.
 </DESC></VAR>*/
@@ -173,7 +178,7 @@ gets way below that 2 gigs...
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>SS.*</NAME><DESC>
+/*<VAR><HEAD>SS.*</HEAD><DESC>
 SmtpServer counters and gauges.
 </DESC></VAR>*/
 
@@ -558,7 +563,7 @@ smtpserver onwards to the system proper.
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>RT.*</NAME><DESC>
+/*<VAR><HEAD>RT.*</HEAD><DESC>
 RouTer counters and gauges.
 </DESC></VAR>*/
 
@@ -669,7 +674,7 @@ Total size of messages in router input queue.
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>SC.*</NAME><DESC>
+/*<VAR><HEAD>SC.*</HEAD><DESC>
 SCheduler counters and gauges.
 </DESC></VAR>*/
 
@@ -891,7 +896,7 @@ Count of received SHOW COUNTERS commands.
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-SMTP.*</NAME><DESC>
+/*<VAR><HEAD>TA-SMTP.*</HEAD><DESC>
 SMTP transpor agent counters and gauges.
 </DESC></VAR>*/
 
@@ -926,107 +931,256 @@ given tasks.  This might be lower count, than TaMessages.
 </DESC></VAR>*/
 
 
-/*
-<VAR><NAME>TO BE WRITTEN</NAME><DESC>
-There are lots and lots more variables to describe in TA-SMTP section.
-</DESC></VAR>
-*/
-
-
   sfprintf(fp,"TA-SMTP.SmtpStarts              %10u\n",
 	   M.tasmtp.SmtpStarts);
-  sfprintf(fp,"TA-SMTP.LmtpConnects            %10u\n",
-	   M.tasmtp.LmtpConnects);
+/*<VAR><NAME>TA-SMTP.SmtpStarts</NAME><DESC>
+Number of times that the SMTP transport agent is beginning
+connecting to remote system.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpConnects            %10u\n",
 	   M.tasmtp.SmtpConnects);
+/*<VAR><NAME>TA-SMTP.SmtpConnects</NAME><DESC>
+Number of times that the SMTP transport agent has successfully
+made SMTP connection at the socket level.
+This doesn't yet know about possible "500 go away" greeting...
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpConnectFails        %10u\n",
 	   M.tasmtp.SmtpConnectFails);
+/*<VAR><NAME>TA-SMTP.SmtpConnectFails</NAME><DESC>
+Number of times that the connection formation has failed at socket level.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpConnectsCnt-G        %9d\n",
 	   M.tasmtp.SmtpConnectsCnt);
+/*<VAR><NAME>TA-SMTP.SmtpConnectsCnt-G</NAME><DESC>
+Gauge of successfully formed SFIO streams presently talking to SMTP or
+LMTP destinations.
+</DESC></VAR>*/
+  sfprintf(fp,"TA-SMTP.LmtpConnects            %10u\n",
+	   M.tasmtp.LmtpConnects);
+/*<VAR><NAME>TA-SMTP.LmtpConnects</NAME><DESC>
+Number of times that the SMTP transport agent has successfully
+made LMTP connection, and remote end has accepted the socket.
+This doesn't yet know about possible "500 go away" greeting...
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpPIPELINING          %10u\n",
 	   M.tasmtp.SmtpPIPELINING);
+/*<VAR><NAME>TA-SMTP.SmtpPIPELINING</NAME><DESC>
+Number of sessions, where remote end has published PIPELINING
+capability, and we are taking advantage of it.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpSTARTTLS            %10u\n",
 	   M.tasmtp.SmtpSTARTTLS);
+/*<VAR><NAME>TA-SMTP.SmtpSTARTTLS</NAME><DESC>
+Number of sessions, where remote end has published STARTTLS
+capability, and we are taking advantage of it.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpSTARTTLSok          %10u\n",
 	   M.tasmtp.SmtpSTARTTLSok);
+/*<VAR><NAME>TA-SMTP.SmtpSTARTTLSok</NAME><DESC>
+Number of sessions, where we succeeded at starting the TLS encapsulation
+of the stream. (Relative to SmtpSTARTTLS.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpSTARTTLSfail        %10u\n",
 	   M.tasmtp.SmtpSTARTTLSfail);
+/*<VAR><NAME>TA-SMTP.SmtpSTARTTLSfail</NAME><DESC>
+Number of sessions, where we failed at starting the TLS encapsulation
+of the stream. (Relative to SmtpSTARTTLS.)
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpEHLO                %10u\n",
 	   M.tasmtp.SmtpEHLO);
+/*<VAR><NAME>TA-SMTP.SmtpEHLO</NAME><DESC>
+Number of sent EHLO greetings.
+(Sometimes we may be running in a mode forbidding EHLO, e.g. "smtp-77".)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpEHLOok              %10u\n",
 	   M.tasmtp.SmtpEHLOok);
+/*<VAR><NAME>TA-SMTP.SmtpEHLOok</NAME><DESC>
+Number of EHLO greetings yielding successfull result (and capability sets.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpEHLOfail            %10u\n",
 	   M.tasmtp.SmtpEHLOfail);
+/*<VAR><NAME>TA-SMTP.SmtpEHLOfail</NAME><DESC>
+Number of EHLO greetings yielding failure.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpHELO                %10u\n",
 	   M.tasmtp.SmtpHELO);
+/*<VAR><NAME>TA-SMTP.SmtpHELO</NAME><DESC>
+Number of sent HELO greetings (e.g. fallback from EHLO due to
+moronic firewalls, and/or due to configuration forbidding
+sending of "EHLO", e.g. "smtp-77" mode.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpHELOok              %10u\n",
 	   M.tasmtp.SmtpHELOok);
+/*<VAR><NAME>TA-SMTP.SmtpHELOok</NAME><DESC>
+Number of HELO greetings yielding successfull result.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpHELOfail            %10u\n",
 	   M.tasmtp.SmtpHELOfail);
+/*<VAR><NAME>TA-SMTP.SmtpHELOfail</NAME><DESC>
+Number of HELO greetings yielding failure result.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpLHLO                %10u\n",
 	   M.tasmtp.SmtpLHLO);
+/*<VAR><NAME>TA-SMTP.SmtpLHLO</NAME><DESC>
+Number of sent LHLO greetings, e.g. while talking to remotes
+that are actually LMTP speaking message stores into which
+we are doing "local delivery".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpLHLOok              %10u\n",
 	   M.tasmtp.SmtpLHLOok);
+/*<VAR><NAME>TA-SMTP.SmtpLHLOok</NAME><DESC>
+Number of LHLO greetings yielding successfull result (and capability sets)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpLHLOfail            %10u\n",
 	   M.tasmtp.SmtpLHLOfail);
+/*<VAR><NAME>TA-SMTP.SmtpLHLOfail</NAME><DESC>
+Number of LHLO greetings yielding failure result.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.capa8BITMIME            %10u\n",
 	  M.tasmtp.EHLOcapability8BITMIME);
+/*<VAR><NAME>TA-SMTP.capa8BITMIME</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "8BITMIME".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaAUTH                %10u\n",
 	  M.tasmtp.EHLOcapabilityAUTH);
+/*<VAR><NAME>TA-SMTP.capaAUTH</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "AUTH".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaDSN                 %10u\n",
 	  M.tasmtp.EHLOcapabilityDSN);
+/*<VAR><NAME>TA-SMTP.capaDSN</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "DSN".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaCHUNKING            %10u\n",
 	  M.tasmtp.EHLOcapabilityCHUNKING);
+/*<VAR><NAME>TA-SMTP.capaCHUNKING</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "CHUNKING".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaDELIVERBY           %10u\n",
 	  M.tasmtp.EHLOcapabilityDELIVERBY);
+/*<VAR><NAME>TA-SMTP.capaDELIVERBY</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "DELIVERBY".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaENHANCEDSTATUSCODES %10u\n",
 	  M.tasmtp.EHLOcapabilityENHANCEDSTATUSCODES);
+/*<VAR><NAME>TA-SMTP.capaENHANCEDSTATUSCODES</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "ENHANCEDSTATUSCODES".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaPIPELINING          %10u\n",
 	  M.tasmtp.EHLOcapabilityPIPELINING);
+/*<VAR><NAME>TA-SMTP.capaPIPELINING</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "PIPELINING".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaSIZE                %10u\n",
 	  M.tasmtp.EHLOcapabilitySIZE);
+/*<VAR><NAME>TA-SMTP.capaSIZE</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "SIZE".
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.capaSTARTTLS            %10u\n",
 	  M.tasmtp.EHLOcapabilitySTARTTLS);
+/*<VAR><NAME>TA-SMTP.capaSTARTTLS</NAME><DESC>
+Number of times that EHLO (and LHLO) greeting capability sets
+have contained "STARTTLS".
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.sent-option-ENVID       %10u\n",
 	   M.tasmtp.SmtpOPT_ENVID);
+/*<VAR><NAME>TA-SMTP.sent-option-ENVID</NAME><DESC>
+Number of times that these transport agents have sent 
+out the "ENVID=" option.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.sent-option-SIZE        %10u\n",
 	   M.tasmtp.SmtpOPT_SIZE);
+/*<VAR><NAME>TA-SMTP.sent-option-SIZE</NAME><DESC>
+Number of times that these transport agents have sent 
+out the "SIZE=" option.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.sent-option-RET         %10u\n",
 	   M.tasmtp.SmtpOPT_RET);
+/*<VAR><NAME>TA-SMTP.sent-option-RET</NAME><DESC>
+Number of times that these transport agents have sent 
+out the "RET=" option.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.sent-option-NOTIFY      %10u\n",
 	   M.tasmtp.SmtpOPT_NOTIFY);
+/*<VAR><NAME>TA-SMTP.sent-option-NOTIFY</NAME><DESC>
+Number of times that these transport agents have sent 
+out the "NOTIFY=" option.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.sent-option-ORCPT       %10u\n",
 	   M.tasmtp.SmtpOPT_ORCPT);
+/*<VAR><NAME>TA-SMTP.sent-option-ORCPT</NAME><DESC>
+Number of times that these transport agents have sent 
+out the "ORCPT=" option.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpMAIL                %10u\n",
 	   M.tasmtp.SmtpMAIL);
+/*<VAR><NAME>TA-SMTP.SmtpMAIL</NAME><DESC>
+Number of times that "MAIL" verb has been sent (or at least tried to.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpMAILok              %10u\n",
 	   M.tasmtp.SmtpMAILok);
+/*<VAR><NAME>TA-SMTP.SmtpMAILok</NAME><DESC>
+Number of times that "MAIL" verb got "ok" result back.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpRCPT                %10u\n",
 	   M.tasmtp.SmtpRCPT);
+/*<VAR><NAME>TA-SMTP.SmtpRCPT</NAME><DESC>
+Number of times that "RCPT" verb has been sent (or at least tried to.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpRCPTok              %10u\n",
 	   M.tasmtp.SmtpRCPTok);
+/*<VAR><NAME>TA-SMTP.SmtpRCPTok</NAME><DESC>
+Number of times that "RCPT" verb got "ok" result back.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpDATA                %10u\n",
 	   M.tasmtp.SmtpDATA);
+/*<VAR><NAME>TA-SMTP.SmtpDATA</NAME><DESC>
+Number of times that "DATA" verb has been sent (or at least tried to.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpDATAok              %10u\n",
 	   M.tasmtp.SmtpDATAok);
+/*<VAR><NAME>TA-SMTP.SmtpDATAok</NAME><DESC>
+Number of times that "DATA" verb got "ok" result back.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpBDAT                %10u\n",
 	   M.tasmtp.SmtpBDAT);
+/*<VAR><NAME>TA-SMTP.SmtpBDAT</NAME><DESC>
+Number of times that "BDAT" verb has been sent (or at least tried to.)
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpBDATok              %10u\n",
 	   M.tasmtp.SmtpBDATok);
+/*<VAR><NAME>TA-SMTP.SmtpBDATok</NAME><DESC>
+Number of times that "BDAT" verb got "ok" result back.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMTP.SmtpDATAvolume-kB       %10u\n",
 	   M.tasmtp.SmtpDATAvolume);
+/*<VAR><NAME>TA-SMTP.SmtpDATAvolume-kB</NAME><DESC>
+Number of kilobytes written to remote systems within DATA transaction.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.SmtpBDATvolume-kB       %10u\n",
 	   M.tasmtp.SmtpBDATvolume);
+/*<VAR><NAME>TA-SMTP.SmtpBDATvolume-kB</NAME><DESC>
+Number of kilobytes written to remote systems within BDAT transaction.
+</DESC></VAR>*/
+
 
   sfprintf(fp,"TA-SMTP.RcptsOk                 %10u\n",
 	   M.tasmtp.TaRcptsOk);
@@ -1058,7 +1212,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-SMCM.*</NAME><DESC>
+/*<VAR><HEAD>TA-SMCM.*</HEAD><DESC>
 SendMail Compatible Mailer transport agent counters and gauges.
 </DESC></VAR>*/
 
@@ -1114,7 +1268,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-MBOX.*</NAME><DESC>
+/*<VAR><HEAD>TA-MBOX.*</HEAD><DESC>
 MailBOX transport agent  counters and gauges.
 </DESC></VAR>*/
 
@@ -1168,7 +1322,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-HOLD.*</NAME><DESC>
+/*<VAR><HEAD>TA-HOLD.*</HEAD><DESC>
 HOLD transport agent  counters and gauges.
 </DESC></VAR>*/
 
@@ -1221,7 +1375,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-ERRM.*</NAME><DESC>
+/*<VAR><HEAD>TA-ERRM.*</HEAD><DESC>
 ERRorMail transport agent  counters and gauges.
 </DESC></VAR>*/
 
@@ -1274,7 +1428,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-EXPI.*</NAME><DESC>
+/*<VAR><HEAD>TA-EXPI.*</HEAD><DESC>
 EXPIrer transport agent  counters and gauges.
 </DESC></VAR>*/
 
@@ -1327,7 +1481,7 @@ Number of recipient addresses that have been diagnosed as unsuccessfully process
 
   sfprintf(fp,"\n");
 
-/*<VAR><NAME>TA-RERT.*</NAME><DESC>
+/*<VAR><HEAD>TA-RERT.*</HEAD><DESC>
 RERouTer transport agent  counters and gauges.
 </DESC></VAR>*/
 
