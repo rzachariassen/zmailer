@@ -168,7 +168,8 @@ struct thread *thr;
 	thr->prevthg->nextthg = thr->nextthg;
 	thr->nextthg->prevthg = thr->prevthg;
 
-	thg->threads -= 1;
+	thg->threads                      -= 1;
+	MIBMtaEntry->m.mtaStoredThreadsSc -= 1;
 
 	if (thg->thread == thr)
 	  thg->thread = thr->nextthg;	/* pick other */
@@ -229,6 +230,7 @@ struct thread *thr;
 	}
 
 	thg->threads += 1;
+	MIBMtaEntry->m.mtaStoredThreadsSc += 1;
 }
 
 
@@ -274,6 +276,7 @@ struct config_entry *cep;
 	thr->thvertices   = vtx;
 	thr->lastthvertex = vtx;
 	thr->jobs       = 1;
+
 	vtx->thread     = thr;
 	thr->channel    = strsave(vtx->orig[L_CHANNEL]->name);
 	thr->host       = strsave(vtx->orig[L_HOST   ]->name);
@@ -654,7 +657,7 @@ static void unthread(thr, vtx)
 	  vtx->nextitem->previtem = vtx->previtem;
 
 	if (thr) {
-	  thr->jobs -= 1;
+	  thr->jobs                        -= 1;
 
 	  if (thr->nextfeed     == vtx)
 	    thr->nextfeed       = thr->nextfeed->nextitem;
@@ -889,7 +892,13 @@ thread_start(thr, queueonly_too)
 	  proc->pnext = proc->pprev   = NULL;
 
 	  thg->idlecnt -= 1;
+
 	  --idleprocs;
+
+	  /* Move to ACTIVE state */
+	  MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
+	  MIBMtaEntry->m.mtaTransportAgentsIdleSc   -= 1;
+
 	  
 	  /* It may be that while we idled it, it died at the idle queue.. */
 	  if (proc->pid <= 0 || proc->tofd < 0) {

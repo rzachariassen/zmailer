@@ -9,7 +9,7 @@
  *
  */
 
-#define ZM_MIB_MAGIC 0x33120002
+#define ZM_MIB_MAGIC 0x33120003
 
 
 struct timeserver {
@@ -25,12 +25,33 @@ struct timeserver {
 
 struct MIB_MtaEntryMain {
   uint	magic;
-
-  pid_t		mtaRouterMasterPID;
-  pid_t		mtaSchedulerMasterPID;
-  pid_t		mtaSmtpServerMasterPID;
+  time_t	BlockCreationTimestamp;
 
   double dummy0; /* cache-line alignment, etc.. */
+
+
+  pid_t		mtaRouterMasterPID;
+  time_t	mtaRouterMasterStartTime;
+  uint		mtaRouterMasterStarts;
+
+  pid_t		mtaSchedulerMasterPID;
+  time_t	mtaSchedulerMasterStartTime;
+  uint		mtaSchedulerMasterStarts;
+
+  pid_t		mtaSmtpServerMasterPID;
+  time_t	mtaSmtpServerMasterStartTime;
+  uint		mtaSmtpServerMasterStarts;
+
+
+  double dummy1; /* cache-line alignment, etc.. */
+
+  /* SpoolFree  is monitored and stored by _XX_ subsystem ?  
+     Router and scheduler ?  Smtpserver ?  All three ? */
+
+  uint		mtaSpoolFreeSpace;		/* gauge,	in MB	*/
+  uint		mtaLogFreeSpace;		/* gauge,	in MB  ?? */
+
+  double dummy2; /* cache-line alignment, etc.. */
 
 
   /* SMTPSERVER substystem counters */
@@ -39,6 +60,8 @@ struct MIB_MtaEntryMain {
   uint		mtaIncomingParallelSMTPconnects;
   uint		mtaIncomingParallelSMTPSconnects;
   uint		mtaIncomingParallelSUBMITconnects;
+
+  uint		mtaIncomingSMTPSERVERforks;
 
   uint		mtaIncomingSMTPconnects;	/* Incoming SMTP sessions */
   uint		mtaIncomingSMTPSconnects;	/* Incoming SMTPS sessions */
@@ -74,18 +97,19 @@ struct MIB_MtaEntryMain {
   uint		mtaIncomingSMTP_spool_KBYTES;
 
 
-  double dummy1; /* Alignment, etc.. */
+  double dummy3; /* Alignment, etc.. */
 
   uint		mtaReceivedMessagesSs;		/* counter, smtpserver	*/
   uint		mtaReceivedRecipientsSs;	/* counter, smtpserver	*/
   uint		mtaTransmittedMessagesSs;	/* counter, smtpserver	*/
   uint		mtaTransmittedRecipientsSs;	/* counter, smtpserver	*/
 
-  double dummy2; /* Alignment, etc.. */
+  double dummy4; /* Alignment, etc.. */
 
   /* ROUTER subsystem counters */
 
-  uint		mtaRouterProcesses;		/* gauge */
+  uint		mtaRouterProcessesRt;		/* gauge */
+  uint		mtaRouterProcessForksRt;	/* counter, cleared at start */
 
   uint		mtaReceivedMessagesRt;		/* counter, router	*/
   uint		mtaReceivedRecipientsRt;	/* counter, router - not! */
@@ -103,7 +127,7 @@ struct MIB_MtaEntryMain {
   uint		mtaStoredVolumeRt;		/* gauge,	in kB	*/
 
 
-  double dummy3; /* Alignment, etc.. */
+  double dummy5; /* Alignment, etc.. */
 
   /* SCHEDULER subsystem counters */
 
@@ -113,19 +137,21 @@ struct MIB_MtaEntryMain {
   uint		mtaTransmittedRecipientsSc;	/* counter, scheduler	*/
 
   uint		mtaStoredMessagesSc;		/* gauge, scheduler	*/
+  uint		mtaStoredThreadsSc;		/* gauge, scheduler	*/
+  uint		mtaStoredVerticesSc;		/* gauge, scheduler	*/
   uint		mtaStoredRecipientsSc;		/* gauge, scheduler	*/
 
   uint		mtaReceivedVolumeSc;		/* counter,	in kB	*/
   uint		mtaStoredVolumeSc;		/* gauge,	in kB	*/
   uint		mtaTransmittedVolumeSc;		/* counter, ??	in kB	*/
 
-  uint		mtaStoredThreadsSc;		/* gauge -- can do ?	*/
-
+  uint		mtaTransportAgentForksSc;	/* counter		*/
+  uint		mtaTransportAgentProcessesSc;	/* gauge		*/
   uint		mtaTransportAgentsActiveSc;	/* gauge		*/
   uint		mtaTransportAgentsIdleSc;	/* gauge		*/
 
 
-  double dummy4; /* Alignment, etc.. */
+  double dummy6; /* Alignment, etc.. */
 
 
   /* SMTP TRANSPORT AGENT generic counters  */
@@ -147,15 +173,6 @@ struct MIB_MtaEntryMain {
   uint		mtaOutgoingSmtpBDATok;		/* counter - successes only */
   uint		mtaOutgoingSmtpDATAvolumeOK;	/* counter, in kB	*/
   uint		mtaOutgoingSmtpBDATvolumeOK;	/* counter, in kB	*/
-
-
-  double dummy6; /* Alignment, etc.. */
-
-  /* SpoolFree  is monitored and stored by _XX_ subsystem ?  
-     Router and scheduler ?  Smtpserver ?  All three ? */
-
-  uint		mtaSpoolFreeSpace;		/* gauge,	in MB	*/
-  uint		mtaLogFreeSpace;		/* gauge,	in MB  ?? */
 
 
   double dummy7; /* Alignment, etc.. */

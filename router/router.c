@@ -217,61 +217,8 @@ main(argc, argv)
 	    (postoffice = getzenv("POSTOFFICE")) == NULL)
 		postoffice = POSTOFFICE;
 
-	if (killflg && !daemonflg) {
-		killprevious(-SIGTERM, pidfile);
-		exit(0);
-	}
 
-	getnobody();
-
-	c = zoptind;	/* save optind since builtins can interfere with it */
-
-	if (daemonflg && logfn == NULL) {
-		if ((cp = (char *) getzenv("LOGDIR")) != NULL)
-			logdir = cp;
-		logfn = smalloc(MEM_PERM, 2 + (u_int)(strlen(logdir)
-					  + strlen(progname)));
-		sprintf((char*)logfn, "%s/%s", logdir, progname);
-	}
-
-	if (logfn != NULL) {
-		/* loginit is a signal handler, so can't pass log */
-		if (loginit(SIGHUP) < 0) /* do setlinebuf() there */
-			die(1, "log initialization failure");
-	} else
-		signal(SIGHUP, SIG_IGN); /* no surprises please */
-
-	if (version || interactiveflg || tac > 0) {
-		prversion("router");
-		if (version)
-			exit(0);
-		putc('\n', stderr);
-	}
-	if (tac > 0) {			/* turn on some trace/debug flags */
-		tav[0] = "debug";
-		/* lax, no NULL guard on end of tav */
-		run_trace(++tac, tav);
-	}
-
-	stickymem = MEM_PERM;
-
-	/* We (and our children) run with SIGPIPE ignored.. */
-	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
-
-
-	initialize(config, argc - c, &argv[c]);
-
-	stickymem = MEM_TEMP;	/* this is the default allocation type */
-	offout = ftell(stdout);
-	offerr = ftell(stderr);
-
-#ifdef MALLOC_TRACE
-	mal_leaktrace(1);
-#endif /* MALLOC_TRACE */
-
-
-
-	if (daemonflg) {
+	if (daemonflg || killflg) {
 
 	  /* Daemon attaches the SHM block, and may complain, but will not
 	     give up..  instead uses builtin fallback  */
@@ -308,6 +255,62 @@ main(argc, argv)
 	    /* return; NO giving up! */
 	  }
 	}
+
+
+	if (killflg && !daemonflg) {
+		killprevious(-SIGTERM, pidfile);
+		exit(0);
+	}
+
+	getnobody();
+
+	c = zoptind;	/* save optind since builtins can interfere with it */
+
+	if (daemonflg && logfn == NULL) {
+		if ((cp = (char *) getzenv("LOGDIR")) != NULL)
+			logdir = cp;
+		logfn = smalloc(MEM_PERM, 2 + (u_int)(strlen(logdir)
+					  + strlen(progname)));
+		sprintf((char*)logfn, "%s/%s", logdir, progname);
+	}
+
+
+
+	if (logfn != NULL) {
+		/* loginit is a signal handler, so can't pass log */
+		if (loginit(SIGHUP) < 0) /* do setlinebuf() there */
+			die(1, "log initialization failure");
+	} else
+		signal(SIGHUP, SIG_IGN); /* no surprises please */
+
+	if (version || interactiveflg || tac > 0) {
+		prversion("router");
+		if (version)
+			exit(0);
+		putc('\n', stderr);
+	}
+	if (tac > 0) {			/* turn on some trace/debug flags */
+		tav[0] = "debug";
+		/* lax, no NULL guard on end of tav */
+		run_trace(++tac, tav);
+	}
+
+	stickymem = MEM_PERM;
+
+	/* We (and our children) run with SIGPIPE ignored.. */
+	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+
+
+	initialize(config, argc - c, &argv[c]);
+
+	stickymem = MEM_TEMP;	/* this is the default allocation type */
+	offout = ftell(stdout);
+	offerr = ftell(stderr);
+
+#ifdef MALLOC_TRACE
+	mal_leaktrace(1);
+#endif /* MALLOC_TRACE */
+
 
 
 	if (daemonflg) {

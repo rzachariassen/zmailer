@@ -323,7 +323,6 @@ struct ctlfile *cfp;
 	  nvp = vp->next[L_CTLFILE];
 
 	  MIBMtaEntry->m.mtaStoredRecipientsSc   -= vp->ngroup;
-	  MIBMtaEntry->m.mtaReceivedRecipientsSc -= vp->ngroup;
 	  vp->ngroup = 0;
 	  unvertex(vp,1,1); /* Don't unlink()! Just free()! */
 	}
@@ -717,6 +716,45 @@ main(argc, argv)
 	  logfn = emalloc(2 + (u_int)(strlen(qlogdir) + strlen(progname)));
 	  sprintf((char*)logfn, "%s/%s", qlogdir, progname);
 	}
+
+
+	/* If we are a daemon, or doing verbose foobar, attach the SHM MIB now */
+	if (daemonflg || verbose) {
+
+	  int r = Z_SHM_MIB_Attach (1);
+
+	  if (r < 0) {
+	    /* Error processing -- magic set of constants: */
+	    switch (r) {
+	    case -1:
+	      /* fprintf(stderr, "No ZENV variable: SNMPSHAREDFILE\n"); */
+	      break;
+	    case -2:
+	      perror("Failed to open for exclusively creating of the SHMSHAREDFILE");
+	      break;
+	    case -3:
+	      perror("Failure during creation fill of SGMSHAREDFILE");
+	      break;
+	    case -4:
+	      perror("Failed to open the SHMSHAREDFILE at all");
+	      break;
+	    case -5:
+	      perror("The SHMSHAREDFILE isn't of proper size! ");
+	      break;
+	    case -6:
+	      perror("Failed to mmap() of SHMSHAREDFILE into memory");
+	      break;
+	    case -7:
+	      fprintf(stderr, "The SHMSHAREDFILE  has magic value mismatch!\n");
+	      break;
+	    default:
+	      break;
+	    }
+	    /* return; NO giving up! */
+	  }
+	}
+
+
 	if (logfn != NULL) {
 	  /* loginit is a signal handler, so can't pass log */
 	  if (loginitsched(SIGHUP) < 0) /* do setlinebuf() there */
@@ -767,41 +805,6 @@ main(argc, argv)
 	}
 
 
-	{
-	  int r = Z_SHM_MIB_Attach (1);
-
-	  if (r < 0) {
-	    /* Error processing -- magic set of constants: */
-	    switch (r) {
-	    case -1:
-	      /* fprintf(stderr, "No ZENV variable: SNMPSHAREDFILE\n"); */
-	      break;
-	    case -2:
-	      perror("Failed to open for exclusively creating of the SHMSHAREDFILE");
-	      break;
-	    case -3:
-	      perror("Failure during creation fill of SGMSHAREDFILE");
-	      break;
-	    case -4:
-	      perror("Failed to open the SHMSHAREDFILE at all");
-	      break;
-	    case -5:
-	      perror("The SHMSHAREDFILE isn't of proper size! ");
-	      break;
-	    case -6:
-	      perror("Failed to mmap() of SHMSHAREDFILE into memory");
-	      break;
-	    case -7:
-	      fprintf(stderr, "The SHMSHAREDFILE  has magic value mismatch!\n");
-	      break;
-	    default:
-	      break;
-	    }
-	    /* return; NO giving up! */
-	  }
-	}
-
-
 
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
@@ -832,13 +835,17 @@ main(argc, argv)
 	/* Now we are either interactive, or daemon, lets attach monitoring
 	   memory block.. and fill it in.  */
 
-	MIBMtaEntry->m.mtaSchedulerMasterPID  = getpid();
+	MIBMtaEntry->m.mtaSchedulerMasterPID        = getpid();
+	MIBMtaEntry->m.mtaSchedulerMasterStartTime  = time(NULL);
+	MIBMtaEntry->m.mtaSchedulerMasterStarts    += 1;
 
 	/* Zero the gauges at our startup.. */
 	MIBMtaEntry->m.mtaStoredMessagesSc		= 0;
+	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
+	MIBMtaEntry->m.mtaStoredVerticesSc		= 0;
 	MIBMtaEntry->m.mtaStoredRecipientsSc		= 0;
 	MIBMtaEntry->m.mtaStoredVolumeSc		= 0;
-	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
+	MIBMtaEntry->m.mtaTransportAgentProcessesSc	= 0;
 	MIBMtaEntry->m.mtaTransportAgentsActiveSc	= 0;
 	MIBMtaEntry->m.mtaTransportAgentsIdleSc		= 0;
 
@@ -1873,11 +1880,12 @@ slurp(fd, ino)
 	cfp = (struct ctlfile *)emalloc(sizeof(struct ctlfile));
 	memset((void*)cfp, 0, sizeof(struct ctlfile));
 
-	cfp->fd = fd;
-	cfp->dirind = -1; /* Not known -- or top-level */
-	cfp->uid = stbuf.st_uid;
+	cfp->fd       = fd;
+	cfp->dirind   = -1; /* Not known -- or top-level */
+	cfp->uid      = stbuf.st_uid;
 	cfp->envctime = stbuf.st_ctime;
 	cfp->contents = contents;
+
 	/* 
 	   cfp->vfpfn    = NULL;
 	   cfp->spoolid  = NULL;
@@ -2512,6 +2520,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		free(offarr);
 		return NULL;
 	      }
+	      MIBMtaEntry->m.mtaStoredVerticesSc += 1;
 
 	      memset((char*)vp, 0, alloc_size);
 	      vp->cfp             = cfp;
@@ -2529,6 +2538,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      vp->notary          = NULL;
 #endif
 	      vp->ngroup       = i - svn;
+	      MIBMtaEntry->m.mtaStoredRecipientsSc += (i - svn);
+
 	      /* vp->sender       = strsave(offarr[svn].sender); */
 	      vp->wakeup       = offarr[svn].wakeup;
 	      vp->headeroffset = offarr[svn].headeroffset; /*They are similar*/
@@ -2571,6 +2582,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    free(offarr);
 	    return NULL;
 	  }
+	  MIBMtaEntry->m.mtaStoredVerticesSc += 1;
+
 	  memset((void*)vp, 0, alloc_size);
 	  vp->cfp = cfp;
 	  vp->next[L_CTLFILE] = NULL;
@@ -2585,6 +2598,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  vp->notary       = NULL;
 #endif
 	  vp->ngroup = i - svn;
+	  MIBMtaEntry->m.mtaStoredRecipientsSc += (i - svn);
+
 	  /* vp->sender = strsave(offarr[snv].sender); */
 	  vp->wakeup       = offarr[svn].wakeup;
 	  vp->headeroffset = offarr[svn].headeroffset; /* Just any of them will do */

@@ -1088,7 +1088,9 @@ char **argv;
 	}
 
 
-	MIBMtaEntry->m.mtaSmtpServerMasterPID  =  getpid();
+	MIBMtaEntry->m.mtaSmtpServerMasterPID         = getpid();
+	MIBMtaEntry->m.mtaSmtpServerMasterStartTime   = time(NULL);
+	MIBMtaEntry->m.mtaSmtpServerMasterStarts     += 1;
 
 	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses = 1; /* myself at first */
 
@@ -1121,6 +1123,7 @@ char **argv;
 	while (!mustexit) {
 	  fd_set rdset;
 	  int n;
+	  int socktag;
 
 	  _Z_FD_ZERO(rdset);
 	  _Z_FD_SET(s25, rdset);
@@ -1155,14 +1158,6 @@ char **argv;
 
 	  raddrlen = sizeof(SS.raddr);
 	  msgfd = accept(n, (struct sockaddr *) &SS.raddr, &raddrlen);
-	  if (msgfd >= 0) {
-	    if (n == s25)
-	      MIBMtaEntry->m.mtaIncomingSMTPconnects += 1;
-	    if (n == ssmtp)
-	      MIBMtaEntry->m.mtaIncomingSMTPSconnects += 1;
-	    if (n == submitfd)
-	      MIBMtaEntry->m.mtaIncomingSUBMITconnects += 1;
-	  }
 	  if (msgfd < 0) {
 	    int err = errno;
 	    switch (err) {
@@ -1205,6 +1200,26 @@ char **argv;
 	    continue;
 	  }
 
+	  socktag = -1;
+	  if (n == s25)      socktag = 0;
+	  if (n == ssmtp)    socktag = 1;
+	  if (n == submitfd) socktag = 2;
+
+	  switch (socktag) {
+	  case 0:
+	    MIBMtaEntry->m.mtaIncomingSMTPconnects += 1;
+	    break;
+	  case 1:
+	    MIBMtaEntry->m.mtaIncomingSMTPSconnects += 1;
+	    break;
+	  case 2:
+	    MIBMtaEntry->m.mtaIncomingSUBMITconnects += 1;
+	    break;
+	  default:
+	    break;
+	  }
+
+
 	  sameipcount = childsameip(&SS.raddr, &childcnt);
 	  /* We query, and warn the remote when
 	     the count exceeds the limit, and we
@@ -1230,10 +1245,11 @@ char **argv;
 	    sleep(5);
 	    continue;
 	  } else if (childpid > 0) {	/* Parent! */
-	    childregister(childpid, &SS.raddr);
-	    MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses += 1;
-	    SIGNAL_RELEASE(SIGCHLD);
+	    childregister(childpid, &SS.raddr, socktag);
+
+
 	    reaper(0);
+	    SIGNAL_RELEASE(SIGCHLD);
 	    close(msgfd);
 	  } else {			/* Child */
 	    SIGNAL_RELEASE(SIGCHLD);

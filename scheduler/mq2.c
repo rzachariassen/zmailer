@@ -601,7 +601,7 @@ static int mq2cmd_etrn(mq,s)
 static void mq2_show_snmp(mq)
      struct mailq *mq;
 {
-
+  int r, i;
   Sfio_t *fp;
   struct mq2discipline mq2d;
 
@@ -618,124 +618,160 @@ static void mq2_show_snmp(mq)
   sfdisc(fp, &mq2d.D);
 
 
+  r = (Z_SHM_MIB_is_attached() > 0); /* Attached and WRITABLE ? */
+
 #define M  MIBMtaEntry->m
 
-sfprintf(fp,"ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
-sfprintf(fp,"Time_now                        %10lu\n", (unsigned long)time(NULL));
- 
-sfprintf(fp,"\n");
+  sfprintf(fp,"ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
+  sfprintf(fp,"Time_now                        %10lu\n",
+	 (unsigned long)time(NULL));
+  sfprintf(fp,"Block_creation_time             %10lu\n",
+	 (unsigned long)M.BlockCreationTimestamp);
 
-sfprintf(fp,"SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
-if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
-sfprintf(fp,"\n");
-
-sfprintf(fp,"SYS.SchedulerMasterPID          %10u",M.mtaSchedulerMasterPID);
-if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
-sfprintf(fp,"\n");
-
-sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",M.mtaSmtpServerMasterPID);
-if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
-sfprintf(fp,"\n");
+  sfprintf(fp,"\n");
 
 
-sfprintf(fp,"SYS.SpoolFreeSpace-kB-G          %9d\n", M.mtaSpoolFreeSpace);
-sfprintf(fp,"SYS.LogFreeSpace-kB-G            %9d\n", M.mtaLogFreeSpace);
+#define PIDTEST(varname, var2)  \
+  i = (M.varname != 0 &&				\
+       (kill(M.varname, 0) < 0 && errno == ESRCH));	\
+  if (i && r) M.varname = M.var2 = i = 0;
+
+  PIDTEST(mtaRouterMasterPID, mtaRouterMasterStartTime)
+  sfprintf(fp,"SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+  sfprintf(fp,"SYS.RouterMasterStartTime       %10lu\n",
+	 (unsigned long)M.mtaRouterMasterStartTime);
+  sfprintf(fp,"SYS.RouterMasterStarts          %10u\n",M.mtaRouterMasterStarts);
 
 
-sfprintf(fp,"\n");
+  PIDTEST(mtaSchedulerMasterPID, mtaSchedulerMasterStartTime)
+  sfprintf(fp,"SYS.SchedulerMasterPID          %10u",M.mtaSchedulerMasterPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+  sfprintf(fp,"SYS.SchedulerMasterStartTime    %10lu\n",
+	 (unsigned long)M.mtaSchedulerMasterStartTime);
+  sfprintf(fp,"SYS.SchedulerMasterStarts       %10u\n",M.mtaSchedulerMasterStarts);
 
-sfprintf(fp,"SS.Processes-G                        %4d\n",
+  PIDTEST(mtaSmtpServerMasterPID, mtaSmtpServerMasterStartTime)
+  sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",M.mtaSmtpServerMasterPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+  sfprintf(fp,"SYS.SmtpServerMasterStartTime   %10lu\n",
+	 (unsigned long)M.mtaSmtpServerMasterStartTime);
+  sfprintf(fp,"SYS.SmtpServerMasterStarts      %10u\n",M.mtaSmtpServerMasterStarts);
+
+
+  sfprintf(fp,"SYS.SpoolFreeSpace-kB-G          %9d\n", M.mtaSpoolFreeSpace);
+  sfprintf(fp,"SYS.LogFreeSpace-kB-G            %9d\n", M.mtaLogFreeSpace);
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"SS.Processes-G                        %4d\n",
 	 M.mtaIncomingSMTPSERVERprocesses);
 
-sfprintf(fp,"SS.ParallelSMTPconnects-G             %4d\n",
+  sfprintf(fp,"SS.ParallelSMTPconnects-G             %4d\n",
 	 M.mtaIncomingParallelSMTPconnects);
-sfprintf(fp,"SS.ParallelSMTPSconnects-G            %4d\n",
+  sfprintf(fp,"SS.ParallelSMTPSconnects-G            %4d\n",
 	 M.mtaIncomingParallelSMTPSconnects);
-sfprintf(fp,"SS.ParallelSUBMITconnects-G           %4d\n",
+  sfprintf(fp,"SS.ParallelSUBMITconnects-G           %4d\n",
 	 M.mtaIncomingParallelSUBMITconnects);
 
-sfprintf(fp,"SS.SMTPconnects                 %10u\n", M.mtaIncomingSMTPconnects);
-sfprintf(fp,"SS.SMTPSconnects                %10u\n", M.mtaIncomingSMTPSconnects);
-sfprintf(fp,"SS.SUBMITconnects               %10u\n", M.mtaIncomingSUBMITconnects);
-sfprintf(fp,"SS.SMTPTLSes                    %10u\n", M.mtaIncomingSMTPTLSes);
+  sfprintf(fp,"SS.ProcessForks                 %10u\n", M.mtaIncomingSMTPSERVERforks);
 
-sfprintf(fp,"SS.SMTP_MAIL                    %10u\n", M.mtaIncomingSMTP_MAIL);
-sfprintf(fp,"SS.SMTP_MAIL_ok                 %10u\n", M.mtaIncomingSMTP_MAIL_ok);
-sfprintf(fp,"SS.SMTP_MAIL_bad                %10u\n", M.mtaIncomingSMTP_MAIL_bad);
-sfprintf(fp,"SS.SMTP_RCPT                    %10u\n", M.mtaIncomingSMTP_RCPT);
-sfprintf(fp,"SS.SMTP_RCPT_ok                 %10u\n", M.mtaIncomingSMTP_RCPT_ok);
-sfprintf(fp,"SS.SMTP_RCPT_bad                %10u\n", M.mtaIncomingSMTP_RCPT_bad);
-sfprintf(fp,"SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
-sfprintf(fp,"SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
-sfprintf(fp,"SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
-sfprintf(fp,"SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
-sfprintf(fp,"SS.SMTP_DATA                    %10u\n", M.mtaIncomingSMTP_DATA);
-sfprintf(fp,"SS.SMTP_DATA_ok                 %10u\n", M.mtaIncomingSMTP_DATA_ok);
-sfprintf(fp,"SS.SMTP_DATA_bad                %10u\n", M.mtaIncomingSMTP_DATA_bad);
-sfprintf(fp,"SS.SMTP_BDAT                    %10u\n", M.mtaIncomingSMTP_BDAT);
-sfprintf(fp,"SS.SMTP_BDAT_ok                 %10u\n", M.mtaIncomingSMTP_BDAT_ok);
-sfprintf(fp,"SS.SMTP_BDAT_bad                %10u\n", M.mtaIncomingSMTP_BDAT_bad);
-sfprintf(fp,"SS.SMTP_DATA-kB                 %10u\n", M.mtaIncomingSMTP_DATA_KBYTES);
-sfprintf(fp,"SS.SMTP_BDAT-kB                 %10u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
-sfprintf(fp,"SS.SMTP_input_spool-kB          %10u\n", M.mtaIncomingSMTP_spool_KBYTES);
-sfprintf(fp,"SS.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSs);
-sfprintf(fp,"SS.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSs);
-sfprintf(fp,"SS.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSs);
-sfprintf(fp,"SS.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSs);
+  sfprintf(fp,"SS.SMTPconnects                 %10u\n", M.mtaIncomingSMTPconnects);
+  sfprintf(fp,"SS.SMTPSconnects                %10u\n", M.mtaIncomingSMTPSconnects);
+  sfprintf(fp,"SS.SUBMITconnects               %10u\n", M.mtaIncomingSUBMITconnects);
+  sfprintf(fp,"SS.SMTPTLSes                    %10u\n", M.mtaIncomingSMTPTLSes);
 
-sfprintf(fp,"\n");
+  sfprintf(fp,"SS.SMTPcommands                 %10u\n", M.mtaIncomingCommands);
+  sfprintf(fp,"SS.SMTPcommands-unknown         %10u\n", M.mtaIncomingCommands_unknown);
 
-sfprintf(fp,"RT.RouterProcesses-G             %9d\n", M.mtaRouterProcesses);
-sfprintf(fp,"RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
-sfprintf(fp,"RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
-sfprintf(fp,"RT.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesRt);
-sfprintf(fp,"RT.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsRt);
+  sfprintf(fp,"SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
+  sfprintf(fp,"SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
+  sfprintf(fp,"SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
+  sfprintf(fp,"SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
+  sfprintf(fp,"SS.SMTP_MAIL                    %10u\n", M.mtaIncomingSMTP_MAIL);
+  sfprintf(fp,"SS.SMTP_MAIL_ok                 %10u\n", M.mtaIncomingSMTP_MAIL_ok);
+  sfprintf(fp,"SS.SMTP_MAIL_bad                %10u\n", M.mtaIncomingSMTP_MAIL_bad);
+  sfprintf(fp,"SS.SMTP_RCPT                    %10u\n", M.mtaIncomingSMTP_RCPT);
+  sfprintf(fp,"SS.SMTP_RCPT_ok                 %10u\n", M.mtaIncomingSMTP_RCPT_ok);
+  sfprintf(fp,"SS.SMTP_RCPT_bad                %10u\n", M.mtaIncomingSMTP_RCPT_bad);
+  sfprintf(fp,"SS.SMTP_DATA                    %10u\n", M.mtaIncomingSMTP_DATA);
+  sfprintf(fp,"SS.SMTP_DATA_ok                 %10u\n", M.mtaIncomingSMTP_DATA_ok);
+  sfprintf(fp,"SS.SMTP_DATA_bad                %10u\n", M.mtaIncomingSMTP_DATA_bad);
+  sfprintf(fp,"SS.SMTP_BDAT                    %10u\n", M.mtaIncomingSMTP_BDAT);
+  sfprintf(fp,"SS.SMTP_BDAT_ok                 %10u\n", M.mtaIncomingSMTP_BDAT_ok);
+  sfprintf(fp,"SS.SMTP_BDAT_bad                %10u\n", M.mtaIncomingSMTP_BDAT_bad);
+  sfprintf(fp,"SS.SMTP_DATA-kB                 %10u\n", M.mtaIncomingSMTP_DATA_KBYTES);
+  sfprintf(fp,"SS.SMTP_BDAT-kB                 %10u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
+  sfprintf(fp,"SS.SMTP_input_spool-kB          %10u\n", M.mtaIncomingSMTP_spool_KBYTES);
 
-sfprintf(fp,"RT.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeRt);
-sfprintf(fp,"RT.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeRt);
-sfprintf(fp,"RT.TransmittedVolume2-kB        %10u\n", M.mtaTransmittedVolume2Rt);
+  sfprintf(fp,"SS.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSs);
+  sfprintf(fp,"SS.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSs);
+  sfprintf(fp,"SS.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSs);
+  sfprintf(fp,"SS.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSs);
 
-sfprintf(fp,"RT.StoredMessages-G              %9d\n", M.mtaStoredMessagesRt);
-sfprintf(fp,"RT.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsRt);
-sfprintf(fp,"RT.StoredVolume-kB-G             %9d\n", M.mtaStoredVolumeRt);
+  sfprintf(fp,"\n");
 
-sfprintf(fp,"\n");
+  sfprintf(fp,"RT.RouterProcesses-G             %9d\n", M.mtaRouterProcessesRt);
+  sfprintf(fp,"RT.RouterProcessForks           %10u\n", M.mtaRouterProcessForksRt);
 
-sfprintf(fp,"SC.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSc);
-sfprintf(fp,"SC.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSc);
-sfprintf(fp,"SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
-sfprintf(fp,"SC.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSc);
-sfprintf(fp,"SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
-sfprintf(fp,"SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
-sfprintf(fp,"SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
-sfprintf(fp,"SC.StoredVolume-kB-G            %10u\n", M.mtaStoredVolumeSc);
-sfprintf(fp,"SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
-sfprintf(fp,"SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
-sfprintf(fp,"SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
-sfprintf(fp,"SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
+  sfprintf(fp,"RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
+  sfprintf(fp,"RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
+  sfprintf(fp,"RT.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesRt);
+  sfprintf(fp,"RT.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsRt);
 
-sfprintf(fp,"\n");
+  sfprintf(fp,"RT.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeRt);
+  sfprintf(fp,"RT.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeRt);
+  sfprintf(fp,"RT.TransmittedVolume2-kB        %10u\n", M.mtaTransmittedVolume2Rt);
 
-sfprintf(fp,"TA.OutgoingSmtpConnects         %10u\n", M.mtaOutgoingSmtpConnects);
-sfprintf(fp,"TA.OutgoingSmtpConnectFails     %10u\n", M.mtaOutgoingSmtpConnectFails);
-sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n", M.mtaOutgoingSmtpSTARTTLS);
-sfprintf(fp,"TA.OutgoingSmtpMAIL             %10u\n", M.mtaOutgoingSmtpMAIL);
-sfprintf(fp,"TA.OutgoingSmtpRCPT             %10u\n", M.mtaOutgoingSmtpRCPT);
-sfprintf(fp,"TA.OutgoingSmtpDATA             %10u\n", M.mtaOutgoingSmtpDATA);
-sfprintf(fp,"TA.OutgoingSmtpBDAT             %10u\n", M.mtaOutgoingSmtpBDAT);
-sfprintf(fp,"TA.OutgoingSmtpDATAvolume-kB    %10u\n", M.mtaOutgoingSmtpDATAvolume);
-sfprintf(fp,"TA.OutgoingSmtpBDATvolume-kB    %10u\n", M.mtaOutgoingSmtpBDATvolume);
-sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n", M.mtaOutgoingSmtpMAILok);
-sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n", M.mtaOutgoingSmtpRCPTok);
-sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n", M.mtaOutgoingSmtpDATAok);
-sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n", M.mtaOutgoingSmtpBDATok);
-sfprintf(fp,"TA.OutgoingSmtpDATAvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpDATAvolumeOK);
-sfprintf(fp,"TA.OutgoingSmtpBDATvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpBDATvolumeOK);
+  sfprintf(fp,"RT.StoredMessages-G              %9d\n", M.mtaStoredMessagesRt);
+  sfprintf(fp,"RT.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsRt);
+  sfprintf(fp,"RT.StoredVolume-kB-G             %9d\n", M.mtaStoredVolumeRt);
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"SC.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSc);
+  sfprintf(fp,"SC.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSc);
+  sfprintf(fp,"SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
+  sfprintf(fp,"SC.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSc);
+  sfprintf(fp,"SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
+  sfprintf(fp,"SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
+  sfprintf(fp,"SC.StoredVertices-G              %9d\n", M.mtaStoredVerticesSc);
+  sfprintf(fp,"SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
+  sfprintf(fp,"SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
+  sfprintf(fp,"SC.StoredVolume-kB-G            %10u\n", M.mtaStoredVolumeSc);
+  sfprintf(fp,"SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
+
+  sfprintf(fp,"SC.TransportAgentForks          %10u\n", M.mtaTransportAgentForksSc);
+  sfprintf(fp,"SC.TransportAgentProcesses-G    %10u\n", M.mtaTransportAgentProcessesSc);
+  sfprintf(fp,"SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
+  sfprintf(fp,"SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA.OutgoingSmtpConnects         %10u\n", M.mtaOutgoingSmtpConnects);
+  sfprintf(fp,"TA.OutgoingSmtpConnectFails     %10u\n", M.mtaOutgoingSmtpConnectFails);
+  sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n", M.mtaOutgoingSmtpSTARTTLS);
+  sfprintf(fp,"TA.OutgoingSmtpMAIL             %10u\n", M.mtaOutgoingSmtpMAIL);
+  sfprintf(fp,"TA.OutgoingSmtpRCPT             %10u\n", M.mtaOutgoingSmtpRCPT);
+  sfprintf(fp,"TA.OutgoingSmtpDATA             %10u\n", M.mtaOutgoingSmtpDATA);
+  sfprintf(fp,"TA.OutgoingSmtpBDAT             %10u\n", M.mtaOutgoingSmtpBDAT);
+  sfprintf(fp,"TA.OutgoingSmtpDATAvolume-kB    %10u\n", M.mtaOutgoingSmtpDATAvolume);
+  sfprintf(fp,"TA.OutgoingSmtpBDATvolume-kB    %10u\n", M.mtaOutgoingSmtpBDATvolume);
+  sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n", M.mtaOutgoingSmtpMAILok);
+  sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n", M.mtaOutgoingSmtpRCPTok);
+  sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n", M.mtaOutgoingSmtpDATAok);
+  sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n", M.mtaOutgoingSmtpBDATok);
+  sfprintf(fp,"TA.OutgoingSmtpDATAvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpDATAvolumeOK);
+  sfprintf(fp,"TA.OutgoingSmtpBDATvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpBDATvolumeOK);
 
 #if 0
-sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n", M.mtaSuccessfulConvertedMessages);
-sfprintf(fp,"mtaFailedConvertedMessages      %10u\n", M.mtaFailedConvertedMessages);
-sfprintf(fp,"mtaLoopsDetected                %10u\n", M.mtaLoopsDetected);
+  sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n", M.mtaSuccessfulConvertedMessages);
+  sfprintf(fp,"mtaFailedConvertedMessages      %10u\n", M.mtaFailedConvertedMessages);
+  sfprintf(fp,"mtaLoopsDetected                %10u\n", M.mtaLoopsDetected);
 #endif
 
 

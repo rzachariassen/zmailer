@@ -543,7 +543,7 @@ extern char *optarg;
 #endif				/* lint */
 
 extern int  childsameip __((Usockaddr *addr, int *childcntp));
-extern void childregister __((int cpid, Usockaddr *addr));
+extern void childregister __((int cpid, Usockaddr *addr, int tag));
 extern void childreap   __((int cpid));
 
 extern void smtp_helo   __((SmtpState * SS, const char *buf, const char *cp));

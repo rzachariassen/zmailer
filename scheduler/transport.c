@@ -78,11 +78,11 @@ struct procinfo *cpids = NULL;
 
 #define	MAXFILESPERTRANSPORT	1000
 
-int	numkids = 0;
-int	readsockcnt = 0; /* Count how many childs to read there are;
-			    this for the SLOW Shutdown */
+int	numkids;
+int	readsockcnt;		/* Count how many childs to read there are;
+				   this for the SLOW Shutdown */
 
-int	notifysocket = -1;	/* fd of UDP socket to listen for notifies */
+int	notifysocket = -1;	/* fd of UDP/AF_UNIX socket to listen for notifies */
 
 
 static void cmdbufalloc __((int, char **, int *));
@@ -850,7 +850,9 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->pthread->thrkids  += 1;
 
 	++numkids;
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
+	MIBMtaEntry->m.mtaTransportAgentProcessesSc += 1;
+	MIBMtaEntry->m.mtaTransportAgentForksSc     += 1;
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc   += 1;
 
 
 	proc->tofd          = tofd;
@@ -1021,7 +1023,8 @@ static void reclaim(fromfd, tofd)
 	  proc->thg    = NULL;
 	}
 
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc -= 1;
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc   -= 1;
+	MIBMtaEntry->m.mtaTransportAgentProcessesSc -= 1;
 	--numkids;
 	proc->thg    = NULL;
 }

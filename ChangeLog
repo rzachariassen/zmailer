@@ -1,5 +1,15 @@
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
+	* include/shmmib.h, lib/zshmmibattach.c, router/daemonsub.c,
+	  router/router.c, scheduler/mailq.c, scheduler/mq2.c,
+	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
+	  scheduler/transport.c, scheduler/update.c, smtpserver/smtpchild.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    - Added fields of primary daemons start times, and counters of
+	      how many times they have been started in this block..
+	    - Fixed the scheduler process accounting, and for a good measure,
+	      threw in thread, vertex, and recipient gauges.
+
 	* utils/perl/Makefile.in:
 	    As the "mailq" needs to be copied from its original location,
 	    when processing building in "adjacent directory", the "make clean"

@@ -1398,7 +1398,8 @@ void query2(fpi, fpo)
 	    strcpy(buf,"SHOW QUEUE THREADS\n");
 	    break;
 	  default:
-	    break;
+	    fprintf(stdout, "Bad -Q... command\n");
+	    return;
 	  }
 
 	  len = strlen(buf);
@@ -1901,7 +1902,7 @@ printaddrs(v)
 
 static void print_shm __((void))
 {
-  int r;
+  int r, i;
 
   r = Z_SHM_MIB_Attach (0); /* Attach read-only! */
 
@@ -1935,24 +1936,48 @@ static void print_shm __((void))
     return;
   }
 
+  r = (Z_SHM_MIB_is_attached() > 0); /* Attached and WRITABLE ? */
+
 #define M  MIBMtaEntry->m
 
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
-  printf("Time_now                        %10lu\n", (unsigned long)time(NULL));
+  printf("Time_now                        %10lu\n",
+	 (unsigned long)time(NULL));
+  printf("Block_creation_time             %10lu\n",
+	 (unsigned long)M.BlockCreationTimestamp);
 
   printf("\n");
 
+
+#define PIDTEST(varname, var2)  \
+  i = ((M.varname != 0 &&				\
+       kill(M.varname, 0) < 0 && errno == ESRCH));	\
+  if (i && r) M.varname = M.var2 = i = 0;
+
+  PIDTEST(mtaRouterMasterPID, mtaRouterMasterStartTime)
   printf("SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
-  if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
+  if (i) printf(" NOT PRESENT!");
   printf("\n");
+  printf("SYS.RouterMasterStartTime       %10lu\n",
+	 (unsigned long)M.mtaRouterMasterStartTime);
+  printf("SYS.RouterMasterStarts          %10u\n",M.mtaRouterMasterStarts);
 
+
+  PIDTEST(mtaSchedulerMasterPID, mtaSchedulerMasterStartTime)
   printf("SYS.SchedulerMasterPID          %10u",M.mtaSchedulerMasterPID);
-  if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
+  if (i) printf(" NOT PRESENT!");
   printf("\n");
+  printf("SYS.SchedulerMasterStartTime    %10lu\n",
+	 (unsigned long)M.mtaSchedulerMasterStartTime);
+  printf("SYS.SchedulerMasterStarts       %10u\n",M.mtaSchedulerMasterStarts);
 
+  PIDTEST(mtaSmtpServerMasterPID, mtaSmtpServerMasterStartTime)
   printf("SYS.SmtpServerMasterPID         %10u",M.mtaSmtpServerMasterPID);
-  if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
+  if (i) printf(" NOT PRESENT!");
   printf("\n");
+  printf("SYS.SmtpServerMasterStartTime   %10lu\n",
+	 (unsigned long)M.mtaSmtpServerMasterStartTime);
+  printf("SYS.SmtpServerMasterStarts      %10u\n",M.mtaSmtpServerMasterStarts);
 
 
   printf("SYS.SpoolFreeSpace-kB-G          %9d\n", M.mtaSpoolFreeSpace);
@@ -1971,21 +1996,26 @@ static void print_shm __((void))
   printf("SS.ParallelSUBMITconnects-G           %4d\n",
 	 M.mtaIncomingParallelSUBMITconnects);
 
+  printf("SS.ProcessForks                 %10u\n", M.mtaIncomingSMTPSERVERforks);
+
   printf("SS.SMTPconnects                 %10u\n", M.mtaIncomingSMTPconnects);
   printf("SS.SMTPSconnects                %10u\n", M.mtaIncomingSMTPSconnects);
   printf("SS.SUBMITconnects               %10u\n", M.mtaIncomingSUBMITconnects);
   printf("SS.SMTPTLSes                    %10u\n", M.mtaIncomingSMTPTLSes);
 
+  printf("SS.SMTPcommands                 %10u\n", M.mtaIncomingCommands);
+  printf("SS.SMTPcommands-unknown         %10u\n", M.mtaIncomingCommands_unknown);
+
+  printf("SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
+  printf("SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
+  printf("SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
+  printf("SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
   printf("SS.SMTP_MAIL                    %10u\n", M.mtaIncomingSMTP_MAIL);
   printf("SS.SMTP_MAIL_ok                 %10u\n", M.mtaIncomingSMTP_MAIL_ok);
   printf("SS.SMTP_MAIL_bad                %10u\n", M.mtaIncomingSMTP_MAIL_bad);
   printf("SS.SMTP_RCPT                    %10u\n", M.mtaIncomingSMTP_RCPT);
   printf("SS.SMTP_RCPT_ok                 %10u\n", M.mtaIncomingSMTP_RCPT_ok);
   printf("SS.SMTP_RCPT_bad                %10u\n", M.mtaIncomingSMTP_RCPT_bad);
-  printf("SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
-  printf("SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
-  printf("SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
-  printf("SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
   printf("SS.SMTP_DATA                    %10u\n", M.mtaIncomingSMTP_DATA);
   printf("SS.SMTP_DATA_ok                 %10u\n", M.mtaIncomingSMTP_DATA_ok);
   printf("SS.SMTP_DATA_bad                %10u\n", M.mtaIncomingSMTP_DATA_bad);
@@ -2003,7 +2033,9 @@ static void print_shm __((void))
 
   printf("\n");
 
-  printf("RT.RouterProcesses-G             %9d\n", M.mtaRouterProcesses);
+  printf("RT.RouterProcesses-G             %9d\n", M.mtaRouterProcessesRt);
+  printf("RT.RouterProcessForks           %10u\n", M.mtaRouterProcessForksRt);
+
   printf("RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
   printf("RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
   printf("RT.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesRt);
@@ -2024,11 +2056,14 @@ static void print_shm __((void))
   printf("SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
   printf("SC.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSc);
   printf("SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
+  printf("SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
+  printf("SC.StoredVertices-G              %9d\n", M.mtaStoredVerticesSc);
   printf("SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
   printf("SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
   printf("SC.StoredVolume-kB-G            %10u\n", M.mtaStoredVolumeSc);
   printf("SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
-  printf("SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
+  printf("SC.TransportAgentForks          %10u\n", M.mtaTransportAgentForksSc);
+  printf("SC.TransportAgentProcesses-G    %10u\n", M.mtaTransportAgentProcessesSc);
   printf("SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
   printf("SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
 

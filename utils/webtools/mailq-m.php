@@ -33,6 +33,9 @@ ZMailer has several subsystems:
 <?php
 
 
+# This does work also with:   mailq -QQQQ
+# ... but requires that the scheduler is running.
+
 $fh = popen('/opt/mail/bin/mailq -M','r');
 while (!feof ($fh)) {
     $buffer = fgets($fh, 4096);

@@ -286,7 +286,8 @@ static int  start_child (i)
 	}
 	/* Parent */
 
-	MIBMtaEntry->m.mtaRouterProcesses += 1;
+	MIBMtaEntry->m.mtaRouterProcessesRt     += 1;
+	MIBMtaEntry->m.mtaRouterProcessForksRt  += 1;
 
 	pipes_close_parent(tofd,frmfd);
 
@@ -352,7 +353,7 @@ int signum;
 #if defined(HAVE_SYS_RESOURCE_H)
 	      routerchilds[i].r = r;
 #endif
-	      MIBMtaEntry->m.mtaRouterProcesses -= 1;
+	      MIBMtaEntry->m.mtaRouterProcessesRt -= 1;
 	    }
 	}
 
@@ -1460,13 +1461,17 @@ run_daemon(argc, argv)
 	time_t nextdirscan = 0;
 
 
-	MIBMtaEntry->m.mtaRouterMasterPID  =  getpid();
+	MIBMtaEntry->m.mtaRouterMasterPID        =  getpid();
+	MIBMtaEntry->m.mtaRouterMasterStartTime  = time(NULL);
+	MIBMtaEntry->m.mtaRouterMasterStarts    += 1;
+
 
 	/* Zero the gauges at our startup.. */
 	MIBMtaEntry->m.mtaStoredMessagesRt	= 0; /* in input queue */
 	MIBMtaEntry->m.mtaStoredRecipientsRt	= 0; /* can count at all ? */
 	MIBMtaEntry->m.mtaStoredVolumeRt	= 0; /* in input queue */
-	MIBMtaEntry->m.mtaRouterProcesses       = 1; /* myself = 1 */
+	MIBMtaEntry->m.mtaRouterProcessesRt     = 1; /* myself = 1 */
+	MIBMtaEntry->m.mtaRouterProcessForksRt  = 0;
 
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;

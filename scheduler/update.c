@@ -205,7 +205,7 @@ unctlfile(cfp, no_unlink)
 	  reporterrs(cfp, 0);
 
 	  if (do_syslog)
-	    zsyslog((LOG_INFO, "%s: complete (total %d recepients, %d failed)",
+	    zsyslog((LOG_INFO, "%s: complete (total %d recipients, %d failed)",
 		     cfp->spoolid, cfp->rcpnts_total, cfp->rcpnts_failed));
 
 	  ++MIBMtaEntry->m.mtaTransmittedMessagesSc;
@@ -289,6 +289,7 @@ void unvertex(vp, justfree, ok)
 	    vp->orig[i]->lastlink = vp->prev[i];
 
 	  vp->orig[i]->linkcnt -= 1;
+
 	  unweb(i, vp->orig[i]);
 	}
 
@@ -307,6 +308,8 @@ void unvertex(vp, justfree, ok)
 memset(vp, 0x55, sizeof(*vp));
 
 	free((char *)vp);
+	MIBMtaEntry->m.mtaStoredVerticesSc -= 1;
+
 
 	return;
 }
@@ -535,8 +538,8 @@ static void vtxupdate(vp, index, ok)
 	for (i = 0; i < vp->ngroup; ++i)
 	  if (vp->index[i] == index) {
 	    /* remove us from the vertex indices */
-	    vp->ngroup -= 1;
 
+	    vp->ngroup -= 1;
 	    MIBMtaEntry->m.mtaStoredRecipientsSc -= 1;
 
 	    /* compact the index array */

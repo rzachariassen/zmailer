@@ -16,6 +16,7 @@ static int child_top   = 0;
 
 static struct {
   int pid;	/* PID of the working smtpserver (subprocess) */
+  int tag;	/* 0: smtp, 1: smtps, 2: submit, 3: lmtp, ... */
   time_t when;	/* When to next check on this child */
   Usockaddr addr; /* Address the connection comes from */
 } *childs = NULL;
@@ -25,8 +26,8 @@ static time_t child_now = 0;
 
 
 int childsameip(addr, childcntp)
-Usockaddr *addr;
-int *childcntp;
+     Usockaddr *addr;
+     int *childcntp;
 {
     int i, cnt = 1; /* Ourself */
     int childcnt = 1; /* Ourself */
@@ -74,11 +75,13 @@ int *childcntp;
     return cnt;
 }
 
-void childregister(cpid, addr)
-int cpid;
-Usockaddr *addr;
+void childregister(cpid, addr, socktag)
+     int cpid, socktag;
+     Usockaddr *addr;
 {
 	int i;
+
+	/* Called with SIGCHLD held ! */
 
 	if (kill(cpid, 0) < 0) {
 	  /* When there is no subprocess with this PID, DON'T
@@ -86,6 +89,27 @@ Usockaddr *addr;
 	     gone for some reason... */
 	  return;
 	}
+
+	/* Now count those processes.. */
+
+	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses += 1;
+	MIBMtaEntry->m.mtaIncomingSMTPSERVERforks     += 1;
+
+	switch (socktag) {
+	case 0:
+	  MIBMtaEntry->m.mtaIncomingParallelSMTPconnects   += 1;
+	  break;
+	case 1:
+	  MIBMtaEntry->m.mtaIncomingParallelSMTPSconnects  += 1;
+	  break;
+	case 2:
+	  MIBMtaEntry->m.mtaIncomingParallelSUBMITconnects += 1;
+	  break;
+	default:
+	  break;
+	}
+
+	/* And do registering!         */
 
 	time(&child_now);
 
@@ -147,9 +171,24 @@ int cpid;
 
 	for (i = 0; i < child_top; ++i)
 	  if (childs[i].pid == cpid) {
-	    memset(&childs[i], 0, sizeof(childs[i]));
 
 	    MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses -= 1;
+
+	    switch (childs[i].tag) {
+	    case 0:
+	      MIBMtaEntry->m.mtaIncomingParallelSMTPconnects   -= 1;
+	      break;
+	    case 1:
+	      MIBMtaEntry->m.mtaIncomingParallelSMTPSconnects  -= 1;
+	      break;
+	    case 2:
+	      MIBMtaEntry->m.mtaIncomingParallelSUBMITconnects -= 1;
+	      break;
+	    default:
+	      break;
+	    }
+
+	    memset(&childs[i], 0, sizeof(childs[i]));
 
 	    break;
 	  }

@@ -14,6 +14,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <time.h>
+
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -48,14 +50,14 @@ static struct MIB_MtaEntry MIBMtaEntryLocal /* = {{0,},{0,}} */;
 struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLocal;
 
 
-static int   SHM_storage_fd = -1;
+static int         SHM_storage_fd = -1;
 static const char *SHM_SNMPSHAREDFILE_NAME;
-
+static int         SHM_storage_writable;
+static int         SHM_block_size;
+static void *      SHM_block_ptr;
 
 int SHM_file_mode = 0664;
 
-static int    SHM_block_size;
-static void * SHM_block_ptr;
 
 extern long fd_statfs __((int));
 
@@ -91,9 +93,16 @@ void Z_SHM_MIB_Detach __((void))
 	}
 }
 
-/* Flag telling if we really have shared segment online, or not.. */
+/* Flag telling if we really have shared segment online, or not..
+ *   ZERO:     shared segment is not online
+ *   Non-zero: shared segment is online
+ *   POSITIVE: the segment is writable
+ */
 int Z_SHM_MIB_is_attached __((void)) {
-	return (SHM_block_ptr != NULL && SHM_block_size > 0);
+	if (SHM_block_ptr != NULL && SHM_block_size > 0) {
+	  return (SHM_storage_writable ? 1 : -1);
+	}
+	return 0;
 }
 
 
@@ -323,8 +332,10 @@ storage_fill_failure: ;
 
 	MIBMtaEntry = (struct MIB_MtaEntry *)p;
 
-	if (MIBMtaEntry->m.magic == 0)
+	if (MIBMtaEntry->m.magic == 0) {
 	  MIBMtaEntry->m.magic = ZM_MIB_MAGIC;
+	  MIBMtaEntry->m.BlockCreationTimestamp = time(NULL);
+	}
 
 	if (MIBMtaEntry->m.magic != ZM_MIB_MAGIC) {
 	  /* AAARRRRGGHHH!!!!  Version disagree! */
@@ -354,9 +365,10 @@ storage_fill_failure: ;
 
 	Z_SHM_unlock(rw, storage_fd);
 
-	SHM_block_size = block_size;
-	SHM_storage_fd = storage_fd;
-	SHM_block_ptr  = p;
+	SHM_block_size       = block_size;
+	SHM_storage_fd       = storage_fd;
+	SHM_storage_writable = rw;
+	SHM_block_ptr        = p;
 
 	return 0;
 }
