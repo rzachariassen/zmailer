@@ -1,5 +1,8 @@
 1998-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.50-s3
+
 	* transports/smtp/smtp.c:
 	    A few cases of calls to  smtp_sync() while SS->smtpfp
 	    was already NULLed are now protected.  One can't do
