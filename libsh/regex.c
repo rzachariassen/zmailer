@@ -26,7 +26,9 @@
   #pragma alloca
 #endif
 
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
