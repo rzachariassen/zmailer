@@ -368,10 +368,12 @@ subdaemon_send_to_peer(peer, buf, len)
 {
 	int rc;
 
+#if 0
 	if (logfp) {
 	  fprintf(logfp, "subrtr\tsend_to_peer() peerfd=%d outlen=%d outptr=%d  len=%d\n",
 		  peer->fd, peer->outlen, peer->outptr, len);
 	}
+#endif
 
 	/* If 'peer' is NULL, crash here, and study the core file
 	   to determine the bug.. */

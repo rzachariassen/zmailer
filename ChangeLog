@@ -1,5 +1,12 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/cf/server.cf:
+	    Do "db flush expansions"  and "db flush hostexpansions"
+	    for all "from" and "to" addresses at start.
+
+	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemons.c:
+	    Remove a bunch of debugging printouts.
+
 	* lib/fdpassing.c, smtpserver/smtpserver.h:
 	    Do proper includes for <fcntl.h>
 

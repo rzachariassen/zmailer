@@ -93,6 +93,10 @@ server (key) {
 
 	case "$key" in
 	to|from|verify|expand)
+		# Flush expansions at the start...
+		db flush expansions
+		db flush hostexpansions
+
 		a="$1"
 		ssift "$a" in # "Defocus" brackets
 		<(.+)>	a="\1"; continue ;;
@@ -115,9 +119,9 @@ server (key) {
 		db flush pwuid
 		db flush pwnam
 		db flush fullname
-		db flush hostexpansions
 		db flush recipients
 		db flush expansions
+		db flush hostexpansions
 		;;
 	to|from)
 		a="$(router "$a" default_attributes)"

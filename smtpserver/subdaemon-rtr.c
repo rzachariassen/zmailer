@@ -184,6 +184,7 @@ subdaemon_handler_rtr_init (statep)
 	  state->fromfd = -1;
 	}
 
+#if 0
 	{
 	  extern int logstyle;
 	  extern char *logfile;
@@ -195,7 +196,7 @@ subdaemon_handler_rtr_init (statep)
 	  openlogfp(NULL, 1);
 	  setlinebuf(logfp);
 	}
-
+#endif
 	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
 
 	return 0;
