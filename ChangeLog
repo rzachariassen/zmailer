@@ -1,6 +1,11 @@
 1999-09-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c:
+	    For ETRN processing be slightly more carefull at
+	    (not) accepting '@' and '#' special characters
+	    in the beginning of the domain name.
+
+	* smtpserver/smtpcmds.c:
 	    At MAIL FROM we may reject the email reception, and
 	    abort the email -- State change is allowed only if
 	    we didn't do the abort..

@@ -315,7 +315,7 @@ const char *buf, *cp;
 	  type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
 	}
 #endif /* - HAVE_OPENSSL */
-	if (etrn_ok)
+	if (etrn_ok && !msa_mode)
 	  type(SS, -250, NULL, "ETRN");		/* RFC 1985 */
 	type(SS, 250, NULL, "HELP");		/* RFC 821 ? */
 	SS->with_protocol = WITH_ESMTP;
@@ -1337,11 +1337,23 @@ SmtpState *SS;
 const char *name, *cp;
 {
     FILE *mfp;
+    int rc;
+
     while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp == 0) {
 	type(SS, 552, "5.0.0", "ETRN needs target domain name parameter.");
 	typeflush(SS);
 	return;
+    }
+
+    if (!((*cp >= 'A' && *cp <= 'Z') || (*cp >= 'a' && *cp <= 'z') ||
+	  (*cp >= '0' && *cp <= '9'))) {
+      /* Has some special character beginning it; we don't support
+	 either arbitary subdomains (@foo.dom), nor "channel-based"
+	 starting (#foo) */
+      type(SS, 458, m571, "Sorry, only literal target domains accepted");
+      typeflush(SS);
+      return;
     }
 
     mfp = mail_open(MSG_RFC822);
@@ -1353,14 +1365,19 @@ const char *name, *cp;
     fprintf(mfp, "%c%c%s\n", _CF_TURNME, _CFTAG_NORMAL, cp);
     /* printf("050-My uid=%d/%d\r\n",getuid(),geteuid()); */
     runasrootuser();
-    if (mail_close_alternate(mfp, TRANSPORTDIR, "")) {
-	type(SS, 452, m400, "Failed to initiate ETRN request;  Permission denied?");
-    } else {
-	type(SS, -250, m200, "An ETRN request is initiated - lets hope the system");
-	type(SS, -250, m200, "has resources to honour it.   We call the remote, if");
-	type(SS, 250, m200, "we have anything to send there.");
-    }
+    rc = mail_close_alternate(mfp, TRANSPORTDIR, "");
     runastrusteduser();
+    if (rc) {
+	type(SS,452,m400,"Failed to initiate ETRN request; Permission denied?");
+    } else {
+      if (multilinereplies) {
+	type(SS,-250,m200,"An ETRN request is initiated - lets hope the system");
+	type(SS,-250,m200,"has resources to honour it. We call the remote,");
+	type(SS, 250,m200,"if we have anything to send there.");
+      } else {
+	type(SS, 250, m200, "An ETRN request is submitted - something may get sent.");
+      }
+    }
     typeflush(SS);
 }
 

@@ -1,4 +1,4 @@
-v0.1/mea/19990903
+v0.2/mea/19990930
 
 
 		Using ETRN on SMTP server
@@ -24,6 +24,29 @@ designated as your "ETRN HUB":
 
 	.client.dom	smtp-etrn!mail.client.dom
 
+Depending on what MXes are, you may also be able to do:
+
+	.client.dom	smtp-etrn!client.dom
+
+presuming your MXes for 'client.dom' are:
+
+	client.dom.	IN MX	10 mail.client.dom.
+			IN MX	20 smtp-etrn.isp.dom.
+
+or this effect...
+Now client systems are allowed to issue ETRN requests of type:
+
+	ETRN client.dom
+
+ZMailer doesn't, as of currently, support 'all subdomains'
+
+	ETRN @client.dom
+
+operation, because of the way how scheduler is constructed.
+Nor is local-feature (say: "channel") running supported:
+
+	ETRN #foochan
+
 
 The   $MAILSHARE/scheduler.conf  in the default setup has following
 tag in it:
@@ -48,13 +71,15 @@ To activate the message downloads the client must be able to
 issue following command to the SMTP-server at this host:
 
 	ETRN mail.client.dom
+	ETRN client.dom
 
 Do note that in the boiler-plate form this will resolve MXes,
 and determine of the "mail.client.dom" is proper target, or
 if the email should be directed elsewere.  If the primary MX
 points to the local host, the A record is used for the delivery.
 You could (perhaps) consider adding "-x" (see  "smtpx/*" selector
-in the   scheduler.conf) into the command line.
+in the   scheduler.conf) into the command line -- if you do that,
+then *all* destination domains must have A records.
 
 
 
