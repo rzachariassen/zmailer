@@ -1,0 +1,47 @@
+SFIO: A Safe/Fast I/O Library 
+
+Sfio is a portable library for managing I/O streams.
+It provides functionality similar to that of Stdio,
+the ANSI C Standard I/O library, but via a new interface
+that is more powerful, robust and efficient.
+
+The current distribution is Sfio1999.
+
+This version of the library is portable to most known UNIX platforms
+including various flavors of IRIX, SUNOS, Solaris, Ultrix, MVS/OpenEdition,
+Linux and BSDI. The library handles 64-bit streams on platforms that
+support 64-bit files. The family of formatting functions sfprintf/sfscanf
+have been extended to enable applications to define new formatting
+directives as well as redefine existing ones.
+
+The manual page has more details on recent changes.
+
+#
+# Software Installation Notes
+#
+
+The package should be unpacked in an installation directory, say ``Software'',
+to create the following directory tree:
+
+    Software / NOTICE
+               README
+               include
+               lib
+               bin
+               man / man3 / [manual pages]
+               src / lib  / sfio / [sfio source]
+                                   features / [feature tests]
+                                   Sfio_f   / [function versions]
+                                   Stdio_s  / [source compatibility]
+                                   Stdio_b  / [binary compatibility]
+                                   Sfio_dc  / [example disciplines]
+                                   Sfio_t   / [regression tests]
+
+Thus, the directory "Software/src/lib/sfio" contains the source code,
+feature tests, function versions of macros, the Stdio source and binary
+compatibility packages, example Sfio disciplines, and regression tests.
+
+The README file tells how to build Sfio.
+
+If you have comments/questions/problems, send mail to Phong Vo at:
+	kpv@research.att.com.
