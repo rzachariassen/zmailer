@@ -367,6 +367,12 @@ char **argv;
     time_t now;
     const char *t, *syslogflg;
 
+    progname = argv[0] ? argv[0] : "smtpserver";
+    cmdline = &argv[0][0];
+    eocmdline = cmdline;
+    for (i = 0; i < argc; ++i)
+	eocmdline += strlen(argv[i]) + 1;
+
 
     setvbuf(stdout, NULL, _IOFBF, 8192);
     setvbuf(stderr, NULL, _IOLBF, 8192);
@@ -396,11 +402,6 @@ char **argv;
     version = 0;
     logfile = NULL;
     logstyle = 0;
-    progname = argv[0] ? argv[0] : "smtpserver";
-    cmdline = &argv[0][0];
-    eocmdline = cmdline;
-    for (i = 0; i < argc; ++i)
-	eocmdline += strlen(argv[i]) + 1;
     *SS.myhostname = 0;
     if (getmyhostname(SS.myhostname, sizeof SS.myhostname) < 0) {
 	fprintf(stderr, "%s: gethostname('%s'): %s\n",
