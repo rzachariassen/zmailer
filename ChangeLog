@@ -1,3 +1,9 @@
+2003-02-06  Matti Aarnio  <mea@zmailer.org>
+
+	* libsh/regex.h:
+	    Moving one #endif upwards a bit to make sure
+	    there is always some definition for  __restrict  et.al.
+
 2002-10-07  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c, smtpserver/smtptls.c:
