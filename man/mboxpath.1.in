@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1 "8 Apr 1998"
+.TH MBOXPATH 1 "9 Sep 1999"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
@@ -10,6 +10,9 @@ mboxpath \- ZMailer utility to show user's mailbox path
 ]
 [
 .B \-P[P]
+]
+[
+.B \-X[X]
 ]
 [
 .B \-d
@@ -35,6 +38,9 @@ See
 See
 .IR mailbox (8).
 .IP \-P[P]
+See
+.IR mailbox (8).
+.IP \-X[X]
 See
 .IR mailbox (8).
 .SH USAGE

@@ -301,6 +301,7 @@ int mmdf_mode = 0;		/* Write out MMDF-style mail folder
 long eofindex  = -1;		/* When negative, putmail() can't truncate() */
 int  dirhashes = 0;
 int  pjwhashes = 0;
+int  crchashes = 0;
 int  canonify_user = 0;
 int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   POP3 server to have some unique id for
@@ -438,7 +439,7 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMVU8");
+	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMVUX8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -457,12 +458,15 @@ main(argc, argv)
 				   MAILBOX/a/b/abcdefg -- supported by
 				   qpopper, for example... */
 	    break;
-	  case 'P':		/* pjw32hash() from the last component of the
+	  case 'P':		/* pjwhash32() from the last component of the
 				   mailbox file path (filename) is used to
 				   create hashes by calculating N levels
 				   (one or two) of modulo 26 ('A'..'Z') alike
 				   the scheduler does its directory hashes. */
 	    ++pjwhashes;
+	    break;
+	  case 'X':		/* Like pjwhash32() above, but with crc32() */
+	    ++crchashes;
 	    break;
 	  case 'U':
 	    do_xuidl = 1;
@@ -511,7 +515,7 @@ main(argc, argv)
 	  }
 	}
 	if (errflg || optind != argc) {
-	  fprintf(stderr, "Usage: %s [-8abDgHMrSV] [-l logfile] [-c channel] [-h host] [-d mailboxdir]\n",
+	  fprintf(stderr, "Usage: %s [-8abDPXgHMrSV] [-l logfile] [-c channel] [-h host] [-d mailboxdir]\n",
 		  argv[0]);
 	  exit(EX_USAGE);
 	}
@@ -2328,11 +2332,25 @@ static void mkhashpath(s, uname)
      char *s;
      const char *uname;
 {
-	extern int pjwhash32 __((const char *));
+	extern long pjwhash32 __((const char *));
+	extern long crc32     __((const char *));
 
 	if (pjwhashes) {
 	  int h = pjwhash32(uname);
 	  switch (pjwhashes) {
+	  case 1:
+	    h %= 26;
+	    sprintf(s,"%c/", ('A' + h));
+	    break;
+	  default:
+	    h %= (26*26);
+	    sprintf(s,"%c/%c/", ('A' + (h / 26)), ('A' + (h % 26)));
+	    break;
+	  }
+	}
+	if (crchashes) {
+	  int h = crc32(uname);
+	  switch (crchashes) {
 	  case 1:
 	    h %= 26;
 	    sprintf(s,"%c/", ('A' + h));

@@ -26,14 +26,14 @@ OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
 	cleanenv.o splay.o rfc822scan.o token.o symbol.o \
 	strmatch.o nobody.o pwdgrp.o dottedquad.o hostent.o \
 	emalloc.o cfgets.o selfaddrs.o skip821address.o \
-	taspoolid.o strlower.o strupper.o pjwhash32.o
+	taspoolid.o strlower.o strupper.o pjwhash32.o crc32.o
 SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
 	killprev.c linebuffer.c loginit.c die.c \
 	ranny.c trusted.c allocate.c prversion.c \
 	cleanenv.c splay.c rfc822scan.c token.c symbol.c \
 	strmatch.c nobody.c pwdgrp.c dottedquad.c hostent.c \
 	emalloc.c cfgets.c selfaddrs.c skip821address.c \
-	taspoolid.c strlower.c strupper.c pjwhash32.c
+	taspoolid.c strlower.c strupper.c pjwhash32.c crc32.c
 
 all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
 
@@ -45,6 +45,10 @@ rfc822date-test: rfc822date-test.o rfc822date.o
 
 selfaddrs-test: $(srcdir)/selfaddrs.c
 	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lresolv -lzm
+
+hashtest: $(srcdir)/hashtest.c crc32.o pjwhash32.o
+	$(CC) $(CFLAGS) -o hashtest $(srcdir)/hashtest.c crc32.o pjwhash32.o
+
 
 $(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
 	ar rv $@ $(OBJS)
@@ -68,7 +72,7 @@ lint:
 
 clean-recursive clean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log rfc822date-test
-	-rm -f *.o *.out *.ln *~ selfaddrs-test
+	-rm -f *.o *.out *.ln *~ selfaddrs-test hashtest
 
 distclean-recursive distclean: clean
 	-rm -f Makefile

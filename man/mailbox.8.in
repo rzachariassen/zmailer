@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "18 Jun 1998"
+.TH MAILBOX 8 "9 Sep 1999"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -18,7 +18,7 @@ mailbox \- zmailer local delivery transport agent
 .I logfile
 ]
 [
-.B \-8abCDHPrSV
+.B \-8abDCHPrSVX
 ]
 .SH DESCRIPTION
 .I mailbox
@@ -180,6 +180,14 @@ derived directory paths is something like:
 .I $MAILBOX/X/username
 or
 .I $MAILBOX/Y/X/username
+
+.IP \-X[X]
+This is similar to
+.I \-P[P]
+option, but used hash function is
+.IR crc32() .
+Resulting distribution is slightly different, and in fact quite smooth.
+
 .IP \-S
 This option enables ``Return-Receipt-To:'' message header recognition
 and processing along with sending receipt to given address.

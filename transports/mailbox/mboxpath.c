@@ -9,6 +9,8 @@
  *    mboxpath [-d mailboxdir] -PP user
  *    mboxpath [-d mailboxdir] -D  user
  *    mboxpath [-d mailboxdir] -DD user
+ *    mboxpath [-d mailboxdir] -X  user
+ *    mboxpath [-d mailboxdir] -XX user
  *
  */
 
@@ -42,6 +44,7 @@
 
 int dirhashes = 0;
 int pjwhashes = 0;
+int crchashes = 0;
 const char *progname = "mboxpath";
 int D_alloc = 0;
 
@@ -76,8 +79,22 @@ static void mkhashpath(s, uname)
      char *s;
      const char *uname;
 {
-	extern int pjwhash32 __((const char *));
+	extern long pjwhash32 __((const char *));
+	extern long crc32     __((const char *));
 
+	if (crchashes) {
+	  int h = crc32(uname);
+	  switch (crchashes) {
+	  case 1:
+	    h %= 26;
+	    sprintf(s,"%c/", ('A' + h));
+	    break;
+	  default:
+	    h %= (26*26);
+	    sprintf(s,"%c/%c/", ('A' + (h / 26)), ('A' + (h % 26)));
+	    break;
+	  }
+	}
 	if (pjwhashes) {
 	  int h = pjwhash32(uname);
 	  switch (pjwhashes) {
@@ -131,13 +148,16 @@ int main(argc,argv)
 	}
 
 
-	while ((c = getopt(argc,argv,"d:DP")) != EOF) {
+	while ((c = getopt(argc,argv,"d:DPX")) != EOF) {
 	  switch (c) {
 	  case 'D':
 	    ++dirhashes;
 	    break;
 	  case 'P':
 	    ++pjwhashes;
+	    break;
+	  case 'X':
+	    ++crchashes;
 	    break;
 	  case 'd':
 	    maildirs[0] = optarg;
