@@ -682,6 +682,8 @@ hdr_print(h, fp)
 		    fwrite(p, sizeof (char), len, fp);
 		    putc('\n', fp);
 		  }
+		  if (first) /* totally empty header! */
+		    putc('\n', fp);
 		}
 		break;
 	}
