@@ -159,7 +159,8 @@ PARAM   no-multiline-replies    # except to EHLO (Bloody M$ RFC821/AppE violator
 #
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 #
-PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
+PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
+#PARAM policydb-submit $DBTYPE  $MAILVAR/db/smtp-policy-submit
 #
 # External program for received message content analysis:
 #PARAM  contentfilter   $MAILBIN/smtp-contentfilter

@@ -50,7 +50,7 @@
 #	@domain	      error!nosuchuser
 #
 #       user@domain  local!%1%2
-#	user@domain  lmtp!lmtphost!%5
+#	user@domain  smtp-lmtp!lmtphost!%5
 #
 
 .:ERROR		ignore!

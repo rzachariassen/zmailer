@@ -112,6 +112,7 @@ main(argc,argv)
 	int rcpts_count = 0;
 	int ezmlmalike = 0;
 	int debug = 0;
+	int linenum = 0;
 
 	if (argv[1] && strcmp(argv[1],"-debug")==0) {
 	  ++argv;
@@ -148,6 +149,8 @@ main(argc,argv)
 	    break;
 	  s = strchr(buf,'\n'); if (s) *s = 0; /* Zap the trailing '\n' */
 
+	  ++linenum;
+
 	  s = buf;
 	  while(*s == ' ' || *s == '\t') ++s; /* Skip white */
 
@@ -174,7 +177,7 @@ main(argc,argv)
 		fprintf(mfp, "interpreted data at file: %s\n\n", argv[2]);
 	      }
 
-	      fprintf(mfp, "%s\n", buf);
+	      fprintf(mfp, "%d: %s\n", linenum, buf);
 
 	    }
 	    continue;
