@@ -1,0 +1,11 @@
+If you have  <security/pam_appl.h>  header in your system,
+you have already compiled the PAM-based SHADOW support in.
+To complete it, you will need following file:
+
+
+------- /etc/pam.d/smtpauth-login -----------
+#%PAM-1.0
+auth       required     /lib/security/pam_pwdb.so shadow
+auth       required     /lib/security/pam_nologin.so
+account    required     /lib/security/pam_pwdb.so
+---------------------------------------------

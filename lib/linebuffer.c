@@ -19,16 +19,16 @@
 
 /*
  *  Returns the number of characters of the next line to be read. The line
- *  is pointed at by (char *)linebuf. This storage is part of a dynamically
+ *  is pointed at by (char *)zlinebuf. This storage is part of a dynamically
  *  allocated buffer known only within this module. Code external to here
- *  should treat linebuf as a read-only (constant) buffer.
+ *  should treat zlinebuf as a read-only (constant) buffer.
  */
 static char	*getline_block = NULL;  /* malloc()'ed input buffer */
 static char	*getline_bend;		/* end of line pointer */
 static u_int	getline_blen;		/* bytes available to consume */
 static u_int	getline_bsize;		/* size of malloc()'ed buffer */
 
-char	*linebuf = NULL;	/* where to start consuming */
+char	*zlinebuf = NULL;	/* where to start consuming */
 
 /*
  * This routine should be called between opening a file
@@ -36,7 +36,7 @@ char	*linebuf = NULL;	/* where to start consuming */
  */
 
 void
-initline(blksize)
+initzline(blksize)
 	long blksize;
 {
 	if (getline_block == NULL) {
@@ -49,7 +49,7 @@ initline(blksize)
 }
 
 void
-repos_getline(fp,newpos)
+repos_zgetline(fp,newpos)
 	FILE *fp;
 	off_t newpos;
 {
@@ -58,11 +58,11 @@ repos_getline(fp,newpos)
 }
 
 /*
- * Return the number of bytes starting from linebuf, which make up a line.
+ * Return the number of bytes starting from zlinebuf, which make up a line.
  */
 
 int
-getline(fp)
+zgetline(fp)
 	FILE *fp;
 {
 	register char	*cp;
@@ -80,7 +80,7 @@ getline(fp)
 	  /* look for end of line in what remains of the input buffer */
 	  for (cp = getline_bend, n = 0; n < getline_blen; ++n, ++cp)
 	    if (*cp == '\n') {
-	      linebuf = getline_bend;
+	      zlinebuf = getline_bend;
 	      getline_bend = ++cp;
 	      getline_blen -= ++n;
 	      return n;
@@ -101,7 +101,7 @@ getline(fp)
 	    /* the file doesn't terminate in a newline */
 	    n = getline_blen;
 	    getline_blen = 0;
-	    linebuf = getline_block;
+	    zlinebuf = getline_block;
 	    return n;
 	  }
 	  getline_blen += n;
@@ -111,28 +111,28 @@ getline(fp)
 }
 
 /*
- * Return the number of bytes starting from linebuf, left in linebuf.
+ * Return the number of bytes starting from zlinebuf, left in zlinebuf.
  * This is used to get the remaining bytes that have been read from the
  * file descriptor (and perhaps cannot be reread when the fp refers to
  * a pipe), to enable efficient copying of the rest of the data.
  */
 
 int
-linegetrest()
+zlinegetrest()
 {
 	/* assert getline_block != NULL */
 	if (getline_blen <= 0 || getline_bend >= getline_block + getline_bsize)
 		return 0;
-	linebuf = getline_bend;
+	zlinebuf = getline_bend;
 	return getline_blen;
 }
 
 /*
- *  Determine the position of linebuf in the open file described by fp.
+ *  Determine the position of zlinebuf in the open file described by fp.
  */
 
 long
-lineoffset(fp)
+zlineoffset(fp)
 	FILE *fp;
 {
 	return ftell(fp) - getline_blen;

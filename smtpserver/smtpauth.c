@@ -51,7 +51,7 @@ and receiving server (S:) would reply with:
 
 */
 
-extern int zpwmatch __((char *, char *));
+extern int zpwmatch __((char *, char *, long *uidp));
 
 #if 0 /* DUMMY BEAST... */
 
@@ -61,14 +61,16 @@ extern int zpwmatch __((char *, char *));
 #include <pwd.h>
 #include <unistd.h>
 
-int zpwmatch(uname,password)
+int zpwmatch(uname,password,uidp)
      char *uname, *password;
+     long *uidp;
 {
     struct passwd *pw = getpwnam(uname);
     char *cr;
 
-    if (!pw) return 0; /* No such user */
+    if (!pw) return -1; /* No such user */
     cr = crypt(password, pw->pw_passwd);
+    *uidp = pw->pw_uid;
 
     return (strcmp(cr, pw->pw_passwd) == 0);
 }
@@ -87,6 +89,7 @@ void smtp_auth(SS,buf,cp)
     char c, co;
     int i, rc;
     char *uname;
+    long uid;
 
     if (SS->authuser != NULL) {
       type(SS, 503, m551, "Already authenticated, second attempt rejected!");
@@ -202,7 +205,7 @@ void smtp_auth(SS,buf,cp)
     else if (tls_loglevel > 0)
       type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
 
-    if (zpwmatch(uname, bbuf) > 0) {
+    if (zpwmatch(uname, bbuf, &uid) > 0) {
 	SS->authuser = uname;
 	type(SS, 235, NULL, "Authentication successful.");
     } else {

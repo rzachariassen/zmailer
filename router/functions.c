@@ -1397,7 +1397,7 @@ run_listexpand(avl, il)
 	hs.h_descriptor = &aliashdr;
 	hs.h_pname = (char*) car(avl)->string;
 
-	initline(4096);
+	initzline(4096);
 
 	/*
 	 * These hoops are so we can do this for both real stdin and
@@ -1420,18 +1420,18 @@ run_listexpand(avl, il)
 	/* use a constant buffer to avoid memory leaks from stdio usage */
 	setvbuf(fp, buf, _IOFBF, sizeof buf);
 	c = 0;
-	while ((n = getline(fp)) > 0) {
+	while ((n = zgetline(fp)) > 0) {
 		++linecnt;
 		/*
 		 * For sendmail compatibility, addresses may not cross line
 		 * boundaries, and line boundary is just as good an address
 		 * separator as comma is, sigh.
 		 */
-		if (linebuf[n-1] == '\n')
+		if (zlinebuf[n-1] == '\n')
 			--n;
 		stuff = 0;
-		s_end = &linebuf[n];
-		for (s = linebuf; s < s_end; ++s) {
+		s_end = & zlinebuf[n];
+		for (s = zlinebuf; s < s_end; ++s) {
 			if (isascii(*s) && !isspace(*s))
 				c = stuff = 1;
 			if (*s == ',')
@@ -1440,7 +1440,7 @@ run_listexpand(avl, il)
 		if (!stuff)
 			continue;
 		if (c) {
-			linebuf[n] = ',';
+			zlinebuf[n] = ',';
 			++n;
 		}
 
@@ -1451,8 +1451,8 @@ run_listexpand(avl, il)
 		 * This is just to not to force people to edit their
 		 * .forwards :-(  "\haa" works as expected  :-)
 		 **/
-		if (linebuf[0] == '\\') linebuf[0] = ' ';
-		for (s = linebuf+1; s < s_end; ++s) {
+		if (zlinebuf[0] == '\\') zlinebuf[0] = ' ';
+		for (s = zlinebuf+1; s < s_end; ++s) {
 		  if (s[-1] == ',' && s[0]=='\\') s[0] = ' ';
 		}
 		/* end of sendmail compatibility kluge */
@@ -1464,7 +1464,7 @@ run_listexpand(avl, il)
 		 * so errors will print out nicely.
 		 */
 
-		hs.h_lines = t = makeToken(linebuf, n);
+		hs.h_lines = t = makeToken(zlinebuf, n);
 		t->t_type = Line;
 
 		/* fix up any trailing comma (more sendmail
@@ -1835,7 +1835,7 @@ run_listaddrs(argc, argv)
 	hs.h_descriptor = &aliashdr;
 	hs.h_pname = argv[0];
 
-	initline(4096);
+	initzline(4096);
 
 	/*
 	 * These hoops are so we can do this for both real stdin and
@@ -1858,18 +1858,18 @@ run_listaddrs(argc, argv)
 	/* use a constant buffer to avoid memory leaks from stdio usage */
 	setvbuf(fp, buf, _IOFBF, sizeof buf);
 	c = 0;
-	while ((n = getline(fp)) > 0) {
+	while ((n = zgetline(fp)) > 0) {
 		++linecnt;
 		/*
 		 * For sendmail compatibility, addresses may not cross line
 		 * boundaries, and line boundary is just as good an address
 		 * separator as comma is, sigh.
 		 */
-		if (linebuf[n-1] == '\n')
+		if (zlinebuf[n-1] == '\n')
 			--n;
 		stuff = 0;
-		s_end = &linebuf[n];
-		for (s = linebuf; s < s_end; ++s) {
+		s_end = &zlinebuf[n];
+		for (s = zlinebuf; s < s_end; ++s) {
 			if (isascii(*s) && !isspace(*s))
 				c = stuff = 1;
 			if (*s == ',')
@@ -1878,7 +1878,7 @@ run_listaddrs(argc, argv)
 		if (!stuff)
 			continue;
 		if (c) {
-			linebuf[n] = ',';
+			zlinebuf[n] = ',';
 			++n;
 		}
 
@@ -1889,8 +1889,8 @@ run_listaddrs(argc, argv)
 		 * This is just to not to force people to edit their
 		 * .forwards :-(  "\haa" works as expected  :-)
 		 **/
-		if (linebuf[0] == '\\') linebuf[0] = ' ';
-		for (s = linebuf+1; s < s_end; ++s) {
+		if (zlinebuf[0] == '\\') zlinebuf[0] = ' ';
+		for (s = zlinebuf+1; s < s_end; ++s) {
 		  if (s[-1] == ',' && s[0]=='\\') s[0] = ' ';
 		}
 		/* end of sendmail compatibility kluge */
@@ -1901,7 +1901,7 @@ run_listaddrs(argc, argv)
 		 * so errors will print out nicely.
 		 */
 
-		hs.h_lines = t = makeToken(linebuf, n);
+		hs.h_lines = t = makeToken(zlinebuf, n);
 		t->t_type = Line;
 
 		/* fix up any trailing comma (more sendmail

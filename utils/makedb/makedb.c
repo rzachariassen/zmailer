@@ -326,10 +326,10 @@ const int typ;
 	   store_db() to work differently from alias append */
 	append_mode = -append_mode;
 
-	while ((llen = getline(infile)) != 0) {
+	while ((llen = zgetline(infile)) != 0) {
 		++linenum;
 		policydatalen = 0;
-		if (linebuf[llen-1] != '\n') {
+		if (zlinebuf[llen-1] != '\n') {
 			/* Eh ? No line ending newline ?
 			   Ah well, there is always at least one byte
 			   of space after the read block. */
@@ -337,18 +337,18 @@ const int typ;
 			fprintf(stderr, "input line of len %d lacking trailing newline, corrupted file ?\n", llen-1);
 			errflag = 1;
 		}
-		linebuf[llen-1] = '\0';
+		zlinebuf[llen-1] = '\0';
 
-		if (*linebuf == '#')
+		if (*zlinebuf == '#')
 			continue;	/* Comment! */
 
-		if (*linebuf == ' ' || *linebuf == '\t')
+		if (*zlinebuf == ' ' || *zlinebuf == '\t')
 			continue;	/* Starts with a white-space! */
 
 		/* Scan first white-space separated token,
 		   point its start with t! */
 
-		t = linebuf;
+		t = zlinebuf;
 		while (*t == '\t' || *t == ' ')
 			++t;
 
@@ -500,23 +500,23 @@ const int typ;
 	int  count   = 0;
 	long totsize = 0;
 
-	while ((llen = getline(infile)) != 0) {
+	while ((llen = zgetline(infile)) != 0) {
 		++linenum;
-		if (linebuf[llen-1] != '\n') {
+		if (zlinebuf[llen-1] != '\n') {
 			/* Eh ? No line ending newline ?
 			   Ah well, there is always at least one byte
 			   of space after the read block. */
 			++llen;
 			fprintf(stderr, "input line lacking trailing newline, corrupted file ?\n");
-			fprintf(stderr, " len=%d, linebuf='%s'\n", llen, linebuf);
+			fprintf(stderr, " len=%d, zlinebuf='%s'\n", llen, zlinebuf);
 		}
-		linebuf[llen-1] = '\0';
+		zlinebuf[llen-1] = '\0';
 
 		if (verbose)
-		  fprintf(stderr,"aliases parser: getline() llen=%d, str='%.*s'\n",
-			  llen, llen, linebuf);
+		  fprintf(stderr,"aliases parser: zgetline() llen=%d, str='%.*s'\n",
+			  llen, llen, zlinebuf);
 
-		if (*linebuf == '#') {
+		if (*zlinebuf == '#') {
 			/* Comment! */
 		store_and_continue:
 			if (t0 != NULL) {
@@ -542,7 +542,7 @@ const int typ;
 			continue;
 		}
 
-		t = linebuf;
+		t = zlinebuf;
 		/* Key starts at line start, continuation lines start
 		   with white-space */
 
@@ -660,24 +660,24 @@ const int typ;
 	int linenum = 0;
 	int errflag = 0;
 
-	while ((llen = getline(infile)) != 0) {
+	while ((llen = zgetline(infile)) != 0) {
 		++linenum;
-		if (linebuf[llen-1] != '\n') {
+		if (zlinebuf[llen-1] != '\n') {
 			/* Eh ? No line ending newline ?
 			   Ah well, there is always at least one byte
 			   of space after the read block. */
 			++llen;
 			fprintf(stderr, "input file lacking trailing newline, corrupted file ?\n");
 		}
-		linebuf[llen-1] = '\0';
+		zlinebuf[llen-1] = '\0';
 
-		if (*linebuf == '#')
+		if (*zlinebuf == '#')
 			continue;	/* Comment! */
 
 		/* Scan first white-space separated token,
 		   point its start with t! */
 
-		t = linebuf;
+		t = zlinebuf;
 		while (*t == '\t' || *t == ' ')
 			++t;
 
@@ -864,7 +864,7 @@ char *argv[];
     if (dbf == NULL)
 	usage(argv0, "Can't open dbase file", errno);
 
-    initline(BUFSIZ);
+    initzline(BUFSIZ);
 
     if (policyinput)
 	    rc = create_policy_dbase(infile, dbf, typ);

@@ -102,17 +102,17 @@ main(argc, argv)
 			       progname);
 		exit(EX_USAGE);
 	}
-	initline(0L);
+	initzline(0L);
 	flmax = 0;
-	while ((n = getline(stdin)) > 0) {
-		if (((*linebuf == '>' && (++linebuf, --n)) || 1)
-		    && strncmp("From ", linebuf, 5) == 0) {
+	while ((n = zgetline(stdin)) > 0) {
+		if (((* zlinebuf == '>' && (++zlinebuf, --n)) || 1)
+		    && strncmp("From ", zlinebuf, 5) == 0) {
 			if (debug) {
 				printf("Found From_ line: '");
-				fwrite(linebuf, 1, n-1, stdout);
+				fwrite(zlinebuf, 1, n-1, stdout);
 				printf("'\n");
 			}
-			if ((sc = breakdown(linebuf, n-1)) == NULL)
+			if ((sc = breakdown(zlinebuf, n-1)) == NULL)
 				exit(EX_SOFTWARE);	/* message printed below */
 			if (flmax >= MAXHOPS) {
 				fprintf(stderr,"%s: too many hops\n",progname);
@@ -215,11 +215,11 @@ main(argc, argv)
 					fl[i]->date);
 	}
 
-	fwrite((char *)linebuf, 1, n, mfp);
+	fwrite((char *)zlinebuf, 1, n, mfp);
 
-	n = linegetrest();
+	n = zlinegetrest();
 	if (n > 0)
-		fwrite((char *)linebuf, 1, n, mfp);
+		fwrite((char *)zlinebuf, 1, n, mfp);
 	while ((n = fread(buf, 1, sizeof buf, stdin)) > 0)
 		fwrite(buf, 1, n, mfp);
 	if (!debug && mail_close(mfp) == EOF) {

@@ -246,45 +246,45 @@ makeLetter(e, octothorp)
 	}
 	e->e_localtime = *(localtime(&(e->e_statbuf.st_mtime)));
 #ifdef	HAVE_ST_BLKSIZE
-	initline((int)e->e_statbuf.st_blksize);
+	initzline((int)e->e_statbuf.st_blksize);
 #else	/* !HAVE_ST_BLKSIZE */
-	initline(4096);
+	initzline(4096);
 #endif	/* !HAVE_ST_BLKSIZE */
 
 	inheader = 0;
-	while ((n = getline(e->e_fp)) > !octothorp) {
+	while ((n = zgetline(e->e_fp)) > !octothorp) {
 		/* We do kludgy processing things in case the input
 		   does have a CRLF at the end of the line.. */
 		if (n > 1 &&
-		    linebuf[n-2] == '\r' &&
-		    linebuf[n-1] == '\n') {
+		    zlinebuf[n-2] == '\r' &&
+		    zlinebuf[n-1] == '\n') {
 			--n;
-			linebuf[n-1] = '\n';
+			zlinebuf[n-1] = '\n';
 			if (n <= !octothorp) break;
 		}
 		/* Ok, now we can proceed with the original agenda.. */
-		i = hdr_status(linebuf, linebuf, n, octothorp);
+		i = hdr_status(zlinebuf, zlinebuf, n, octothorp);
 		if (i > 0) {		/* a real message header */
-			if (octothorp && linebuf[0] == '#')
+			if (octothorp && zlinebuf[0] == '#')
 				continue;
 			/* record start of headers for posterity */
 			if (!inheader)
-			  e->e_hdrOffset = lineoffset(e->e_fp)-n;
+			  e->e_hdrOffset = zlineoffset(e->e_fp)-n;
 			/* cons up a new one at top of header list */
-			h = makeHeader(spt_headers, linebuf, i);
+			h = makeHeader(spt_headers, zlinebuf, i);
 			h->h_next = e->e_headers;
 			e->e_headers = h;
-			h->h_lines = makeToken(linebuf+i+1, n-i-2);
+			h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
 			h->h_lines->t_type = Line;
 			++inheader;
 		} else if (i == 0) {	/* a continuation line */
-			if (inheader && linebuf[0] == ':') {
+			if (inheader && zlinebuf[0] == ':') {
 				optsave(FYI_ILLHEADER, e);
 				/* cons up a new one at top of header list */
 				h = makeHeader(spt_headers,"X-Null-Field",12);
 				h->h_next = e->e_headers;
 				e->e_headers = h;
-				h->h_lines = makeToken(linebuf+i+1, n-i-2);
+				h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
 				h->h_lines->t_type = Line;
 			} else if (inheader && n > 1) {
 				/* append to the header we just saw */
@@ -292,30 +292,30 @@ makeLetter(e, octothorp)
 				if (e->e_headers == NULL) {
 				  /* Wow, continuation without previous header! */
 				  /* It must be body.. */
-				  repos_getline(e->e_fp,
-						lineoffset(e->e_fp) - n);
+				  repos_zgetline(e->e_fp,
+						 zlineoffset(e->e_fp) - n);
 				  break;
 				}
 				t = e->e_headers->h_lines;
 				while (t->t_next != NULL)
 					t = t->t_next;
-				t->t_next = makeToken(linebuf, n-1);
+				t->t_next = makeToken(zlinebuf, n-1);
 				t->t_next->t_type = Line;
 			} else if (!octothorp) {
 				return PERR_BADCONTINUATION;
 			}
 		} else if (!inheader		/* envelope information */
-			   && (*(cp=linebuf-i) == ' ' || *cp == '\t'
+			   && (*(cp=zlinebuf-i) == ' ' || *cp == '\t'
 				|| *cp == '\n')) {
 			HeaderSemantics osem;
 
-			if (octothorp && linebuf[0] == '#')
+			if (octothorp && zlinebuf[0] == '#')
 				continue;
 			/* cons up a new one at top of envelope header list */
-			h = makeHeader(spt_eheaders, linebuf, -i);
+			h = makeHeader(spt_eheaders, zlinebuf, -i);
 			h->h_next = e->e_eHeaders;
 			e->e_eHeaders = h;
-			h->h_lines = makeToken(linebuf-i+1, n > 1-i ? n+i-2: 0);
+			h->h_lines = makeToken(zlinebuf-i+1, n > 1-i ? n+i-2: 0);
 			h->h_lines->t_type = Line;
 			switch (h->h_descriptor->class) {
 
@@ -325,7 +325,7 @@ makeLetter(e, octothorp)
 				fprintf(stderr,
 					"%s: unknown envelope header (class %d): ",
 					progname, h->h_descriptor->class);
-				fwrite((char *)linebuf, sizeof (char), -i, stderr);
+				fwrite((char *)zlinebuf, sizeof (char), -i, stderr);
 				putc('\n', stderr);
 				h->h_contents = hdr_scanparse(e, h, octothorp, 0);
 				h->h_stamp = hdr_type(h);
@@ -341,7 +341,7 @@ makeLetter(e, octothorp)
 			case eEnvEnd:		/* more elegance breaks */
 				inheader = 1;
 				/* record start of headers for posterity */
-				e->e_hdrOffset = lineoffset(e->e_fp);
+				e->e_hdrOffset = zlineoffset(e->e_fp);
 				e->e_eHeaders = h->h_next;
 				break;
 			default:		/* a real envelope header */
@@ -354,7 +354,7 @@ makeLetter(e, octothorp)
 			   We play as if it was the end of the headers, and
 			   start of the body.  Keep the first faulty input
 			   around by reseeking into its start.		    */
-			repos_getline(e->e_fp, lineoffset(e->e_fp) - n);
+			repos_zgetline(e->e_fp, zlineoffset(e->e_fp) - n);
 			break;
 		}
 	}
@@ -381,7 +381,7 @@ makeLetter(e, octothorp)
 	}
 	e->e_headers = ph;
 	/* record the start of the message body for posterity */
-	e->e_msgOffset = lineoffset(e->e_fp);
+	e->e_msgOffset = zlineoffset(e->e_fp);
 
 	return PERR_OK;
 }

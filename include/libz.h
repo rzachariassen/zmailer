@@ -82,12 +82,12 @@ extern int killprevious   __((int sig, const char *pidfil));
 extern int killpidfile    __((const char *pidfil));
 
 /* linebuffer.c */
-extern char *linebuf;
-extern void initline      __((long blksize));
-extern int  getline       __((FILE *fp));
-extern void repos_getline __((FILE *fp, off_t pos));
-extern int  linegetrest   __((void));
-extern long lineoffset    __((FILE *fp));
+extern char *zlinebuf;
+extern void initzline      __((long blksize));
+extern int  zgetline       __((FILE *fp));
+extern void repos_zgetline __((FILE *fp, off_t pos));
+extern int  zlinegetrest   __((void));
+extern long zlineoffset    __((FILE *fp));
 
 /* loginit.c */
 extern /* RETSIGTYPE */ int loginit __((int));

@@ -1,3 +1,19 @@
+1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, smtpserver/Makefile.in, smtpserver/zpwmatch.c,
+	  doc/guides/smtpauth-login-pam-support:
+	    Autoconfigure PAM support for the system.
+	    See the  smtpauth-login-pam-support  for mandatory bit
+	    of support file(s)...
+
+	* smtpserver/smtpauth.c, smtpserver/zpwmatch.c:
+	    Pass also user's UID -- although PAM code does not pick it (yet).
+
+	* compat/rmail/rmail.c, include/libz.h, lib/linebuffer.c,
+	  router/functions.c, router/rfc822.c, utils/makedb/makedb.c:
+	    GLIBC 2.1 with __USE_GNU active has also 'getline()' function,
+	    thus we renamed to   zgetline8) ...
+
 1999-07-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

@@ -933,6 +933,18 @@ AC_CHECK_HEADERS(string.h fcntl.h limits.h errno.h unistd.h stdlib.h \
     sys/statvfs.h sys/vfs.h sys/mount.h sys/filsys.h sys/fs_types.h)
 AC_CHECK_HEADERS(sys/utsname.h maillock.h arpa/inet.h)
 
+AC_SUBST(AUTHLIB)
+AC_CHECK_HEADERS(security/pam_appl.h shadow.h)
+if test "$ac_cv_header_security_pam_appl_h" = "yes"; then
+    AUTHLIB="-lpam -ldl"
+else
+    if test "$ac_cv_header_shadow_h" = "yes"; then
+	AUTHLIB="-lshadow"
+    else
+	AUTHLIB=""
+    fi
+fi
+
 #
 # Following set of tests is rather weird... Some people don't agree on
 # where to place these IPv6 related headers :-(
@@ -941,7 +953,7 @@ AC_CHECK_HEADERS(sys/utsname.h maillock.h arpa/inet.h)
 
 AC_CHECK_HEADERS(netinet/in.h sys/socket.h)
 if test "$ac_cv_header_netinet_in_h" = no ; then
-  AC_MSG_RESULT([%%% AIEEE!  NO  <netinet/in.h>  HEADER ?!])
+    AC_MSG_RESULT([%%% AIEEE!  NO  <netinet/in.h>  HEADER ?!])
 fi
 
 AC_TRY_COMPILE([#include <sys/socket.h>],[socklen_t sl = 2;],
