@@ -16,7 +16,9 @@
 	    to runtime configured  ZENV variable  TA_USE_MMAP,
 	    whose existence uses the thing, and nonexistence
 	    does read message into limited size internal buffer...
-	
+	    ACTUALLY TESTED CODES ARE: 'mailbox' AND 'smtp'.
+	    THE 'sm' IS NOT TESTED AT THIS POINT!
+
 2003-08-25  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c, utils/policy-builder.sh.in:
