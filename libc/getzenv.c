@@ -74,7 +74,7 @@ getzenv(variable)
 	const char *variable;
 {
 	register int len, state;
-	register char *cp;
+	register unsigned char *cp;
 	int varlen;
 	char *save;
 

@@ -155,48 +155,48 @@ tmalloc(n)
 #endif
 */
 
-void encodeXtext __((FILE *, const char *, int));
+void encodeXtext __((Sfio_t *, const char *, int));
 void encodeXtext(mfp,s,len)
-	FILE *mfp;
-	const char *s;
-	int len;
+     Sfio_t *mfp;
+     const char *s;
+     int len;
 {
-	while (*s && len > 0) {
-	  int c = (*s) & 0xFF;
-	  if ('!' <= c && c <= '~' && c != '+' && c != '=')
-	    putc(c,mfp);
-	  else
-	    fprintf(mfp,"+%02X",c);
-	  ++s;
-	  --len;
-	}
+  while (*s && len > 0) {
+    int c = (*s) & 0xFF;
+    if ('!' <= c && c <= '~' && c != '+' && c != '=')
+      sfputc(mfp,c);
+    else
+      sfprintf(mfp,"+%02X",c);
+    ++s;
+    --len;
+  }
 }
 
-static void decodeXtext __((FILE *, const char *));
+static void decodeXtext __((Sfio_t *, const char *));
 static void
-decodeXtext(fp,xtext)
-	FILE *fp;
+decodeXtext(mfp,xtext)
+	Sfio_t *mfp;
 	const char *xtext;
 {
 	for (;*xtext;++xtext) {
 	  if (*xtext == '+') {
 	    int c = '?';
 	    sscanf(xtext+1,"%02X",&c);
-	    putc(c,fp);
+	    sfputc(mfp,c);
 	    if (*xtext) ++xtext;
 	    if (*xtext) ++xtext;
 	  } else
-	    putc(*xtext,fp);
+	    sfputc(mfp,*xtext);
 	}
 }
 
 
 /* Pick recipient address from the input line.
    EXTREMELY Simple minded parsing.. */
-static void pick_env_addr __((const char *buf, FILE *mfp));
+static void pick_env_addr __((const char *buf, Sfio_t *mfp));
 static void pick_env_addr(buf,mfp)
-const char *buf;
-FILE *mfp;
+     const char *buf;
+     Sfio_t *mfp;
 {
 	const char *s = buf;
 
@@ -211,15 +211,15 @@ FILE *mfp;
 	  s = strrchr(buf,'>');
 	  if (s == NULL)
 	    return; /* No trailing '>' ? BAD BAD! */
-	  fprintf(mfp,"todsn NOTIFY=NEVER ORCPT=rfc822;");
+	  sfprintf(mfp,"todsn NOTIFY=NEVER ORCPT=rfc822;");
 	  encodeXtext(mfp, buf, (int)(s - buf));
-	  fprintf(mfp,"\nto <%.*s>\n",(int)(s - buf), buf);
+	  sfprintf(mfp,"\nto <%.*s>\n",(int)(s - buf), buf);
 	} else {
 	  /*  Cc: some-address  */
-	  fprintf(mfp,"todsn NOTIFY=NEVER ORCPT=rfc822;");
+	  sfprintf(mfp,"todsn NOTIFY=NEVER ORCPT=rfc822;");
 	  s = buf + strlen(buf) - 1;
 	  encodeXtext(mfp,buf,strlen(buf));
-	  fprintf(mfp,"\nto <%s>\n",buf);
+	  sfprintf(mfp,"\nto <%s>\n",buf);
 	}
 }
 
@@ -229,7 +229,7 @@ process(dp)
 {
 	char buf[BUFSIZ];
 	const char **cpp, *mailshare, *mfpath;
-	FILE *mfp, *efp;
+	Sfio_t *mfp, *efp;
 	int n;
 	struct rcpt *rp;
 	char boundarystr[400];
@@ -256,9 +256,9 @@ process(dp)
 	  return;
 	}
 
-	if ((mfp = mail_open(MSG_RFC822)) == NULL) {
+	if ((mfp = sfmail_open(MSG_RFC822)) == NULL) {
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
-	    diagnostic(rp, EX_TEMPFAIL, 0, "mail_open failure");
+	    diagnostic(rp, EX_TEMPFAIL, 0, "sfmail_open failure");
 	  warning("Cannot open mail file!");
 	  return;
 	}
@@ -267,19 +267,19 @@ process(dp)
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
 	  struct stat stbuf;
 
-	  fstat(fileno(mfp),&stbuf);
+	  fstat(sffileno(mfp),&stbuf);
 	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
 	  strcat(boundarystr, "=_/errmail/");
 	  strcat(boundarystr, dom);
 	}
 
-	fprintf(mfp, "channel error\n");
+	sfprintf(mfp, "channel error\n");
 
 	rp = dp->recipients;
 
-	fprintf(mfp, "todsn NOTIFY=NEVER ORCPT=RFC822;");
+	sfprintf(mfp, "todsn NOTIFY=NEVER ORCPT=RFC822;");
 	encodeXtext(mfp, rp->addr->link->user, strlen(rp->addr->link->user));
-	fprintf(mfp, "\nto <%s>\n",rp->addr->link->user);
+	sfprintf(mfp, "\nto <%s>\n",rp->addr->link->user);
 
 	/* copy error message file itself */
 	mailshare = getzenv("MAILSHARE");
@@ -290,11 +290,11 @@ process(dp)
 			 strlen(rp->addr->host));
 	sprintf((char*)mfpath, "%s/%s/%s", mailshare, FORMSDIR, rp->addr->host);
 
-	efp = fopen(mfpath, "r");
+	efp = sfopen(NULL, mfpath, "r");
 	if (efp != NULL) {
 	  int inhdr = 1;
 	  buf[sizeof(buf)-1] = 0;
-	  while (fgets(buf,sizeof(buf)-1,efp) != NULL) {
+	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0)
 	      continue;
 	    else if (strncmp(buf,"ADR",3)==0)
@@ -304,50 +304,49 @@ process(dp)
 	    else
 	      break;
 	  }
-	  fseek(efp,(off_t)0,0); /* Rewind! */
-	  fputs("env-end\n",mfp);
+	  sfseek(efp,(Sfoff_t)0,0); /* Rewind! */
+	  sfprintf(mfp,"env-end\n");
 
 	  /* copy To: from error return address */
-	  fprintf(mfp, "To: <%s>\n", rp->addr->link->user);
+	  sfprintf(mfp, "To: <%s>\n", rp->addr->link->user);
 
-	  while (fgets(buf,sizeof(buf)-1,efp) != NULL) {
+	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
-	      fputs(buf+4,mfp);
+	      sfprintf(mfp, "%s", buf+4);
 	    } else if (strncmp(buf,"ADR",3)==0) {
-	      fputs(buf+4,mfp);
+	      sfprintf(mfp, "%s", buf+4);
 	    } else if (strncmp(buf,"SUB",3)==0) {
-	      fputs(buf+4,mfp);
+	      sfprintf(mfp, "%s", buf+4);
 	    } else {
 	      if (inhdr) {
 		inhdr = 0;
-		fprintf(mfp,"MIME-Version: 1.0\n");
-		fprintf(mfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
-		fprintf(mfp,"\tboundary=\"%s\"\n\n\n",boundarystr);
-		fprintf(mfp, "--%s\n", boundarystr);
-		fprintf(mfp, "Content-Type: text/plain\n");
+		sfprintf(mfp,"MIME-Version: 1.0\n");
+		sfprintf(mfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
+		sfprintf(mfp,"\tboundary=\"%s\"\n\n\n",boundarystr);
+		sfprintf(mfp, "--%s\n", boundarystr);
+		sfprintf(mfp, "Content-Type: text/plain\n");
 	      }
-	      fputs(buf,mfp);
+	      sfprintf(mfp, "%s", buf);
 	    }
 	  } /* ... while() ends.. */
-	  fclose(efp);
+	  sfclose(efp);
 	} else {
-	  fputs("to <postmaster>\n",mfp); /* Default-form Cc: ... */
-	  fputs("env-end\n",mfp);
+	  sfprintf(mfp,"to <postmaster>\n"); /* Default-form Cc: ... */
+	  sfprintf(mfp,"env-end\n");
 	  for (cpp = &dfltform[0]; *cpp != NULL; ++cpp)
 	    if (**cpp == '\0') {
-	      fprintf(mfp, "\tboundary=\"%s\"\n\n\n", boundarystr);
-	      fprintf(mfp, "--%s\n", boundarystr);
-	      fprintf(mfp, "Content-Type: text/plain\n");
+	      sfprintf(mfp, "\tboundary=\"%s\"\n\n\n", boundarystr);
+	      sfprintf(mfp, "--%s\n", boundarystr);
+	      sfprintf(mfp, "Content-Type: text/plain\n");
 	    } else
-	      fprintf(mfp, "%s\n", *cpp);
+	      sfprintf(mfp, "%s\n", *cpp);
 	}
 	/* print out errors in standard format */
-	fputc('\n', mfp);
+	sfputc(mfp, '\n');
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  /* If not prohibited, print it! */
 	  if ( rp->notifyflgs & _DSN_NOTIFY_FAILURE ) {
-	    fprintf(mfp, "error: %s: %s\n",
-		    rp->addr->host, rp->addr->user);
+	    sfprintf(mfp, "error: %s: %s\n", rp->addr->host, rp->addr->user);
 	    ++reportcnt;
 	  }
 	}
@@ -355,31 +354,31 @@ process(dp)
 	/* Did we report anything ? */
 	if (reportcnt == 0){
 	  /* No, throw it away and ack success. */
-	  mail_abort(mfp);
+	  sfmail_abort(mfp);
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
 	    if (!(rp->notifyflgs & _DSN_NOTIFY_FAILURE))
 	      diagnostic(rp, EX_OK, 0, NULL);
 	  return;
 	}
 
-	fprintf(mfp, "\n--%s\n", boundarystr);
-	fprintf(mfp, "Content-Type: message/delivery-status\n\n");
+	sfprintf(mfp, "\n--%s\n", boundarystr);
+	sfprintf(mfp, "Content-Type: message/delivery-status\n\n");
 
 	/* Print out errors in IETF-NOTARY format as well! */
 
 	if (mydomain() != NULL) {
-	  fprintf(mfp, "Reporting-MTA: dns; %s\n", mydomain() );
+	  sfprintf(mfp, "Reporting-MTA: dns; %s\n", mydomain() );
 	} else {
-	  fprintf(mfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
+	  sfprintf(mfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
 	if (dp->envid != NULL) {
-	  fprintf(mfp, "Original-Envelope-Id: ");
+	  sfprintf(mfp, "Original-Envelope-Id: ");
 	  decodeXtext(mfp,dp->envid);
-	  putc('\n',mfp);
+	  sfputc(mfp,'\n');
 	}
 	/* rfc822date() returns a string with trailing newline! */
-	fprintf(mfp, "Arrival-Date: %s", rfc822date(&stbuf.st_ctime));
-	fprintf(mfp, "\n");
+	sfprintf(mfp, "Arrival-Date: %s", rfc822date(&stbuf.st_ctime));
+	sfprintf(mfp, "\n");
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  /* If not prohibited, print it! */
@@ -398,19 +397,19 @@ process(dp)
 	  } else
 	    typetag = type_local;
 	  if (rp->orcpt != NULL) {
-	    fprintf(mfp, "Original-Recipient: ");
+	    sfprintf(mfp, "Original-Recipient: ");
 	    decodeXtext(mfp,rp->orcpt);
-	    putc('\n',mfp);
+	    sfputc(mfp,'\n');
 	  }
-	  fprintf(mfp, "Final-Recipient: %s; %s\n", typetag, rcpt);
-	  fprintf(mfp, "Action: failed\n");
-	  fprintf(mfp, "Status: 5.0.0\n");
-	  fprintf(mfp, "Diagnostic-Code: X-LOCAL; 500 (%s)\n", rp->addr->host );
-	  fprintf(mfp, "\n");
+	  sfprintf(mfp, "Final-Recipient: %s; %s\n", typetag, rcpt);
+	  sfprintf(mfp, "Action: failed\n");
+	  sfprintf(mfp, "Status: 5.0.0\n");
+	  sfprintf(mfp, "Diagnostic-Code: X-LOCAL; 500 (%s)\n", rp->addr->host );
+	  sfprintf(mfp, "\n");
 	}
 
-	fprintf(mfp, "--%s\n", boundarystr);
-	fprintf(mfp, "Content-Type: message/rfc822\n\n");
+	sfprintf(mfp, "--%s\n", boundarystr);
+	sfprintf(mfp, "Content-Type: message/rfc822\n\n");
 
 	/* Skip over the delivery envelope lines! */
 
@@ -421,8 +420,8 @@ process(dp)
 	lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET);
 
 	/* write the (new) headers with local "Received:"-line.. */
-	fwriteheaders(rp, mfp, "\n", 0, 0, NULL);
-	fprintf(mfp,"\n");
+	swriteheaders(rp, mfp, "\n", 0, 0, NULL);
+	sfprintf(mfp,"\n");
 
 	/* If the DSN RET=HDRS is in effect, don't copy the msg body! */
 	if (!dp->dsnretmode || CISTREQN(dp->dsnretmode,"FULL",4)) {
@@ -430,18 +429,18 @@ process(dp)
 	  /* Copy out the rest with somewhat more efficient method */
 	  lastchar = 0;
 	  while ((n = read(dp->msgfd, buf, sizeof(buf))) > 0) {
-	    fwrite(buf, sizeof buf[0], n, mfp);
+	    sfwrite(mfp, buf, n);
 	    lastchar = buf[n-1];
 	  }
 	  if (lastchar != '\n')
-	    fputs("\n",mfp);
+	    sfputc(mfp, '\n');
 	}
 
-	fprintf(mfp, "--%s--\n", boundarystr);
-	if (ferror(mfp)) {
-	  mail_abort(mfp);
+	sfprintf(mfp, "--%s--\n", boundarystr);
+	if (sferror(mfp)) {
+	  sfmail_abort(mfp);
 	  n = EX_IOERR;
-	} else if (mail_close(mfp) == EOF)
+	} else if (sfmail_close(mfp) == EOF)
 	  n = EX_IOERR;
 	else
 	  n = EX_OK;

@@ -96,7 +96,7 @@ qprint(fd)
 	}
 	sfprintf(qpfp, "End:\n");
 
-	thread_report(qpfp, 1);
+	thread_report(qpfp, MQ2MODE_FULL);
 	
 	sfclose(qpfp);
 

@@ -260,7 +260,7 @@ struct userhost {
 };
 
 struct writestate {
-	FILE *fp;
+	Sfio_t *fp;
 	int  lastch;
 	char expect;
 	char frombuf[8];
@@ -331,8 +331,8 @@ extern char *exists __((const char *, const char *, struct passwd *, struct rcpt
 extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
-extern FILE *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file));
-extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, FILE *fp, const char *file, int ismime));
+extern Sfio_t *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file));
+extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, Sfio_t *fp, const char *file, int ismime));
 extern char **environ;
 extern int writebuf __((struct writestate *, const char *buf, int len));
 extern int writemimeline __((struct writestate *, const char *buf, int len));
@@ -363,7 +363,7 @@ struct conshell *envarlist = NULL;
 extern int stickymem;	/* for strsave() */
 int	D_alloc = 0;
 
-static void decodeXtext __((FILE *, const char *));
+static void decodeXtext __((Sfio_t *, const char *));
 
 #if defined(HAVE_SOCKET) && defined(HAVE_PROTOCOLS_RWHOD_H)
 static int readrwho __((void));
@@ -1458,21 +1458,21 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 		   starttime,
 		   timestring
 		   )
-struct ctldesc *dp;
-struct rcpt *rp;
-const char *file, *usernam;
-int ismbox;
-struct stat *st;
-uid_t uid;
+     struct ctldesc *dp;
+     struct rcpt *rp;
+     const char *file, *usernam;
+     int ismbox;
+     struct stat *st;
+     uid_t uid;
 #ifdef HAVE_SOCKET
-struct biffer *nbp;
+     struct biffer *nbp;
 #endif
-time_t starttime;
-const char *timestring;
+     time_t starttime;
+     const char *timestring;
 {
 	int fdmail;
 	struct stat s2;
-	FILE *fp = NULL;
+	Sfio_t *fp = NULL;
 	const char *mboxlocks = getzenv("MBOXLOCKS");
 	const char *filelocks = NULL;
 	const char *locks     = NULL;
@@ -1710,7 +1710,7 @@ const char *timestring;
 	time(&endtime);
 
 	if (fp != NULL) {
-	  fclose(fp);		/* this closes fdmail */
+	  sfclose(fp);		/* this closes fdmail */
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(rp->addr->user,"delivery",
 		       "2.2.0 (Delivered successfully)",
@@ -1729,15 +1729,15 @@ const char *timestring;
 	return;
 }
 
-FILE *
+Sfio_t *
 putmail(dp, rp, fdmail, fdopmode, timestring, file)
-	struct ctldesc *dp;
-	struct rcpt *rp;
-	int fdmail;
-	const char *fdopmode, *timestring, *file;
+     struct ctldesc *dp;
+     struct rcpt *rp;
+     int fdmail;
+     const char *fdopmode, *timestring, *file;
 {
-	FILE *fp;
 	int len, rc, mw=0;
+	Sfio_t *fp;
 	char buf[2];
 	struct stat st;
 	const char *fromuser;
@@ -1747,7 +1747,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	fstat(fdmail, &st);
 
-	fp = fdopen(fdmail, fdopmode);
+	fp = sfnew(NULL, NULL, 0, fdmail, SF_WRITE|SF_APPEND);
 	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
@@ -1774,7 +1774,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	} else if (eofindex > 0L && eofindex < (sizeof "From x\n")) {
 	  /* A mail message *cannot* be this small.  It must be
 	     a corrupted mailbox file.  Ignore the trash bytes. */
-	  fseek(fp, (off_t)0, SEEK_SET);
+	  sfseek(fp, (off_t)0, SEEK_SET);
 	  eofindex = 0;
 	}
 
@@ -1784,7 +1784,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	/* Begin of the file, and MMDF-style ? */
 	if (mmdf_mode == 1 /* Values 2 and 3 exist on PIPEs only.. */   )
-	  fputs("\001\001\001\001\n",fp);
+	  sfprintf(fp,"\001\001\001\001\n");
 
 	fromuser = rp->addr->link->user;
 	if (*fromuser == 0 ||
@@ -1836,32 +1836,32 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	/* Add the From_ line and print out the header */
 
-	if (fprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
-	    || fwriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
+	if (sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
+	    || swriteheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
 	  failed = 1;
 
 	if (!failed && rp->orcpt) {
-	  fprintf(fp, "X-Orcpt: ");
+	  sfprintf(fp, "X-Orcpt: ");
 	  decodeXtext(fp, rp->orcpt);
-	  fprintf(fp, "\n");
+	  sfprintf(fp, "\n");
 	}
 	if (!failed && dp->envid) {
-	  fprintf(fp, "X-Envid: ");
+	  sfprintf(fp, "X-Envid: ");
 	  decodeXtext(fp, dp->envid);
-	  fprintf(fp, "\n");
+	  sfprintf(fp, "\n");
 	}
 	if (do_xuidl && !topipe) {
 	  struct timeval tv;
 	  gettimeofday(&tv, NULL);
 
-	  fprintf(fp, "X-UIDL: %ld.%ld.%d\n",
+	  sfprintf(fp, "X-UIDL: %ld.%ld.%d\n",
 		  (long)tv.tv_sec, (long)tv.tv_usec, (int)getpid());
 	}
-	fprintf(fp, "\n");
+	sfprintf(fp, "\n");
 
-	fflush(fp); /* Headers written, sync possible errors here! */
+	sfsync(fp); /* Headers written, sync possible errors here! */
 	if (!failed)
-	  failed = ferror(fp);
+	  failed = sferror(fp);
 
 	/* From now on, write errors to PIPE will not cause errors */
 
@@ -1875,28 +1875,28 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  /* XX: should I really do this? */
 	  for (;;) {
 	    errno = 0;
-	    fflush(fp);
+	    sfsync(fp);
 	    if (errno == EINTR)
 	      continue;
 	    break;
 	  }
 	  if (eofindex >= 0)
-	    ftruncate(FILENO(fp), (u_long)eofindex);
+	    ftruncate(sffileno(fp), (u_long)eofindex);
 #endif
 #ifdef HAVE_FSYNC
-	  fsync(FILENO(fp));
+	  fsync(sffileno(fp));
 #endif
-	  fclose(fp);
+	  sfclose(fp);
 	  fp = NULL;
 	  goto time_reset;
 	}
 	lastch = appendlet(dp, rp, fp, file, is_mime);
 
-	fflush(fp);
+	sfsync(fp);
 
 	mw = 1;
 	if (!topipe)
-	  if (lastch < -128 || ferror(fp)) {
+	  if (lastch < -128 || sferror(fp)) {
 	    int err;
 	  write_failure:
 	    err = errno;
@@ -1906,14 +1906,14 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 			mw, file, strerror(err));
 #ifdef HAVE_FTRUNCATE
 	    /* XX: should I really do this? */
-	    fflush(fp);
+	    sfsync(fp);
 	    if (eofindex >= 0)
-	      ftruncate(FILENO(fp), (off_t)eofindex);
+	      ftruncate(sffileno(fp), (off_t)eofindex);
 #endif
 #ifdef HAVE_FSYNC
-	    fsync(FILENO(fp));
+	    fsync(sffileno(fp));
 #endif
-	    fclose(fp);
+	    sfclose(fp);
 	    eofindex = -1;
 	    fp = NULL;
 	    goto time_reset;
@@ -1935,32 +1935,32 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	   * login etc. can distinguish new mail from old.
 	   * The mtime will be set to now by the following write() calls.
 	   */
-	  fseek(fp, (off_t)-2, SEEK_END);
-	  len = fread(buf, 1, 2, fp);
-	  fseek(fp, (off_t)0, SEEK_END);	/* to end of file, again */
+	  sfseek(fp, (off_t)-2, SEEK_END);
+	  len = sfread(fp, buf, 2);
+	  sfseek(fp, (off_t)0, SEEK_END);	/* to end of file, again */
 
 	  if (len == 1 || len == 2) {
 	    int err;
 	    --len;
 	    len = (buf[len]!='\n') + (len == 1 ? buf[0]!='\n' : 1);
-	    err = (len > 0 && (fwrite("\n\n", 1, len, fp) != len));
-	    fflush(fp);
+	    err = (len > 0 && (sfwrite(fp, "\n\n", len) != len));
+	    sfsync(fp);
 
-	    if (!err) err = ferror(fp);
+	    if (!err) err = sferror(fp);
 	    if (err) {
 	      notaryreport(NULL,NULL,NULL,NULL);
 	      DIAGNOSTIC(rp, file, EX_IOERR,
 			 "cleansing of \"%s\" failed", file);
 #ifdef	HAVE_FTRUNCATE
 	      /* XX: should I really do this? */
-	      fflush(fp);
+	      sfsync(fp);
 	      if (eofindex >= 0)
-		ftruncate(FILENO(fp), (off_t)eofindex);
+		ftruncate(sffileno(fp), (off_t)eofindex);
 #endif /* HAVE_FTRUNCATE */
 #ifdef HAVE_FSYNC
-	      fsync(FILENO(fp));
+	      fsync(sffileno(fp));
 #endif
-	      fclose(fp);
+	      sfclose(fp);
 	      fp = NULL;
 
 	      goto time_reset;
@@ -1969,15 +1969,15 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	  /* End of the file, and MMDF-style ? */
 	  if (mmdf_mode == 1 /* Values 2 and 3 exist on PIPEs only.. */ ) {
-	    if (fputs("\001\001\001\001\n",fp) == EOF) {
+	    if (sfprintf(fp,"\001\001\001\001\n") == EOF) {
 	      mw=2;
 	      goto write_failure;
 	    }
 	  }
 	}
 
-	fflush(fp);
-	if (!topipe && ferror(fp)) {
+	sfsync(fp);
+	if (!topipe && sferror(fp)) {
 	  mw=3;
 	  goto write_failure;
 	}
@@ -2000,7 +2000,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  fprintf(logfp,
 		  "%s: %ld + %ld : %s (pid %d user %s)\n",
 		  dp->logident, eofindex,
-		  (fp ? ftell(fp): 0) - eofindex, file,
+		  (fp ? sftell(fp): 0) - eofindex, file,
 		  (int)getpid(), rp->addr->user);
 #if 0
 	  fprintf(logfp, "%s: %ld + %ld : %s\n",
@@ -2045,7 +2045,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	int status;
 	struct passwd *pw;
 	FILE *errfp;
-	FILE *fp;
+	Sfio_t *fp;
 	time_t starttime, endtime;
 
 	time(&starttime);
@@ -2692,11 +2692,11 @@ setrootuid(rp)
  */
 int
 appendlet(dp, rp, fp, file, ismime)
-	struct ctldesc *dp;
-	struct rcpt *rp;
-	FILE *fp;
-	int ismime;
-	const char *file;
+     struct ctldesc *dp;
+     struct rcpt *rp;
+     Sfio_t *fp;
+     int ismime;
+     const char *file;
 {
 	struct writestate WS;
 
@@ -3035,7 +3035,7 @@ writebuf(WS, buf, len)
 	    expect = mmdf_mode ? 0 : 'F';
 	    fromp = WS->frombuf;
 	    *fromp = 0;
-	    if (putc(c,WS->fp) == EOF)
+	    if (sfputc(WS->fp,c) == EOF)
 	      { tlen = -1; break; }
 	  } else if (expect != '\0') {
 	    if (c == expect) {
@@ -3048,7 +3048,7 @@ writebuf(WS, buf, len)
 		case 'm':	expect = ' '; break;
 		case ' ':
 		  /* Write the separator, and the word.. */
-		  if (fwrite(">From ", 6, 1, WS->fp) == 0 || ferror(WS->fp))
+		  if (sfwrite(WS->fp, ">From ", 6) == 0 || sferror(WS->fp))
 		    { tlen = -1; break; }
 		  /* anticipate future instances */
 		  expect = '\0';
@@ -3057,15 +3057,15 @@ writebuf(WS, buf, len)
 	    } else {
 	      expect = '\0';
 	      if (WS->frombuf[0] != 0 &&
-		  fputs(WS->frombuf, WS->fp) < 0)
+		  sfprintf(WS->fp, "%s", WS->frombuf) < 0)
 		{ tlen = -1; break; }
 	      WS->frombuf[0] = 0;
 	      fromp = WS->frombuf;
-	      if (putc(c,WS->fp) == EOF)
+	      if (sfprintf(WS->fp, "%s", WS->frombuf) < 0)
 		{ tlen = -1; break; }
 	    }
 	  } else { /* expect == '\0'; */
-	    if (putc(c,WS->fp) == EOF)
+	    if (sfputc(WS->fp, c) == EOF)
 	      { tlen = -1; break; }
 	  }
 	}
@@ -3110,7 +3110,7 @@ writemimeline(WS, buf, len)
 	  /* ------------------------------------------------------------ */
 	  /* XX: process MIME boundary! */
 	  WS->lastch = buf[len-1];
-	  return fwrite(buf, 1, len, WS->fp);
+	  return fwrite(buf, len, WS->fp);
 
 	} else
 #endif
@@ -3155,10 +3155,10 @@ writemimeline(WS, buf, len)
 	    if (!mmdf_mode && tlen >= 5 &&
 		buf2[0] == 'F' && memcmp(buf2,"From ",5)==0)
 	      if (WS->lastch >= 256 || WS->lastch == '\n')
-		if (putc('>',WS->fp) == EOF)
+		if (sfputc(WS->fp, '>') == EOF)
 		  return -1;
 	    if (tlen > 0) {
-	      i = fwrite(buf2, 1, tlen, WS->fp);
+	      i = sfwrite(WS->fp, buf2, tlen);
 	      WS->lastch = buf2[tlen-1];
 	    } else
 	      i = 0;
@@ -3170,10 +3170,10 @@ writemimeline(WS, buf, len)
 	/* Well, no other processings known.. */
 	if (!mmdf_mode && buf[0] == 'F' && strncmp(buf,"From ",5)==0)
 	  if (WS->lastch >= 256 || WS->lastch == '\n')
-	    if (putc('>',WS->fp) == EOF)
+	    if (sfputc(WS->fp,'>') == EOF)
 	      return -1;
 	WS->lastch = buf[len-1];
-	return fwrite(buf, 1, len, WS->fp);
+	return sfwrite(WS->fp, buf, len);
 }
 
 
@@ -3231,35 +3231,35 @@ find_return_receipt_hdr (rp)
     return(hdr);
 }
 
-static void encodeXtext __((FILE *, const char *));
+static void encodeXtext __((Sfio_t *, const char *));
 static void encodeXtext(fp,str)
-FILE *fp;
-const char *str;
+     Sfio_t *fp;
+     const char *str;
 {
 	while (*str) {
 	  u_char c = *str;
 	  if ('!' <= c && c <= '~' && c != '+' && c != '=')
-	    putc(c,fp);
+	    sfputc(fp,c);
 	  else
-	    fprintf(fp,"+%02X",c);
+	    sfprintf(fp,"+%02X",c);
 	  ++str;
 	}
 }
 
 static void
-decodeXtext(fp,xtext)
-	FILE *fp;
+decodeXtext(mfp,xtext)
+	Sfio_t *mfp;
 	const char *xtext;
 {
 	for (;*xtext;++xtext) {
 	  if (*xtext == '+') {
 	    int c = '?';
 	    sscanf(xtext+1,"%02X",&c);
-	    putc(c,fp);
+	    sfputc(mfp,c);
 	    if (*xtext) ++xtext;
 	    if (*xtext) ++xtext;
 	  } else
-	    putc(*xtext,fp);
+	    sfputc(mfp,*xtext);
 	}
 }
 
@@ -3281,7 +3281,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 {
 	char buf[BUFSIZ];
 	const char **cpp, *mailshare, *mfpath;
-	FILE *mfp, *efp;
+	Sfio_t *mfp, *efp;
 	struct rcpt *rp;
 	int n;
 	char boundarystr[400];
@@ -3295,25 +3295,25 @@ return_receipt (dp, retrecptaddr, uidstr)
 	if (pw)
 	  username = pw->pw_name;
 
-	mfp = mail_open(MSG_RFC822);
+	mfp = sfmail_open(MSG_RFC822);
 	if (mfp == NULL) {
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
-	    DIAGNOSTIC(rp, "", EX_TEMPFAIL, "mail_open failure", 0);
+	    DIAGNOSTIC(rp, "", EX_TEMPFAIL, "sfmail_open failure", 0);
 	  warning("Cannot open mail file!");
 	  return;
 	}
-	fprintf(mfp, "channel error\n");
+	sfprintf(mfp, "channel error\n");
 
 	rp = dp->recipients;
 
 	/* copy To: from return-receipt address */
-	fprintf(mfp, "todsn NOTIFY=NEVER ORCPT=rfc822;");
+	sfprintf(mfp, "todsn NOTIFY=NEVER ORCPT=rfc822;");
 	encodeXtext(mfp, retrecptaddr);
-	fprintf(mfp, "\nto %s\n",retrecptaddr);
-	fprintf(mfp, "env-end\n");
-	fprintf(mfp, "To: %s\n", retrecptaddr);
-	fprintf(mfp, "From: Automatically on behalf of the user <%s>\n",
-		     username);
+	sfprintf(mfp, "\nto %s\n",retrecptaddr);
+	sfprintf(mfp, "env-end\n");
+	sfprintf(mfp, "To: %s\n", retrecptaddr);
+	sfprintf(mfp, "From: Automatically on behalf of the user <%s>\n",
+		 username);
 
 	/* copy error message file itself */
 	mailshare = getzenv("MAILSHARE");
@@ -3321,18 +3321,18 @@ return_receipt (dp, retrecptaddr, uidstr)
 	  mailshare = MAILSHARE;
 
 	mfpath = emalloc(3+strlen(mailshare)+strlen(FORMSDIR)
-				 +strlen(RETURN_RECEIPT_FORM));
+			 +strlen(RETURN_RECEIPT_FORM));
 	sprintf((char*)mfpath, "%s/%s/%s",
 		mailshare, FORMSDIR, RETURN_RECEIPT_FORM);
 
 
-	efp = fopen(mfpath, "r");
+	efp = sfopen(NULL, mfpath, "r");
 
 	{
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
 	  struct stat stbuf;
 
-	  fstat(FILENO(mfp),&stbuf);
+	  fstat(sffileno(mfp),&stbuf);
 	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
 	  strcat(boundarystr, "=_/return-receipt/");
 	  strcat(boundarystr, dom);
@@ -3341,81 +3341,81 @@ return_receipt (dp, retrecptaddr, uidstr)
 	if (efp != NULL) {
 	  int inhdr = 1;
 	  buf[sizeof(buf)-1] = 0;
-	  while (fgets(buf,sizeof(buf)-1,efp) != NULL) {
+	  while (cfgets(buf,sizeof(buf)-1,efp) >= 0) {
 	    if (strncmp(buf,"HDR",3)==0) {
-	      fputs(buf+4,mfp);
+	      sfprintf(mfp, "%s", buf+4);
 	    } else if (strncmp(buf,"SUB",3)==0) {
-	      fputs(buf+4,mfp);
+	      sfprintf(mfp, "%s", buf+4);
 	    } else {
 	      if (inhdr) {
 		inhdr = 0;
-		fprintf(mfp,"MIME-Version: 1.0\n");
-		fprintf(mfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
-		fprintf(mfp,"\tboundary=\"%s\"\n\n\n",boundarystr);
-		fprintf(mfp, "--%s\n", boundarystr);
-		fprintf(mfp, "Content-Type: text/plain\n");
+		sfprintf(mfp,"MIME-Version: 1.0\n");
+		sfprintf(mfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
+		sfprintf(mfp,"\tboundary=\"%s\"\n\n\n",boundarystr);
+		sfprintf(mfp, "--%s\n", boundarystr);
+		sfprintf(mfp, "Content-Type: text/plain\n");
 	      }
-	      fputs(buf,mfp);
+	      sfprintf(mfp, "%s", buf);
 	    }
 	  } /* ... while() ends.. */
-	  fclose(efp);
+	  sfclose(efp);
 	} else {
 	  for (cpp = dfltform; *cpp != NULL; ++cpp)
 	    if (*cpp[0] == 0) {
-	      fprintf(mfp, "\tboundary=\"%s\"\n\n", boundarystr);
-	      fprintf(mfp, "--%s\n", boundarystr);
-	      fprintf(mfp, "Content-Type: text/plain\n\n");
+	      sfprintf(mfp, "\tboundary=\"%s\"\n\n", boundarystr);
+	      sfprintf(mfp, "--%s\n", boundarystr);
+	      sfprintf(mfp, "Content-Type: text/plain\n\n");
 	    } else
-	      fprintf(mfp, "%s\n", *cpp);
+	      sfprintf(mfp, "%s\n", *cpp);
 	}
 	/* print out errors in standard format */
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
-	  fprintf(mfp, "\t%s\n", rp->addr->user);
+	  sfprintf(mfp, "\t%s\n", rp->addr->user);
 	}
-	fprintf(mfp, "\n--%s\n", boundarystr);
-	fprintf(mfp, "Content-Type: message/delivery-status\n\n");
+	sfprintf(mfp, "\n--%s\n", boundarystr);
+	sfprintf(mfp, "Content-Type: message/delivery-status\n\n");
 
 	if (mydomain() != NULL) {
-	  fprintf(mfp, "Reporting-MTA: dns;%s\n", mydomain() );
+	  sfprintf(mfp, "Reporting-MTA: dns;%s\n", mydomain() );
 	} else {
-	  fprintf(mfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
+	  sfprintf(mfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
 	if (dp->envid != NULL) {
-	  fprintf(mfp, "Original-Envelope-Id: ");
+	  sfprintf(mfp, "Original-Envelope-Id: ");
 	  decodeXtext(mfp,dp->envid);
-	  putc('\n',mfp);
+	  sfputc(mfp, '\n');
 	}
 	/* rfc822date() returns a string with trailing newline! */
 	fstat(dp->msgfd,&stb);
-	fprintf(mfp, "Arrival-Date: %s", rfc822date(&stb.st_mtime));
-	fprintf(mfp, "\n");
+	sfprintf(mfp, "Arrival-Date: %s", rfc822date(&stb.st_mtime));
+	sfprintf(mfp, "\n");
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  if (rp->orcpt != NULL) {
-	    fprintf(mfp, "Original-Recipient: ");
+	    sfprintf(mfp, "Original-Recipient: ");
 	    decodeXtext(mfp,rp->orcpt);
-	    fprintf(mfp, "\n");
+	    sfprintf(mfp, "\n");
 	  }
-	  fprintf(mfp, "Final-Recipient: X-LOCAL;%s\n", rp->addr->user);
-	  fprintf(mfp, "Action: delivery\n");
-	  fprintf(mfp, "Status: 2.2.0\n");
-	  fprintf(mfp, "Diagnostic-Code: smtp; 250 ('%s' delivered)\n", rp->addr->user );
-	  fprintf(mfp, "\n");
+	  sfprintf(mfp, "Final-Recipient: X-LOCAL;%s\n", rp->addr->user);
+	  sfprintf(mfp, "Action: delivery\n");
+	  sfprintf(mfp, "Status: 2.2.0\n");
+	  sfprintf(mfp, "Diagnostic-Code: smtp; 250 ('%s' delivered)\n", rp->addr->user );
+	  sfprintf(mfp, "\n");
 	}
 
-	fprintf(mfp, "--%s\n", boundarystr);
-	fprintf(mfp, "Content-Type: message/rfc822\n\n");
+	sfprintf(mfp, "--%s\n", boundarystr);
+	sfprintf(mfp, "Content-Type: message/rfc822\n\n");
 
 	rp = dp->recipients;
 	/* write the (new) headers with local "Received:"-line.. */
-	fwriteheaders(rp, mfp, "\n", 0, 0, NULL);
-	fprintf(mfp, "\n");
+	swriteheaders(rp, mfp, "\n", 0, 0, NULL);
+	sfprintf(mfp, "\n");
 
-	fprintf(mfp, "--%s--\n", boundarystr);
-	if (ferror(mfp)) {
-	  mail_abort(mfp);
+	sfprintf(mfp, "--%s--\n", boundarystr);
+	if (sferror(mfp)) {
+	  sfmail_abort(mfp);
 	  n = EX_IOERR;
-	} else if (mail_close(mfp) == EOF)
+	} else if (sfmail_close(mfp) == EOF)
 	  n = EX_IOERR;
 	else
 	  n = EX_OK;

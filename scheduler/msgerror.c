@@ -69,11 +69,11 @@ decodeXtext(fp,xtext)
 	}
 }
 
-static void scnotaryreport __((FILE *, struct not *, int *, int));
+static void scnotaryreport __((Sfio_t *, struct not *, int *, int));
 
 static void	/* There is notaryreport() on transporters also.. */
 scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
-	FILE *errfp;
+	Sfio_t *errfp;
 	struct not *notary;
 	int *haserrsp;
 	int notifyrespectflg;

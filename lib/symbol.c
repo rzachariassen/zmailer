@@ -59,11 +59,9 @@ symbol_lookup_db_mem_(s, slen, spt, usecrc)
 	struct sptree *spt;
 	const int usecrc;
 {
-	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
 	struct spblk *spl;
-	int i = slen;
 
 	if (s == NULL)
 		return 0;
@@ -113,11 +111,9 @@ symbol_db_mem_(s, slen, spt, usecrc)
 	int slen, usecrc;
 	struct sptree *spt;
 {
-	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
 	struct spblk *spl;
-	int i = slen;
 
 	if (s == NULL)
 		return 0;
@@ -208,11 +204,9 @@ symbol_free_db_mem_(s, slen, spt, usecrc)
 	int slen, usecrc;
 	struct sptree *spt;
 {
-	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
 	struct spblk *spl;
-	int i = slen;
 
 	if (s == NULL || spt == NULL)
 		return;

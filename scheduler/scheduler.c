@@ -287,9 +287,8 @@ struct ctlfile *cfp;
 	    vp->ngroup = 0;
 	    unvertex(vp,-1,1); /* Don't unlink()! Just free()! */
 	  }
-	} else {
-	  free_cfp_memory(cfp);
 	}
+	free_cfp_memory(cfp);
 }
 
 static void cfp_free(cfp, spl)
@@ -1318,10 +1317,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	if (cfp->head == NULL) {
 	  ++global_wrkcnt;
 	  ++MIBMtaEntry->mtaStoredMessages;
-	  MIBMtaEntry->mtaStoredRecipients     += cfp->rcpnts_work;
-	  MIBMtaEntry->mtaReceivedRecipientsSc += cfp->rcpnts_work;
 	  unctlfile(cfp, 0); /* Delete the file.
-				(decrements those counters too!) */
+				(decrements those counters above!) */
 	  return NULL;
 	}
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {

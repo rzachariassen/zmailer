@@ -1,5 +1,13 @@
 1999-12-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler:
+	  - Some more SFIO fixes which I missed last night
+	  - Possibly fixed the 'mailq -Q' reported stored recipient counts.
+	    (cosmetics)
+
+	* lib/symbol.c, libc/getzenv.c:
+	    Compiler pleasing..
+
 	* ALL OVER THE PLACE:
 	  - Replaced *all* stdio usage within the Scheduler with
 	    SFIO -- now it can go beyond 255 open file descriptors

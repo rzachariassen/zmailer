@@ -624,7 +624,7 @@ static void vtxupdate(vp, index, ok)
 	    /* remove us from the vertex indices */
 	    vp->ngroup -= 1;
 
-	    --MIBMtaEntry->mtaStoredRecipients;
+	    MIBMtaEntry->mtaStoredRecipients -= 1;
 
 	    /* compact the index array */
 	    for (++i; i <= vp->ngroup; ++i)

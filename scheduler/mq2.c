@@ -444,6 +444,63 @@ void mq2_areinsets(rdmaskp, wrmaskp)
     }
 }
 
+/*
+ * The  thread_report()  is Sfio_t stream based printout routine,
+ * and we want to use special discipline routine which translates
+ * the write backend function to 'mq2' buffering mode.
+ *
+ */
+
+struct mq2discipline {
+  Sfdisc_t D;
+  struct mailq *mq;
+};
+
+ssize_t mq2_sfwrite(sfp, vp, len, discp)
+     Sfio_t *sfp;
+     const void * vp;
+     size_t len;
+     Sfdisc_t *discp;
+{
+    struct mq2discipline *mqd = (struct mq2discipline *)discp;
+    struct mailq *mq = mqd->mq;
+    int rc, i;
+    char *p = (char *)vp;
+
+    for (i = 0; len > 0; ++p, --len, ++i)
+      if ((rc = mq2_putc(mq,*p)) < 0)
+	return rc;
+
+    return i;
+}
+
+static void mq2_thread_report __((struct mailq *mq, int mode));
+static void mq2_thread_report(mq, mode)
+     struct mailq *mq;
+     int mode;
+{
+  Sfio_t *fp;
+  struct mq2discipline mq2d;
+
+  fp = sfnew(NULL, NULL, 0, 0, SF_LINE|SF_WRITE);
+  if (!fp) {
+    mq2_puts(mq, " *** FAILURE: sfnew(NULL, NULL, 0, -1, SF_LINE|SF_STRING|SF_WRITE);\n");
+    return;
+  }
+
+  memset(&mq2d, 0, sizeof(mq2d));
+  mq2d.mq = mq;
+  mq2d.D.writef  = mq2_sfwrite;
+
+  sfdisc(fp, &mq2d.D);
+
+  thread_report(fp, mode);
+
+  sfsetfd(fp, -1);
+  sfclose(fp);
+}
+
+
 /* INTERNAL */
 static int mq2cmd_show(mq,s)
      struct mailq *mq;

@@ -130,7 +130,6 @@ extern int   idleprocs;
 extern void  web_disentangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));
 extern void  thread_reschedule __((struct thread *, time_t, int index));
-extern void  mq2_thread_report __((struct mailq *mq, int mqmode));
 
 /* transport.c */
 extern struct procinfo *cpids;
