@@ -176,6 +176,10 @@ typedef struct {
     char *sslwrbuf;
     int   sslwrspace, sslwrin, sslwrout;
     /* space, how much stuff in, where the output cursor is */
+
+    char *tls_ccert_subject;
+    char *tls_ccert_issuer;
+    char *tls_ccert_fingerprint;
 #endif
 
     int  s_bufread;
@@ -237,6 +241,8 @@ extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;
+extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
+extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;
@@ -382,9 +388,12 @@ extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
 
 #ifdef HAVE_OPENSSL
 /* smtptls.c */
+extern int tls_init_serverengine __((int, int, int));
 extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern int Z_SSL_write __((SmtpState *, const void *, int));
 extern int Z_SSL_flush __((SmtpState *));
+
+extern SSL_CTX *ssl_ctx;
 #endif
 
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */

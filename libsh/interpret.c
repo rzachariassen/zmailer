@@ -2287,7 +2287,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			break;
 		case sSiftBody:
 			if (sift[nsift].str)
-			       free(sift[nsift].str);
+			       free((void*)sift[nsift].str);
 			sift[nsift].str = NULL;
 			if (command->buffer != NULL) {
 				if (cdr(command->buffer))
@@ -2361,7 +2361,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			break;
 		case sSiftPop:
 			if (sift[nsift].str)
-			       free(sift[nsift].str);
+			       free((void*)sift[nsift].str);
 			for (v_accessed = sift[nsift].accessed;
 			     v_accessed != NULL;
 			     v_accessed = sift[nsift].accessed) {

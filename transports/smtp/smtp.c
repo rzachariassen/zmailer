@@ -3318,6 +3318,8 @@ int bdat_flush(SS, lastflg)
 	if (r != EX_OK)
 	  return r;
 
+	&r; /* longjump() globber danger */
+
 	if (setjmp(alarmjmp) == 0) {
 	  for (pos = 0; pos < SS->chunksize;) {
 	    wrlen = SS->chunksize - pos;

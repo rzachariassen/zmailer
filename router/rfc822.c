@@ -831,7 +831,6 @@ mkSender(e, name, flag)
 	struct addr *pp, *qp, **ppp;
 	conscell *l;
 	int didbracket;
-	struct spblk *spl;
 	GCVARS1;
 
 	l = NULL;
@@ -865,6 +864,7 @@ mkSender(e, name, flag)
 		}
 	} else {
 	  spkey_t spk = symbol_lookup_db(name, spt_fullnamemap->symbols);
+	  struct spblk *spl = NULL;
 	  if (spk)
 	    spl = sp_lookup(spk, spt_fullnamemap);
 	  if (spk && spl != NULL && (char*)(spl->data) != NULL) {

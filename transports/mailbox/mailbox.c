@@ -2169,7 +2169,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  /* hmm.. must split the command line to inputs for  execve();
 	     I have uses for a strict environment without  /bin/sh ... [mea] */
 
-	  cp = cmdbuf+1;
+	  cp = (char*)cmdbuf+1;
 	  s = strchr(cp,'$');
 	  if (!s)
 	    s = strchr(cp,'>');

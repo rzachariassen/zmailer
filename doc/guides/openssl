@@ -1,0 +1,102 @@
+	Use OpenSSL to create RFC 2487 services
+
+Adapted from material at:
+  http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/
+
+Here are steps to add OpenSSL to the ZMailer smtpserver:
+
+A)  OpenSSL library:
+ 1) Pick source via  www.openssl.org
+    Minimum level 0.9.2b, perhaps even newer, as its usage does
+    assume  <openssl/ssl.h>  which is very recent invention at
+    the source tree..
+
+ 2) Compile that system with default prefix:
+	./config --prefix=/usr/local/ssl
+
+ 3) make, test, install, etc..
+
+B)  ZMailer:
+ 1) Configure with new additional option:
+	--with-openssl-prefix=/usr/local/ssl
+
+ 2) Compile and install like always
+
+ 3) Obtain, or generate the server certificate and private key,
+    and install them into  "$MAILVAR/db/smtpserver-cert.pem", and
+    "$MAILVAR/db/smtpserver-key.pem"; latter of which must *not*
+    use password encryption, and likely should be owned by ROOT,
+    and with permission of 0400 !
+    Oh, you will also need CAcert.pem file...
+
+    For a document about being your own CA supplying the certificate(s):
+http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/myownca.html
+
+ 4) The  $MAILVAR/smtpserver.conf  will need PARAMs:
+
+#
+# TLSv1/SSLv[23] parameters; all must be used for the system to work!
+#
+PARAM	use-tls
+PARAM	tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
+PARAM	tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
+PARAM	tls-key-file	@MAILVAR@/db/smtpserver-key.pem
+#  # Actually these last two default each other, so only one must be given
+#  # Then some futher thoughs that may materialize some time..
+##PARAM tls-CApath ... (somewhen: ways to verify client's certificates)
+##PARAM tls-loglevel	0
+##PARAM tls-enforce-tls	1
+##PARAM tls-ccert-vd	1
+
+
+
+
+
+
+  Explanations follow:
+
+
+Because the TLS related code is fairly straight copy from Postfix
+specific one, the document is fairly direct copy too..
+
+# To use TLS we do need a certificate and a private key. Both must be in
+# "pem" format, the private key must not be encrypted, that does mean:
+# it must be accessable without password. Both parts (certificate and
+# private key) may be in the same file.
+#
+# tls-cert-file = /etc/postfix/server.pem
+# tls-key-file  = /etc/postfix/server.pem
+
+# The certificate was issued by a certification authority (CA), of which
+# the CA-cert must be available. This file may also contain the the
+# CA certificates of other trusted CAs. You must use this file for the
+# list of trusted CAs if you want to use chroot-mode.
+#
+# tls-CAfile = /etc/postfix/CAcert.pem
+
+# To verify the peer certificate, we need to know the certificates of
+# certification authorities. These certificates in "pem" format are
+# collected in a directory. The same CAs are offered to clients for
+# client verification. Don't forget to create the necessary "hash"
+# links with $OPENSSL_HOME/bin/c_rehash /etc/postfix/certs. A typical
+# place for the CA-certs may also be $OPENSSL_HOME/certs, so there is
+# no default and you explicitly have to set the value here!
+#
+# tls-CApath = /etc/postfix/certs
+
+# To get additional information during the TLS setup and negotiations
+# you can increase the loglevel from 0..4:
+# 0: No output about the TLS subsystem
+# 1: Printout startup and certificate information
+# 2: 1 + Printout of levels during negotiation
+# 3: 2 + Hex and ASCII dump of negotiation process
+# 4: 3 + Hex and ASCII dump of complete transmission after STARTTLS
+# Use loglevel 3 only in case of problems. Use of loglevel 4 is strongly
+# discouraged.
+#
+# tls-loglevel = 0
+
+# By default TLS is disabled, so no difference to plain postfix is visible.
+# Explicitely switch it on here:
+#
+# use-tls

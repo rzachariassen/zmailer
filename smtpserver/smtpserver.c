@@ -200,18 +200,29 @@ int dsn_ok = 1;
 int auth_ok = 0;
 int ehlo_ok = 1;
 int etrn_ok = 1;
-int starttls_ok = 1;
+int starttls_ok = 0;
+char *tls_cert_file = NULL;
+char *tls_key_file  = NULL;
+char *tls_CAfile    = NULL;
+char *tls_CApath    = NULL;
+int tls_loglevel    = 0;
+int tls_enforce_tls = 0;
+int tls_ccert_vd    = 1;
+
+#ifdef HAVE_OPENSSL
+SSL_CTX *ssl_ctx = NULL;
+#endif
+
+
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
 #endif				/* IDENT_TIMEOUT */
 
 #if defined(AF_INET6) && defined(INET6)
-static const struct in6_addr zin6addrany = 
-{
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-const struct in6_addr zv4mapprefix = 
-{
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0, 0}};
+static const u_char zin6addrany[16] = 
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const u_char zv4mapprefix[16] = 
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0, 0};
 #endif
 
 static void setrfc1413ident __((SmtpState * SS));
@@ -511,6 +522,11 @@ char **argv;
     else
       cfhead = readcffile(cfgpath);
 
+#ifdef HAVE_OPENSSL
+    if (starttls_ok)
+      tls_init_serverengine(1,1,0);
+#endif
+
     if (!allow_source_route)
       allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
@@ -717,7 +733,7 @@ char **argv;
 	    si6.sin6_family = AF_INET6;
 	    si6.sin6_flowinfo = 0;
 	    si6.sin6_port = port;
-	    si6.sin6_addr = zin6addrany;
+	    memcpy( &si6.sin6_addr, zin6addrany, 16 );
 
 	    i = bind(s, (struct sockaddr *) &si6, sizeof si6);
 	    if (i < 0) {
@@ -1091,7 +1107,7 @@ SmtpState *SS;
 	    /* If it is IPv4 mapped address to IPv6, then resolve
 	       the IPv4 address... */
 
-	    if (memcmp((void *) ip6, &zv4mapprefix, 12) == 0)
+	    if (memcmp((void *) ip6, zv4mapprefix, 12) == 0)
 		hp = gethostbyaddr(((char *) ip6) + 12, 4, AF_INET);
 	    else
 		hp = gethostbyaddr((char *) ip6, 16, AF_INET6);
@@ -1382,7 +1398,7 @@ int insecure;
 	/* If it is IPv4 mapped address to IPv6, then resolve
 	   the IPv4 address... */
 
-	if (memcmp((void *) ip6, &zv4mapprefix, 12) == 0)
+	if (memcmp((void *) ip6, zv4mapprefix, 12) == 0)
 	    hostent = gethostbyaddr(((char *) ip6) + 12, 4, AF_INET);
 	else
 	    hostent = gethostbyaddr((char *) ip6, 16, AF_INET6);
@@ -1579,7 +1595,7 @@ int insecure;
 
 	for (cp = buf; isascii(*cp) && isalpha(*cp); ++cp)
 	    continue;
-	if (cp > buf + 6) {	/* "DEBUG" is longest of them.. */
+	if (cp > buf + 8) {	/* "DEBUG" is longest of them.. */
 	    type(SS, 550, m552, "Syntax error");
 	    typeflush(SS);
 	    continue;
@@ -1888,12 +1904,15 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     } else
 	c = ' ';
 
-    sprintf(buf, "%03d%c", code, c);
+    if (code >= 999)
+      sprintf(buf, "000%c", c);
+    else
+      sprintf(buf, "%03d%c", code, c);
     if (enhancedstatusok && status && status[0] != 0)
       sprintf(buf+4, "%s ", status);
     s = strlen(buf)+buf;
 
-    switch (code) {
+    switch (code && SS) {
     case 211:			/* System status */
 	text = "%s";
 	break;
@@ -1992,9 +2011,10 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       /* XXX: Buffer overflow ??!! Signal about it, and crash! */
     }
     if (logfp != NULL) {
-	fprintf(logfp, "%dw\t%s\n", pid, buf);
+	fprintf(logfp, "%d%c\t%s\n", pid, (SS ? 'w' : '#'), buf);
 	fflush(logfp);
     }
+    if (!SS) return; /* Only to local log.. */
     strcpy(s, "\r\n");
 #ifdef HAVE_OPENSSL
     if (SS->sslmode)

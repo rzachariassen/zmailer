@@ -41,6 +41,4 @@ getdtablesize()
 }
 #endif
 #endif
-#else
-static int dummy = 0;
 #endif

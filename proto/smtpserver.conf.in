@@ -75,6 +75,21 @@ PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 
 #
+# TLSv1/SSLv[23] parameters; all must be used for the system to work!
+#
+# See  http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
+#
+#PARAM	use-tls
+#PARAM	tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
+#PARAM	tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
+#PARAM	tls-key-file	@MAILVAR@/db/smtpserver-key.pem
+#  # Then some futher thoughs that may materialize some time..
+##PARAM tls-CApath ... (somewhen: ways to verify client's certificates)
+##PARAM tls-loglevel	0
+##PARAM tls-enforce-tls	1
+##PARAM tls-ccert-vd	1
+
+#
 #
 # HELO/EHLO-pattern	style-flags (Remember: 'ftve' set needs enable-router!)
 #               [max loadavg]

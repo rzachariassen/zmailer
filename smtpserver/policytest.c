@@ -70,7 +70,7 @@ static int  check_user __((struct policytest *, struct policystate *, const char
 static int  checkaddr  __((struct policytest *, struct policystate *, const char *));
 
 #if defined(AF_INET6) && defined(INET6)
-extern const struct in6_addr zv4mapprefix;
+extern const u_char zv4mapprefix[16];
 #endif
 
 /* KK() and KA() macroes are at "policy.h" */
@@ -817,7 +817,7 @@ Usockaddr *raddr;
 #if defined(AF_INET6) && defined(INET6)
     if (raddr->v6.sin6_family == AF_INET6) {
       si6 = & (raddr->v6);
-      if (memcmp((void *)&si6->sin6_addr, &zv4mapprefix, 12) == 0) {
+      if (memcmp((void *)&si6->sin6_addr, zv4mapprefix, 12) == 0) {
 	/* This is IPv4 address mapped into IPv6 */
 	pbuf[0] = 7;
 	pbuf[1] = P_K_IPv4;

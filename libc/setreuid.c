@@ -80,7 +80,7 @@ uid_t ruid, euid;
 #ifdef HAVE_SETREUID /* AIX has a sort of setreuid() at its libc, however
 			it does not work... All others either have it, or
 			don't, and need emulation: */
-static int dummy = 0;
+/* static int dummy = 0; */
 #else /* .. else need emulation */
 
 #ifdef HAVE_SETEUID	/* Pure SysVR4 ? */

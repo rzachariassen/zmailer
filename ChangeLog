@@ -1,5 +1,17 @@
 1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/cfgread.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtptls.c, proto/smtpserver.conf.in,
+	  doc/guides/openssl:
+	    Final hurdles at getting the TLSv1/SSLv[23]
+	    support to work at the smtpserver.  Used lots
+	    of POSTFIX specific code here, and wondered
+	    at several document bugs...
+
+	* here and there...:
+	    Some minor things to silence "egcs -Wall -O3 -g"
+
 	* configure.in, acconfig.h, smtpserver/Makefile.in,
 	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
 	  smtpserver/smtpserver.c, smtpserver/smtptls.c:

@@ -19,6 +19,9 @@
 
 #include "policy.h"
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include "libz.h"
 #include "libc.h"
 

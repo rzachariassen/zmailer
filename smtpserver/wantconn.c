@@ -28,7 +28,7 @@
 
 /*
  *  Integration into ZMailer autoconfiguration environment by
- *  Matti Aarnio  <mea@nic.funet.fi>
+ *  Matti Aarnio  <mea@nic.funet.fi> 1996(?)
  */
 
 #include "hostenv.h"
@@ -74,6 +74,4 @@ char *progname;
     return (hosts_access(&request));
 }
 
-#else
-static int dummy = 0;		/* Some compilers complain, if the source is void.. */
 #endif
