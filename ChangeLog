@@ -1,3 +1,10 @@
+1999-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/builtin.c:
+	    A bug in handling of  $(lreplace ... )  internal conscell
+	    chains polluted wrong objects with call parameters.  Adding
+	    one strategic copy-chain solved it.
+
 1999-06-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpauth.c, smtpserver/smtpcmds.c, smtpserver/smtphelp.c,
