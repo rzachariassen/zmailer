@@ -336,6 +336,11 @@ pick_next_thread(proc)
 	    if (thr->proc && thr->nextfeed == NULL)
 	      continue; /* Nothing more to feed! See other threads! */
 
+	    if (proc->ch != ch) /* MUST have same CH data - in case we ever
+				   run with a clause where channel side is
+				   partially wild-carded.. */
+	      continue;
+
 	    proc->pthread = thr;
 	    thr->thrkids += 1;
 
@@ -366,8 +371,7 @@ pick_next_thread(proc)
 	      proc->ho->kids += 1;
 	    }
 
-	    /* In theory the CHANNEL could be different, in practice -- NOT! */
-	    proc->ch      = ch;
+	    /* The channel is be the same at old and new threads */
 
 	    /* Move the pickup pointer forward.. */
 	    thg->thread = thg->thread->nextthg;
@@ -869,18 +873,23 @@ thread_start(thr, queueonly_too)
 	if (thg->idleproc) {
 	  struct procinfo *proc;
 
-	  /* Idle processor(s) exists, try to optimize by finding
-	     an idle proc with matching channel & host from previous
-	     activity. If not found, pick any. */
-	  
 	  /* There is at least one.. */
 	  proc = thg->idleproc;
 
+	  /* Idle processor(s) exists, try to optimize by finding
+	     an idle proc with matching channel & host from previous
+	     activity. If not found, pick any with matching CHANNEL,
+	     unless must have also matching HOST... */
+
 	  for (; proc && (proc->ho != ho || proc->ch != ch); proc = proc->pnext) ;
-	  if (!proc) {
-	    /* None of the previous ones matched, pick the first anyway */
+	  if (!proc && !thg->withhost) {
+	    /* None of the previous ones matched, pick with matching CHANNEL,
+	       HOST is allowed to wild-card.. */
 	    proc = thg->idleproc;
+	    for (; proc && (proc->ch != ch); proc = proc->pnext) ;
 	  }
+	  if (!proc)
+	    goto create_new;
 
 	  /* Selected one of them.. */
 
@@ -957,6 +966,8 @@ thread_start(thr, queueonly_too)
 
 	  return 1;
 	}
+
+ create_new:
 
 	/* Check resource limits - MaxTa, MaxChan, MaxThrGrpTa */
 	/* If resources are exceeded, reschedule.. */

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "29 Feb 2000"
+.TH SCHEDULER 8 "1 Mar 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -387,12 +387,6 @@ and "$host" is replaced by the current matched host, from the destination
 address, and "${LOGDIR}" substitutes ZENV variable LOGDIR value there.
 .I It is strongly recommended that the "$host" is not to be used on
 .I a command definition, as it limits the usability of idled transporter.
-.IP bychannel
-is a keyword (with no associated value) that tells the scheduler that the
-transport agent specified in the command will only process destination
-addresses that match the first destination channel it encounters.  This is
-automatically set when the string "$channel" occurs in the command, but may
-also be specified manually by this keyword.  This is rarely used.
 .IP queueonly
 a clause with
 .I queueonly

@@ -1,5 +1,17 @@
 2000-03-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.h, scheduler/update.c, scheduler/threads.c,
+	  scheduler/prototypes.h, scheduler/readconfig.c, scheduler/msgerror.c,
+	  man/scheduler.8:
+	    - Reworked how IDLE handles idle process recycling; always the
+	      channel must match, host may or may not need to match.
+	    - Reworked parts of error reporting in preparation for creating
+	      delay reports.  (And earlier FAILED/DELIVERED/RELAYED reports
+	      at the same time, of course..)
+
+	* proto/cf/fqdnalias.cf:
+	    Spotted some FIXME things..
+
 	* transports/smtp/smtp.c:
 	    When socket write failure causes shutdown of write direction
 	    socket, do turn all back reported 500 series errors into softer

@@ -200,7 +200,7 @@ unctlfile(cfp, no_unlink)
 	  else
 	    strcpy(path, cfp->mid);
 
-	  reporterrs(cfp);
+	  reporterrs(cfp, 0);
 
 	  if (do_syslog) {
 	    char taspid[30];

@@ -182,7 +182,6 @@ vtxprint(vp)
 	if (ce->flags == 0)
 	  sfprintf(sfstdout," (none)");
 	else {
-	  if (ce->flags & CFG_BYCHANNEL) sfprintf(sfstdout," BYCHANNEL");
 	  if (ce->flags & CFG_WITHHOST)  sfprintf(sfstdout," WITHHOST");
 	  if (ce->flags & CFG_AGEORDER)  sfprintf(sfstdout," AGEORDER");
 	  if (ce->flags & CFG_QUEUEONLY) sfprintf(sfstdout," QUEUEONLY");
@@ -543,22 +542,10 @@ static int rc_command(key, arg, ce)
 	      break;
 	    }
 	}
-	if (!(ce->flags & CFG_BYCHANNEL)) {
-	  for (av = &ce->argv[0]; *av != NULL; ++av)
-	    if (strcmp(*av, replchannel) == 0) {
-	      ce->flags |= CFG_BYCHANNEL;
-#if 0
-	      cp = ce->channel;
-	      while (cp && !(*cp == '[' || *cp == '{' ||
-			     *cp == '*' || *cp == '?')) ++cp;
-	      if (cp && *cp)
-		ce->flags |= CFG_WITHHOST; /* Well, sort of..
-					      Channel-part is wild-card, thus
-					      it is also very restrictive.. */
-#endif
-	      break;
-	    }
-	}
+
+	/* ``replchannel'' need not matched, idle processing
+	   takes it properly into account. */
+
 	return 0;
 }
 
@@ -796,7 +783,6 @@ static int rc_bychannel(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	ce->flags |= CFG_BYCHANNEL;
 	return 0;
 }
 

@@ -37,7 +37,7 @@ struct config_entry {
 	char	*command;	/* the command to run			     */
 	int	flags;		/* miscellaneous flags			     */
 
-#define CFG_BYCHANNEL		0x0001
+/* #define CFG_BYCHANNEL	0x0001 */ /* obsolete thing.. */
 #define CFG_WITHHOST		0x0002
 #define CFG_AGEORDER		0x0004	/* by ctlfile->ctime -value    */
 #define CFG_QUEUEONLY		0x0008

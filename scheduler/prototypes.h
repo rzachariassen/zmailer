@@ -59,7 +59,7 @@ extern void *BADPTR;
 
 /* msgerror.c */
 extern void msgerror __((struct vertex *vp, long offset, const char *message));
-extern void reporterrs __((struct ctlfile *cfpi));
+extern void reporterrs __((struct ctlfile *cfpi, const int delayreport));
 
 /* pipes.c */
 extern int  pipes_create         __((int *tochild, int *fromchild));

@@ -43,6 +43,10 @@ extern int never_full_content; /* at conf.c */
  * respect (knock wood).
  */
 
+typedef enum { ACTSET_DELIVERED = 0, ACTSET_FAILED = 1,
+	       ACTSET_RELAYED   = 2, ACTSET_DELAYED = 3,
+	       ACTSET_NONE = 4 } ACTSETENUM;
+
 struct not {
 	char	    *not;
 	const char  *message;
@@ -51,6 +55,7 @@ struct not {
 	int          notifyflgs;
 	char	    *rcpntp;
 	time_t       tstamp;
+	ACTSETENUM   thisaction;
 };
 
 static void decodeXtext __((Sfio_t *, const char *));
@@ -278,15 +283,16 @@ static void pick_env_addr(buf,mfp)
 }
 
 
-static void writeheader __((Sfio_t *, const char *, int *, const char *, const char *));
+static void writeheader __((Sfio_t *, const char *, int *, const char *, const char *, int *actionset));
 
 static void
-writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
+writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
      Sfio_t *errfp;
      const char *eaddr;
      int *no_error_reportp;
      const char *deliveryform;
      const char *boundary;
+     int *actionset;
 {
 	Sfio_t *fp;
 	char path[MAXPATHLEN];
@@ -332,26 +338,52 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 	    } else if (strncmp(buf,"ADR",3)==0) {
 	      sfprintf(errfp, "%s", buf+4);
 	    } else if (strncmp(buf,"SUB",3)==0) {
+	      char *s = strchr(buf+4, '\n');
+	      if (s) *s = 0;
+	      s = buf+4;
 	      hadsubj = 1;
 	      if (*no_error_reportp < 0) {
 		/* We modify the subject string... */
-		char *s = buf+4;
 		while (*s && *s != ':') ++s;
 		if (*s == ':') {
 		  ++s;
 		  if (*s) *s++ = 0;
 		  sfprintf(errfp,"%s Double-fault: %s", buf+4, s);
 		} else {
-		  sfprintf(errfp,"Subject: Double-fault: unknown delivery error\n");
+		  sfprintf(errfp,"Subject: Double-fault: unknown delivery error");
 		}
 	      } else
 		sfprintf(errfp, "%s", buf+4);
+	      s = " [";
+	      if (actionset[ACTSET_FAILED]) {
+		sfprintf(errfp,"%sFAILED(%d)",s,
+			 actionset[ACTSET_FAILED]);
+		s = ",";
+	      }
+	      if (actionset[ACTSET_DELAYED]) {
+		sfprintf(errfp,"%sDELAYED(%d)",s,
+			 actionset[ACTSET_DELAYED]);
+		s = ",";
+	      }
+	      if (actionset[ACTSET_RELAYED]) {
+		sfprintf(errfp,"%sRELAYED-OK(%d)",s,
+			 actionset[ACTSET_RELAYED]);
+		s = ",";
+	      }
+	      if (actionset[ACTSET_DELIVERED]) {
+		sfprintf(errfp,"%sDELIVERED-OK(%d)",s,
+			 actionset[ACTSET_DELIVERED]);
+	      }
+	      s = (*s == ',') ? "]" : "";
+	      sfprintf(errfp,"%s\n", s);
 	    } else {
 	      if (inhdr) {
 		inhdr = 0;
 		sfprintf(errfp,"MIME-Version: 1.0\n");
 		sfprintf(errfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
 		sfprintf(errfp,"\tboundary=\"%s\"\n\n",boundary);
+		sfprintf(errfp, "This is MULTIPART/REPORT structured message as defined at RFC 1894.\n\n");
+		sfprintf(errfp, "As your email client software vendor, when will they support this\nreport format by showing its formal part in your preferred language.\n\n");
 		sfprintf(errfp, "--%s\n", boundary);
 		sfprintf(errfp, "Content-Type: text/plain\n");
 	      }
@@ -387,13 +419,14 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 /* called to process errors at sensible intervals */
 
 void
-reporterrs(cfpi)
+reporterrs(cfpi, delayreports)
 	struct ctlfile *cfpi;
+	const int delayreports;
 {
 	int i, n, wroteheader, byteidx, headeridx = -1, drptidx, fd;
 	int *lp;
 	time_t tstamp;
-	char *midbuf, *cp, *eaddr;
+	char *midbuf, *cp, *cp2, *action, *eaddr;
 	char *deliveryform;
 	Sfio_t *errfp, *fp;
 	char *notary;
@@ -411,6 +444,8 @@ reporterrs(cfpi)
 	long format;
 	char boundarystr[400];
 	char spoolid[30];
+	int actionsets[4]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED */
+	ACTSETENUM thisaction;
 
 	if (cfpi->haderror == 0)
 		return;
@@ -449,6 +484,7 @@ reporterrs(cfpi)
 	wroteheader = 0;
 	lastoffset = cfp->offset[cfp->nlines-1];
 	format = 0L;
+	actionsets[0] = actionsets[1] = actionsets[2] = actionsets[3] = 0;
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp;
 
@@ -506,12 +542,33 @@ reporterrs(cfpi)
 	  /* If ever need to add more integer offsets, add them
 	     here with a colon prefix... */
 	  notary = NULL;
+	  action = cp2 = NULL;
+	  thisaction = ACTSET_NONE;
 	  if (*cp == '\t') {
 	    notary = ++cp;
 	    while (*cp && *cp != '\t') ++cp;
 	    notary = strnsave(notary, cp-notary); /* Make a copy of it */
 	    ++cp;
+	    action = strchr(notary,'\001');
+	    if (action) {
+	      ++action;
+	      cp2 = strchr(action,'\001');
+	      if (cp2) *cp2 = 0;
+	      if (strcmp(action,"delayed")==0) {
+		thisaction = ACTSET_DELAYED;
+	      } else if (strcmp(action,"delivered")==0) {
+		thisaction = ACTSET_DELIVERED;
+	      } else if (strcmp(action,"relayed")==0) {
+		thisaction = ACTSET_RELAYED;
+	      } else if (strcmp(action,"failed")==0) {
+		thisaction = ACTSET_FAILED;
+	      }
+	      if (cp2) *cp2 = '\001';
+	      if (thisaction != ACTSET_NONE)
+		actionsets[thisaction] += 1;
+	    }
 	  }
+
 	  rcpntpointer = cfp->contents + byteidx + 2 + _CFTAG_RCPTPIDSIZE;
 	  if (format & _CF_FORMAT_DELAY1)
 	    rcpntpointer += _CFTAG_RCPTDELAYSIZE;
@@ -529,13 +586,14 @@ reporterrs(cfpi)
 	      notaries = (void*)erealloc((void*)notaries,
 					 sizeof(struct not)*(notaryspc+1));
 	    }
-	    notaries[notarycnt].not     = notary;
-	    notaries[notarycnt].orcpt   = NULL;
-	    notaries[notarycnt].notify  = NULL;
-	    notaries[notarycnt].message = NULL;
+	    notaries[notarycnt].not        = notary;
+	    notaries[notarycnt].orcpt      = NULL;
+	    notaries[notarycnt].notify     = NULL;
+	    notaries[notarycnt].message    = NULL;
 	    notaries[notarycnt].notifyflgs = 0;
-	    notaries[notarycnt].rcpntp  = rcpntpointer;
-	    notaries[notarycnt].tstamp  = tstamp;
+	    notaries[notarycnt].rcpntp     = rcpntpointer;
+	    notaries[notarycnt].tstamp     = tstamp;
+	    notaries[notarycnt].thisaction = thisaction;
 	    if (drptidx > 0) {
 	      char *d = cfp->contents + drptidx;
 	      while (*d) {
@@ -630,9 +688,8 @@ reporterrs(cfpi)
 	  strcat(boundarystr, dom);
 	}
 
-	writeheader(errfp, eaddr, &no_error_report, deliveryform, boundarystr);
-
-
+	writeheader(errfp, eaddr, &no_error_report, deliveryform, boundarystr,
+		    actionsets);
 
 	for (i = 0; i < notarycnt; ++i) {
 	  /* Scan to the start of the message text */
@@ -640,14 +697,29 @@ reporterrs(cfpi)
 	  if ((notaries[i].notifyflgs & NOT_NEVER) && (no_error_report >= 0))
 	    continue;
 	  /* Report is not outright rejected, or this is double fault */
-	  sfprintf(errfp, "<%s>: ", notaries[i].rcpntp);
+	  switch (notaries[i].thisaction) {
+	  case ACTSET_DELAYED:
+	    sfprintf(errfp,"DELAYED (still in queue):\n");
+	    break;
+	  case ACTSET_RELAYED:
+	    sfprintf(errfp,"RELAYED (into system not supporting DSN facility):\n");
+	    break;
+	  case ACTSET_FAILED:
+	    sfprintf(errfp,"FAILED:\n");
+	    break;
+	  case ACTSET_DELIVERED:
+	    sfprintf(errfp,"DELIVERED (successfully):\n");
+	    break;
+	  case ACTSET_NONE:
+	    break;
+	  }
+	  sfprintf(errfp, "  <%s>: ", notaries[i].rcpntp);
 	  ccp = notaries[i].message;
 	  if (strchr(ccp, '\r')) {
-	    sfprintf(errfp, "...\\\n\t");
+	    sfprintf(errfp, "...\\\n        ");
 	    for (s = ccp; *s != '\0'; ++s) {
 	      if (*s == '\r') {
-		sfputc(errfp, '\n');
-		sfputc(errfp, '\t');
+		sfprintf(errfp,"\n        ");
 	      } else {
 		sfputc(errfp, *s);
 	      }
@@ -667,8 +739,8 @@ assist automatic, and accurate presentation and usage of said information.\n\
 In case you need human assistance from the Postmaster(s) of the system which\n\
 sent you this report, please include this information in your question!\n\
 \n\
-\tVirtually Yours,\n\
-\t\tAutomatic Email delivery Software\n\
+    Virtually Yours,\n\
+        Automatic Email Delivery Software\n\
 \n");
 
 
