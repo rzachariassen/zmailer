@@ -16,9 +16,6 @@ VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	number of processes needed for ROUTERDIRS ?
 	How will  NOTIFY  messages affect the job pickup ?
 
-DOCUMENT: - ratelimiting in smtpserver!
-INTERFACE: Z-REPORT "SMTP-Ratelimit: nnnn"  for given IP address.
-
 sleepycat db integration:
    - Support RPC client mode!
      - Observe new error modes to creep up everywhere!

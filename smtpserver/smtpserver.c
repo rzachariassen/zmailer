@@ -2317,27 +2317,19 @@ int insecure;
 	type(SS, -450, NULL, "Come again later");
 	type(SS,  450, NULL, contact_pointer_message);
 	MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
-    } else
+    } else {
 #ifdef USE_TRANSLATION
 	if (hdr220lines[0] == NULL) {
 	  hdr220lines[0] = "%H ZMailer Server %V ESMTP%I (%X) ready at %T";
 	}
 	type220headers(SS, ident_flag, X_settrrc ? "nulltrans" : lang, cp);
-#if 0
-	type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s (%s) ready at %s",
-	     SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "",
-	     X_settrrc ? "nulltrans" : lang, cp);
-#endif
 #else				/* USE_TRANSLATION */
 	if (hdr220lines[0] == NULL) {
 	  hdr220lines[0] = "%H ZMailer Server %V ESMTP%I ready at %T";
 	}
 	type220headers(SS, ident_flag, "", cp);
-#if 0
-	type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s ready at %s",
-	     SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "", cp);
-#endif
 #endif				/* USE_TRANSLATION */
+    }
     typeflush(SS);
 
     if (strict_protocol >= 0)

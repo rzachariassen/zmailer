@@ -1255,6 +1255,7 @@ static int call_rate_counter(rel, state, incr, what, countp, limitval)
 {
     int rc;
     char pbuf[2000]; /* Not THAT much space needed.. */
+    const char *cmd = "RATE";
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
@@ -1271,8 +1272,18 @@ static int call_rate_counter(rel, state, incr, what, countp, limitval)
 
     state->did_query_rate = 1;
 
-    sprintf(pbuf, "%s %s %d %s",  (incr ? "INCR": "RATE"),
-	    state->ratelabelbuf, limitval,
+    switch (incr) {
+    case 1:
+      cmd = "INCR";
+      break;
+    case 2:
+      cmd = "EXCESS";
+      break;
+    default:
+      break;
+    }
+
+    sprintf(pbuf, "%s %s %d %s", cmd, state->ratelabelbuf, limitval,
 	    ( (what == POLICY_SOURCEADDR) ? "CONNECT" :
 	      ( (what == POLICY_MAILFROM) ? "MAIL" : "xxx" )));
 
@@ -1773,6 +1784,10 @@ const int len;
 	  }
 	  if ((rc != 0)  && (! state->message))
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
+	  if (rc != 0) {
+	    /* register the excess! */
+	    call_rate_counter(rel, state, 2, POLICY_MAILFROM, &count, -2);
+	  }
 	  return rc;
 	}
       }

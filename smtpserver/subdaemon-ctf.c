@@ -489,6 +489,7 @@ smtpcontentfilter_kill ( statep )
      void * statep;
 {
 	struct ctf_state * state = statep;
+	if (!state) return;
 
 	if (state->outfp) fclose(state->outfp);
 	state->outfp = NULL;
@@ -594,8 +595,7 @@ contentfilter_proc(ctfstatep, fname)
 	  smtpcontentfilter_init( &ctfstate );
 	  if (! ctfstate || !ctfstate->outfp || !ctfstate->sawhungry) {
 	    type(NULL, 0, NULL, "Failed to init interactive contentfilter subsystem");
-	    if ( ctfstate )
-	      smtpcontentfilter_kill( ctfstate );
+	    smtpcontentfilter_kill( ctfstate );
 	    return NULL;
 	  }
 	}

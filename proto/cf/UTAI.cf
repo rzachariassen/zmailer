@@ -22,7 +22,7 @@ ZCONFIG=/etc/zmailer.conf
 
 #| Then immediately load the ``environment variables'' from that file.
 
-PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PATH=$MAILSHARE/cf:$MAILBIN/bin ; export PATH
 
 #| The MAILSHARE/cf directory is in the PATH so we can include
 #| configuration files without specifying an absolute pathname.
@@ -33,8 +33,7 @@ PS1=z$PS1
 
 #| Lets interactive users know this is not exactly a /bin/sh.
 
-# The transport preference order
-
+#| The transport preference order
 protocols=(routes smtp ean uucp usenet)
 
 #| The list of protocols given here are exactly the list that will be

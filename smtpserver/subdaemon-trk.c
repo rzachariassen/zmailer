@@ -70,9 +70,10 @@ struct spblk {
 struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
-	int mails;
+	int mails, slots;
 	int lastlimit;
-	time_t alloc_time;
+	time_t alloc_time, last_excess;
+	int excesses, excesses2, excesses3;
 	int countset[SLOTCOUNT];
 };
 
@@ -266,16 +267,39 @@ static void new_ipv4_timeslot( state )
 	    /* Clear this just now changed head of slots! */
 	    r[i].countset[ state->slotindex ] = 0;
 
+	    ++ r[i].slots;
+	    if (r[i].slots > SLOTCOUNT) {
+	      r[i].excesses3 += r[i].excesses2;
+	      r[i].excesses2  = r[i].excesses;
+	      r[i].excesses   = 0;
+	      r[i].slots = 0;
+	    }
+
+	    if (r[i].excesses2) continue;
+
 	    /* See if now ALL slots are ZERO value.. */
 	    if (memcmp(zerocountset, r[i].countset,
 		       sizeof(zerocountset)) == 0 ) {
 
 	      /* It is all-zero counter set */
 	      free_ipv4_reg( state, & r[i] );
-
 	    }
 	  }
 	}
+}
+
+
+static int count_excess_ipv4( state, ipv4addr )
+     struct trk_state *state;
+     unsigned int ipv4addr;
+{
+	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
+	if (!reg) return 0;    /*  not alloced!  */
+
+	++ reg->excesses;
+	reg->last_excess = now;
+
+	return reg->excesses;
 }
 
 
@@ -300,9 +324,12 @@ static void subdaemon_trk_checksigusr1(state)
 	unsigned int ip4key;
 	FILE *fp = NULL;
 	const char  *fn = "/var/tmp/smtpserver-ratetracker.dump";
+	char buf[60];
 
 	if (!got_sigusr1) return;  /* Nothing to do, bail out */
 	got_sigusr1 = 0;
+
+	time(&now);
 
 	/* We are running as 'trusted' user, which is somebody
 	   else, than root. */
@@ -328,16 +355,22 @@ static void subdaemon_trk_checksigusr1(state)
 
 	  for (i = 0; i < rhead->count; ++i) {
 
-	    if (r[i].spl == NULL) {
-	      fprintf(fp, "0.0.0.0\n");
-	    } else {
+	    if (r[i].spl != NULL) {
 	      ip4key = r[i].spl->key;
-	      fprintf(fp, "%u.%u.%u.%u\t",
+	      sprintf(buf, "%u.%u.%u.%u\t",
 		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		      (ip4key >>  8) & 255,   ip4key & 255 );
+	      fprintf(fp, "%-16s", buf);
 	      for (j = 0; j < SLOTCOUNT; ++j) {
-		fprintf(fp, "%-4d  ", r[i].countset[tr[j]]);
+		fprintf(fp, "%3d  ", r[i].countset[tr[j]]);
 	      }
+	      fprintf(fp, "\t");
+	      fprintf(fp, "Lmt: %4d ", r[i].lastlimit);
+	      fprintf(fp, "AllocAge: %6.3fh ", (double)(now-r[i].alloc_time)/3600.0);
+	      fprintf(fp, "Mails: %6d ", r[i].mails);
+	      fprintf(fp, "Excesses: %d %d %d ",
+		      r[i].excesses, r[i].excesses2, r[i].excesses3);
+	      fprintf(fp, "LastExcess: %ld", r[i].last_excess);
 	      fprintf(fp, "\n");
 	    }
 	  } /* All entries in this block */
@@ -346,6 +379,92 @@ static void subdaemon_trk_checksigusr1(state)
 
 	fclose(fp);
 }
+
+static void dump_trk __(( struct trk_state *state, struct peerdata *peerdata ));
+static void
+dump_trk(state, peerdata)
+     struct trk_state *state;
+     struct peerdata *peerdata;
+{
+	int pid;
+	FILE *fp;
+	struct ipv4_regs *r;
+	struct ipv4_regs_head *rhead;
+	int i, j, tr[SLOTCOUNT];
+	unsigned int ip4key;
+	char buf[60];
+
+	pid = fork();
+	if (pid > 0) {
+	  /* Parent.. */
+	  if (peerdata->fd >= 0)
+	    close(peerdata->fd);
+	  peerdata->fd = -1;
+	  peerdata->outlen = peerdata->outptr = 0;
+	  return;
+	}
+	if (pid < 0) {
+	  /* D'uh.. report error! */
+	  sprintf(peerdata->outbuf, "500 DUMP failed to start!\n");
+	  peerdata->outlen = strlen(peerdata->outbuf);
+	  peerdata->outptr = 0;
+	  return;
+	}
+
+	/* Child ..  We process things SYNCHRONOUSLY HERE,
+	   and finally exit() ourself ..
+	 */
+
+	fd_blockingmode(peerdata->fd);
+	fp = fdopen(peerdata->fd, "w");
+	
+	time(&now);
+
+	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
+	  tr[i] = j;
+	  --j; if (j < 0) j = SLOTCOUNT-1;
+	}
+
+	rhead = state->ipv4_regs_head;
+
+	fprintf(fp, "200-DUMP BEGINS\n");
+	fflush(fp);
+
+	for ( ; rhead ; rhead = rhead->next ) {
+
+	  r = rhead->ipv4;
+
+	  for (i = 0; i < rhead->count; ++i) {
+
+	    if (r[i].spl != NULL) {
+	      ip4key = r[i].spl->key;
+	      sprintf(buf, "%u.%u.%u.%u\t",
+		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
+		      (ip4key >>  8) & 255,   ip4key & 255 );
+	      fprintf(fp, "200- %-16s", buf);
+	      for (j = 0; j < SLOTCOUNT; ++j) {
+		fprintf(fp, "%3d ", r[i].countset[tr[j]]);
+	      }
+	      fprintf(fp, "\t");
+	      fprintf(fp, "Lmt: %4d ", r[i].lastlimit);
+	      fprintf(fp, "AllocAge: %6.3fh ", (double)(now-r[i].alloc_time)/3600.0);
+	      fprintf(fp, "Mails: %6d ", r[i].mails);
+	      fprintf(fp, "Excesses: %d %d %d ",
+		      r[i].excesses, r[i].excesses2, r[i].excesses3);
+	      fprintf(fp, "LastExcess: %ld", r[i].last_excess);
+	      fprintf(fp, "\n");
+	      fflush(fp);
+	    }
+	  } /* All entries in this block */
+	} /* All blocks.. */
+
+	fprintf(fp, "200 DUMP ENDS\n");
+	fflush(fp);
+	fclose(fp);
+
+	exit(0);
+}
+
 
 static void
 slot_ages(state, outbuf)
@@ -407,11 +526,15 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	  sprintf(s, " %d", reg->countset[tr[j]]);
 	  s += strlen(s);
 	}
-	sprintf(s, "  MAILs: %d", reg->mails);
+	sprintf(s, " MAILs: %d", reg->mails);
 	s += strlen(s);
 	sprintf(s, " SLOTAGE: %d", (int)(now - reg->alloc_time));
 	s += strlen(s);
-	sprintf(s, " Limit %d\n", reg->lastlimit);
+	sprintf(s, " Limit: %d", reg->lastlimit);
+	s += strlen(s);
+	sprintf(s, " Excesses: %d %d %d Latest: %ld\n",
+		reg->excesses, reg->excesses2, reg->excesses3,
+		reg->last_excess);
 }
 
 
@@ -438,9 +561,10 @@ subdaemon_handler_trk_init (statep)
 
 	*statep = state;
 
-        runastrusteduser();
+        /* runastrusteduser(); */
 
 	SIGNAL_HANDLE(SIGUSR1, subdaemon_trk_sigusr1);
+	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
 
 	if (!state) return -1;
 
@@ -518,6 +642,10 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  incr = -2;
 	} else if (STREQ(actionlabel,"AGES")) {
 	  incr = -3;
+	} else if (STREQ(actionlabel,"EXCESS")) {
+	  incr = -4;
+	} else if (STREQ(actionlabel,"DUMP")) {
+	  incr = -5;
 	} else
 	  goto bad_input;
 
@@ -533,6 +661,11 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
 	  } else if (incr == -3) {
 	    slot_ages(statep, peerdata->outbuf);
+	  } else if (incr == -4) {
+	    i = count_excess_ipv4( state, ipv4addr );
+	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	  } else if (incr == -5) {
+	    dump_trk( state, peerdata );
 	  }
 	  peerdata->outlen = strlen(peerdata->outbuf);
 
@@ -694,7 +827,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 
 	if (!state->outfp) return -51;
 
-type(NULL,0,NULL,"call_subdaemon_trk; 14; cmd='%s'", cmd);
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 14; cmd='%s'", cmd); */
 
 	fprintf(state->outfp, "%s\n", cmd);
 	fflush(state->outfp);
@@ -724,14 +857,14 @@ type(NULL,0,NULL,"call_subdaemon_trk; 14; cmd='%s'", cmd);
 	return 0;
 }
 
-#if 0
+
 int
 call_subdaemon_trk_getmore (statep, retbuf, retbuflen)
-     void **statep;
+     void *statep;
      char *retbuf;
      int retbuflen;
 {
-	struct trk_client_state * state = *statep;
+	struct trk_client_state * state = statep;
 	int rc;
 
 	if (state->fd_io < 0) {
@@ -755,7 +888,7 @@ call_subdaemon_trk_getmore (statep, retbuf, retbuflen)
 
 	return 0;
 }
-#endif
+
 
 int
 smtp_report_ip(SS, ip)
@@ -864,6 +997,61 @@ smtp_report_ip(SS, ip)
 
 	if (!rc1 && !rc2)
 	  type(SS, 450, NULL, "No reply from tracking subsystem");
+
+	discard_subdaemon_trk( statep );
+
+	return 0;
+}
+
+
+int
+smtp_report_dump(SS)
+     SmtpState *SS;
+{
+	char buf1[900];
+	char *s;
+	int rc;
+	void *statep;
+
+	/* type(NULL,0,NULL,"smtp_report_dump()"); */
+
+	sprintf(buf1, "DUMP 4:00000000 xxx");
+	/* type(NULL,0,NULL,"call_subdaemon_trk('%s')...",buf1); */
+
+	rc = call_subdaemon_trk( & statep, buf1, buf1, sizeof(buf1));
+	/* type(NULL,0,NULL,"call_subdaemon_trk(..) rc=%d bufs='%s'",
+	   rc,buf1); */
+
+	if (rc == 0) {
+	  s = strchr(buf1,'\n'); if (s) *s = 0;
+	} else
+	  *buf1 = 0;
+
+	for (;;) {
+
+	  /* type(SS, -100, NULL, "%s", buf1); */
+
+	  if (*buf1) {
+	    if (buf1[3] == '-') {
+	      rc = atoi(buf1);
+	      if (rc < 0) 
+		break;
+	      rc = -rc;
+	    } else
+	      rc = atoi(buf1);
+	  } else
+	    break; /* No reply! */
+
+	  type(SS, rc, NULL, "%s", buf1+4);
+	  /* if (rc > 0) break; */
+
+	  *buf1 = 0;
+	  if (call_subdaemon_trk_getmore( statep, buf1, sizeof(buf1) ) < 0)
+	    break; /* failure.. */
+	  
+	  s = strchr(buf1,'\n'); if (s) *s = 0;
+
+	}
 
 	discard_subdaemon_trk( statep );
 

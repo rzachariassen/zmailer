@@ -7,7 +7,7 @@ ZCONFIG=@ZMAILERCFGFILE@
 
 . $ZCONFIG
 
-PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PATH=$MAILSHARE/cf:$MAILBIN/bin ; export PATH
 PS1=z$PS1
 #
 # Configure error logging (squirrel)

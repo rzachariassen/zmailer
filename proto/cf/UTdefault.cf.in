@@ -20,7 +20,7 @@ ZCONFIG=@ZMAILERCFGFILE@
 
 #| Then immediately load the ``environment variables'' from that file.
 
-PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PATH=$MAILSHARE/cf:$MAILBIN/bin ; export PATH
 
 #| The MAILSHARE/cf directory is in the PATH so we can include
 #| configuration files without specifying an absolute pathname.

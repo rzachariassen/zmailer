@@ -29,7 +29,6 @@ struct mq2keys {
 };
 static struct mq2keys keys[] =
 {
-  { 0,			"NONE"	},
   { 0x00000001,		"SMTPIP"},
   /* other modes ? */
   { 0x7fffffff,		"SMTPALL"},
@@ -357,6 +356,14 @@ char *cp;
 					 user, pass );
       if (pw) {
 	return smtp_report_ip(SS, param1);
+      }
+    }
+    if (CISTREQ(cmd, "dump")) {
+      struct mq2pw *pw = reportauthuser( & SS->raddr,
+					 reportauthfile,
+					 user, pass );
+      if (pw) {
+	return smtp_report_dump(SS);
       }
     }
     return -1;

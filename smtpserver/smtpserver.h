@@ -684,8 +684,9 @@ extern struct subdaemon_handler subdaemon_handler_router;
 
 /* subdaemon-trk.c */
 extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, int retbuflen));
-extern int call_subdaemon_trk_getmore __((void **statep,char *retbuf, int retbuflen));
+extern int call_subdaemon_trk_getmore __((void *statep,char *retbuf, int retbuflen));
 extern int  smtp_report_ip __((SmtpState *SS, const char *ip));
+extern int  smtp_report_dump __((SmtpState *SS));
 
 
 /* contentpolicy.c */

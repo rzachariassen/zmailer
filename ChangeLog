@@ -1,3 +1,30 @@
+2004-04-27  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Noticed, that after "550" rejection at connection,
+	    the system still did print out "220 " greeting line.
+	    Adding couple grouping brackets solved that thing.
+
+	* smtpserver/smpserver.h,
+	  smtpserver/smtpreport.c, smtpserver/policytest.c,
+	  smtpserver/subdaemon-trk.c, man/smtpserver.8.in:
+	    - Added a "z-report uu pp dump" subcommand, that
+	      does pretty much the same as SIGUSR1, but over
+	      the SMTP channel.
+	    - Track number of excesses, if a user _ever_
+	      exceeds his/her ratelimit, then that IP will
+	      be forever in tracking.
+
+	* smtpserver/subdaemon-ctf.c:
+	    Some oddball core-dumps being eliminated..
+
+	* proto/cf/SMTP.cf.in, proto/cf/SMTP+UUCP.cf.in,
+	  proto/cf/TELE-FI.cf.in, proto/cf/UTAI.cf,
+	  proto/cf/UTGPU.cf, proto/cf/UTdefault.cf.in:
+	    Copied better comments from UT*.cf files
+	    into standard SMTP and SMTP+UUCP templates.
+	    Tweaked all files slightly.
+
 2004-04-23  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/rrouter.cf:
