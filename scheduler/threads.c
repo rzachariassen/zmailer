@@ -15,6 +15,7 @@
 #include "scheduler.h"
 #include "prototypes.h"
 #include "zsyslog.h"
+#include "libz.h"
 /* #include <stdlib.h> */
 
 /*

@@ -117,7 +117,7 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 extern struct thread *thread_head, *thread_tail;
 extern void  delete_threadgroup __((struct threadgroup *thgp));
 extern int   delete_thread __((struct thread *));
-extern void  thread_linkin __((struct vertex *cp, struct config_entry *cep, int cfgid, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
+extern void  thread_linkin __((struct vertex *cp, struct config_entry *cep, int cfgid, void (*ce_fillin)(struct threadgroup *, struct config_entry *) ));
 extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr, int queueonly_too));
