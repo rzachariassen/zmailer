@@ -2544,8 +2544,8 @@ static void init_timeserver()
 	  struct timeval tv;
 	  int rc;
 
-	  tv.tv_sec = 1;
-	  tv.tv_usec = 0;
+	  tv.tv_sec = 0;
+	  tv.tv_usec = 300000;
 
 	  gettimeofday(&timeserver_segment->tv, NULL);
 
