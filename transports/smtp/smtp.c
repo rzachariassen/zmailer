@@ -1089,7 +1089,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	struct ct_data  *CT  = NULL;
 	struct cte_data *CTE = NULL;
 	char **hdr;
-	int doing_reopen;
+	int doing_reopen, did_open;
 	int r, once;
 
 	hdr = has_header(startrp,"Content-Type:");
@@ -1127,6 +1127,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
  re_open:
 
+	did_open = 0;
+
 	if (!SS->smtpfp) {
 	
 	  int openstatus;
@@ -1157,6 +1159,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    }
 	    return openstatus;
 	  }
+	  did_open = 1;
 	}
 
 
@@ -1165,7 +1168,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
 
-	if (pipelining)
+	if (pipelining && did_open)
 	  MIBMtaEntry->tas.OutgoingSmtpPIPELINING ++;
 
 	SS->chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );

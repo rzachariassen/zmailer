@@ -1,3 +1,9 @@
+2003-05-29  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Count pipelining transmits only when doing connection
+	    open, not for every sent message...
+
 2003-05-27  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c:
