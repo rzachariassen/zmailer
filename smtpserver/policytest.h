@@ -23,7 +23,6 @@ struct policystate {		/* Part of SmtpState structure */
     int sender_reject;
     int sender_freeze;
     int relaycustnet;
-    int rcpt_nocheck;
     int sender_norelay;
     int content_filter;
     char *authuser;

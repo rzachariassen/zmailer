@@ -1,3 +1,18 @@
+2004-04-14  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/aliases.cf:
+	    Finally did the fix that Eugene Crosser pushed me to do
+	    for quite a while..  Damn typo.
+
+	* smtpserver/policytest.c, smtpserver/policytest.h:
+	    - Internal rcpt_nocheck variable is not set anywhere -> dead code
+	    - Make SMTP AUTH, and 'full_trust' to be exactly equal
+	      (they were similar, now they are equal)
+	    - Make WHOSON equal to 'always_accept' processing
+	      (now that 'always_accept' has been demoted slightly
+	       to make various possibly rejecting checkups before
+	       accepting the message.)
+
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/server.cf:

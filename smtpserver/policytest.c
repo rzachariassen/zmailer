@@ -182,7 +182,6 @@ const struct policystate *state;
 	type(NULL,0,NULL," sender_freeze=%d",state->sender_freeze);
 	type(NULL,0,NULL," sender_norelay=%d",state->sender_norelay);
 	type(NULL,0,NULL," relaycustnet=%d", state->relaycustnet);
-	type(NULL,0,NULL," rcpt_nocheck=%d", state->rcpt_nocheck);
 
 	for ( i = P_A_FirstAttr; i <= P_A_LastAttr ; ++i) {
 	    type(NULL,0,NULL," %s: %srequested, value=%s", KA(i),
@@ -1195,7 +1194,7 @@ Usockaddr *raddr;
 
     state->message = NULL; /* This is early initial clearing */
 
-    if (raddr->v4.sin_family == 0){
+    if (raddr->v4.sin_family == 0) {
       state->full_trust = 1;
       return 0; /* Interactive testing... */
     }
@@ -1540,7 +1539,7 @@ const int len;
 	return 1;
     if (state->always_accept)
 	return 0;
-    if (state->full_trust)
+    if (state->full_trust || state->authuser)
 	return 0;
 
     /*
@@ -1556,7 +1555,7 @@ const int len;
      *
      * Current code will only look for the input string
      * in the database (by domain lookup protocol), and
-     * react on it by smalling the door shut (if any).
+     * react on it by slamming the door shut (if any).
      *
      */
 
@@ -1609,9 +1608,7 @@ const int len;
 	return -1;
     if (state->always_freeze)
 	return 1;
-    if (state->always_accept)
-	return 0;
-    if (state->full_trust)
+    if (state->full_trust || state->authuser)
 	return 0;
 
     /* state->request initialization !! */
@@ -1639,6 +1636,10 @@ const int len;
 	PICK_PA_MSG(P_A_FREEZENET);
 	return  1;
     }
+
+    if (state->always_accept)
+	return 0;
+
     if (valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
 	type(NULL,0,NULL," pt_sourceaddr: 'relaycustnet +' found");
@@ -1681,7 +1682,6 @@ const int len;
     int requestmask = 0;
     int rc;
 
-    state->rcpt_nocheck  = 0;
     state->sender_reject = 0;
     state->sender_freeze = 0;
     state->sender_norelay = 0;
@@ -1704,7 +1704,7 @@ const int len;
     if (state->always_freeze)
 	return 1;
     if (state->full_trust || state->authuser)
-      return 0;
+	return 0;
 
 
     if (len > 0) { /* Non-box address.. */
@@ -1772,7 +1772,7 @@ const int len;
 	  return -1;
       at = str;
     }
-    
+
 
     if ((len > 0) && valueeq(state->values[P_A_SENDERNoRelay], "+")) {
       if (debug)
@@ -1837,21 +1837,22 @@ const int len;
 	return -1;
     }
 
-    if ((len > 0) && state->values[P_A_SENDERokWithDNS] && (at[1] != '[')) {
+    if ((len > 0)  && (at[1] != '[') && state->always_accept ) {
       /* Accept if found in DNS, and not an address literal! */
-      int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS][0],
-				 at+1, len - (1 + at - str));
+      int rc;
+      rc = sender_dns_verify('-', at+1, len - (1 + at - str));
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
-      PICK_PA_MSG(P_A_SENDERokWithDNS);
       return rc;
     }
 
-    if ((len > 0) && state->always_accept && at[1] != '[') {
-      /* Always accept, and not an address literal! */
-      int rc = sender_dns_verify('-', at+1, len - (1 + at - str));
+    if ((len > 0)  && (at[1] != '[') && state->values[P_A_SENDERokWithDNS]) {
+      /* Accept if found in DNS, and not an address literal! */
+      int test_c = state->values[P_A_SENDERokWithDNS][0];
+      int rc = sender_dns_verify(test_c, at+1, len - (1 + at - str));
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
+      PICK_PA_MSG(P_A_SENDERokWithDNS);
       return rc;
     }
 
@@ -1861,19 +1862,10 @@ const int len;
 	type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found, accept? = %d",
 	     (state->whoson_result == 0));
       if (state->whoson_result == 0)
-	return state->whoson_result;
+	return 0; /* OK! */
     }
 #endif
 
-#if 0 /* Eh..., NOT! */
-    if (valueeq(state->values[P_A_RELAYCUSTOMER], "+")) {
-	if (debug)
-	  type(NULL,0,NULL," mailfrom: 'relaycustomer +'");
-	state->rcpt_nocheck = 1;
-	PICK_PA_MSG(P_A_RELAYCUSTOMER);
-	return  0;
-    }
-#endif
     rc=0;
 #ifdef HAVE_SPF_ALT_SPF_H
     if (state->check_spf) {
@@ -1881,19 +1873,20 @@ const int len;
       SPF_output_t spf_output=SPF_result(state->spfcid,state->spfdcid,NULL);
       if (debug) {
 	type(NULL,0,NULL," SPF_result=%d (%s) reason=%d  (%s) error=%d",
-					spf_output.result,
-					SPF_strresult(spf_output.result),
-					spf_output.reason,
-					SPF_strreason(spf_output.reason),
-					spf_output.err);
-	type(NULL,0,NULL,"%s",spf_output.smtp_comment?spf_output.smtp_comment:"<null>");
+	     spf_output.result,
+	     SPF_strresult(spf_output.result),
+	     spf_output.reason,
+	     SPF_strreason(spf_output.reason),
+	     spf_output.err);
+	type(NULL,0,NULL,"%s",( spf_output.smtp_comment ?
+				spf_output.smtp_comment : "<null>") );
       }
       if (state->spf_received_hdr != NULL)
 	free(state->spf_received_hdr);
       state->spf_received_hdr=strdup(spf_output.received_spf);
       if (debug)
-	type(NULL,0,NULL,"%s",state->spf_received_hdr?
-					state->spf_received_hdr:"<null>");
+	type(NULL,0,NULL,"%s", (state->spf_received_hdr ?
+				state->spf_received_hdr : "<null>") );
 
       switch (spf_output.result) {
       case SPF_RESULT_PASS:	spf_level=5; break;
@@ -1906,8 +1899,10 @@ const int len;
       default:			spf_level=5; break;
       }
       if (debug)
-	type(NULL,0,NULL,"rejecting if spf_level(%d) < spf_threshold(%d)",
-			spf_level,spf_threshold);
+	type(NULL,0,NULL,
+	     "rejecting if spf_level(%d) < spf_threshold(%d)",
+	     spf_level,spf_threshold);
+
       if (spf_level < spf_threshold) {
 	if (spf_output.smtp_comment) {
 	  state->message=strdup(spf_output.smtp_comment);
@@ -1936,7 +1931,7 @@ const int len;
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
     if (state->full_trust)    return  0;
-    if (state->always_accept) return  0;
+    /* if (state->always_accept) return  0; */
     if (state->authuser)      return  0;
     if (state->trust_recipients) return 0;
 
@@ -2015,7 +2010,7 @@ const int len;
 	return -1;
       }
     } else {
-      if (state->rcpt_nocheck)
+      if (state->always_accept)
 	return 0;
 
       /* Doh ??  Not  <user@domain> ??? */
@@ -2108,20 +2103,10 @@ const int len;
 
     /* Do target specific rejects early */
 
-#ifdef HAVE_WHOSON_H
-    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
-      if (state->whoson_result == 0){
-	PICK_PA_MSG(P_A_TrustWhosOn);
-	return 0;
-      }
-    }
-#endif
-
     if (valueeq(state->values[P_A_RELAYTARGET], "-")) {
       PICK_PA_MSG(P_A_RELAYTARGET);
       return -1;
     }
-
 
     if (valueeq(state->values[P_A_ACCEPTbutFREEZE], "+")) {
 	state->sender_freeze = 1;
@@ -2147,25 +2132,13 @@ const int len;
       }
     }
 
-#ifdef HAVE_WHOSON_H
-    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
-      if (state->whoson_result == 0){
-	PICK_PA_MSG(P_A_TrustWhosOn);
-	return 0;
-      }
-    }
-#endif
-
     if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
     }
 
-    if (state->rcpt_nocheck) {
-      if (debug)
-	type(NULL,0,NULL," ... rcpt_nocheck is on!");
-      return 0;
-    }
+    /* WHOSON processing sets 'always_accept' at connection setup..
+       No need to ponder it here.. */
 
     if (state->always_accept) {
       int rc, c = '-';

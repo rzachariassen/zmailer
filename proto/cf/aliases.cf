@@ -228,7 +228,7 @@ routeuser (quad, plustail, domain) {
 	user=$(user $quad)
 
 	if [ "$DOMAIN_AWARE_GETPWNAM" = "1" ] ; then
-		sysuser="$host@domain"
+		sysuser="$host$domain"
 	else
 		sysuser="$user"
 	fi
