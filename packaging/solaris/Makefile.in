@@ -37,7 +37,7 @@ pkgs:	pkgs-01 pkgs-02
 
 pkgs-01:	# DIRECTORIES, BINARIES
 	. $(ZCONF) ; \
-	(echo "i pkginfo01"; \
+	(echo "i pkginfo=pkginfo01"; \
 	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
@@ -67,7 +67,7 @@ pkgs-01:	# DIRECTORIES, BINARIES
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
-	(echo "i pkginfo02"; \
+	(echo "i pkginfo=pkginfo02"; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
