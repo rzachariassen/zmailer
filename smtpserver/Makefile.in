@@ -39,7 +39,7 @@ SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c wantconn.c \
 		smtprouter.c smtpchild.c mxverify.c contentpolicy.c
 # loadaver.c
 
-all: $(PROGRAM)-a
+all: $(PROGRAM)-a whosond
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -74,6 +74,9 @@ clean:
 
 distclean: clean
 	-rm -f Makefile
+
+whosond: whosond.o
+	$(CC) $(CFLAGS) -o whosond whosond.o $(LIB) $(SMTPSERVER_LIB)
 
 fdstatfs-test: fdstatfs-test.o fdstatfs.o
 	$(CC) $(CFLAGS) -o $@ fdstatfs-test.o fdstatfs.o

@@ -96,6 +96,7 @@ extern int wait();
 #include "zsyslog.h"
 
 
+#ifndef __Usockaddr__
 typedef union {
     struct sockaddr_in v4;
 #ifdef INET6
@@ -103,7 +104,7 @@ typedef union {
 #endif
 } Usockaddr;
 #define __Usockaddr__
-  
+#endif
 
 
 #include "policytest.h"

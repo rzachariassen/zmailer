@@ -1,5 +1,10 @@
 1998-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/Makefile.in, smtpserver/smtpserver.h,
+	  smtpserver/libwhoson.c, smtpserver/whoson.h,
+	  smtpserver/whosond.c:
+	    Initial hooks/codes for "who-is-on" daemon.
+
 	* include/splay.h, lib/pjwhash32.c, lib/symbol.c:
 	    Created symbol-routines which handle arbitary
 	    binary key values; key hashes are a bit simple-
