@@ -126,6 +126,8 @@ struct	protoent {
 #define	NO_DATA		4 /* Valid name, no data record of requested type */
 #define	NO_ADDRESS	NO_DATA		/* no address, look for MX record */
 
+#define MAXHOSTNAMELEN 256
+
 __BEGIN_DECLS
 void		endhostent __P((void));
 void		endnetent __P((void));
