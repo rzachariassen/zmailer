@@ -490,7 +490,7 @@ extern int  optind;
 
 extern char **environ;
 
-extern int  deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp));
+extern int  deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp, const char *host, const int noMX));
 extern int  writebuf   __((SmtpState *SS, const char *buf, int len));
 extern int  writemimeline __((SmtpState *SS, const char *buf, int len, CONVERTMODE cvtmode));
 extern int  appendlet  __((SmtpState *SS, struct ctldesc *dp, CONVERTMODE convertmode, struct ct_data *));

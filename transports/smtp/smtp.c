@@ -937,7 +937,6 @@ process(SS, dp, smtpstatus, host, noMX)
 
 	  struct rcpt *rp, *rphead;
 	  int loggedid;
-	  int openstatus = EX_OK;
 	  int retrymax;
 
 	  procabortset = 1;
@@ -957,7 +956,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		|| rp->addr->link   != rp->next->addr->link
 		|| rp->newmsgheader != rp->next->newmsgheader) {
 
-	      if (smtpstatus == EX_OK && openstatus == EX_OK) {
+	      if (smtpstatus == EX_OK) {
 
 		if (logfp && !loggedid) {
 		  loggedid = 1;
@@ -968,32 +967,7 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		do {
 
-		  if (!SS->smtpfp) {
-	
-		    /* Make the opening connect with the UID of the
-		       sender (atoi(rp->addr->misc)), unless it is
-		       "nobody", in which case use "daemon"      */
-		    if ((first_uid = atoi(dp->senders->misc)) < 0 ||
-			first_uid == nobody)
-		      first_uid = daemon_uid;
-
-		    openstatus = smtpopen(SS, host, noMX);
-		    if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
-		      for ( ; rphead != rp->next; rphead = rphead->next) {
-			if (rphead->lockoffset) {
-			  notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-			  diagnostic(SS->verboselog, rphead, openstatus, 60, "%s", SS->remotemsg);
-			}
-		      }
-		      break;
-		    }
-		  }
-
-		  if (openstatus == EX_OK)
-		    smtpstatus = deliver(SS, dp, rphead, rp->next);
-		  else
-		    /* Ok, open failed, we need to signal this onwards.. */
-		    smtpstatus = openstatus;
+		  smtpstatus = deliver(SS, dp, rphead, rp->next, host, noMX);
 
 		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
 		  if (smtpstatus == EX_TEMPFAIL && SS->smtpfp) {
@@ -1043,7 +1017,7 @@ process(SS, dp, smtpstatus, host, noMX)
 				 "5.0.0 (Target status indeterminable)",
 				 NULL);
 		    diagnostic(SS->verboselog, rphead, EX_TEMPFAIL,
-			       openstatus == EX_TEMPFAIL ? 60 : 0,
+			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
 		  }
 
@@ -1071,10 +1045,12 @@ process(SS, dp, smtpstatus, host, noMX)
  */
 
 int
-deliver(SS, dp, startrp, endrp)
+deliver(SS, dp, startrp, endrp, host, noMX)
 	SmtpState *SS;
 	struct ctldesc *dp;
 	struct rcpt *startrp, *endrp;
+	const char *host;
+	int noMX;
 {
 	struct rcpt *rp = NULL;
 	int r = EX_TEMPFAIL;
@@ -1128,6 +1104,33 @@ deliver(SS, dp, startrp, endrp)
 	    conv_prohibit = -1;
 	  /* We don't know how to convert anything BUT  TEXT/PLAIN :-(  */
 	}
+
+ re_open:
+
+	if (!SS->smtpfp) {
+	
+	  int openstatus;
+
+	  /* Make the opening connect with the UID of the
+	     sender (atoi(startrp->addr->misc)), unless it is
+	     "nobody", in which case use "daemon"      */
+	  if ((first_uid = atoi(dp->senders->misc)) < 0 ||
+	      first_uid == nobody)
+	    first_uid = daemon_uid;
+	  
+	  openstatus = smtpopen(SS, host, noMX);
+	  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
+	    for ( ; startrp != rp->next; startrp = startrp->next) {
+	      if (startrp->lockoffset) {
+		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
+		diagnostic(SS->verboselog, startrp, openstatus, 60, "%s", SS->remotemsg);
+	      }
+	    }
+	    return openstatus;
+	  }
+	}
+
+
 
 
 	if (no_pipelining) pipelining = 0;
@@ -1264,12 +1267,16 @@ deliver(SS, dp, startrp, endrp)
 
 	  if (SS->smtpfp) {
 
+	    /* We are starting a new pipelined phase */
+	    smtp_flush(SS); /* Flush in every case */
+
 	    SS->rcptstates = 0;
-	    ++ SS->cmdstate;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) != EX_OK)
 	      return EX_TEMPFAIL;
 
 	    mail_from_failed = 1;
+	  } else {
+	    goto re_open;
 	  }
 	}
 
@@ -1422,15 +1429,25 @@ deliver(SS, dp, startrp, endrp)
 	  /* Returning here EX_TEMPFAIL while smtpfp == NULL will do
 	     quick retry!  DON'T diagnose those now! */
 
-	  if (r != EX_TEMPFAIL && !SS->smtpfp)
-	    for (rp = startrp; rp && rp != endrp; rp = rp->next) {
+	  if (r != EX_TEMPFAIL && !SS->smtpfp) {
+	    if (startrp->ezmlm) {
 	      /* NOTARY: address / action / status / diagnostic */
-	      if (rp->lockoffset) {
-		notaryreport(rp->addr->user, FAILED,
+	      if (startrp->lockoffset) {
+		notaryreport(startrp->addr->user, FAILED,
 			     "5.5.0 (Undetermined protocol error)",NULL);
-		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		diagnostic(SS->verboselog, startrp, r, 0, "%s", SS->remotemsg);
+	      }
+	    } else {
+	      for (rp = startrp; rp && rp != endrp; rp = rp->next) {
+		/* NOTARY: address / action / status / diagnostic */
+		if (rp->lockoffset) {
+		  notaryreport(rp->addr->user, FAILED,
+			       "5.5.0 (Undetermined protocol error)",NULL);
+		  diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		}
 	      }
 	    }
+	  }
 
 	  return r;
 	}
@@ -1493,7 +1510,6 @@ deliver(SS, dp, startrp, endrp)
 
 	    if ('@' == *u) { /* Has "@-full" address, can, perhaps, rewrite. */
 	      *s++ = *u++;
-
 	      if (*u != 0) {
 		cname = NULL;
 		if ((cname_lookup(SS, u, & cname) > 0) && cname) {
@@ -1582,7 +1598,7 @@ deliver(SS, dp, startrp, endrp)
 	  } else {
 	    if (!pipelining)
 	      SS->rcptstates |= RCPTSTATE_OK;
-	    nrcpt += 1;
+	    nrcpt       += 1;
 	    SS->rcptcnt += 1;
 	    /* Actually we DO NOT KNOW, we need to sync this latter on.. */
 	    rp->status = EX_OK;
@@ -1597,11 +1613,16 @@ deliver(SS, dp, startrp, endrp)
 	  SS->cmdstate     = SMTPSTATE_DATA; /* 1 + RCPTTO.. */
 
 	  /* Next time around will need to do "RSET" before MAIL FROM */
-
-	  if (r == EX_OK && more_rp)
+#if 1
+	  if (more_rp)
+	    /* EZMLM or some such thing runs with more recipients.. */
+	    goto more_recipients;
+#else
+	  if ((r == EX_OK) && more_rp)
 	    /* we have more recipients,
 	       and things have worked ok so far.. */
 	    goto more_recipients;
+#endif
 
 	  if (SS->rcptstates & RCPTSTATE_400)
 	    /* The smtpfp != NULL -> no retry for these
@@ -1660,7 +1681,8 @@ deliver(SS, dp, startrp, endrp)
 	      if (rp->lockoffset) {
 		/* NOTARY: address / action / status / diagnostic / wtt */
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
-		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		if (rp->status == EX_OK) rp->status = r;
+		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
 	      }
 	    }
 
@@ -1733,7 +1755,8 @@ deliver(SS, dp, startrp, endrp)
 	      if (rp->lockoffset) {
 		/* NOTARY: address / action / status / diagnostic / wtt */
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
-		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		if (rp->status == EX_OK) rp->status = r;
+		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
 	      }
 
 	    return r;
@@ -1816,7 +1839,8 @@ deliver(SS, dp, startrp, endrp)
 			   "5.4.2 (Message header write failure)",
 			   /* XX: FIX THE STATUS? */
 			   "smtp; 566 (Message header write failure)");
-	      diagnostic(SS->verboselog, rp, r, 0, "%s", "header write error");
+	      if (rp->status == EX_OK) rp->status = r;
+	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", "header write error");
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
@@ -1851,7 +1875,8 @@ deliver(SS, dp, startrp, endrp)
 	      notaryreport(rp->addr->user, FAILED,
 			   "5.4.2 (Message write timed out;2)",
 			   "smtp; 566 (Message write timed out;2)"); /* XX: FIX THE STATUS? */
-	      diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+	      if (rp->status == EX_OK) rp->status = r;
+	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
 	    }
 	  /* Diagnostics are done, protected (failure-)section ends! */
 	  dotmode = 0;
@@ -1944,8 +1969,9 @@ deliver(SS, dp, startrp, endrp)
 			   );
 	      /* If remote closed socket, don't diagnose here, diagnose
 		 latter.. (might also retry via other server!) */
+	      if (rp->status == EX_OK) rp->status = r;
 	      if (r != EX_TEMPFAIL)
-		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
 	    }
 
 	  report(SS, "Body done; %s", SS->remotemsg);
@@ -1993,7 +2019,8 @@ deliver(SS, dp, startrp, endrp)
 	    if (rp->notifyflgs & _DSN_NOTIFY_SUCCESS)
 	      reldel = "relayed";
 	    notaryreport(rp->addr->user, reldel, NULL, NULL);
-	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+	    if (rp->status == EX_OK) rp->status = r;
+	    diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
 	  }
 	}
 
