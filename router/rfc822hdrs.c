@@ -436,6 +436,7 @@ hdr_print(h, fp)
 	/* If it was pre-existing header, output all its pre-existing
 	   white-spaces now */
 
+	foldcol = 0; /* reusing for other purpose */
 	for (t = h->h_lines; t != NULL; t = t->t_next) {
 		const char *p = t->t_pname;
 		while (*p == ' ' || *p == '\t' ||
@@ -448,20 +449,29 @@ hdr_print(h, fp)
 		  else
 		    col = 0;
 		  ++p;
+		  ++foldcol;
 		}
 		if (*p != 0)
 		  break;
 		col = 0;
 		putc('\n', fp);
+		foldcol = 0;
 	}
 	if (h->h_lines == 0) {
 		putc(' ', fp);
 		++col;
+		++foldcol;
 	}
 
 	/* Fill to column 8 in all cases.. */
 	for ( ; col < 8; ++col)
-		putc(' ', fp);
+	  putc(' ', fp), ++foldcol;
+
+	if (!foldcol) {
+	  /* Always at least one space! */
+	  putc(' ', fp);
+	  ++col;
+	}
 
 	foldcol = col;
 
@@ -606,7 +616,7 @@ hdr_print(h, fp)
 		      newline = 0;
 		    else
 		      ++col, putc(' ', fp);
-#if 1
+#if 0
 		    col = printLAddress(fp, ap->a_tokens, col, foldcol);
 #else
 		    if (addrlen + 8 > hdr_width) {
@@ -615,13 +625,18 @@ hdr_print(h, fp)
 		      col = printAddress(fp, ap->a_tokens, col);
 		    }
 #endif
-		  } else if (addrlen - col +8 > hdr_width/* columns */) {
+		  } else if (addrlen +8 < hdr_width/* columns */) {
 		    putc(' ', fp);
-		    col = printLAddress(fp, ap->a_tokens, col+1, foldcol);
+		    col = printAddress(fp, ap->a_tokens, col+1);
 		  } else {
 		    putc('\n', fp);
-		    putc('\t', fp);
-		    col = printLAddress(fp, ap->a_tokens, 8, foldcol);
+		    for (col = 0; col + 8  < foldcol; col += 8)
+		      putc('\t', fp);
+		    for (;col < foldcol; ++col)
+		      putc(' ', fp);
+		    if (col < 1)
+		      putc(' ', fp), ++col;
+		    col = printLAddress(fp, ap->a_tokens, col, foldcol);
 		  }
 		  if (pp != NULL && ap->a_next != NULL)
 		    ++col, putc(',', fp);
@@ -875,9 +890,13 @@ printLAddress(fp, pp, col, foldcol)
 				  add_space = 1;
 				break;
 			case aSpecial:
-				if (t != pp->p_tokens && *(t->t_pname)=='<')
+				if (t != pp->p_tokens && *(t->t_pname)=='<') {
 				  add_space = 1;
-				special = *t->t_pname;
+				  special = *t->t_pname;
+				} else {
+				  putc(*t->t_pname, fp);
+				  ++col;
+				}
 				break;
 			}
 			if ((special && (col + 10) >= hdr_width) ||
