@@ -31,6 +31,7 @@ MAKE=${MAKE:=make}
   --includedir=/usr/local/include		\
   --with-mailbox=/var/mail			\
   --with-postoffice=/var/spool/postoffice	\
+  --with-openssl				\
   --without-rfc822-tabs
 #  --with-tcp-wrappers=/usr/local/lib
 #  --with-generic-include="-I/aa/include -I/usr/local/include"	\
