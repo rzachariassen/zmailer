@@ -81,7 +81,7 @@ getnobody()
 	/* check that we can setuid(nobody) */
 	i = -1;
 	while (nobodies[++i] != 0) {
-		if (setreuid((uid_t)-1, nobodies[i]) == 0)
+		if (setreuid(-1, nobodies[i]) == 0)
 			break;
 	}
 
@@ -90,7 +90,7 @@ getnobody()
 		fprintf(stderr, "Cannot determine 'nobody' uid\n");
 		exit(2);
 	}
-	if (setreuid((uid_t)-1, 0) < 0 || getuid() != 0) {
+	if (setreuid(-1, 0) < 0 || getuid() != 0) {
 		perror("setuid");
 		fprintf(stderr, "Cannot reset root uid\n");
 		exit(3);

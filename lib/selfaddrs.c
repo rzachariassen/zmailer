@@ -189,10 +189,10 @@ other_socktype:
 
 	  if (ioctl(s, SIOCGIFFLAGS, (char *) &ifrf) < 0)
 	    continue; /* Failed.. */
-
-	  /* printf("name='%s'  ifrf_flags=0x%x\n",
-	     ifr->ifr_name,ifrf.ifr_flags); */
-
+#if 0
+	   printf("name='%s'  ifrf_flags=0x%x\n",
+	     ifr->ifr_name,ifrf.ifr_flags);
+#endif
 	  if (!(IFF_UP & ifrf.ifr_flags))
 	    continue;
 #else
@@ -502,7 +502,7 @@ char *argv[];
 #if defined(AF_INET6) && defined(INET6)
     case AF_INET6:
       inet_ntop(AF_INET6, &((struct sockaddr_in6 **) sa)[i]->sin6_addr, buf, sizeof(buf));
-      printf("IPv6: [IPv6:%s]\n");
+      printf("IPv6: [IPv6:%s]\n",buf);
       break;
 #endif
     default:
