@@ -291,10 +291,6 @@ smtp/*-gw.funet.fi
 	skew=1
 	command="smtp -s" # -l ${LOGDIR}/smtp"
 
-smtp/*.rutgers.edu
-	maxchannel=199
-	maxring=10
-	command="smtp -s" # -l ${LOGDIR}/smtp"
 smtp/*.edu
 	maxchannel=199
 	maxring=20

@@ -1,5 +1,10 @@
 2003-06-17  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.c:
+	    If MAIL FROM test had  'rejectsource -' and/or 'freezesource -'
+	    attributes in  'user@do.main'  lookup, disable lookups of those
+	    same things from fallbacks of 'do.main'  lookup.
+
 	* transports/mailbox/mailbox.c, transports/libta/mimeheaders.c,
 	  include/ta.h, transports/smtp/smtp.c:
 	    Track a bit more of allocated memory chunks, and provide

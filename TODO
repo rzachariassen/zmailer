@@ -1,5 +1,7 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+"zmailer newfqdnroute" runs wrong thing... (no thing, actually..)
+
 VERIFY:  router/rfc822hdrs.c line 720 onwards "NillHeaderSemantics"
 	processing.  Can it break headers sometimes ?
 	What abour line 655 onwards ?  Earlier in that routine ?

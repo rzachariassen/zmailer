@@ -1395,6 +1395,7 @@ const char *str;
 const int len;
 {
     const char *at;
+    int requestmask = 0;
 
     state->rcpt_nocheck  = 0;
     state->sender_reject = 0;
@@ -1428,6 +1429,9 @@ const int len;
 	PICK_PA_MSG(P_A_FREEZESOURCE);
 	return 1;
       }
+      if (state->values[P_A_FREEZESOURCE])
+	requestmask |= 1 << P_A_FREEZESOURCE;
+
       if (valueeq(state->values[P_A_REJECTSOURCE], "+")) {
 	if (debug)
 	  type(NULL,0,NULL," mailfrom: 'rejectsource +'");
@@ -1435,6 +1439,8 @@ const int len;
 	PICK_PA_MSG(P_A_REJECTSOURCE);
 	return -1;
       }
+      if (state->values[P_A_REJECTSOURCE])
+	requestmask |= 1 << P_A_REJECTSOURCE;
     }
 
     state->request = ( 1 << P_A_REJECTSOURCE  |
@@ -1443,7 +1449,7 @@ const int len;
 		       1 << P_A_RELAYCUSTOMER |
 #endif
 		       1 << P_A_SENDERNoRelay |
-		       1 << P_A_SENDERokWithDNS );
+		       1 << P_A_SENDERokWithDNS ) & (~ requestmask);
 
     at = find_nonqchr(str, '@', len);
     if (at != NULL) {
