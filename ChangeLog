@@ -1,5 +1,10 @@
 2000-06-20  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* lib/selfaddrs.c:
+	    Experimental SIOCGLIFCONF code for IPv6 speaking
+	    some-BSD systems -- to pick IPv6 interface addresses
+	    from the system.
+
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    When doing   getmxrr()  for MX data, will use also
 	    the DNS supplied ADDITIONAL DATA segment materiel
