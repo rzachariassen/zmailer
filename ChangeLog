@@ -1,3 +1,10 @@
+2000-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/db.c:
+	    For Matthias Urlich; a method to declare at RELATION entry
+	    if NEGATIVE CACHE is used at the particular relation (pre-
+	    requires that cache is also used..) Driven with: -N option.
+
 2000-04-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,

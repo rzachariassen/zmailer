@@ -31,13 +31,6 @@
 
 #include "prototypes.h"
 
-/* Uncomment following if you think that negative cache at DB lookups
-   has merits..   Mathias Urlichs <smurf@noris.de> does think they do
-   have merit, but in practice I see cache used rather rarely, and
-   to be really usefull, the cache sizes should be largeish, and thus
-   current O(n) lookup (although with small internal C) is suboptimal... */
-/* #define DO_NEGATIVE_CACHE */
-
 extern long crc32  __((const void *));
 extern long crc32n __((const void *, int));
 
@@ -87,6 +80,7 @@ struct db_info {
 #define	DB_MAPTOLOWER	0x01
 #define	DB_MAPTOUPPER	0x02
 #define	DB_MODCHECK	0x04
+#define DB_NEG_CACHE	0x08
 
 
 struct db_kind {
@@ -245,7 +239,7 @@ run_relation(argc, argv)
 	proto_config
 		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "Cbilmnpud:f:s:L:t:Te:");
+		c = getopt(argc, (char*const*)argv, "CbilmnNpud:f:s:L:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -279,6 +273,9 @@ run_relation(argc, argv)
 			break;
 		case 'n':	/* ensure non-null return value postprocessor */
 			proto_config.postproc = NonNull;
+			break;
+		case 'N':
+			proto_config.flags |= DB_NEG_CACHE;
 			break;
 		case 'p':	/* pathalias postprocessor */
 			proto_config.postproc = Pathalias;
@@ -317,7 +314,7 @@ run_relation(argc, argv)
 	}
 	if (errflg || optind != argc - 1 || dbtyp == NULL) {
 		fprintf(stderr,
-		"Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name\n",
+		"Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnNpu -d driver] name\n",
 			argv[0]);
 		fprintf(stderr,
 		       "       %s -T -t dbtype dummyname\n", argv[0]);
@@ -893,13 +890,13 @@ db(dbname, key)
 	} else {
 		if (D_db)
 			fprintf(stderr, "NIL\n");
-#ifndef DO_NEGATIVE_CACHE
-		if (dbip->cache_size > 0) {
-			free(realkey);
+		if (!(DB_NEG_CACHE & dbip->flags)) {
+			if (dbip->cache_size > 0) {
+				free(realkey);
+			}
+			UNGCPRO3;
+			return NULL;
 		}
-		UNGCPRO3;
-		return NULL;
-#endif
 	}
 	if (!deferit && dbip->cache_size > 0) {
 		/* insert new cache entry at head of cache */
