@@ -1,5 +1,8 @@
 2002-07-05  Matti Aarnio  <mea@zmailer.org>
 
+	* Makefile.in:
+	    Version 2.99.56-pre3 (CVS tagged  2-99-56-pre3)
+
 	* transports/smtp/smtp.c:
 	    An attempt to create a smart way (at least at Linux and at some
 	    BSD's) to de-nagle tcp streams in high-performance manner.

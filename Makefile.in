@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	56-pre1
+PATCHLEVEL =	56-pre3
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -203,6 +203,7 @@ clean-version:
 
 distclean-local: clean-local clean-version
 	rm -f config.cache config.h config.log stamp-h distname
+	rm -rf autom4te.cache
 	rm -f $(DISTCLEANFILES)
 
 realclean-local: distclean-local
