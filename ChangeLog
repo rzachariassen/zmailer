@@ -1,5 +1,10 @@
 1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.52
+
+1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
 	* contrib/zmailer-spec/*:
 	    SPECS files for RPM generation from Xos… V·zquez <xose@ctv.es>
 
