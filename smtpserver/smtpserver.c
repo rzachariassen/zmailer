@@ -1736,7 +1736,8 @@ int insecure;
 	char buf[SMTPLINESIZE];	/* limits size of SMTP commands...
 				   On the other hand, limit is asked
 				   to be only 1000 chars, not 8k.. */
-	char *eobuf, c, co;
+	char *eobuf;
+	char c, co;
 	int i;
 
 	i = s_gets(SS, buf, sizeof(buf), &rc, &co, &c );
@@ -1809,7 +1810,7 @@ int insecure;
 	    fprintf(stdout, "%s\n", buf);	/* XX: trace.. */
 	report(SS, "%.100s", buf);
 
-	for (cp = buf; isascii(*cp) && isalnum(*cp); ++cp)
+	for (cp = buf; (c = *cp) && isascii(c & 0xFF) && isalnum(c & 0xFF); ++cp)
 	    continue;
 
 	if (cp > buf + 8)	/* "DEBUG" is longest of them.. */
@@ -1950,8 +1951,6 @@ int insecure;
 	    break;
 	case Data:
 
-	  typeflush(SS); /* TLS pipelining breakage test */
-
 	    if (smtp_data(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL
 	      Z_cleanup(SS);
@@ -1960,8 +1959,6 @@ int insecure;
 	    }
 	    break;
 	case BData:
-
-	  typeflush(SS); /* TLS pipelining breakage test */
 
 	    if (smtp_bdata(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL

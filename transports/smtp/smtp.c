@@ -1781,10 +1781,6 @@ smtpopen(SS, host, noMX)
 	      /* The system *did* successfully respond to EHLO previously,
 		 why would it not do so now ??? */
 	      i = smtp_ehlo(SS, SMTPbuf);
-
-#if 1 /* Kill pipelining */
-	      SS->ehlo_capabilities &= ~ESMTP_PIPELINING;
-#endif
 	    }
 #endif /* - HAVE_OPENSSL */
 	    if (i == EX_TEMPFAIL) {

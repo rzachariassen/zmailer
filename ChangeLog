@@ -1,3 +1,11 @@
+2000-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtptls.c:
+	    Disable TLS read_ahead setting.  That mode doesn't
+	    work quite well, and can definitely groak against
+	    Stalker Software's  CommuniGate Pro smtpserver when
+	    running in PIPELINING mode.
+
 2000-04-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf:

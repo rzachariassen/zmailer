@@ -1044,7 +1044,9 @@ int     tls_start_clienttls(SS,peername)
 	     tls_protocol, tls_cipher_name,
 	     tls_cipher_usebits, tls_cipher_algbits);
 
+#if 0
     SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
+#endif
 
     /* Mark the mode! */
     SS->sslmode = 1;
