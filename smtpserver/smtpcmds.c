@@ -902,6 +902,7 @@ int insecure;
 	  fprintf(SS->mfp, "<none>");
 	}
       }
+#ifdef HAVE_OPENSSL
       if (SS->sslmode) {
 	if (log_rcvd_tls_mode) {
 	  fprintf(SS->mfp, " TLS-CIPHER: ");
@@ -923,6 +924,7 @@ int insecure;
 	if (log_rcvd_tls_peer)
 	  fprintf(SS->mfp, " TLS-PEER-CN1: <none>");
       }
+#endif /* - HAVE_OPENSSL */
       fprintf(SS->mfp, ")\n");
 
       /* COMMENT SECTION GETTING IT ALL IN EVERY CASE! */
