@@ -2,7 +2,7 @@ SHELL=		/bin/sh
 TOPDIR=		..
 PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
-MAILBIN=	$(prefix)@MAILBIN@
+DESTDIR=
 
 srcdir=         @srcdir@
 VPATH=          @srcdir@
@@ -12,7 +12,7 @@ COPTS=		@CFLAGS@
 CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
-MAILBIN=	$(prefix)@MAILBIN@
+MAILBIN=	$(DESTDIR)@MAILBIN@
 DEFS=		@DEFS@
 MD5SUM=		@MD5SUM@
 INSTALL=	@INSTALL@

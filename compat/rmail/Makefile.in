@@ -15,7 +15,7 @@ RMAIL_INCL=	@GENINCL@
 RMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
 INSTALL=	@INSTALL@
 TOPDIR=		../..
-RMAILPATH=	$(prefix)@RMAILPATH@
+RMAILPATH=	$(DESTDIR)@RMAILPATH@
 LN_S=		"@LN_S@"
 MKDIR=		@MKDIR@
 #
@@ -52,13 +52,13 @@ linebuffer.o: $(srcdir)/$(TOPDIR)/lib/linebuffer.c
 # any modern system without symlinks ?
 install: $(LIBDEB) rmail
 	@rdir=`echo $(RMAILPATH)|sed -e 's!/[^/]*$$!!'`; $(MKDIR) -p $$rdir || @TRUE@; echo "  rdir = $$rdir"
-	@$(INSTALL) -m 0755 rmail $(prefix)$(MAILBIN)/rmail.x ; \
-	mv $(prefix)$(MAILBIN)/rmail.x $(prefix)$(MAILBIN)/rmail
+	@$(INSTALL) -m 0755 rmail $(DESTDIR)$(MAILBIN)/rmail.x ; \
+	mv $(DESTDIR)$(MAILBIN)/rmail.x $(DESTDIR)$(MAILBIN)/rmail
 	@if [ $(LN_S) = "ln -s" -a				\
 	     "$(MAILBIN)/rmail" != "$(RMAILPATH)" ]; then	\
 	    if [ -h $(RMAILPATH) ]; then			\
 		test -f $(RMAILPATH) &&				\
-			rm -f $(prefix)$(RMAILPATH) ;		\
+			rm -f $(DESTDIR)$(RMAILPATH) ;		\
 		echo "ln -s $(MAILBIN)/rmail $(RMAILPATH)";	\
 		ln -s $(MAILBIN)/rmail $(RMAILPATH) ||		\
 			echo "Failed! rc=$?" ;			\

@@ -22,7 +22,7 @@ LIB=            -L$(TOPDIR)/libs -lzm -lzc
 LIBDEB=         $(TOPDIR)/libs/libtag $(TOPDIR)/libs/libzm.a \
 		$(TOPDIR)/libs/libzc.a
 CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SENDMAIL_INCL)
-SENDMAILPATH=	$(prefix)@SENDMAILPATH@
+SENDMAILPATH=	$(DESTDIR)@SENDMAILPATH@
 
 SOURCE=		sendmail.c
 
@@ -48,8 +48,8 @@ version.c: $(srcdir)/sendmail.c $(TOPDIR)/Makefile
 # any modern system without symlinks ?
 install: $(LIBDEB) sendmail
 	@sdir=`echo $(SENDMAILPATH)|sed -e 's!/[^/]*$$!!'`; $(MKDIR) -p $$sdir;echo "  sdir = $$sdir"
-	@$(INSTALL) -m 0755 sendmail $(prefix)$(MAILBIN)/sendmail.x ; \
-	mv $(prefix)$(MAILBIN)/sendmail.x $(prefix)$(MAILBIN)/sendmail
+	@$(INSTALL) -m 0755 sendmail $(DESTDIR)$(MAILBIN)/sendmail.x ; \
+	mv $(DESTDIR)$(MAILBIN)/sendmail.x $(DESTDIR)$(MAILBIN)/sendmail
 	@if [ $(LN_S) = "ln -s" -a				\
 	     "$(SENDMAILPATH)" != "$(MAILBIN)/sendmail" ]; then \
 	    if [ -h $(SENDMAILPATH) ]; then			\

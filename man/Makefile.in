@@ -7,7 +7,8 @@ srcdir = @srcdir@
 @SET_MAKE@
 
 #prefix=	@prefix@
-MANDIR=		${prefix}@mandir@
+DESTDIR=
+MANDIR=		${DESTDIR}@mandir@
 TOPDIR=		..
 S=		$(srcdir)
 INSTALL=	@INSTALL@

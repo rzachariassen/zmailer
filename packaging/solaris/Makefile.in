@@ -20,11 +20,11 @@ SENDMAILPATH=	@SENDMAILPATH@
 SHELL = /bin/sh
 
 SUFF   =
-prefix = /
+DESTDIR = /
 
 all:
 	@echo "make clean | distclean"
-	@echo "make pkgs prefix=/dir/prefix (SUFF='suff')"
+	@echo "make pkgs DESTDIR=/dir/prefix (SUFF='suff')"
 	@echo "  (Length of 'suff' must not exceed 4 chars.)"
 
 clean:
@@ -39,7 +39,7 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	. $(ZCONF) ; \
 	(echo "i pkginfo=pkginfo1"; \
 	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
-	 cd $(prefix)/; ( \
+	 cd $(DESTDIR)/; ( \
 	 echo .$$ZCONFIG ; \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -name ChangeLog -print ; \
@@ -62,13 +62,13 @@ pkgs-01:	# DIRECTORIES, BINARIES
 		    -e "s/%SUFF%/${SUFF}/g" \
 		> pkginfo1
 	rm -rf ZMTA1${SUFF}
-	pkgmk -o -f proto1 -b $(prefix) -d `/bin/pwd`
+	pkgmk -o -f proto1 -b $(DESTDIR) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA1${SUFF}.pkg ZMTA1${SUFF}
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
 	(echo "i pkginfo=pkginfo2"; \
-	 cd $(prefix)/; ( \
+	 cd $(DESTDIR)/; ( \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf -name \*.cf -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/guides -type f -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -type f -print ; \
@@ -82,5 +82,5 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 		    -e "s/%SUFF%/${SUFF}/g" \
 		> pkginfo2
 	rm -rf ZMTA2${SUFF}
-	pkgmk -o -f proto2 -b $(prefix) -d `/bin/pwd`
+	pkgmk -o -f proto2 -b $(DESTDIR) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA2${SUFF}.pkg ZMTA2${SUFF}

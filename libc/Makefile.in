@@ -5,6 +5,7 @@ LIBNAME=	libzc
 srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
+DESTDIR=
 
 SHELL=		/bin/sh
 CC=		@CC@
@@ -15,11 +16,11 @@ TOPDIR=		..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
 AR=		@AR@
-prefix=
-#exec_prefix=   @exec_prefix@
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
 LIBC_INCL=	@INCLRESOLV@ @GENINCL@
-INCLUDEDIR=	${prefix}@includedir@
-LIBRARYDIR=	${prefix}@libdir@
+INCLUDEDIR=	${DESTDIR}@includedir@
+LIBRARYDIR=	${DESTDIR}@libdir@
 INSTALL=	@INSTALL@
 MKDIR=		@MKDIR@
 #

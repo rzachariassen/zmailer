@@ -35,111 +35,111 @@ $(MD5SUM):
 dirs:	$(PZCONFIG)
 	-@(. $(PZCONFIG) ;					\
 	umask 022 ;						\
-	if [ -n "$(prefix)" ] ; then				\
-		$(MKDIR) -m 755 $(prefix) ;			\
+	if [ -n "$(DESTDIR)" ] ; then				\
+		$(MKDIR) -m 755 $(DESTDIR) ;			\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE ]; then			\
-		echo $(MKDIR) $(prefix)$$MAILSHARE &&		\
-			$(MKDIR) $(prefix)$$MAILSHARE ; 	\
+	if [ ! -d $(DESTDIR)$$MAILSHARE ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE &&		\
+			$(MKDIR) $(DESTDIR)$$MAILSHARE ; 	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILVAR ]; then			\
-		echo $(MKDIR) $(prefix)$$MAILVAR &&		\
-			$(MKDIR) $(prefix)$$MAILVAR ;		\
+	if [ ! -d $(DESTDIR)$$MAILVAR ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$MAILVAR &&		\
+			$(MKDIR) $(DESTDIR)$$MAILVAR ;		\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILVAR/db ]; then			\
-		echo $(MKDIR) $(prefix)$$MAILVAR/db &&		\
-			$(MKDIR) $(prefix)$$MAILVAR/db ;	\
+	if [ ! -d $(DESTDIR)$$MAILVAR/db ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$MAILVAR/db &&		\
+			$(MKDIR) $(DESTDIR)$$MAILVAR/db ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILVAR/db/proto ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILVAR/db/proto &&	\
-			$(MKDIR) $(prefix)$$MAILVAR/db/proto ;	\
+	if [ ! -d $(DESTDIR)$$MAILVAR/db/proto ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILVAR/db/proto &&	\
+			$(MKDIR) $(DESTDIR)$$MAILVAR/db/proto ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILVAR/lists ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILVAR/lists &&	\
-			$(MKDIR) $(prefix)$$MAILVAR/lists ;	\
+	if [ ! -d $(DESTDIR)$$MAILVAR/lists ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILVAR/lists &&	\
+			$(MKDIR) $(DESTDIR)$$MAILVAR/lists ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILVAR/fqlists ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILVAR/dqlists &&	\
-			$(MKDIR) $(prefix)$$MAILVAR/fqlists ;	\
+	if [ ! -d $(DESTDIR)$$MAILVAR/fqlists ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILVAR/dqlists &&	\
+			$(MKDIR) $(DESTDIR)$$MAILVAR/fqlists ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE/forms ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILSHARE/forms &&	\
-			$(MKDIR) $(prefix)$$MAILSHARE/forms ;	\
+	if [ ! -d $(DESTDIR)$$MAILSHARE/forms ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE/forms &&	\
+			$(MKDIR) $(DESTDIR)$$MAILSHARE/forms ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE/forms/proto ]; then	\
-		echo $(MKDIR) $(prefix)$$MAILSHARE/forms/proto && \
-			$(MKDIR) $(prefix)$$MAILSHARE/forms/proto ; \
+	if [ ! -d $(DESTDIR)$$MAILSHARE/forms/proto ]; then	\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE/forms/proto && \
+			$(MKDIR) $(DESTDIR)$$MAILSHARE/forms/proto ; \
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE/proto ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILSHARE/proto &&	\
-			$(MKDIR) $(prefix)$$MAILSHARE/proto ;	\
+	if [ ! -d $(DESTDIR)$$MAILSHARE/proto ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE/proto &&	\
+			$(MKDIR) $(DESTDIR)$$MAILSHARE/proto ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE/bak ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILSHARE/bak &&	\
-			$(MKDIR) $(prefix)$$MAILSHARE/bak ;	\
+	if [ ! -d $(DESTDIR)$$MAILSHARE/bak ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE/bak &&	\
+			$(MKDIR) $(DESTDIR)$$MAILSHARE/bak ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILSHARE/guides ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILSHARE/guides &&	\
-			$(MKDIR) $(prefix)$$MAILSHARE/guides ;	\
+	if [ ! -d $(DESTDIR)$$MAILSHARE/guides ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILSHARE/guides &&	\
+			$(MKDIR) $(DESTDIR)$$MAILSHARE/guides ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILBIN ]; then			\
-		echo $(MKDIR) $(prefix)$$MAILBIN &&		\
-			$(MKDIR) $(prefix)$$MAILBIN ;		\
+	if [ ! -d $(DESTDIR)$$MAILBIN ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$MAILBIN &&		\
+			$(MKDIR) $(DESTDIR)$$MAILBIN ;		\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILBIN/ta ]; then			\
-		echo $(MKDIR) $(prefix)$$MAILBIN/ta &&		\
-			$(MKDIR) $(prefix)$$MAILBIN/ta ;	\
+	if [ ! -d $(DESTDIR)$$MAILBIN/ta ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$MAILBIN/ta &&		\
+			$(MKDIR) $(DESTDIR)$$MAILBIN/ta ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$MAILBIN/bak ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILBIN/bak &&		\
-			$(MKDIR) $(prefix)$$MAILBIN/bak ;	\
+	if [ ! -d $(DESTDIR)$$MAILBIN/bak ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILBIN/bak &&		\
+			$(MKDIR) $(DESTDIR)$$MAILBIN/bak ;	\
 	fi ;							\
-	if [ ! -d $(prefix)$$POSTOFFICE ]; then			\
-		echo $(MKDIR) $(prefix)$$POSTOFFICE &&		\
-			$(MKDIR) $(prefix)$$POSTOFFICE ;	\
-		chmod 2755 $(prefix)$$POSTOFFICE ;		\
-		chmod g+s  $(prefix)$$POSTOFFICE ;		\
+	if [ ! -d $(DESTDIR)$$POSTOFFICE ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$POSTOFFICE &&		\
+			$(MKDIR) $(DESTDIR)$$POSTOFFICE ;	\
+		chmod 2755 $(DESTDIR)$$POSTOFFICE ;		\
+		chmod g+s  $(DESTDIR)$$POSTOFFICE ;		\
 	fi;							\
 	echo " " ;						\
 	echo "Running  post-install  creates $$POSTOFFICE subdirs!"; \
 	echo " " ;						\
-	if [ ! -d $(prefix)$$LOGDIR ]; then			\
-		echo $(MKDIR) $(prefix)$$LOGDIR &&		\
-		$(MKDIR) $(prefix)$$LOGDIR ;			\
-		chmod 755 $(prefix)$$LOGDIR ;			\
+	if [ ! -d $(DESTDIR)$$LOGDIR ]; then			\
+		echo $(MKDIR) $(DESTDIR)$$LOGDIR &&		\
+		$(MKDIR) $(DESTDIR)$$LOGDIR ;			\
+		chmod 755 $(DESTDIR)$$LOGDIR ;			\
 	fi )
 
 clientdirs:	$(PZCONFIG)
 	-@(. $(PZCONFIG) ;				\
-	if [ ! -d $(prefix)$$MAILBIN ]; then		\
-		echo $(MKDIR) $(prefix)$$MAILBIN &&	\
-			$(MKDIR) $(prefix)$$MAILBIN ;	\
+	if [ ! -d $(DESTDIR)$$MAILBIN ]; then		\
+		echo $(MKDIR) $(DESTDIR)$$MAILBIN &&	\
+			$(MKDIR) $(DESTDIR)$$MAILBIN ;	\
 	fi )
 
 
 # This is only good for testing "make dirs"
 cleandirs: FRC $(PZCONFIG)
 	-@( . $(PZCONFIG) ; \
-	echo tar -cf /tmp/zmstuff.tar $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
-	tar -cf /tmp/zmstuff.tar $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
-	echo rm -rf $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
-	rm -rf $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE ; \
+	echo tar -cf /tmp/zmstuff.tar $(DESTDIR)$$MAILBIN $(DESTDIR)$$MAILSHARE $(DESTDIR)$$POSTOFFICE && \
+	tar -cf /tmp/zmstuff.tar $(DESTDIR)$$MAILBIN $(DESTDIR)$$MAILSHARE $(DESTDIR)$$POSTOFFICE && \
+	echo rm -rf $(DESTDIR)$$MAILBIN $(DESTDIR)$$MAILSHARE $(DESTDIR)$$POSTOFFICE && \
+	rm -rf $(DESTDIR)$$MAILBIN $(DESTDIR)$$MAILSHARE $(DESTDIR)$$POSTOFFICE ; \
 	rm -f +dirs )
 
 
 mailbin: $(PZCONFIG) $(PMAILBIN) $(MD5SUM)
 	-@(. $(PZCONFIG) ;					\
-	if [ ! -d $(prefix)$$MAILBIN/bak ]; then $(MKDIR) $(prefix)$$MAILBIN/bak ; fi ; \
+	if [ ! -d $(DESTDIR)$$MAILBIN/bak ]; then $(MKDIR) $(DESTDIR)$$MAILBIN/bak ; fi ; \
 	for file in $(PMAILBIN) ;				\
 	do							\
 		name=`expr $$file : '\([^.]*\)'` ;		\
-		echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
-		$(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
+		echo $(INSTALL) -m 755 $$file $(DESTDIR)$$MAILBIN/$$name ; \
+		$(INSTALL) -m 755 $$file $(DESTDIR)$$MAILBIN/$$name ; \
 	done)
 
 mailshare:	$(PZCONFIG) $(PMAILSHARE) $(MD5SUM)
 	-@(. $(PZCONFIG) ; pwd=`pwd` ;				\
-	MAILSHARE=$(prefix)$$MAILSHARE ;			\
+	MAILSHARE=$(DESTDIR)$$MAILSHARE ;			\
 	if [ ! -d $$MAILSHARE/bak ]; then $(MKDIR) $$MAILSHARE/bak ; fi ; \
 	for file in $(PMAILSHARE) ;				\
 	do							\
@@ -153,7 +153,7 @@ mailshare:	$(PZCONFIG) $(PMAILSHARE) $(MD5SUM)
 
 forms:	FRC $(MD5SUM)
 	@( . $(PZCONFIG) ;			\
-	FORMSDIR="$(prefix)$$MAILSHARE/forms" ; \
+	FORMSDIR="$(DESTDIR)$$MAILSHARE/forms" ; \
 	if [ ! -d "$$FORMSDIR/bak" ]; then	\
 		$(MKDIR) "$$FORMSDIR/bak" ;	\
 	fi ;					\
@@ -170,8 +170,8 @@ forms:	FRC $(MD5SUM)
 
 db:	FRC
 	-@( . $(PZCONFIG) ;					\
-	MAILVAR=$(prefix)$$MAILVAR ;				\
-	MAILSHARE=$(prefix)$$MAILSHARE;				\
+	MAILVAR=$(DESTDIR)$$MAILVAR ;				\
+	MAILSHARE=$(DESTDIR)$$MAILSHARE;				\
 	if [ ! -d $$MAILVAR/db ]; then				\
 		$(MKDIR) $$MAILVAR/db ;				\
 	fi ;							\
@@ -189,7 +189,7 @@ db:	FRC
 
 cf:	FRC  $(MD5SUM)
 	-@(. $(PZCONFIG) ;			\
-	MAILSHARE=$(prefix)$$MAILSHARE;		\
+	MAILSHARE=$(DESTDIR)$$MAILSHARE;		\
 	if [ ! -d $$MAILSHARE/proto ]; then	\
 		$(MKDIR) $$MAILSHARE/proto ;	\
 	fi ;					\
@@ -212,7 +212,7 @@ cf:	FRC  $(MD5SUM)
 
 guides:	FRC
 	-. $(PZCONFIG) ;					\
-	MAILSHARE=$(prefix)$$MAILSHARE ;			\
+	MAILSHARE=$(DESTDIR)$$MAILSHARE ;			\
 	src=$(srcdir)/$(TOPDIR)/doc/guides ;			\
 	cp -p $$src/* $$MAILSHARE/guides/
 

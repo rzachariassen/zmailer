@@ -2,7 +2,8 @@ SHELL=		/bin/sh
 TOPDIR=		../..
 PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
-MAILBIN=	$(prefix)@MAILBIN@
+DESTDIR=
+MAILBIN=	$(DESTDIR)@MAILBIN@
 
 srcdir=         @srcdir@
 VPATH=          @srcdir@
@@ -12,7 +13,7 @@ COPTS=		@CFLAGS@
 CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
-MAILBIN=	$(prefix)@MAILBIN@
+MAILBIN=	$(DESTDIR)@MAILBIN@
 DEFS=		@DEFS@
 MD5SUM=		@MD5SUM@
 INSTALL=	@INSTALL@
@@ -30,7 +31,7 @@ PERL=		@PERL@
 all:	mailq/Makefile
 
 install: mailq/Makefile
-	cd mailq && $(MAKE) $(MFLAGS) install
+	cd mailq && $(MAKE) $(MFLAGS) DESTDIR=${DESTDIR} install
 
 mailq/Makefile:
 	if [ ! -d mailq ] ; then mkdir mailq ; fi
