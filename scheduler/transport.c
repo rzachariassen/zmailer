@@ -344,8 +344,9 @@ ta_hungry(proc)
 	  if (proc->overfed > 0) return;
 
 	  /* Disconnect the previous thread from the proc. */
-
-	  proc->pthread->proc = NULL;
+	  if (proc->pthread)
+	    proc->pthread->proc = NULL;
+	  proc->pthread = NULL;
 
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
