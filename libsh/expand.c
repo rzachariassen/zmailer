@@ -171,7 +171,8 @@ sglob(ibuf)
 	GCPRO1(cc);
 	pp = &cc;
 	for (i = 0; i < n; ++i) {
-		*pp = newstring(dupstr(base[i]));
+		int slen = strlen(base[i]);
+		*pp = newstring(dupnstr(base[i],slen),slen);
 		pp = &cdr(*pp);
 		*pp = NULL;
 		/* printf("saw %s\n", base[i]); */
@@ -527,7 +528,7 @@ glob(d)
 	conscell *tmp;
 	char *buf = NULL;
 	int *ibuf;
-	int s;
+	int s, slen;
 
 	s = squish(d, &buf, &ibuf);
 	switch (s) {
@@ -547,7 +548,8 @@ glob(d)
 		/* (re)filled the buffer, can throw away
 		   the conscell chain in 'tmp'. */
 	case 0:
-		tmp = newstring(dupstr(buf));
+		slen = strlen(buf);
+		tmp = newstring(dupnstr(buf,slen),slen);
 		free(buf);
 		return tmp;
 	}
@@ -573,12 +575,14 @@ expand(d)
 	conscell *tmp, *head, *next, *orig;
 	conscell *globbed = NULL, **pav;
 	register char *cp;
+	int slen, slen0;
 	GCVARS6;
 
 	tmp = head = next = orig = globbed = NULL;
 	GCPRO6(tmp, head, next, orig, globbed, d);
 
 	/* grindef("EXP = ", d); */
+
 	d = s_copy_tree(d); /* this chain of data will be modified below! */
 	orig = d;
 	pav = &globbed;
@@ -603,39 +607,51 @@ expand(d)
 		/* null strings should be retained */
 		/* fprintf(stderr,"checking '%s'\n", d->string); */
 		cp = d->string;
+		slen = d->slen;
 		if (head == d) {
 			/* skip leading whitespace */
 			char *p;
-			while (*cp != '\0' && WHITESPACE(*cp)) ++cp;
-			p = dupstr(cp);
-			freestr(d->string);
+			while (slen > 0 && WHITESPACE(*cp)) ++cp, --slen;
+			p    = dupnstr(cp,slen);
+			/* UGLY replace-in-place code;
+			   this 'freestr()' should not be
+			   used outside  listmalloc.c! */
+			if (ISNEW(d))
+			  freestr(d->string,d->slen);
 			d->string = p;
+			d->slen   = slen;
+			d->flags  = NEWSTRING;
 			cp = p;
 		}
-		while (*cp != '\0') {
+		slen0 = slen;
+		while (slen > 0) {
 			if (WHITESPACE(*cp)) {
 				/* can do this because stored data was copied */
 				*cp++ = '\0';
+				d->slen = (slen0 - slen);
+				--slen;
 				cdr(d) = NULL;
 				/* wrap the stuff at head into its own argv */
 				/* printf("wrapped '%s'\n", d->string); */
 				*pav = glob(head);
 				pav = &cdr(s_last(*pav));
 				/* now find the continuation */
-				while (*cp != '\0' && WHITESPACE(*cp))
-					++cp;
-				if (*cp == '\0') {
+				while (slen > 0 && WHITESPACE(*cp))
+					++cp, --slen;
+				if (slen == 0) {
 					head = NULL;
 					break;
 				} else {
 					/* We have more non-white-space stuff
 					   following */
-					head = d = newstring(dupstr(cp));
+					head = d = newstring(dupnstr(cp,slen),slen);
 					cdr(head) = next;
 					cp = d->string;
+					slen0 = slen;
 				}
 			}
 			++cp;
+			--slen;
 		}
 	}
 
@@ -648,5 +664,9 @@ expand(d)
 	*pav = NULL;
 
 	UNGCPRO6;
+
+	/* fprintf(stderr, "EXPLEN = %d ",globbed->slen);
+	   grindef("EXPOUT = ", globbed); */
+
 	return globbed;
 }

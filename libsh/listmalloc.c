@@ -124,11 +124,9 @@ static consblock *new_consblock()
     printf("new_consblock(%d cells)\n", consblock_cellcount);
 #endif
 
-    new = (consblock *) malloc(newsize);
+    new = (consblock *) calloc(1,newsize); /* clearing malloc */
     if (!new)
 	return NULL;
-
-    memset(new, 0, newsize); /* Sigh.. */
 
     new->cellcount = consblock_cellcount;
     new->nextblock = NULL;
@@ -255,36 +253,6 @@ int consvar_register(varptr)
  */
 static void cons_DSW __((conscell *source));
 
-#define DSW_MASK  (DSW_MARKER | DSW_BACKPTR)
-
-#define DSW_BLOCKLEFT(cptr)	\
-		(((cptr)->flags & ~DSW_MASK) || ((cptr)->dtpr == NULL))
-
-#define DSW_BLOCKRIGHT(cptr)	\
-		((cptr)->next == NULL)
-#define DSW_BLOCK(cptr)		\
-		(((cptr)->flags & DSW_MARKER) ||	\
-		 (DSW_BLOCKLEFT(cptr) && DSW_BLOCKRIGHT(cptr)))
-
-/*static*/ void cons_DSW_rotate __((conscell **, conscell **, conscell **));
-/*static*/ void cons_DSW_rotate(pp1, pp2, pp3)
-conscell **pp1, **pp2, **pp3;
-{
-    conscell *t1, *t2, *t3;
-
-#ifdef DEBUG
-    printf("cons_DSW_rotate(%p, %p, %p)\n", pp1, pp2, pp3);
-#endif
-
-
-    t1 = *pp1;
-    t2 = *pp2;
-    t3 = *pp3;
-    *pp1 = t2;
-    *pp2 = t3;
-    *pp3 = t1;
-}
-
 int deepest_dsw = 0;
 
 static void _cons_DSW(source, depth)
@@ -318,138 +286,9 @@ int depth;
 static void cons_DSW(source)
 conscell *source;
 {
-#if 1 /* Use stack to descend CAR, scan thru CDR */
+  /* Use stack to descend CAR, scan thru CDR */
 
   _cons_DSW(source,1);
-
-#else /* --- pure DSW -- with problems ---- */
-    conscell *current, *previous, *next;
-    int done;
-
-#if 0
-#ifdef DEBUG
-    printf("cons_DSW(source=%p)\n", source);
-#endif
-#endif
-
-
-    current = source;
-    previous = NULL;
-    done = 0;
-
-    while (!done) {
-      /* Follow left pointers */
-      while ((current != NULL) &&
-	     !(current->flags & DSW_MARKER)) {
-	current->flags |= DSW_MARKER;
-	if (LIST(current)) {
-	  next = car(current);
-	  car(current) = previous;
-	  previous = current;
-	  current = next;
-	}
-      }
-      /* retreat */
-      while ((previous != NULL) &&
-	     (current->flags & DSW_BACKPTR)) {
-	current->flags &= ~DSW_BACKPTR;
-	next = cdr(previous);
-	cdr(previous) = current;
-	current = previous;
-	previous = next;
-      }
-      if (!previous)
-	done = 1;
-      else {
-	/* Switch to right subgraph */
-	previous->flags |= DSW_BACKPTR;
-	next = car(previous);
-	car(previous) = current;
-	current = cdr(previous);
-	cdr(previous) = next;
-      }
-    }
-
-#if 0 /* OLD CODE -- OLD CODE -- OLD CODE */
-    while (state != 0) {
-	switch (state) {
-	case 1:
-#ifdef DEBUG
-	      printf("DEBUG: 1: %p ",current);
-#endif
-	    /* Mark in every case 
-	    current->flags |= DSW_MARKER; */
-	    /* Try to advance */
-	    if (DSW_BLOCK(current)) {
-		/* Prepare to retreat */
-	        current->flags |= DSW_MARKER;
-		state = 2;
-		printf("prepare to retreat\n");
-#ifdef DEBUG
-		printf("%d ", DSW_BLOCKLEFT(current));
-		printf("%d ", DSW_BLOCKRIGHT(current));
-		printf("%d\n", DSW_BLOCK(current));
-#endif
-	    } else {
-	        /* Advance */
-	        current->flags |= DSW_MARKER;
-		if (DSW_BLOCKLEFT(current)) {
-#ifdef DEBUG
-		    printf("adv. right\n");
-#endif
-		    /* Follow right (next) pointer */
-		    current->flags &= ~DSW_BACKPTR; /* back == right */
-		    cons_DSW_rotate(&prev, &current, &current->next);
-		} else {
-#ifdef DEBUG
-		    printf("adv. left\n");
-#endif
-		    /* Follow left (dtpr) pointer */
-		    current->flags |= DSW_BACKPTR; /* back == lext */
-		    cons_DSW_rotate(&prev, &current, &current->dtpr);
-		}
-	    }
-	    break;
-	case 2:
-#ifdef DEBUG
-	    printf("DEBUG: 2: %p ",current);
-#endif
-	    /* Finish, retreat or switch */
-	    if (current == prev) {
-		/* Finish */
-		state = 0;
-#ifdef DEBUG
-		printf("finish\n");
-#endif
-	    }
-	    else if ((prev->flags & DSW_BACKPTR)  /* prev.back == L */
-		     && (!DSW_BLOCKRIGHT(prev))) {
-	        /* Switch */
-#ifdef DEBUG
-		printf("switch\n");
-#endif
-	        prev->flags &= ~DSW_BACKPTR; /* prev.back = R */
-		cons_DSW_rotate(&prev->dtpr, &current, &prev->next);
-		state = 1;
-	    } else if (!(prev->flags & DSW_BACKPTR)) { /* prev.back == R*/
-	        /* Retreat */
-#ifdef DEBUG
-		printf("retreat R\n");
-#endif
-	        cons_DSW_rotate(&prev, &prev->next, &current);
-	    } else { /* prev.back == L */
-#ifdef DEBUG
-		printf("retreat L\n");
-#endif
-	        cons_DSW_rotate(&prev, &prev->dtpr, &current);
-	    }
-	    break;
-	default:
-	    break;
-	}
-    }
-#endif
-#endif
 }
 
 int cons_garbage_collect()
@@ -472,9 +311,9 @@ int cons_garbage_collect()
 	cc = cb->cells;
 	for (i = 0; i < cb->cellcount; ++i, ++cc)
 #ifdef PURIFY  /* Turn on for 'Purify' testing... */
-	  if (cc->flags & (DSW_MARKER|DSW_BACKPTR))
+	  if (cc->flags & (DSW_MARKER))
 #endif
-	    cc->flags &= ~(DSW_MARKER|DSW_BACKPTR);
+	    cc->flags &= ~(DSW_MARKER);
     }
 
     /* Hookay...  Now we run marking on all cells that are
@@ -540,7 +379,7 @@ int cons_garbage_collect()
 
 		/* It was reachable, just clean the marker bit(s) */
 
-		cc->flags &= ~(DSW_MARKER | DSW_BACKPTR);
+		cc->flags &= ~(DSW_MARKER);
 		++usecnt;
 		if (ISNEW(cc))
 		  ++strusecnt;
@@ -555,7 +394,7 @@ int cons_garbage_collect()
 			    cc->string, cc, __builtin_return_address(0),
 			    cc->string);
 #endif
-		    freestr(cc->string);
+		    freestr(cc->string,cc->slen);
 		    cc->string = NULL;
 		}
 		if (!(cc->flags & DSW_FREEMARK)) {
@@ -625,11 +464,15 @@ conscell *
 
     new = conscell_freechain;
     conscell_freechain = new->next;
+#if 0 /* No clearing of any fields here!
+	 All uses of this function will handle filling of all fields
+	 all by themselves. */
 #if 0
     new->next = NULL;
     new->flags = 0;
 #else
     memset(new, 0, sizeof(*new));
+#endif
 #endif
 #ifdef DEBUG
     fprintf(stderr," newcell() returns %p to caller at %p\n", new,
@@ -650,7 +493,7 @@ char *argv[];
 
     newcell_gc_interval = 3;
 
-    rootcell = conststring("const-string");
+    rootcell = conststring("const-string",12);
 #if 0
     GCPRO1(rootcell);
     printf("rootcell @ %p cell %p\n",&rootcell, rootcell);
@@ -662,7 +505,7 @@ char *argv[];
 #endif
 
     for (i = 0; i < 30; ++i) {
-      newc = conststring("subconst");
+      newc = conststring("subconst",8);
       newc->next = rootcell->next;
       rootcell->next = newc;
     }
@@ -682,7 +525,7 @@ conscell *copycell(conscell *X)
   conscell *tmp = newcell();
   *tmp = *X;
   if (STRING(tmp)) {
-    tmp->string = dupstr(tmp->string);
+    tmp->string = dupnstr(tmp->string, tmp->slen);
     tmp->flags = NEWSTRING;
   }
   return tmp;
@@ -726,21 +569,23 @@ conscell *s_push(conscell *X, conscell* Y)
 }
 #endif
 #ifndef newstring
-conscell *newstring(char *s)
+conscell *newstring(char *s, const int slen)
 {
   conscell *tmp = newcell();
   tmp->string = s;
   tmp->flags = NEWSTRING;
+  tmp->slen  = slen;
   cdr(tmp) = NULL;
   return tmp;
 }
 #endif
 #ifndef conststring
-conscell *conststring(const char *s)
+conscell *conststring(const char *s, const int slen)
 {
   conscell *tmp = newcell();
   tmp->cstring = s;
   tmp->flags = CONSTSTRING;
+  tmp->slen  = slen;
   cdr(tmp) = NULL;
   return tmp;
 }
@@ -755,49 +600,60 @@ conscell *conststring(const char *s)
 
 const static int  strmagic = 0x53545200; /* 'STR\0' */
 
+#define STRPOSOFFSET 5	/* 5 for debug,		*/
+			/* 4 for run w/ check,	*/
+			/* 0 for run w/o check!	*/
+
+
+char *mallocstr(len)
+     const int len;
+{
+  char *p = malloc((len+STRPOSOFFSET+1 +7) & ~7); /* XX: DEBUG MODE! */
+#if STRPOSOFFSET > 0
+  int *ip = (int*)p;
+#endif
+  if (!p) return p; /* NULL */
+  p += STRPOSOFFSET;	/* Alignment OFF even bytes for debugging
+			   of string element misuses in conscells. */
+#if STRPOSOFFSET > 0
+  *ip = strmagic;
+#endif
+#ifdef DEBUG
+  fprintf(stderr," mallocstr() returns %p to caller at %p\n", p,
+	  __builtin_return_address(0));
+#endif
+
+  return p;
+}
+
 char *dupnstr(str,len)
      const char *str;
      const int len;
 {
-  char *p = malloc((len+5+1 +7) & ~7); /* XX: DEBUG MODE! */
-  int *ip = (int*)p;
-
-  if (!p) return p; /* NULL */
-  p += 5;		/* Alignment OFF even bytes for debugging
-			   of string element misuses in conscells. */
+  char *p = mallocstr(len);
   memcpy(p, str, len);
   p[len] = 0;
-  *ip = strmagic;
+  ++newcell_gc_dupnstrcount;
+
 #ifdef DEBUG
   fprintf(stderr," dupnstr() returns %p to caller at %p\n", p,
 	  __builtin_return_address(0));
 #endif
-
-  ++newcell_gc_dupnstrcount;
-
   return (p);
 }
 
-#ifndef dupstr
-char *dupstr(str)
-const char *str;
-{
-  int slen = strlen(str);
-
-  return dupnstr(str,slen);
-}
-#endif
-
-void freestr(str)
+void freestr(str, slen)
      const char *str;
+     const int slen;
 {
   char *p = (char*)str;
-  int *ip = (int*)(p - 5);
+  int *ip = (int*)(p - STRPOSOFFSET);
 
+#if STRPOSOFFSET > 0
   if (*ip != strmagic) *(int*)0L = 0; /* ZAP! */
+#endif
 
   free(ip);
 
   ++newcell_gc_freestrcount;
 }
-

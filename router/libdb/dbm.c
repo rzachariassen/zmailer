@@ -6,7 +6,7 @@
 /* NOTE: This can't co-exist with ndbm! */
 
 /* We close the db after EVERY operation -- every search, every
-   add, ... */
+   add, NOW we can co-exist with anything -- expect perhaps NDBM...  */
 
 /* LINTLIBRARY */
 
@@ -84,7 +84,7 @@ search_dbm(sip)
 		close_dbm(sip);
 		return NULL;
 	}
-	tmp = newstring(dupnstr(val.dptr, val.dsize));
+	tmp = newstring(dupnstr(val.dptr, val.dsize), val.dsize);
 	close_dbm(sip);
 	return tmp;
 }

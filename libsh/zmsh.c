@@ -274,7 +274,7 @@ zshinit(argc, argv)
 		conscell *d = NULL;
 		GCVARS1;
 		GCPRO1(d);
-		d = conststring(progname);
+		d = conststring(progname,strlen(progname));
 		s_push(d, avcmd.argv);
 		UNGCPRO1;
 	}

@@ -68,6 +68,8 @@ search_core(sip)
 	struct sptree *db;
 	struct spblk *spl;
 	spkey_t spk;
+	char *s;
+	int slen;
 
 	db = open_core(sip);
 	if (db == NULL)
@@ -79,8 +81,10 @@ search_core(sip)
 	if (spl == NULL)
 		return NULL;
 	if (spl->data == NULL)
-		return conststring("");
-	return newstring(dupstr((const char *)spl->data));
+		return conststring("", 0);
+	slen = strlen((const char *)spl->data);
+	s = dupnstr((const char *)spl->data, slen);
+	return newstring(s, slen);
 }
 
 /*

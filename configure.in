@@ -937,7 +937,7 @@ AC_TRY_LINK([extern char *sys_siglist[]; static char *s;], [s = sys_siglist[2]; 
 AC_CHECK_FUNCS(index rindex)
 # more tests..
 AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
-		getmntinfo gettimeofday isascii memcpy mkfifo   \
+		getmntinfo gettimeofday isascii memcpy memchr mkfifo   \
 		getpgrp setsid seteuid setuid)
 AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
 # Networking stuff is in deep trouble, if sockets are not found..

@@ -223,19 +223,19 @@ execv(command, argv)
 		continue;
 	for (n = 1, len = 0, l = car(scope); l != NULL; l = cdr(l))
 		if (STRING(l))
-			++n, len += strlen((char *)l->string);
+			++n, len += l->slen;
 	envp = (char **)tmalloc((n/2 + 1) * sizeof (char *));
 	buf  = (char *)tmalloc(len + n /* terminating NUL */ + n /* = */);
 	for (n = 0, l = car(scope); l != NULL; l = cddr(l)) {
 		if (!(STRING(l) && cdr(l) != NULL && STRING(cdr(l))))
 			continue;
 		envp[n++] = buf;
-		strcpy(buf, (char *)l->string);
-		buf += strlen((char *)l->string);
-		*buf++ = '=';
-		strcpy(buf, (char *)cdr(l)->string);
-		buf += strlen((char *)cdr(l)->string);
-		*buf++ = '\0';
+		memcpy(buf, l->cstring, l->slen);
+		buf    += l->slen;
+		*buf++  = '=';
+		memcpy(buf, cdr(l)->cstring, cdr(l)->slen);
+		buf    += cdr(l)->slen;
+		*buf++  = '\0';
 	}
 	qsort(envp, n, sizeof envp[0], pathcmp);
 	envp[n] = NULL;

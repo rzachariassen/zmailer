@@ -238,9 +238,12 @@ search_ldap(sip)
 
 	/* only get the first attribute, ignore others if defined */
 	vals = ldap_get_values(ld, entry, lmap->attr);
-	if (vals != NULL)
+	if (vals != NULL) {
 		/* if there is more that one, use the first */
-		tmp = newstring(dupstr(vals[0]));
+		int slen = strlen(vals[0]);
+		char *s = dupnstr(vals[0], slen);
+		tmp = newstring(s, slen);
+	}
 
 ldap_exit:
 	if (vals != NULL)

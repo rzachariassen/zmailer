@@ -626,8 +626,8 @@ addbuffer(buf, len, state, command)
 		if (isascii(c) && isspace(c))
 			--ncp;
 		if (ncp > buf) {
-			ncp = dupnstr(buf, ncp-buf);
-			tmp = newstring(ncp);
+			int slen = ncp-buf;
+			tmp = newstring(dupnstr(buf, slen), slen);
 
 			if (isset('I') || isset('R'))
 				fprintf(stderr,

@@ -104,6 +104,7 @@ v_find(name)
 	const char * name;
 {
 	register conscell *l, *pl, *scope;
+	int nlen = strlen(name);
 
 	if (name == NULL) return NULL; /* No input name, no output var.. */
 
@@ -113,10 +114,8 @@ v_find(name)
 	pl = NULL;
 	for (scope = car(envarlist); scope != NULL; scope = cdr(scope)) {
 		for (l = car(scope); l != NULL; pl = cdr(l), l = cddr(l)) {
-			if (*name == *(l->string) &&
-			    name[1] == l->string[1] &&
-			    (name[1] == '\0' ||
-			     strcmp(name, l->string) == 0)){
+			if (l->slen == nlen &&
+			    memcmp(name, l->cstring, nlen) == 0){
 				if (l != car(scope)) {
 					/* move it to start of scope plist */
 					cdr(pl) = cddr(l);
@@ -165,6 +164,8 @@ v_expand(s, caller, retcode)
 	GCVARS3;
 	GCPRO3(d,l,tmp);
 
+	/* fprintf(stderr,"v_expand('%s',...,retcode=%d)\n",s,retcode); */
+
 	/*
 	 * We only need to test the first character since the parser
 	 * is supposed to enforce variable name syntax (so to speak).
@@ -173,36 +174,32 @@ v_expand(s, caller, retcode)
 	case '@':
 	case '*':
 		if (caller == NULL || cdar(caller->argv) == NULL) {
-			UNGCPRO3;
-			return NULL;
+			goto end_v_expand;
 		}
 		d = s_copy_tree(cdar(caller->argv));
 		for (l = d; l != NULL && cdr(l) != NULL ; l = cdr(l)) {
-			tmp = newstring(dupnstr(" ",1));
+			tmp = conststring(" ",1);
 			cdr(tmp) = cdr(l);
 			l = cdr(l) = tmp;
 			if (*s == '@')
 				tmp->flags |= NOQUOTEIFQUOTED;
 		}
 		/* grindef("ARGW = ", ncons(d)); */
-		UNGCPRO3;
-		return d;
+		goto end_v_expand;
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 		if (caller == NULL) {
-			UNGCPRO3;
-			return NULL;
+			d = NULL;
+			goto end_v_expand;
 		}
 		if ((d = s_nth(caller->argv, atoi(s))) == NULL) {
-			UNGCPRO3;
-			return NULL;
+			goto end_v_expand;
 		}
 		d = copycell(d);
 		cdr(d) = NULL;
 		/* d = s_copy_tree(d); */ /* XXX: Needed ? */
-		UNGCPRO3;
-		return d;
+		goto end_v_expand;
 
 	case '#':
 		if (*++s == '\0')
@@ -216,15 +213,15 @@ v_expand(s, caller, retcode)
 			d = cdr(d), ++n;
 		/* print n into a string */
 		sprintf(np, "%d", n);
-		d = newstring(dupstr(np));
-		UNGCPRO3;
-		return d;
+		n = strlen(np);
+		d = newstring(dupnstr(np,n),n);
+		goto end_v_expand;
 
 	case '$':
 		sprintf(np, "%d", (int)getpid());
-		d = newstring(dupstr(np));
-		UNGCPRO3;
-		return d;
+		n = strlen(np);
+		d = newstring(dupnstr(np,n),n);
+		goto end_v_expand;
 
 	case '?':
 		if (retcode == -123456) {
@@ -234,15 +231,15 @@ v_expand(s, caller, retcode)
 			abort(); /* Bad magic retcode on $? expansion! */
 		}
 		sprintf(np, "%d", retcode);
-		d = newstring(dupstr(np));
-		UNGCPRO3;
-		return d;
+		n = strlen(np);
+		d = newstring(dupnstr(np,n),n);
+		goto end_v_expand;
 
 	case '!':
 		sprintf(np, "%d", lastbgpid);
-		d = newstring(dupstr(np));
-		UNGCPRO3;
-		return d;
+		n = strlen(np);
+		d = newstring(dupnstr(np,n),n);
+		goto end_v_expand;
 
 	case '-':
 		cp = np;
@@ -252,9 +249,9 @@ v_expand(s, caller, retcode)
 		if (cp == np)
 			*cp++ = '-';
 		*cp = '\0';
-		d = newstring(dupstr(np));
-		UNGCPRO3;
-		return d;
+		n = strlen(np);
+		d = newstring(dupnstr(np,n),n);
+		goto end_v_expand;
 
 	default:
 		break;
@@ -264,6 +261,10 @@ v_expand(s, caller, retcode)
 		d = copycell(cdr(d));
 		cdr(d) = NULL;
 	}
+ end_v_expand:
+
+	/* grindef("  d = ", d); */
+
 	UNGCPRO3;
 
 	return d;
@@ -336,7 +337,8 @@ v_setl(variable, value)
 	const char *variable;
 	conscell *value;
 {
-	conscell *lhs = newstring(dupstr(variable));
+	int slen = strlen(variable);
+	conscell *lhs = newstring(dupnstr(variable,slen),slen);
 	GCVARS1;
 	GCPRO1(lhs);
 	assign(lhs, value, (struct osCmd *)NULL);
@@ -353,8 +355,9 @@ v_set(variable, value)
 {
 	conscell *rhs;
 	GCVARS1;
+	int slen = strlen(value);
 
-	rhs = newstring(dupstr(value));
+	rhs = newstring(dupnstr(value,slen),slen);
 	GCPRO1(rhs);
 	v_setl(variable, rhs);
 	UNGCPRO1;
@@ -370,7 +373,7 @@ v_envinit()
 {
 	conscell *s = NULL, *e = NULL;
 	register char	**cpp, *cp;
-	int gotpath;
+	int gotpath, slen;
 	memtypes oval;
 	GCVARS2;
 
@@ -392,16 +395,18 @@ v_envinit()
 			++gotpath;
 		else if (strcmp(*cpp, IFS) == 0)
 			continue;	/* don't inherit IFS */
-		s = newstring(dupstr(*cpp));
+		slen = strlen(*cpp);
+		s = newstring(dupnstr(*cpp,slen),slen);
 		nconc(envarlist, s);
-		s = newstring(dupstr(cp));
+		slen = strlen(cp);
+		s = newstring(dupnstr(cp,slen),slen);
 		nconc(envarlist, s);
 		*--cp = '=';
 	}
 	if (!gotpath) {
-		s = conststring(PATH);
+		s = conststring(PATH,strlen(PATH));
 		nconc(envarlist, s);
-		s = conststring(DEFAULT_PATH);
+		s = conststring(DEFAULT_PATH,strlen(DEFAULT_PATH));
 		nconc(envarlist, s);
 	}
 	/* now make it into a list of plists */
@@ -409,7 +414,7 @@ v_envinit()
 	envarlist = ncons(envarlist);	/* ((env)) */
 	/* ... and prepend the normal scope */
 	/* ... and put it in the list of pre-defined non-env. variables */
-	s = conststring(ENVIRONMENT);
+	s = conststring(ENVIRONMENT,strlen(ENVIRONMENT));
 	cdr(s) = envarlist;	/* must only use s_push with envarlist now */
 	cdr(s_last(e)) = s;	/* (envcopy ENVIRONMENT (env))		*/
 	s = ncons(e);		/* s = (envcopy ENVIRONMENT (env))	*/
@@ -472,9 +477,10 @@ v_export(name)
 	/* it isn't being exported */
 	if (value == NULL) {
 		GCVARS1;
-		value = newstring(dupstr(name));
+		int slen = strlen(name);
+		value = newstring(dupnstr(name,slen),slen);
 		GCPRO1(value);
-		cdr(value) = conststring("");
+		cdr(value) = conststring("",0);
 		UNGCPRO1;
 	}
 	cddr(value) = car(scope);

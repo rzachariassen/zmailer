@@ -127,7 +127,7 @@ reopen:
 		}
 		return NULL;
 	}
-	return newstring(dupnstr(val.data, val.size));
+	return newstring(dupnstr(val.data, val.size), val.size);
 }
 
 

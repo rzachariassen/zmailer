@@ -1534,7 +1534,7 @@ run_listexpand(avl, il)
 	GCPRO3(al, l, lrc);
 
 	for (ap = aroot; ap != NULL; ap = ap->a_next) {
-		int rc;
+		int rc, slen;
 		memtypes omem;
 		char *s2, *se;
 
@@ -1591,9 +1591,12 @@ run_listexpand(avl, il)
 		   (The last two were added in June-1998)
 		*/
 
-		l         = newstring(dupstr(buf));
-		cdr(l)    = newstring(dupstr(origaddr));
-		cddr(l)   = newstring(dupstr(s));
+		slen = strlen(buf);
+		l         = newstring(dupnstr(buf, slen), slen);
+		slen = strlen(origaddr);
+		cdr(l)    = newstring(dupnstr(origaddr, slen), slen);
+		slen = strlen(s);
+		cddr(l)   = newstring(dupnstr(s, slen), slen);
 		if (plustail != NULL) {
 		  cdr(cddr(l))  = s_copy_tree(plustail);
 		  if (domain != NULL)
@@ -1622,9 +1625,10 @@ run_listexpand(avl, il)
 		if (deferit && (d = v_find(DEFER))) {
 		  /* s_free_tree(lrc); */
 		  lrc = NULL;
-		  l = conststring("hold");
+		  l = conststring("hold", 4);
 		  cdr(l)   = copycell(cdr(d));
-		  cddr(l)  = newstring(dupstr(buf));
+		  slen = strlen(buf);
+		  cddr(l)  = newstring(dupnstr(buf, slen), slen);
 		  cdddr(l) = car(attributes);
 		  l = ncons(l);
 		  l = ncons(l);
@@ -1708,9 +1712,11 @@ run_listexpand(avl, il)
 	}
 
 	if (al == NULL) { /* ERROR! NO ADDRESSES! */
-	  al = conststring("error");
-	  cdr(al)  = conststring("expansion");
-	  cddr(al) = newstring(dupstr(localpart));
+	  int slen;
+	  al = conststring("error", 5);
+	  cdr(al)  = conststring("expansion", 9);
+	  slen = strlen(localpart);
+	  cddr(al) = newstring(dupnstr(localpart, slen), slen);
 	  al = ncons(al);
 	  al = ncons(al);
 	}

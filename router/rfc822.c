@@ -70,10 +70,10 @@ makequad()
 	l = NULL;
 	GCPRO1(l);
 
-	l = conststring(NULL);
-	cdr(l) = conststring(NULL);
-	cddr(l) = conststring(NULL);
-	cdr(cddr(l)) = conststring(NULL);
+	l = conststring(NULL, 0);
+	cdr(l) = conststring(NULL, 0);
+	cddr(l) = conststring(NULL, 0);
+	cdr(cddr(l)) = conststring(NULL, 0);
 
 	UNGCPRO1;
 	return l;

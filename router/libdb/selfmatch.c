@@ -42,7 +42,8 @@ search_selfmatch(sip)
 	search_info *sip;
 {
 	int rc;
-	char rbuf[8];
+	char rbuf[8], *s;
+	int slen;
 
 	/* Pick up current set of interface addresses ...
 	   ... or from the ZENV variable  SELFADDRESSES. */
@@ -75,8 +76,10 @@ search_selfmatch(sip)
 	}
 	if (rc == 0)
 	  return NULL;
-	sprintf(rbuf,"%d",rc);
-	return newstring(dupstr(rbuf));
+	sprintf(rbuf, "%d", rc);
+	slen = strlen(rbuf);
+	s = dupnstr(rbuf, slen);
+	return newstring(s, slen);
 }
 
 static void freeaddresses __((struct sockaddr **, int));

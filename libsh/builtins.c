@@ -134,9 +134,11 @@ sh_car(avl, il)
 	il = cdar(avl);
 	if (il == NULL)
 		return NULL;
-	if (STRING(il))
-		return newstring(dupstr(il->string));
-	/* setf preparation */
+	if (STRING(il)) {
+		il = copycell(il);
+		cdr(il) = NULL;
+		return il;
+	}
 	if (car(il) == NULL) {
 		return il;
 	}
@@ -163,7 +165,6 @@ sh_last(avl, il)
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
-	/* setf preparation */
 	while (cdar(il) != NULL)
 		car(il) = cdar(il);
 	return il;
@@ -269,7 +270,7 @@ sh_lreplace(avl, il)
 {
 	conscell *key, *d, *tmp, *data, **dp;
 	memtypes omem = stickymem;
-	int fieldidx;
+	int fieldidx, fieldnamelen;
 	char *fieldname;
 
 	GCVARS4;
@@ -292,7 +293,7 @@ sh_lreplace(avl, il)
 	}
 
 	tmp = cdr(key);  /* Numeric value for field index */
-	if (!STRING(tmp)) {
+	if (!tmp || !STRING(tmp)) {
 		fprintf(stderr, lreplace_usage, car(avl)->string);
 		return NULL;
 	}
@@ -304,8 +305,10 @@ sh_lreplace(avl, il)
 	    return NULL;
 	  }
 	  fieldname = NULL;
+	  fieldnamelen = 0;
 	} else {
-	  fieldname = tmp->string;
+	  fieldname    = tmp->string;
+	  fieldnamelen = tmp->slen;
 	}
 
 	stickymem = MEM_MALLOC;
@@ -326,7 +329,8 @@ sh_lreplace(avl, il)
 	if (fieldname) {
 	  while (d != NULL) {
 	    /* Ok, this is key/value pairs in a linear list */
-	    if (STRING(d) && strcmp(d->string,fieldname)==0) {
+	    if (STRING(d) && fieldnamelen == d->slen &&
+		memcmp(d->string,fieldname,fieldnamelen)==0) {
 	      /* Move pointers to the value */
 	      dp = &cdr(d);
 	      d = *dp;
@@ -341,7 +345,8 @@ sh_lreplace(avl, il)
 	  }
 	  if (d == NULL) {
 	    /* Append the pair */
-	    d = newstring(dupstr(fieldname));
+	    int slen = fieldnamelen;
+	    d = newstring(dupnstr(fieldname,slen),slen);
 	    *dp = d;
 	    dp = &cdr(d);
 	    d = NULL;
@@ -390,9 +395,9 @@ sh_get(avl, il)
 			/* (setq plist '(key nil)) */
 			GCPRO3(avl,plist,d);
 			if (ISCONST(key))
-			  d = conststring(key->string);
+			  d = conststring(key->string, key->slen);
 			else
-			  d = newstring(dupstr(key->string));
+			  d = copycell(key);
 			cdr(d) = NIL;
 			d = ncons(d);
 			assign(plist, d, (struct osCmd *)NULL);
@@ -450,8 +455,9 @@ sh_length(avl, il)
 			++len;
 	}
 	sprintf(buf, "%d", len);
+	len = strlen(buf);
 
-	avl = newstring(dupstr(buf));
+	avl = newstring(dupnstr(buf,len),len);
 	return avl;
 }
 
@@ -887,8 +893,8 @@ sh_export(argc, argv)
 		if (LIST(elist) || elist->string == NULL)
 			continue;
 		for (glist = car(scope); glist != NULL; glist = cddr(glist)) {
-			if (STRING(glist) &&
-			    strcmp(glist->string, elist->string) == 0)
+			if (STRING(glist) && glist->slen == elist->slen &&
+			    memcmp(glist->string, elist->string, elist->slen) == 0)
 				break;
 		}
 		if (glist == NULL)
@@ -1013,7 +1019,7 @@ sh_set(argc, argv)
 #ifdef	USE_ALLOCA
 		kk = (char **)alloca((n+1) * sizeof (char *));
 #else
-		kk = (char **)tmalloc((n+1) * sizeof (char *));
+		kk = (char **)emalloc((n+1) * sizeof (char *));
 #endif
 		kk[0] = NULL;
 		/* iterate through all variables */
@@ -1033,7 +1039,9 @@ sh_set(argc, argv)
 					putchar('\n');
 				}
 			}
-		/* free(kk); -- tmalloc() on temp memory makes this unnecessary */
+#ifndef USE_ALLOCA
+		free(kk);
+#endif
 		return 0;
 	}
 	--argc, ++argv;
@@ -1081,7 +1089,8 @@ sh_set(argc, argv)
 	if (globalcaller != NULL && globalcaller->argv != NULL)
 		pd = car(globalcaller->argv);
 	while (argc-- > 0) {
-		d = newstring(dupstr(*argv));
+		int slen = strlen(*argv);
+		d = newstring(dupnstr(*argv,slen),slen);
 		/* These go into  globalcaller->  protected storage */
 		if (pd != NULL)
 			cdr(pd) = d;

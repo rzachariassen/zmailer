@@ -226,19 +226,18 @@ s_catstring(s)
 	len = 0;
 	for (sp = s; sp != NULL; sp = cdr(sp))
 		if (sp->string)
-			len += strlen(sp->string);
+			len += sp->slen;
 	quoted = 0;
-	cp = buf = (char *)malloc(len+1);
+	cp = buf = mallocstr(len);
 	for (sp = s; sp != NULL; sp = cdr(sp)) {
 		if (sp->string) {
-			strcpy(cp, sp->string);
-			cp += strlen(cp);
+			memcpy(cp, sp->string, sp->slen);
+			cp += sp->slen;
 			quoted += ISQUOTED(sp);
 		}
 	}
 	*cp++ = '\0';
-	sp = newstring(dupnstr(buf, cp-buf));
-	free(buf);
+	sp = newstring(buf, len);
 	if (quoted)
 		sp->flags |= QUOTEDSTRING;
 	return sp;
@@ -297,7 +296,7 @@ s_read(fp)
 			*bp++ = ch;
 		}
 		*bp = '\0';
-		list = newstring(dupnstr(buf, bp - buf));
+		list = newstring(dupnstr(buf, bp - buf), bp-buf);
 		break;
 	default:	/* normal symbol */
 		*bp++ = ch;
@@ -312,7 +311,7 @@ s_read(fp)
 			ungetc(ch, fp);
 		*bp = '\0';
 		stickymem = MEM_MALLOC;
-		list = newstring(dupnstr(buf, bp - buf));
+		list = newstring(dupnstr(buf, bp - buf), bp-buf);
 		stickymem = oval;
 		break;
 	}
@@ -337,8 +336,8 @@ s_listify(ac, av)
 	GCPRO1(l);
 	pl = &car(l);
 	for ( ;ac > 0 && *av != NULL; --ac,++av) {
-		char *s = dupstr(av[0]);
-		*pl = newstring(s);
+		int slen = strlen(av[0]);
+		*pl = newstring(dupnstr(av[0], slen), slen);
 		pl = &cdr(*pl);
 		*pl = NULL;
 	}
@@ -355,11 +354,12 @@ s_pushstack(l, s)
 {
 	conscell *d;
 	GCVARS1;
+	int slen = strlen(s);
 
-	d = newstring(dupstr(s));
+	d = newstring(dupnstr(s, slen), slen);
 
 	GCPRO1(d);
-	cdr(d) = conststring(" \n");
+	cdr(d) = conststring(" \n", 2);
 	cddr(d) = l;
 	UNGCPRO1;
 

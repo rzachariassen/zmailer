@@ -105,7 +105,7 @@ reopen:
 			for (s = cp; *s != '\0'; ++s)
 			  if (!isascii((*s)&0xFF) || isspace((*s)&0xFF))
 			    break;
-			return newstring(dupnstr(cp, s - cp));
+			return newstring(dupnstr(cp, s - cp), s - cp);
 		}
 	}
 	if (!retry && ferror(fp)) {
@@ -576,7 +576,7 @@ reopen:
 		flag = 1;
 	}
 	if (cp > as)
-		l = newstring(dupnstr(as, cp-as));
+		l = newstring(dupnstr(as, cp-as), cp-as);
 	free(as);
 	as = NULL;
 

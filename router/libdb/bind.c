@@ -323,7 +323,7 @@ getmxrr(host, localhost, ttlp, depth)
 	CUC *eom, *cp;
 	querybuf buf, answer;
 	int n, qlen, nmx, i, ancount, qdcount, maxpref;
-	conscell *lhead, *l, *tmp;
+	conscell *lhead, *l;
 	struct mxdata mx[20];
 	char hbuf[MAXNAME], realname[MAXNAME];
 	int type;
@@ -484,6 +484,8 @@ getmxrr(host, localhost, ttlp, depth)
 	lhead = l = NULL;
 	GCPRO1(lhead);
 	for (i = 0; i < nmx; ++i) {
+		int slen;
+		char *s;
 		if (mx[i].host == NULL)
 			continue;
 		++n; /* found one! */
@@ -492,10 +494,12 @@ getmxrr(host, localhost, ttlp, depth)
 		if (D_bind || _res.options & RES_DEBUG)
 			fprintf(stderr, "search_res: %s: mx[%d] = %s\n",
 				host, n, mx[i].host);
+		slen = strlen(mx[i].host);
+		s = dupnstr(mx[i].host, slen);
 		if (lhead == NULL)
-			lhead = l = newstring(dupstr(mx[i].host));
+			lhead = l = newstring(s,slen);
 		else {
-			cdr(l) = newstring(dupstr(mx[i].host));
+			cdr(l) = newstring(s,slen);
 			l = cdr(l);
 		}
 		if (mx[i].host) free(mx[i].host);
@@ -560,7 +564,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 	time_t *ttlp;
 	int depth;
 {
-	conscell *lhead, *l, *tmp;
+	conscell *lhead, *l;
 	char *s;
 	HEADER *hp;
 	CUC *eom, *cp, *nextcp;
@@ -615,6 +619,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 	 * We don't care about errors here, only if we got an answer
 	 */
 	if (ancount == 0) {
+		int slen; char *s;
 		if (D_bind || _res.options & RES_DEBUG)
 			fprintf(stderr,
 				"search_res: rcode=%s, ancount=%d, rrtype=%d\n",
@@ -627,13 +632,20 @@ getrrtypec(host, rrtype, ttlp, depth)
 		      if (hb[0] == '\0') {
 			hb[0] = '.'; hb[1] = '\0';
 		      }
-		      return newstring(dupstr(hb));
+		      slen = strlen(hb);
+		      s = dupnstr(hb, slen);
+		      return newstring(s, slen);
 		    }
 		  }
-		  return newstring(dupstr(host));
+		  slen = strlen(host);
+		  s = dupnstr(host, slen);
+		  return newstring(s, slen);
 		}
-		if (rrtype == T_WKS) /* absence of WKS means YES ... */
-			return newstring(dupstr(host));
+		if (rrtype == T_WKS) { /* absence of WKS means YES ... */
+		  slen = strlen(host);
+		  s = dupnstr(host, slen);
+		  return newstring(s, slen);
+		}
 		return NULL;
 	}
 	cp = (CUC *)&answer + sizeof(HEADER);
@@ -697,9 +709,12 @@ getrrtypec(host, rrtype, ttlp, depth)
 			*ttlp = maxttl;
 			n = (*cp) & 0xFF;
 			if (0 < n && n < (int)sizeof(hb)) {
+			  int slen; char *s;
 			  UNGCPRO1;
 			  *(char*)(cp+1+n) = 0;
-			  return newstring(dupstr(cp+1));
+			  slen = strlen(cp+1);
+			  s = dupnstr(cp+1, slen);
+			  return newstring(s, slen);
 			}
 			break;
 
@@ -718,9 +733,11 @@ getrrtypec(host, rrtype, ttlp, depth)
 			if (*cp++ == IPPROTO_TCP) {	/* check protocol */
 			  if (cp + (IPPORT_SMTP/8) < nextcp &&
 			      *(cp+(IPPORT_SMTP/8)) & (0x80>>IPPORT_SMTP%8)) {
+			    int slen = strlen(hb);
+			    char *s = dupnstr(hb, slen);
 			    *ttlp = maxttl;
 			    UNGCPRO1;
-			    return newstring(dupstr(hb));
+			    return newstring(s, slen);
 			  }
 			}
 			continue;
@@ -729,11 +746,14 @@ getrrtypec(host, rrtype, ttlp, depth)
 		case T_AAAA:
 			*ttlp = maxttl;
 			if (rrtype == T_ANY) {
+			  int slen = strlen(host);
+			  char *s = dupnstr(host, slen);
 			  UNGCPRO1;
-			  return newstring(dupstr(host));
+			  return newstring(s, slen);
 			} else {
 			  char tb[80];
 			  const char *ss;
+			  int slen;
 
 #if defined(AF_INET6) && defined(INET6)
 			  if (type == T_AAAA)
@@ -741,11 +761,12 @@ getrrtypec(host, rrtype, ttlp, depth)
 			  else
 #endif
 			    ss = inet_ntop(AF_INET, cp, tb, sizeof(tb));
-			  s = dupstr(ss);
+			  slen = strlen(ss);
+			  s = dupnstr(ss, slen);
 			  if (lhead == NULL)
-			    lhead = l = newstring(s);
+			    lhead = l = newstring(s, slen);
 			  else {
-			    cdr(l) = newstring(s);
+			    cdr(l) = newstring(s, slen);
 			    l = cdr(l);
 			  }
 			}
@@ -782,7 +803,11 @@ getrrtypec(host, rrtype, ttlp, depth)
 				getrrtypec(nbuf, rrtype, ttlp, depth+1);
 			*ttlp = maxttl;
 			UNGCPRO1;
-			return newstring(dupstr(nbuf));
+			{
+			  int slen = strlen(nbuf);
+			  char *s = dupnstr(nbuf, slen);
+			  return newstring(s, slen);
+			}
 
 		case T_SOA:
 		case T_NS:
@@ -801,8 +826,10 @@ getrrtypec(host, rrtype, ttlp, depth)
 
 		case T_MX:
 			if (rrtype == T_ANY) {
-			    UNGCPRO1;
-			    return newstring(dupstr(host));
+			  int slen = strlen(host);
+			  char *s = dupnstr(host, slen);
+			  UNGCPRO1;
+			  return newstring(s, slen);
 			}
 		default:
 			fprintf(stderr,"search_res: getrrtypec: non-processed RR type for host='%s' query=%d, result=%d\n",host,rrtype,type);
@@ -817,8 +844,10 @@ getrrtypec(host, rrtype, ttlp, depth)
 		return lhead;
 	if (ok) {
 		const char *cs = first ? host : hb;
+		int slen = strlen(cs);
+		char *s = dupnstr(cs, slen);
 		*ttlp = maxttl;
-		return newstring(dupstr(cs));
+		return newstring(s, slen);
 	}
 	return NULL;
 }

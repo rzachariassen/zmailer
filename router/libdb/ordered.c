@@ -43,6 +43,7 @@ search_bin(sip)
 	int	i, retry;
 	struct spblk *spl;
 	struct file_map *fm;
+
 #ifdef	HAVE_MMAP
 	/* This  fstat()  for possible seq_remap() trigger causes a bit
 	   more syscalls, than is really necessary.   Therefore it is
@@ -142,7 +143,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(dupnstr(cp, s - cp));
+	    return newstring(dupnstr(cp, s - cp), s - cp);
 	  }
 	  if (i < 0)
 	    top = mid - 1;
@@ -197,7 +198,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(dupnstr(cp, (u_int)(s - cp)));
+	    return newstring(dupnstr(cp, s - cp), s - cp);
 	  } else
 	    bot = mid;
 	}
@@ -230,7 +231,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(dupnstr(cp, (u_int)(s - cp)));
+	    return newstring(dupnstr(cp, s - cp), s - cp);
 	  }
 	}
 #endif

@@ -13,12 +13,8 @@
 #define	_LISTUTILS_H
 
 extern char *dupnstr __((const char *str, const int len));
-#ifdef __GNUC__
-#define dupstr(str) ({int _l = strlen(str); char *_s = dupnstr(str,_l); _s;})
-#else
-extern char *dupstr __((const char *str));
-#endif
-extern void  freestr __((const char *str));
+extern char *mallocstr __((const int len));
+extern void  freestr __((const char *str, const int slen));
 
 /*
  * A LIST is a conscell with flags 0, the list is kept under dtpr.
@@ -29,13 +25,25 @@ extern void  freestr __((const char *str));
  */
 
 typedef struct _conscell {
+#if SIZEOF_VOID_P == 8 /* Presuming ALPHA with distaste to shorts.. */
 	struct _conscell *next;
 	union {
 		struct _conscell *u_dtpr;
 		char		 *u_string;
 		const char	 *cu_string;
 	} u;
-	int		flags;
+	unsigned int		  flags;
+	unsigned int		  slen;
+#else /* presuming 32 bit machines */
+	struct _conscell *next;
+	union {
+		struct _conscell *u_dtpr;
+		char		 *u_string;
+		const char	 *cu_string;
+	} u;
+	unsigned short		  flags;
+	unsigned short		  slen;
+#endif
 } conscell;
 
 #define	NEWSTRING	0x001	/* newly allocated string (free() when GC) */
@@ -44,9 +52,8 @@ typedef struct _conscell {
 #define	NOQUOTEIFQUOTED	0x008	/* if to be quoted, don't quote (for "$@") */
 #define ELEMENT		0x010	/* result of element expansion */
 #define DSW_MARKER	0x020	/* for garbage collection run.. */
-#define DSW_BACKPTR	0x040	/* ... this too (DSW == Deutch-Schorr-Waite) */
-#define DSW_FREEMARK	0x080
-#define _DSW_MASK	0x0E0
+#define DSW_FREEMARK	0x040	/* for gc tracking, marks already free cell */
+#define _DSW_MASK	0x060
 
 #define	dtpr		u.u_dtpr
 #define	string		u.u_string
@@ -112,8 +119,8 @@ extern conscell *nconc(conscell *X, conscell *Y);
 extern conscell *ncons(conscell *X);
 extern conscell *cons(conscell *X, conscell *Y);
 extern conscell *s_push(conscell *X, conscell *Y);
-extern conscell *newstring(char *s);
-extern conscell *conststring(const char *s);
+extern conscell *newstring(char *s, const int slen);
+extern conscell *conststring(const char *s, const int slen);
 
 #else /* ---- not profiling ---- */
 
@@ -123,7 +130,7 @@ EXTINLINE conscell *copycell(conscell *X) {
   conscell *tmp = newcell();
   *tmp = *X;
   if (STRING(tmp)) {
-    tmp->string = dupstr(tmp->cstring);
+    tmp->string = dupnstr(tmp->cstring,tmp->slen);
     tmp->flags = NEWSTRING;
   }
   return tmp;
@@ -172,31 +179,33 @@ EXTINLINE conscell * s_push(conscell *X, conscell *Y)
   return Y;
 }
 
-EXTINLINE conscell * newstring(char *s)
+EXTINLINE conscell * newstring(char *s, const int slen)
 {
   conscell *tmp = newcell();
   tmp->string = s;
-  tmp->flags = NEWSTRING;
+  tmp->flags  = NEWSTRING;
+  tmp->slen   = slen;
   cdr(tmp) = NULL;
   return tmp;
 }
 
-EXTINLINE conscell * conststring(const char *cs)
+EXTINLINE conscell * conststring(const char *cs, const int slen)
 {
   conscell *tmp = newcell();
   tmp->cstring = cs;
-  tmp->flags = CONSTSTRING;
+  tmp->flags   = CONSTSTRING;
+  tmp->slen    = slen;
   cdr(tmp) = NULL;
   return tmp;
 }
 
 #else /* Not optimizing; no inlines.. */
 
-#define copycell(X)				\
-({conscell *_tmp = newcell(); *_tmp = *(X);	\
- if (STRING(_tmp)) {				\
-   _tmp->string = dupstr(_tmp->cstring);	\
-   _tmp->flags =  NEWSTRING;			\
+#define copycell(X)					\
+({conscell *_tmp = newcell(); *_tmp = *(X);		\
+ if (STRING(_tmp)) {					\
+   _tmp->string = dupnstr(_tmp->cstring,_tmp->slen);	\
+   _tmp->flags =  NEWSTRING;				\
  } _tmp;})
 
 /* nconc(list, list) -> old (,@list ,@list) */
@@ -224,13 +233,15 @@ EXTINLINE conscell * conststring(const char *cs)
 	({conscell *_X = (X), *_Y = (Y);	\
 	  cdr(_X) = car(_Y); car(_Y) = _X; _Y;})
 
-#define newstring(X)	\
+#define newstring(X,SLEN)	\
 	({conscell *_tmp = newcell(); _tmp->string = (X); \
-	  _tmp->flags = NEWSTRING; cdr(_tmp) = NULL; _tmp;})
+	  _tmp->flags = NEWSTRING; _tmp->slen = (SLEN);   \
+	  cdr(_tmp) = NULL; _tmp;})
 
-#define conststring(X)	\
+#define conststring(X,SLEN)	\
 	({conscell *_tmp = newcell(); _tmp->cstring = (X); \
-	  _tmp->flags = CONSTSTRING; cdr(_tmp) = NULL; _tmp;})
+	  _tmp->flags = CONSTSTRING; _tmp->slen = (SLEN);  \
+	  cdr(_tmp) = NULL; _tmp;})
 
 #endif
 #endif /* .... not profiling .... */

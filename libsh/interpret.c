@@ -99,21 +99,22 @@ freeio(fioop, mark)
 }
 
 
-STATIC char *dequote __((const char *));
+STATIC char *dequote __((const char *str, int len));
 STATIC char *
-dequote (str)
+dequote (str, len)
 	const char *str;
+	int   len;
 {
-	int	    len;
 	const char *sp, *ep;
-	char *s, *s0 = NULL;
+	char *s, *s0;
+
+/* fprintf(stderr,"dequote(\"%s\",%d) => ",str,len); */
+
+	s0 = emalloc(len+1); /* All subsequent runs will be smaller,
+				AND they fit running in-place! */
 
 	do {
 
-	  len = strlen(str);
-	  if (s0 == NULL)
-	    s0 = tmalloc(len+1); /* All subsequent runs will be smaller,
-				    AND they fit running in-place! */
 	  sp = str;
 	  ep = str + len -1;
 
@@ -143,8 +144,11 @@ dequote (str)
 	  ep = s-1;
 
 	  str = s0;
+	  len = strlen(str);
 
 	} while (ep > s0 && *s0 == *ep && (*s0 == '"' || *s0 == '\''));
+
+/* fprintf(stderr,"\"%s\"\n",s0); */
 
 	return (s0);
 }
@@ -175,15 +179,17 @@ regsub(prog, n)
 	return (prog->match[n]);
 }
 
-STATIC regexp *reg_comp __((const char *));
+STATIC regexp *reg_comp __((const char *str, int slen));
 STATIC regexp *
-reg_comp (str)
+reg_comp (str, slen)
 	const char	*str;
+	int		 slen;
 {
 	const char *reg_stat;
 	regexp     *prog;
+	char *s;
 
-	prog = (regexp *) emalloc(sizeof(regexp));
+	prog = (regexp *) malloc(sizeof(regexp));
 	if (prog == NULL) {
 		fprintf(stderr, "%s: regexp %s: No space\n",
 			progname, str);
@@ -191,11 +197,13 @@ reg_comp (str)
 	}
 	memset((void*)prog, 0, sizeof(regexp));
 
-	prog->pattern = strdup(str);
+	prog->pattern = s = emalloc(slen+1);
+	memcpy(s, str, slen+1);
+	s[slen] = 0; /* Just in case */
 
-	reg_stat = re_compile_pattern(prog->pattern, strlen(str), &prog->re);
+	reg_stat = re_compile_pattern(prog->pattern, slen, &prog->re);
 	if (reg_stat != NULL) {
-		fprintf(stderr, "%s: regexp %s: %s\n", progname,str,reg_stat);
+		fprintf(stderr,"%s: regexp %s: %s\n",progname,str,reg_stat);
 		free((void*)(prog->pattern));
 		free(prog);
 		return (NULL);
@@ -754,7 +762,6 @@ assign(sl_lhs, sl_rhs, command)
 	struct osCmd *command;
 {
 	conscell *s = NULL, *l = NULL;
-	const char *varname;
 	GCVARS4;
 
 	GCPRO4(s, l, sl_lhs, sl_rhs);
@@ -763,8 +770,7 @@ assign(sl_lhs, sl_rhs, command)
 	 * Add (lhs oldvalue) to a list "envold" kept in the command.
 	 * Variable values are really (potentially) lists.
 	 */
-	varname = sl_lhs->string;
-	s = v_find(varname);
+	s = v_find(sl_lhs->cstring);
 
 	l = copycell(sl_rhs); /* Copy it just in case.. */
 	/* that was: s_copy_tree(), but we don't need THAT! */
@@ -784,7 +790,7 @@ assign(sl_lhs, sl_rhs, command)
 	    l = cdr(l);	/* or the list of exports */
 
 	  cdr(sl_rhs) = car(l);		/* the scope-list follows this value */
-	  s = newstring(dupstr(varname)); /* Variable name here */
+	  s = copycell(sl_lhs);		/* Variable name here */
 	  cdr(s) = sl_rhs;		/* .. value follows varname */
 	  car(l) = s;			/* .. and anchor varname into scope */
 	  l = NIL; /* A NIL-cell for old value.. */
@@ -807,29 +813,29 @@ assign(sl_lhs, sl_rhs, command)
 #endif	/* MAILER */
 
 	  if (isset('a'))		/* if "auto-export" set */
-	    v_export(varname);	/* ick! */
+	    v_export(sl_lhs->cstring);	/* ick! */
 
 	}
 	/* stash old value */
 	if (command != NULL) {
 	  cdr(l) = command->envold; command->envold = l;
-	  s = newstring(dupstr(varname));
+	  s      = copycell(sl_lhs);
 	  cdr(s) = command->envold; command->envold = s;
 	}
 	UNGCPRO4;
 
 	/* fvcache.namesymbol = 0; */
-	v_sync(varname);
+	v_sync(sl_lhs->cstring);
 
 	if (isset('I')) {
-	  fprintf(runiofp, "Assign %s = ", varname);
+	  fprintf(runiofp, "Assign %s = ", sl_lhs->cstring);
 	  s_grind(sl_rhs, runiofp);
 	  putc('\n', runiofp);
 	}
 
 #ifdef	MAILER
 	if (D_assign) {
-	  fprintf(stderr, "%*s%s=", 4*funclevel, " ", varname);
+	  fprintf(stderr, "%*s%s=", 4*funclevel, " ", sl_lhs->cstring);
 	  s_grind(sl_rhs, stderr);
 	  fputc('\n', stderr);
 	}
@@ -1048,7 +1054,7 @@ flushwhite(command)
 	do {
 	  for (s = command->buffer; cdr(s) != p; s = cdr(s))
 	    continue;
-	  for (cp = s->string + strlen(s->string) - 1;
+	  for (cp = s->string + s->slen - 1;
 	       cp >= s->string; --cp)
 	    if (*cp != '\n' /* !WHITESPACE(*cp) */)
 	      break;
@@ -1059,7 +1065,8 @@ flushwhite(command)
 	  command->bufferp = &command->buffer;
 	} else {
 	  *++cp = '\0';
-	  cdr(s) = NULL;
+	  s->slen  = cp - s->string;
+	  cdr(s)   = NULL;
 	  command->bufferp = &cdr(s);
 	}
 }
@@ -1366,17 +1373,18 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 						    arg1);
 						ignore_level = commandIndex;
 					}
-					d = conststring(uBLANK);
+					d = conststring(uBLANK,0);
 				} else {
 					d = s_copy_tree(d);
 				}
 				if (!quote && STRING(d) && *(d->string) == '\0')
 					break;
 			} else if (*arg1 != '\0' || quote) {
+				int slen = strlen(arg1);
 #if 0
-				d = newstring(dupstr(arg1));
+				d = newstring(dupnstr(arg1,slen),slen);
 #else
-				d = conststring(arg1);
+				d = conststring(arg1,slen);
 #endif
 			} else
 				break;	/* it is a null string! */
@@ -1400,7 +1408,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 			break;
 		case sBufferExpand:
 			if (command->buffer == NULL)
-				d = conststring(uBLANK);
+				d = conststring(uBLANK,0);
 			else if (cdr(command->buffer))
 				d = s_catstring(command->buffer);
 			else
@@ -1414,7 +1422,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 						arg1);
 					ignore_level = commandIndex;
 				}
-				d = conststring(uBLANK);
+				d = conststring(uBLANK,0);
 			} else {
 				d = s_copy_tree(d);
 			}
@@ -1554,6 +1562,7 @@ GCPLABPRINTis(command->gcpro4);
 				if (variable && car(variable)) {
 					car(varmeter) = caar(variable);
 					varmeter->flags = car(variable)->flags;
+					varmeter->slen  = car(variable)->slen;
 				} else {
 					car(varmeter) = NULL;
 					varmeter->flags = 0;
@@ -1626,6 +1635,7 @@ GCPLABPRINTis(command->gcpro4);
 			if (variable != NULL) {
 				car(varmeter) = caar(variable);
 				varmeter->flags = car(variable)->flags;
+				varmeter->slen  = car(variable)->slen;
 			}
 			break;
 		case sCommandPush:
@@ -1954,6 +1964,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			break;
 		case sParameter:
 			if (caller != NULL && caller->argv != NULL) {
+				int slen;
 				l = car(caller->argv);
 				if ((d = cdr(l)) != NULL) {
 					cdr(l) = cddr(l);
@@ -1964,19 +1975,22 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				if (d != NULL && LIST(d)) {
 				  cdr(d) = NULL;
 				  d = copycell(d);
-				} else
-				  d = newstring(dupstr(name));
+				} else {
+				  slen = strlen(name);
+				  d = newstring(dupnstr(name,slen),slen);
+				}
 				/* create the variable in the current scope */
 				l = car(envarlist);
 				cdr(d) = car(l);
 				if (*arg1) {
+				  slen = strlen(arg1);
 #if 0
-				  car(l) = newstring(dupstr(arg1));
+				  car(l) = newstring(dupnstr(arg1,slen),slen);
 #else
-				  car(l) = conststring(arg1);
+				  car(l) = conststring(arg1,slen);
 #endif
 				} else
-				  car(l) = conststring(uBLANK);
+				  car(l) = conststring(uBLANK,0);
 				cdar(l) = d;
 
 				/* grindef("ARGV = ", caller->argv);
@@ -1996,7 +2010,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				d = cdr(d);
 			coalesce(command);
 			if (command->buffer == NULL)
-			  command->buffer = conststring(uBLANK);
+			  command->buffer = conststring(uBLANK,0);
 			if (nsift >= 0)
 			  v_accessed = sift[nsift].accessed;
 #if 0
@@ -2073,7 +2087,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			if (command->buffer == NULL)
 				break;
 			if (variable == NULL) {
-				variable = conststring(uBLANK);
+				variable = conststring(uBLANK,0);
 				variable = ncons(variable);
 			} else if (car(variable)->string == NULL)
 				break;
@@ -2110,7 +2124,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			break;
 		case sJumpIfFindVarNil:
 			if (command->buffer == NULL)
-				d = conststring(uBLANK);
+				d = conststring(uBLANK,0);
 			else if (cdr(command->buffer))
 				d = s_catstring(command->buffer);
 			else
@@ -2192,7 +2206,10 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			stickytmp = stickymem;
 			stickymem = MEM_MALLOC;
 			d = NIL;
-			tmp = newstring(dupstr(arg1)); /* must allocate a fresh! */
+			{
+			  int slen = strlen(arg1);
+			  tmp = newstring(dupnstr(arg1,slen),slen); /* must allocate a fresh! */
+			}
 			cdr(d) = caar(envarlist);
 			cdr(tmp) = d;
 			caar(envarlist) = tmp;
@@ -2232,7 +2249,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			break;
 		case sPrintAndExit:
 			if (command->buffer == NULL)
-				d = conststring(uBLANK);
+				d = conststring(uBLANK,0);
 			else if (cdr(command->buffer))
 				d = s_catstring(command->buffer);
 			else
@@ -2264,10 +2281,8 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			v_accessed = NULL;
 			break;
 		case sSiftBody:
-			/* we don't *need* to free strings because they are
-			   allocated off our MEM_SHCMD memory stack */
-			/* XX: if (sift[nsift].str)
-			       free(sift[nsift].tlist); ??? */
+			if (sift[nsift].str)
+			       free(sift[nsift].str);
 			sift[nsift].str = NULL;
 			if (command->buffer != NULL) {
 				if (cdr(command->buffer))
@@ -2275,8 +2290,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				else
 					d = command->buffer;
 				if (STRING(d)) {
-					arg1 = (const char *)d->string;
-					sift[nsift].str = dequote(arg1);
+					sift[nsift].str = dequote(d->cstring, d->slen);
 				}
 			}
 			sift[nsift].accessed = v_accessed;  /* nop 2nd time */
@@ -2297,14 +2311,14 @@ std_printf("found %x at %d\n", re, argi1-1);
 			re = NULL;
 			if (command->buffer != NULL) {
 				if (cdr(command->buffer)) {
-					stickytmp = stickymem;
-					stickymem = MEM_PERM;
+					/* stickytmp = stickymem;
+					   stickymem = MEM_PERM; */
 					d = s_catstring(command->buffer);
-					stickymem = stickytmp;
+					/* stickymem = stickytmp; */
 				} else
 					d = command->buffer;
 				if (STRING(d))
-					re = reg_comp(d->string);
+					re = reg_comp(d->string, d->slen);
 			}
 			if (re == NULL)
 				break;
@@ -2341,9 +2355,8 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 				pc = sift[nsift].label - 1 + code;
 			break;
 		case sSiftPop:
-			/* see comment above about freeing tokens */
-			/* XX: if (sift[nsift].str)
-			       free(sift[nsift].str);  ??? */
+			if (sift[nsift].str)
+			       free(sift[nsift].str);
 			for (v_accessed = sift[nsift].accessed;
 			     v_accessed != NULL;
 			     v_accessed = sift[nsift].accessed) {
@@ -2367,10 +2380,11 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    setsubexps(&sift[nsift].subexps, re);
 			  arg1 = regsub(re, atoi(arg1));
 			  if (arg1 != NULL) {
+			    int slen = strlen(arg1);
 #if 0
-			    tmp = coststring(arg1);
+			    tmp = conststring(arg1,slen);
 #else
-			    tmp = newstring(dupstr(arg1));
+			    tmp = newstring(dupnstr(arg1,slen),slen);
 #endif
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
@@ -2387,10 +2401,11 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    tsetsubexps(&sift[nsift].subexps, tre);
 			  arg1 = (const char *)tregsub(tre, atoi(arg1));
 			  if (arg1 != NULL) {
+			    int slen = strlen(arg1);
 #if 0
-			    tmp = coststring(arg1);
+			    tmp = conststring(arg1,slen);
 #else
-			    tmp = newstring(dupstr(arg1));
+			    tmp = newstring(dupnstr(arg1,slen),slen);
 #endif
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
@@ -2400,8 +2415,11 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			}
 			break;
 		case sJumpIfRegmatch:
+			stickytmp = stickymem;
+			stickymem = MEM_PERM;
 			if (sift[nsift].str == NULL)
 				sift[nsift].str = strsave("");
+			stickymem = stickytmp;
 			setsubexps(&sift[nsift].subexps, re);
 			if ((sift[nsift].count >= 0) &&
 			    !reg_exec(re, sift[nsift].str))
@@ -2528,10 +2546,11 @@ std_printf("set %x at %d\n", tre, cdp->trearray_idx);
 			else
 				tsetsubexps(&sift[nsift].subexps, tre);
 			if ((arg1 = tregsub(tre,atoi(arg1))) != NULL) {
+				int slen = strlen(arg1);
 #if 0
-				tmp = coststring(arg1);
+				tmp = coststring(arg1, slen);
 #else
-				tmp = newstring(dupstr(arg1));
+				tmp = newstring(dupnstr(arg1,slen),slen);
 #endif
 				tmp->flags |= QUOTEDSTRING;
 				/* cdr(tmp) = command->buffer; */
@@ -2781,7 +2800,8 @@ lapply(fname, l)
 	ll = tmp = NULL;
 	GCPRO4(ll, l, avc.argv, avc.rval);
 	if (l != NULL) {
-		ll = newstring(dupstr(fname));
+		int slen = strlen(fname);
+		ll = newstring(dupnstr(fname,slen),slen);
 		/* Sometimes could do without strdup(),
 		   but often not... :-/ */
 		cdr(ll) = car(l);

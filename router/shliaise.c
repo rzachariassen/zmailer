@@ -303,17 +303,19 @@ setenvinfo(e)
 	conscell *pl, *plhead;
 	char buf[20];
 	GCVARS1;
+	int slen;
 
 	/* include header size ("headersize"), message size ("size"),
 	   message body size ("bodysize"), now ("now"), resent ("resent")
 	   trusted ("trusted"), message file name ("file"), message id
 	   ("message-id") */
 
-#define	CONSTSTR(s)	cdr(pl) = conststring(s); pl = cdr(pl)
-#define	NEWSTR(s)	cdr(pl) = newstring(s);   pl = cdr(pl)
-#define	NEWSTRD(d)	sprintf(buf, "%ld", (long)(d)); NEWSTR(dupstr(buf))
+#define	CONSTSTR(s)	slen = strlen(s); cdr(pl) = conststring(s, slen); pl = cdr(pl)
+#define	NEWSTR(s)	slen = strlen(s); cdr(pl) = newstring(s, slen);   pl = cdr(pl)
+#define	NEWDUPSTR(s)	slen = strlen(s); cdr(pl) = newstring(dupnstr(s, slen), slen);   pl = cdr(pl)
+#define	NEWSTRD(d)	sprintf(buf, "%ld", (long)(d)); NEWDUPSTR(buf)
 
-	pl = plhead = conststring("file");
+	pl = plhead = conststring("file", 4);
 	GCPRO1(plhead);
 
 	CONSTSTR(e->e_file);
@@ -379,6 +381,7 @@ const char *onam, *nam, *val;
 	conscell *l, *lc, *tmp, **pl;
 	conscell	*l1;
 	GCVARS4;
+	int slen;
 
 	l1 = v_find(onam);
 	if (!l1)
@@ -402,10 +405,12 @@ const char *onam, *nam, *val;
 	}
 
 	/* Prepend in reverse order */
-	tmp = newstring(dupstr(val));
+	slen = strlen(val);
+	tmp = newstring(dupnstr(val, slen), slen);
 	cdr(tmp) = car(l);
 	car(l) = tmp;
-	tmp = newstring(dupstr(nam));
+	slen = strlen(nam);
+	tmp = newstring(dupnstr(nam, slen), slen);
 	cdr(tmp) = car(l);
 	car(l) = tmp;
 
@@ -427,30 +432,31 @@ const char *type, *DSNstr, *errorsto, *sender;
 	char buf[20];
 	conscell *l, *pl;
 	GCVARS1;
+	int slen;
 
 	/* assemble the default attribute list: (privilege <uid>) */
-	l = conststring("privilege");
+	l = conststring("privilege", 9);
 	GCPRO1(l);
 	sprintf(buf, "%d", uid);
 	pl = l;
-	NEWSTR(dupstr(buf));
+	NEWDUPSTR(buf);
 	if (type != NULL) {
 		CONSTSTR("type");
-		NEWSTR(dupstr(type));
+		NEWDUPSTR(type);
 	}
 	if (DSNstr != NULL) {
 		CONSTSTR("DSN");
-		NEWSTR(dupstr(DSNstr));
+		NEWDUPSTR(DSNstr);
 	}
 	/* See if some "errorsto" definition is available.. */
 	if (errorsto != NULL) {
 		CONSTSTR("ERR");
-		NEWSTR(dupstr(errorsto));
+		NEWDUPSTR(errorsto);
 	}
 	/* See if some "sender" definition is available.. */
 	if (sender != NULL) {
 		CONSTSTR("sender");
-		NEWSTR(dupstr(sender));
+		NEWDUPSTR(sender);
 	}
 	cdr(pl) = NULL; /* not needed in reality */
 	l = ncons(l);

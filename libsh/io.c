@@ -389,6 +389,8 @@ register struct siobuf *siop;
 #define	ZEROPAD		0x20		/* zero (as opposed to blank) pad */
 #define	HEXPREFIX	0x40		/* add 0x or 0X prefix */
 
+#ifndef HAVE_MEMCHR
+
 static const char *mymemchr __((const char *s, int, int));
 static const char *
 mymemchr(s, c, n)
@@ -401,6 +403,12 @@ mymemchr(s, c, n)
 		return s;
 	return NULL;
 }
+
+#else
+
+#define mymemchr memchr
+
+#endif
 
 
 STATIC int

@@ -22,12 +22,16 @@ search_hosts(sip)
 	search_info *sip;
 {
 	struct hostent *hp;
+	char *s;
+	int slen;
 
 	/* sethostent(1); */
 	hp = gethostbyname(sip->key);
 	if (hp == NULL)
 		return NULL;
-	return newstring(dupstr(hp->h_name));
+	slen = strlen(hp->h_name);
+	s = dupnstr(hp->h_name, slen);
+	return newstring(s, slen);
 }
 
 /*

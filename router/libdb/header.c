@@ -250,6 +250,8 @@ search_header(sip)
 	struct sptree *hdb;
 	struct headerinfo *rhp;
 	char buf[1024];
+	int slen;
+	char *s;
 
 	hdb = open_header(sip);
 	if (hdb == NULL)
@@ -262,7 +264,9 @@ search_header(sip)
 		rhp->user_type  == Sender    ? "Sender"    :
 		(rhp->user_type == Recipient ? "Recipient" : ""),
 		rhp->class      == Resent    ? "Resent"    : "");
-	return newstring(dupstr(buf));
+	slen = strlen(buf);
+	s = dupnstr(buf, slen);
+	return newstring(s, slen);
 }
 
 /*

@@ -706,6 +706,7 @@ db(dbname, key)
 	search_info si;
 	struct cache tce;
 	char kbuf[BUFSIZ];	/* XX: */
+	int slen;
 	GCVARS3;
 
 	if (spt_files == NULL)          spt_files          = sp_init();
@@ -844,15 +845,18 @@ db(dbname, key)
 		case Boolean:
 			/* if (stickymem == MEM_MALLOC)
 			   s_free_tree(l); */
-			l = newstring(dupstr(key));
+			slen = strlen(key);
+			l = newstring(dupnstr(key, slen), slen);
 			break;
 		case NonNull:
 			if (STRING(l) && *(l->string) == '\0') {
 				/* if (stickymem == MEM_MALLOC)
 				   s_free_tree(l); */
-				l = newstring(dupstr(key));
+				slen = strlen(key);
+				l = newstring(dupnstr(key, slen), slen);
 			} else if (LIST(l) && car(l) == NULL) {
-				car(l) = newstring(dupstr(key));
+				slen = strlen(key);
+				car(l) = newstring(dupnstr(key, slen), slen);
 			}
 			break;
 		case Indirect:
@@ -884,7 +888,8 @@ db(dbname, key)
 	} else if (dbip->postproc == NonNull) {
 		if (D_db)
 			fprintf(stderr, "%s\n", key);
-		l = newstring(dupstr(key));
+		slen = strlen(key);
+		l = newstring(dupnstr(key, slen), slen);
 	} else {
 		if (D_db)
 			fprintf(stderr, "NIL\n");

@@ -84,7 +84,7 @@ decode_result:
 	  if (valptr[vallen] == '\n') {
 	    valptr[vallen] = '\0';
 	  }
-	  return newstring(dupnstr(valptr,vallen));
+	  return newstring(dupnstr(valptr, vallen), vallen);
 
 	case YPERR_KEY:
 	  /* occasionally the terminating NULL is included in the key (lose!)

@@ -123,7 +123,7 @@ reopen:
 	  }
 	  return NULL;
 	}
-	tmp = newstring(dupnstr(val.dptr, val.dsize));
+	tmp = newstring(dupnstr(val.dptr, val.dsize), val.dsize);
 	free(val.dptr);
 	return tmp;
 }
