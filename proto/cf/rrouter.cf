@@ -202,7 +202,9 @@ rrouter (address, origaddr, A, plustail, domain) {
 			return ((($UNRESOLVABLEACTION "$address" $A)))
 		fi
 		;;
+	tfist
 
+	ssift "$address" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		return $(rrouter "\1" "$origaddr" $A "$plustail" "")
 		;;
@@ -225,6 +227,8 @@ rrouter (address, origaddr, A, plustail, domain) {
 			domain="@$mydomain"
 		fi
 		;;
+	tfiss
+	tsift "$address" in
 	(.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
 		plustail="\2"
 		address="\1"

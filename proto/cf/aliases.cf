@@ -104,7 +104,12 @@ routeuser (quad, domain) {
 	# will have subsequently DIFFERENT values for it.
 
 	key="$(channel $quad)$(user $quad)"
-	didexpand=$(expansions "$key")
+	didexpand=$(expansions "$key") &&
+		# Sigh, the easiest way to handle duplicate invokations
+		# in here is to yield "bitbucket".  In theory we could
+		# yield (), but the router dislikes it.  (Must teach
+		# it for good manners..)
+		return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
 
 	al=()
 
@@ -117,7 +122,7 @@ routeuser (quad, domain) {
 	#		for host in $(elements $mxh)
 	#		do
 	#			case $#al in
-	#			0)	al=$(rrouter "$address" "$address" $attr) ;;
+	#			0)	al=$(rrouter "$address" "$address" $attr "" "") ;;
 	#			*)	set $(cdr $(last $al)) \
 	#				    (((smtp "$host" "$user" $attr))) ;;
 	#			esac
@@ -139,9 +144,8 @@ routeuser (quad, domain) {
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
 	[ -n "$FORCEPUNT" ] &&
-		return $(rrouter "$user@$FORCEPUNT" "$host" $attr)
+		return $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
-	[ -z "$didexpand" ] &&
 	ssift "$user" in
 	:include:(.+)
 		db add expansions "$key" file
@@ -174,8 +178,7 @@ routeuser (quad, domain) {
 	tfiss
 
 #	alias expansion
-	[ -z "$didexpand" ] &&
-	     a="$(aliases "$user")" &&
+	a="$(aliases "$user")" &&
 		db add expansions "$key" alias &&
 		priv=$(filepriv -M 644 $MAILVAR/db/aliases \
 					$(db owner aliases)) &&
@@ -186,7 +189,7 @@ routeuser (quad, domain) {
 						"$nattr" "$a" "$host")
 
 	# Listed in 'expired accounts' database ?
-	[ -z "$PUNTHOST" ] && [ -z "$didexpand" ] &&
+	[ -z "$PUNTHOST" ] &&
 	    a=$(expired "$user") &&
 		db add expansions "$key" expired &&
 		return (((error acctexpired "$user" $attr)))
@@ -213,7 +216,7 @@ routeuser (quad, domain) {
 
 	l="$preowner$lcuser$postowner$domain"
 #	a="$MAILVAR/listrun/$lcuser"
-#	[ -z "$didexpand" ] && [ -f "$a" ] &&
+#	[ -f "$a" ] &&
 #	    db add expansions "$key" list &&
 #	      priv=$(getpriv "644" $priv "$a" maillist) &&
 #	        return $(listaddresses	-E "$l" -e "$l"	\
@@ -224,7 +227,7 @@ routeuser (quad, domain) {
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
 	#l="$preowner$lcuser$postowner$domain"
-	[ -z "$didexpand" ] && [ -f "$a" ] &&
+	[ -f "$a" ] &&
 	  db add expansions "$key" list &&
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
@@ -235,7 +238,7 @@ routeuser (quad, domain) {
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
 	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
-	if [ -n "$didexpand" ] && [ -f "$a" ] &&
+	if [ -f "$a" ] &&
 	   db add expansions "$key" list ; then
 		priv=$(getpriv "664" $priv "$a" maillist)
 		case "$lcuser" in
@@ -259,26 +262,25 @@ routeuser (quad, domain) {
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr)
+					 "$host" $attr "" "")
 		break
 		;;
 	owner-(.+)
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr)
+					 "$host" $attr "" "")
 		break
 		;;
 	(.+)-request
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr)
+					 "$host" $attr "" "")
 		break
 		;;
 	(.*)-group
-		[ -z "$didexpand" ] &&
-		  a="$(groupmembers "\1")" &&
+		a="$(groupmembers "\1")" &&
 		  db add expansions "$key" list &&
 		  return $(echo $a |
 			   listaddresses -e postmaster -c "$lcuser expansion" |
@@ -290,12 +292,13 @@ routeuser (quad, domain) {
 
 #	only allow .forward file reading if privs allow it
 
-	homedir="$(homedirectory "$user")" || [ -z "$didexpand" ] &&
+	homedir="$(homedirectory "$user")" ||
 	ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	(.+)\+.+
 		# Try expanding 'user+', and then plain 'user'
 		didexpand=$(expansions "$(channel $quad)\1+") &&
-			return () # Return empty -- plusfull was expanded!
+			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+			# Return empty -- plusfull was expanded!
 		a="$(aliases "\1+")" &&
 		  db add expansions "$key" alias &&
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
@@ -311,7 +314,8 @@ routeuser (quad, domain) {
 		# It was 'user+', try now plain 'user' for
 		# aliases, and .forward
 		didexpand=$(expansions "$(channel $quad)\1") &&
-			return () # Return empty -- plusless was expanded!
+			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+			# Return empty -- plusfull was expanded!
 		a="$(aliases "\1")" &&
 		  db add expansions "$key" alias &&
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
@@ -351,8 +355,7 @@ routeuser (quad, domain) {
 
 	priv=$(get $attr privilege)
 
-	[ -z "$PUNTHOST" ] && [ -z "$didexpand" ] && [ -n "$homedir" ] &&
-	[ -f "$forward" ] &&
+	[ -z "$PUNTHOST" ] && [ -n "$homedir" ] && [ -f "$forward" ] &&
 		db add expansions "$key" user &&
 		priv=$(getpriv "644" $priv "$forward" .forward) &&
 		return $(listaddresses -e "$user" -c "$forward .forward expansion" < "$forward" | \
@@ -370,21 +373,21 @@ routeuser (quad, domain) {
 
 	# oh well... give up, and sent to the PUNTHOST
 	if [ -n "$PUNTHOST" ]; then
-		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "$domain")
-	elif [ -n "$didexpand" ]; then
+		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
+	else
 		case $(expansions "$key") in
 		user|alias)
 			db add expansions "$key" other ;;
 		*)	# the address just disappears... we've got it already
 			#log expansion "$(expansions "$key"):"
 			#return ()
-			return (((bitbucket - - -)))
+			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
 			;;
 		esac
 	fi
 
 	case "$user" in
-	uid#*)	return $(rrouter postmaster "$host" $attr "$domain")
+	uid#*)	return $(rrouter postmaster "$host" $attr "" "$domain")
 		;;
 	esac
 
@@ -472,12 +475,12 @@ maprrouter (attribute, localpart, origaddr) {
 
 		defer=''
 		case $#al in
-		0)	al=$(rrouter "$address" "$origaddr" $attribute)
+		0)	al=$(rrouter "$address" "$origaddr" $attribute "" "")
 			[ "$defer" ] &&
 			    shh=(((hold "$defer" "$address" $attribute)))
 			defer=''
 			;;
-		*)	shh=$(rrouter "$address" "$origaddr" $attribute)
+		*)	shh=$(rrouter "$address" "$origaddr" $attribute "" "")
 			[ "$defer" ] &&
 			    shh=(((hold "$defer" "$address" $attribute)))
 			defer=''
