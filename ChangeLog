@@ -1,3 +1,13 @@
+2001-02-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* Makefile.in:
+	    Version 2.99.55  (the real release!)
+
+	* router/functions.c:
+	    At  $(listaddresses ..) and $(listexpand ..)  functions,
+	    removed the "%1@.." type substitutions with '-l' option.
+	    See the comment about '-%' at 'relation' function below.
+	
 2001-02-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/agenda.c, scheduler/scheduler.c, scheduler/mq2.c,
