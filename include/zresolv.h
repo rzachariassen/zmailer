@@ -174,6 +174,26 @@ typedef union {
 # define NS_INT32SZ 4
 #endif
 
+#if !HAVE_U_INT16_T
+# if !HAVE_UINT16_T
+typedef uint16_t u_int16_t;
+# else
+typedef unsigned short u_int16_t;
+# endif
+#else
+typedef unsigned short u_int16_t;
+#endif
+
+#if !HAVE_U_INT32_T
+# if !HAVE_UINT32_T
+typedef uint32_t u_int32_t;
+# else
+typedef unsigned int u_int32_t;
+# endif
+#else
+typedef unsigned int u_int32_t;
+#endif
+
 #ifndef NS_GET16
 #define NS_GET16(s, cp) do { \
         register u_char *t_cp = (u_char *)(cp); \
