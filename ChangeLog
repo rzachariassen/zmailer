@@ -1,5 +1,10 @@
 1999-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/dateparse.c:
+	     Fixes for Y2K-correct date parsing; although this
+	     is dead code whose result is ignored, it still
+	     apparently gets called...  Thanks Ken!
+
 	* TODO:
 	    Found major pain (problem, if you will) in the
 	    LDAP interface code for the router.  It does server
