@@ -1225,9 +1225,8 @@ deliver(SS, dp, startrp, endrp)
 
 	if (SS->chunking) {
 
+	  chunkblk = NULL;
 	  chunkptr = & chunkblk;
-
-	  chunkblk = malloc(256);
 
 	  /* We do surprising things here, we construct
 	     at first the headers (and perhaps some of

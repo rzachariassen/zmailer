@@ -1,3 +1,11 @@
+2000-02-17  Eugene Crosser  <crosser@online.ru>
+
+	* smtpserver/smtpdata.c, configure.in, acconfig.h:
+	    (Auto)configure  USE_TRANSLATION  into smtpserver.
+	    [mea] minimized Eugene's patch inside smtpserver code by
+	          rearrangeing 'USE_TRANSLATION' usage in smtpdata.c
+		  (e.g.: Eugene wrote it, Matti possibly botched it..)
+
 2000-02-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/agenda.c, scheduler/mq2.c, scheduler/prototypes.h,

@@ -169,3 +169,6 @@
 
 /* For mailbox; check mailbox quota thru  checkmbsize() routine.. */
 #undef CHECK_MB_SIZE
+
+/* Charset translation on incming text messages */
+#undef USE_TRANSLATION

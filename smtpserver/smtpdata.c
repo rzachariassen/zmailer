@@ -27,10 +27,11 @@
 #define FREEZE__MALFORMED_MESSAGE_ID_HEADER             953
 #endif
 
+#include "smtpserver.h"
+
 #ifdef USE_TRANSLATION
 #include <libtrans.h>
 #endif				/* USE_TRANSLATION */
-#include "smtpserver.h"
 
 static int mvdata __((SmtpState *, char *));
 static int mvbdata __((SmtpState *, char *, long));

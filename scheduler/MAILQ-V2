@@ -20,7 +20,7 @@ where "+" at line beginning is success (and anything else is failure).
 That done, initial login phase has completed, and actual command interface
 can commence.
 
-The HEXAUTENTICATOR is calculated by catenating the challenge line
+The HEXAUTHENTICATOR is calculated by catenating the challenge line
 (without its ending '\n'), and user password, and doing MD5 over them.
 Then the resulting message digest is printed out bytewise with "%02x",
 that is, lowercase hex characters.
@@ -32,8 +32,8 @@ that is, lowercase hex characters.
 SHOW QUEUE CONDENCED
 SHOW QUEUE THREADS
 SHOW SNMP
-SHOW THREAD channel host
-START THREAD channel host
 ETRN etrn_string
-KILL MSG spoolid
-KILL THREAD channel host
+SHOW THREAD channel host
+KILL MSG spoolid           (expires the message -- all recipients)
+KILL THREAD channel host   (expires the thread)
+REQUEUE ROUTER spoolid     (?? - from a TODO item..)

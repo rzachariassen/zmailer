@@ -1722,6 +1722,14 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
   fi
 fi])
 
+AC_ARG_ENABLE(translation,[  --enable-translation=CHS Enable translation of
+ncoming text messages.     
+                           Assumes --generic-library=\"... -lmcs ...\" and
+                           proper --generic-include.
+                           (See smtpserver/README.translation)],
+[
+       AC_DEFINE_UNQUOTED(USE_TRANSLATION,"$enableval") 
+])
 
 AC_CHECK_FUNCS(crypt)
 

@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-1997 Matti Aarnio -- MIME processing et.al.
+ *	Copyright 1992-2000 Matti Aarnio -- MIME processing et.al.
  */
 
 /* History:
