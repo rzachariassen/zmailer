@@ -185,6 +185,42 @@ Amount of free POSTOFFICE filesystem space in the system in kilobytes.
 /*<VAR><NAME>SYS.SpoolUsedSpace-kB-G</NAME><DESC>
 Amount of used POSTOFFICE filesystem space in the system in kilobytes.
 </DESC></VAR>*/
+
+  sfprintf(fp,"SYS.SpoolFreeFiles-G             %9d\n",
+	   M.sys.SpoolFreeFiles);
+/*<VAR><NAME>SYS.SpoolFreeFiles-G</NAME><DESC>
+Amount of free POSTOFFICE filesystem i-node space in the system.
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.SpoolUsedFiles-G             %9d\n",
+	   M.sys.SpoolUsedFiles);
+/*<VAR><NAME>SYS.SpoolUsedFiles-G</NAME><DESC>
+Amount of used POSTOFFICE filesystem i-node space in the system.
+</DESC></VAR>*/
+
+
+  sfprintf(fp,"SYS.TportSpoolFreeSpace-kB-G     %9d\n",
+	   M.sys.TportSpoolFreeSpace);
+/*<VAR><NAME>SYS.TportSpoolFreeSpace-kB-G</NAME><DESC>
+Amount of free POSTOFFICE Tport filesystem space in the system in kilobytes.
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.TportSpoolUsedSpace-kB-G     %9d\n",
+	   M.sys.TportSpoolUsedSpace);
+/*<VAR><NAME>SYS.TportSpoolUsedSpace-kB-G</NAME><DESC>
+Amount of used POSTOFFICE Tport filesystem space in the system in kilobytes.
+</DESC></VAR>*/
+
+  sfprintf(fp,"SYS.TportSpoolFreeFiles-G        %9d\n",
+	   M.sys.TportSpoolFreeFiles);
+/*<VAR><NAME>SYS.TportSpoolFreeFiles-G</NAME><DESC>
+Amount of free POSTOFFICE Tport filesystem i-node space in the system.
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.TportSpoolUsedFiles-G        %9d\n",
+	   M.sys.TportSpoolUsedFiles);
+/*<VAR><NAME>SYS.TportSpoolUsedFiles-G</NAME><DESC>
+Amount of used POSTOFFICE Tport filesystem i-node space in the system.
+</DESC></VAR>*/
+
+
   sfprintf(fp,"SYS.LogFreeSpace-kB-G            %9d\n",
 	   M.sys.LogFreeSpace);
 /*<VAR><NAME>SYS.LogFreeSpace-kB-G</NAME><DESC>
@@ -194,6 +230,17 @@ Amount of free LOGDIR filesystem space in the system in kilobytes.
 	   M.sys.LogUsedSpace);
 /*<VAR><NAME>SYS.LogUsedSpace-kB-G</NAME><DESC>
 Amount of used LOGDIR filesystem space in the system in kilobytes.
+</DESC></VAR>*/
+
+  sfprintf(fp,"SYS.LogFreeFiles-G               %9d\n",
+	   M.sys.LogFreeFiles);
+/*<VAR><NAME>SYS.LogFreeFiles-G</NAME><DESC>
+Amount of free LOGDIR filesystem i-node space in the system.
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.LogUsedFiles-G               %9d\n",
+	   M.sys.LogUsedFiles);
+/*<VAR><NAME>SYS.LogUsedFiles-G</NAME><DESC>
+Amount of used LOGDIR filesystem i-node space in the system.
 </DESC></VAR>*/
 
 

@@ -12,6 +12,25 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.56-patch1pre2:
+		When "mailq -M|grep Tport" lists something, the system
+		can split the postoffice in two filesystems, namely
+		"everything", and "transport/" subtrees.
+		Transport state files are created, live, and die within
+		that directory-tree, as opposed to previous, where they
+		are created in the router work directory, and are then
+		moved into "transport/" hash subdir...
+		(This split _might_ be useful in some high load cases;
+		 the "transport/" space requirements vary by the job
+		 mixes, one small example spent about 1/4 of "queue/"
+		 space volume in "transport/".  Another spent MORE
+		 in "transport/", than in "queue/"..  very job-mix
+		 sensitive thing this one..)
+
+		Before this version the $POSTOFFICE must be a single
+		filesystem with functioning  rename()  in between
+		directories!
+
 
 	ZMailer-2.99.56-pre5:
 		Router internal implementation of   $(listexpand ..)

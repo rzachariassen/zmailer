@@ -1,3 +1,16 @@
+2004-04-01  Matti Aarnio  <mea@zmailer.org>
+
+	* README.UPGRADING, include/libz.h, include/shmmib.h,
+	  lib/fdstatfs-test.c, lib/fdstatfs.c, lib/zshmmibattach.c,
+	  router/rfc822.c, scheduler/mailq.inc, scheduler/scheduler.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpserver.c:
+	    - new gauges tracking the number of i-nodes available/used
+	      in various partitions where ZMailer has activity.
+	    - allowing split of $POSTOFFICE into two separate
+	      filesystems, although "transport/" MUST be mounted
+	      within the  $POSTOFFICE/transport/ !
+
 2004-03-31  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/gdbm.c, router/libdb/ndbm.c, router/db.c:

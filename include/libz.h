@@ -223,11 +223,9 @@ extern struct MIB_MtaEntry *MIBMtaEntry; /* public MIB block pointer, either
 					    private data before attach call,
 					    or possibly shared data after the
 					    call... */
-extern long Z_SHM_FileSysFreeSpace __((void)); /* in KILOBYTES */
 
 /* fdstatfs.c */
-extern long used_fd_statfs __((int fd));
-extern long free_fd_statfs __((int fd));
+extern int fd_statfs __((int fd, long *bavailp, long *busedp, long *iavailp, long *iusedp));
 
 /* isterminal.c */
 extern int z_isterminal __((const int fd));

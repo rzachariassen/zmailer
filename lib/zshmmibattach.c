@@ -4,7 +4,7 @@
  *  This is (should be) file backed thing, and preferrably done with
  *  mmap(2) type of memory.
  *
- *  Part of ZMailer;  copyright Matti Aarnio <mea@nic.funet.fi> 2003
+ *  Part of ZMailer;  copyright Matti Aarnio <mea@nic.funet.fi> 2003-2004
  *
  */
 
@@ -57,16 +57,6 @@ static int         SHM_block_size;
 static void *      SHM_block_ptr;
 
 int SHM_file_mode = 0664;
-
-
-long Z_SHM_FileSysFreeSpace __((void))
-{
-	if (SHM_storage_fd >= 0) {
-	  return ( free_fd_statfs(SHM_storage_fd) );
-	} else {
-	  return ( 2000000 );
-	}
-}
 
 
 void Z_SHM_MIB_Detach __((void))

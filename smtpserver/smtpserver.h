@@ -1,7 +1,7 @@
 /*
  *  Globals of the ZMailer  smtp-server
  *
- *  Matti Aarnio <mea@nic.funet.fi> 1997-2001
+ *  Matti Aarnio <mea@nic.funet.fi> 1997-2004
  */
 
 

@@ -1002,19 +1002,21 @@ int insecure;
 	fputs("\n", SS->mfp);
     }
 
-    availspace = used_fd_statfs(FILENO(SS->mfp));
-    if (availspace >= 0)
-      MIBMtaEntry->sys.SpoolUsedSpace = availspace;
-    availspace = free_fd_statfs(FILENO(SS->mfp));
-    if (availspace < 0)
-	availspace = LONG_MAX / 1024;	/* Over 2G ? */
-    if (availspace >= 0)
-      MIBMtaEntry->sys.SpoolFreeSpace = availspace;
-    availspace -= minimum_availspace;
-    if (availspace > (LONG_MAX / 1024))
-      availspace = LONG_MAX / 1024;
-    availspace *= 1024;
+    {
+      long bavail, bused, iavail, iused;
+      if (0 == fd_statfs(FILENO(SS->mfp), &bavail, &bused, &iavail, &iused)) {
+	MIBMtaEntry->sys.SpoolUsedSpace = bused;
+	MIBMtaEntry->sys.SpoolFreeSpace = bavail;
 
+	availspace = bavail - minimum_availspace;
+	if (availspace > (LONG_MAX / 1024))
+	  availspace = LONG_MAX / 1024;
+	availspace *= 1024;
+	
+	MIBMtaEntry->sys.SpoolUsedFiles = iused;
+	MIBMtaEntry->sys.SpoolFreeFiles = iavail;
+      }
+    }
 
     if (ferror(SS->mfp)) {
 	smtp_tarpit(SS);

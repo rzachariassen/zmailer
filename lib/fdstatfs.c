@@ -1,5 +1,5 @@
 /*
- *    Copyright 1994-1999, 2003 Matti Aarnio
+ *    Copyright 1994-1999, 2003,2004 Matti Aarnio
  *      This is part of the ZMailer (2.99+), and available with
  *      the rules of the main program itself
  *
@@ -37,11 +37,15 @@
 
 #include "libz.h"
 
-long free_fd_statfs(fd)
-int fd;
+int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
+     int fd;
+     long *bavailp, *busedp, *iavailp, *iusedp;
 {
     long bavail = 0;
     long bsize  = 0;
+    long bused  = 0;
+    long iavail = 0;
+    long iused  = 0;
     int rc;
 
     /* Query the available space on the filesystem where the
@@ -56,10 +60,19 @@ int fd;
       if ((rc = fstatvfs(fd, &statbuf)) == 0) {
 	/* Sidestep a problem at glibc 2.1.1 when running at Linux/i386 */
 	bavail = statbuf.f_bavail;
+	bused = statbuf.f_blocks - statbuf.f_bavail;
 	if (statbuf.f_frsize != 0)
 	  bsize = statbuf.f_frsize;
 	else
 	  bsize = statbuf.f_bsize;
+	if (statbuf.f_ffree >= LONG_MAX)
+	  iavail = LONG_MAX;
+	else
+	  iavail = statbuf.f_ffree;
+	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
+	  iused = LONG_MAX;
+	else
+	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
 #ifdef STAT_STATFS3_OSF1
@@ -67,6 +80,17 @@ int fd;
       if ((rc = fstatfs(fd, &statbuf, sizeof(statbuf))) == 0) {
 	bavail = statbuf.f_bavail;
 	bsize  = statbuf.f_fsize;
+	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
+	bused = statbuf.f_blocks - statbuf.f_bavail;
+	bsize = statbuf.f_fsize;
+	if (statbuf.f_ffree >= LONG_MAX)
+	  iavail = LONG_MAX;
+	else
+	  iavail = statbuf.f_ffree;
+	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
+	  iused = LONG_MAX;
+	else
+	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
 #ifdef STAT_STATFS2_BSIZE
@@ -74,6 +98,17 @@ int fd;
       if ((rc = fstatfs(fd, &statbuf)) == 0) {
 	bavail = statbuf.f_bavail;
 	bsize  = statbuf.f_bsize;
+	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
+	bused = statbuf.f_blocks - statbuf.f_bavail;
+	bsize = statbuf.f_bsize;
+	if (statbuf.f_ffree >= LONG_MAX)
+	  iavail = LONG_MAX;
+	else
+	  iavail = statbuf.f_ffree;
+	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
+	  iused = LONG_MAX;
+	else
+	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
 #ifdef STAT_STATFS2_FSIZE
@@ -81,6 +116,17 @@ int fd;
       if ((rc = fstatfs(fd, &statbuf)) == 0) {
 	bavail = statbuf.f_bavail;
 	bsize  = statbuf.f_fsize;
+	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
+	bused = statbuf.f_blocks - statbuf.f_bavail;
+	bsize = statbuf.f_fsize;
+	if (statbuf.f_ffree >= LONG_MAX)
+	  iavail = LONG_MAX;
+	else
+	  iavail = statbuf.f_ffree;
+	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
+	  iused = LONG_MAX;
+	else
+	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
 #ifdef STAT_STATFS2_FS_DATA	/* Ultrix ? */
@@ -90,6 +136,17 @@ int fd;
       if ((rc = fstatfs(fd, &statbuf, sizeof statbuf, 0)) == 0) {
 	bavail = statbuf.f_bfree;
 	bsize  = statbuf.f_bsize;
+	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
+	bused = statbuf.f_blocks - statbuf.f_bfree;
+	bsize = statbuf.f_bsize;
+	if (statbuf.f_ffree >= LONG_MAX)
+	  iavail = LONG_MAX;
+	else
+	  iavail = statbuf.f_ffree;
+	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
+	  iused = LONG_MAX;
+	else
+	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #endif
 #endif
@@ -112,106 +169,27 @@ int fd;
 
     if (bsize < 1024) {
       if (!bsize) bsize = 1024; /* Just code safety... */
+
       bavail /= (1024 / bsize);
+      bused  /= (1024 / bsize);
     }
+
     if (bsize > 1024) {
       if (bavail <= (LONG_MAX / (long)(bsize / 1024)))
 	bavail *= (bsize / 1024);
       else
 	bavail = LONG_MAX;
-    }
 
-    return bavail;
-}
-
-
-long used_fd_statfs(fd)
-int fd;
-{
-    long bused = 0;
-    long bsize  = 0;
-    int rc;
-
-    /* Query the available space on the filesystem where the
-       currently open (int fd) file is located.  This call
-       should be available on all systems, and given valid
-       parametrization, never fail... */
-
-    for (;;) {
-
-#ifdef HAVE_STATVFS
-      struct statvfs statbuf;	/* SysV and BSD definitions differ..    */
-      if ((rc = fstatvfs(fd, &statbuf)) == 0) {
-	/* Sidestep a problem at glibc 2.1.1 when running at Linux/i386 */
-	bused = statbuf.f_blocks - statbuf.f_bavail;
-	if (statbuf.f_frsize != 0)
-	  bsize = statbuf.f_frsize;
-	else
-	  bsize = statbuf.f_bsize;
-      }
-#else
-#ifdef STAT_STATFS3_OSF1
-      struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf, sizeof(statbuf))) == 0) {
-	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
-	bused = statbuf.f_blocks - statbuf.f_bavail;
-	bsize = statbuf.f_fsize;
-      }
-#else
-#ifdef STAT_STATFS2_BSIZE
-      struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf)) == 0) {
-	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
-	bused = statbuf.f_blocks - statbuf.f_bavail;
-	bsize = statbuf.f_bsize;
-      }
-#else
-#ifdef STAT_STATFS2_FSIZE
-      struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf)) == 0) {
-	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
-	bused = statbuf.f_blocks - statbuf.f_bavail;
-	bsize = statbuf.f_fsize;
-      }
-#else
-#ifdef STAT_STATFS2_FS_DATA	/* Ultrix ? */
-  XX: XXX: XX: XXX:
-#else				/* none of the previous  -- SVR3 stuff... */
-      struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf, sizeof statbuf, 0)) == 0) {
-	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
-	bused = statbuf.f_blocks - statbuf.f_bfree;
-	bsize = statbuf.f_bsize;
-      }
-#endif
-#endif
-#endif
-#endif
-#endif
-      else {
-	if (errno == EINTR || errno == EAGAIN)
-	  continue; /* restart the syscall! */
-	return -1; /* Don't know what! */
-      }
-      break; /* Out of  for(;;) loop .. */
-    }
-
-
-    /* Convert the free space size to kilobytes ...
-       .. so that even 32 bit machines can handle
-       spools with more than 2 GB of used space
-       without using any sort of 64-bit gimmic codes... */
-
-    if (bsize < 1024) {
-      if (!bsize) bsize = 1024; /* Just code safety... */
-      bused /= (1024 / bsize);
-    }
-    if (bsize > 1024) {
       if (bused <= (LONG_MAX / (long)(bsize / 1024)))
 	bused *= (bsize / 1024);
       else
 	bused = LONG_MAX;
     }
 
-    return bused;
+    *bavailp = bavail;
+    *busedp  = bused;
+    *iavailp = iavail;
+    *iusedp  = iused;
+
+    return rc;
 }

@@ -127,6 +127,8 @@ extern int forkrate_limit;	/* How many forks per second ? */
 int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
 char *  mailqsock;
 char *  notifysock;
+int     QSpoolFd = -1;
+int     TSpoolFd = -1;
 
 int    interim_report_interval = 5*60; /* 5 minutes */
 
@@ -242,11 +244,13 @@ void timed_log_reinit()
 	lstat(logfn,&stbuf) == 0 &&
 	S_ISREG(stbuf.st_mode)) {
 
-      long fsspace;
-      fsspace = free_fd_statfs(sffileno(sfstdout));
-      MIBMtaEntry->sys.LogFreeSpace = fsspace;
-      fsspace = used_fd_statfs(sffileno(sfstdout));
-      MIBMtaEntry->sys.LogUsedSpace = fsspace;
+      long bavail, bused, iavail, iused;
+      if (! fd_statfs(sffileno(sfstdout), &bavail, &bused, &iavail, &iused)) {
+	MIBMtaEntry->sys.LogUsedSpace = bused;
+	MIBMtaEntry->sys.LogFreeSpace = bavail;
+	MIBMtaEntry->sys.LogUsedFiles = iused;
+	MIBMtaEntry->sys.LogFreeFiles = iavail;
+      }
     }
   }
 }
@@ -847,6 +851,24 @@ main(argc, argv)
 		   progname, Version, (int)getpid(), (char *)rfc822date(&now));
 	}
 
+	{
+	  /* Create file handles (and temp files) for studying
+	     file system (free) space state. */
+
+	  char *p = malloc(strlen(TRANSPORTDIR)+50);
+	  if (p) {
+	    sprintf(p, "../%s/..%d", QUEUEDIR, getpid());
+	    QSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
+	    unlink(p);unlink(p);
+
+	    sprintf(p, "../%s/..%d", TRANSPORTDIR, getpid());
+	    TSpoolFd = open( p, O_RDWR|O_CREAT, 0600 );
+	    unlink(p);unlink(p);
+
+	    free(p);
+	  }
+	}
+
 
 	/* Now we are either interactive, or daemon, lets attach monitoring
 	   memory block.. and fill it in.  */
@@ -857,12 +879,12 @@ main(argc, argv)
 
 	/* Zero the gauges at our startup.. */
 	MIBMtaEntry->sc.StoredMessagesSc		= 0;
-	MIBMtaEntry->sc.StoredThreadsSc		= 0;
+	MIBMtaEntry->sc.StoredThreadsSc			= 0;
 	MIBMtaEntry->sc.StoredVerticesSc		= 0;
 	MIBMtaEntry->sc.StoredRecipientsSc		= 0;
-	MIBMtaEntry->sc.StoredVolumeSc		= 0;
+	MIBMtaEntry->sc.StoredVolumeSc			= 0;
 	MIBMtaEntry->sc.TransportAgentProcessesSc	= 0;
-	MIBMtaEntry->sc.TransportAgentsActiveSc	= 0;
+	MIBMtaEntry->sc.TransportAgentsActiveSc		= 0;
 	MIBMtaEntry->sc.TransportAgentsIdleSc		= 0;
 
 
@@ -3152,9 +3174,23 @@ static void init_timeserver()
 	    /* Now check and fill in the filesystem free space
 	       gauges */
 	    if (--space_check_count  < 0) {
-	      long spc = Z_SHM_FileSysFreeSpace();
 
-	      MIBMtaEntry->sys.SpoolFreeSpace = spc;
+	      long bavail, bused, iavail, iused;
+	      if (QSpoolFd >= 0 &&
+		  ! fd_statfs(QSpoolFd, &bavail, &bused, &iavail, &iused)) {
+		MIBMtaEntry->sys.SpoolUsedSpace = bused;
+		MIBMtaEntry->sys.SpoolFreeSpace = bavail;
+		MIBMtaEntry->sys.SpoolUsedFiles = iused;
+		MIBMtaEntry->sys.SpoolFreeFiles = iavail;
+	      }
+	      if (TSpoolFd >= 0 &&
+		  ! fd_statfs(TSpoolFd, &bavail, &bused, &iavail, &iused)) {
+		MIBMtaEntry->sys.TportSpoolUsedSpace = bused;
+		MIBMtaEntry->sys.TportSpoolFreeSpace = bavail;
+		MIBMtaEntry->sys.TportSpoolUsedFiles = iused;
+		MIBMtaEntry->sys.TportSpoolFreeFiles = iavail;
+	      }
+
 	      /* Log FS space is monitored by the self-timed
 		 log reinit code. */
 

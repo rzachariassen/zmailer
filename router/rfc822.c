@@ -2162,13 +2162,16 @@ sequencer(e, file)
 	}
 
 	dprintf("Emit specification to the transport system\n");
-#ifdef	USE_ALLOCA
-	ofpname = (char *)alloca(30);
+
+#ifndef USE_ALLOCA
+	ofpname = (char*)emalloc(16+strlen(TRANSPORTDIR)+strlen(pfile));
 #else
-	ofpname = (char *)emalloc(30);
+	/* This actually reallocs more space from stack, but then it
+	   is just stack space and will disappear.. */
+	ofpname = (char*)alloca(16+strlen(TRANSPORTDIR)+strlen(pfile));
 #endif
-	/* Guaranteed unique within this machine */
-	sprintf(ofpname,".%ld.%d", (long)time(NULL), (int)getpid());
+	sprintf(ofpname, "../%s/%s.%s", TRANSPORTDIR, subdirhash, pfile);
+
 	ofp = fopen(ofpname, "w+");
 	if (ofp == NULL) {
 #ifndef USE_ALLOCA
@@ -2476,6 +2479,18 @@ sequencer(e, file)
 	  infilesize_kb = (stbuf.st_size + stbuf.st_blksize -1) / 1024;
 	}
 
+
+	fflush(ofp);
+	{
+	  long l1, l2, l3, l4;
+	  fd_statfs(FILENO(ofp), &l1, &l2, &l3, &l4);
+
+	  MIBMtaEntry->sys.TportSpoolFreeSpace = l1;
+	  MIBMtaEntry->sys.TportSpoolUsedSpace = l2;
+	  MIBMtaEntry->sys.TportSpoolFreeFiles = l3;
+	  MIBMtaEntry->sys.TportSpoolUsedFiles = l4;
+	}
+	
 
 	if ((fclose(ofp) != 0) || ofperrors ||
 	    (erename(file, qpath) != 0)) { /* ORIGINAL FILE PATH! */

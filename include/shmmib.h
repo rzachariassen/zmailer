@@ -5,7 +5,7 @@
  * These are used for storing counters/gauges for Mail Monitoring MIB
  * (RFC 2249) to such a extent as is relatively easily possible to do.
  *
- * Copyright Matti Aarnio <mea@nic.funet.fi> 1998, 2003
+ * Copyright Matti Aarnio <mea@nic.funet.fi> 1998, 2003-2004
  *
  */
 
@@ -40,12 +40,22 @@ struct MIB_MtaEntrySys {
   /* SpoolFree  is monitored and stored by _XX_ subsystem ?  
      Router and scheduler ?  Smtpserver ?  All three ? */
 
-  uint		SpoolFreeSpace;		/* gauge,	in MB	*/
-  uint		SpoolUsedSpace;		/* gauge,	in MB	*/
-  uint		LogFreeSpace;		/* gauge,	in MB  ?? */
-  uint		LogUsedSpace;		/* gauge,	in MB  ?? */
+  uint		SpoolFreeSpace;		/* gauge,	in kB	*/
+  uint		SpoolUsedSpace;		/* gauge,	in kB	*/
+  uint		LogFreeSpace;		/* gauge,	in kB  ?? */
+  uint		LogUsedSpace;		/* gauge,	in kB  ?? */
 
-  uint		dummy99[32];
+  uint		SpoolFreeFiles;
+  uint		SpoolUsedFiles;
+  uint		LogFreeFiles;
+  uint		LogUsedFiles;
+
+  uint		TportSpoolFreeSpace; /* gauge,	in kB	*/
+  uint		TportSpoolUsedSpace; /* gauge,	in kB	*/
+  uint		TportSpoolFreeFiles;
+  uint		TportSpoolUsedFiles;
+
+  uint		dummy99[24];
 };
 
 struct MIB_MtaEntrySs {

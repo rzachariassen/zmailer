@@ -1,14 +1,14 @@
 #include <stdio.h>
 
-extern long free_fd_statfs();
-extern long used_fd_statfs();
+extern int fd_statfs (int, long *,long *,long *,long *);
 
 int main(argc, argv)
 int argc;
 char *argv[];
 {
     FILE *fp;
-    long st;
+    long bavail, bused, iavail, iused;
+    int rc;
 
     if (argc != 2) {
       usage:
@@ -19,11 +19,9 @@ char *argv[];
     if (!fp)
 	goto usage;
 
-    st = free_fd_statfs(fileno(fp));
-    printf("result: free %ld\n", st);
-
-    st = used_fd_statfs(fileno(fp));
-    printf("result: used %ld\n", st);
+    rc = fd_statfs(fileno(fp), &bavail, &bused, &iavail, &iused);
+    printf("result: free %9ld  %9ld\n", bavail, iavail);
+    printf("result: used %9ld  %9ld\n", bused,  iused);
 
     return 0;
 }
