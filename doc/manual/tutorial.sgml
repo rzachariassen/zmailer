@@ -5,53 +5,74 @@
 <p>
 <sect2>Messaging
 <p>
-This chapter is quite different from the rest of this document. Here we build a 
-foundation for understanding messaging, instead of focusing on how ZMailer behaves. 
-This chapter may feel a bit theoretical and abstract, being detached from 
-practical life. In reality, however, experience shows that most problems with 
-messaging are a result of not understanding the underlying messaging model, or of 
+This chapter is quite different from the rest of this document.
+Here we build a foundation for understanding messaging, instead
+of focusing on how ZMailer behaves.
+<p>
+This chapter may feel a bit theoretical and abstract, being detached
+from practical life.
+<p>
+In reality, however, experience shows that most problems with messaging
+are a result of not understanding the underlying messaging model, or of
 not respecting said model.
-
-The terminology used here may seem a bit X.400 oriented. It is, because folks 
-from what was then known as CCITT (now known as ITU-T) adapted the model originally
-developed by IFIP. Of course, CCITT added a lot of things of its own invention 
-(like ADMDs and PRMDs), that we don't need to bother ourselves with. Although the 
-terminology comes from X.400, it is in no way restricted to it. Our presentation 
-here is a generic messaging presentation not restricted to any type of protocol.
-
-Messaging, as the name says, is all about exchanging messages, short (or sometimes 
-long) pieces of information. Messaging is always directional (which means that there 
-is always a sender and one or more recipients), targeted (the list of recipients is 
-fixed) and store-and-forward based. There are a few messaging-like applications in 
-which the message is broadcast to a wide, unspecified audience. A prime example of 
-this is Usenet News. News is not messaging, as it is not targeted.
-
-So what about mailing lists that are linked to News, are they messaging or not? As 
-long as the message is transported as a mail message, it is messaging. One of the 
-recipients of the message may well be a Usenet News newsgroup. Similarly, a sender 
-of a message might be the News system, or the author who initiated the submission by 
-using News. Messaging is not necessarily interpersonal. It is quite normal for different 
-applications to communicate using messaging methods. A prime example of this would 
-be EDI traffic. It is clearly messaging, but not interpersonal.
+<p>
+The terminology used here may seem a bit X.400 oriented.
+It is, because folks from what was then known as CCITT (now known as ITU-T)
+adapted the model originally developed by IFIP.
+Of course, CCITT added a lot of things of its own invention (like
+ADMDs and PRMDs), that we don't need to bother ourselves with.
+<p>
+Although the terminology comes from X.400, it is in no way restricted to it.
+Our presentation here is a generic messaging presentation not restricted
+to any type of protocol.
+<p>
+Messaging, as the name says, is all about exchanging messages,
+short (or sometimes long) pieces of information.
+Messaging is always directional (which means that there is always
+a sender and one or more recipients), targeted (the list of recipients
+is fixed) and store-and-forward based.
+<p>
+There are a few messaging-like applications in which the message is
+broadcast to a wide, unspecified audience.
+A prime example of this latter application is Usenet News.
+News is not messaging, as it is not targeted.
+<p>
+So what about mailing lists that are linked to News, are they messaging or not?
+As long as the message is transported as a mail message, it is messaging.
+One of the recipients of the message may well be a Usenet News newsgroup.
+Similarly, a sender of a message might be the News system, or the author
+who initiated the submission by using News. Messaging is not necessarily
+interpersonal.
+<p>
+It is also quite normal for different applications to communicate by using
+messaging methods.
+A prime example of this would be EDI traffic. It is clearly messaging,
+but not interpersonal.
 
 <sect3>The Messaging Model
 <p>
-In addition to users, the basic building blocks of messaging are <bf>User Agents (UAs)</bf> 
-and <bf>Message Transfer Agents (MTAs)</bf>. User agents are the interface through which a 
-human user interacts with the messaging system. On non-interpersonal messaging 
-user agents may be built directly into applications. MTAs are used to transport 
-messages from one computer system to another. An example of a good MTA is ZMailer. 
-<bf>Access Units (AUs)</bf> can be used for accessing telematic services, for example telefax. 
-<bf>Message Stores (MSs)</bf> can be used between MTAs and UAs. They are used for storing 
-messages before and while UAs are used to access and manipulate them. <bf>Gateways (GWs)</bf>
-are used in between two different types of messaging systems, for example between 
-SMTP and X.400 mail. Gateways are, conceptually made of two MTAs and a UA that 
-interconnects them.
+In addition to users, the basic building blocks of messaging are
+<bf>User Agents (UAs)</bf> and <bf>Message Transfer Agents (MTAs)</bf>.
+User agents are the interface through which a human user interacts with
+the messaging system.
+On non-interpersonal messaging user agents may be built directly into
+applications.
+MTAs are used to transport messages from one computer system to another.
+An example of a good MTA is ZMailer. 
+<bf>Access Units (AUs)</bf> can be used for accessing telematic services,
+for example telefax. 
+<bf>Message Stores (MSs)</bf> can be used between MTAs and UAs.
+They are used for storing messages before and while UAs are used
+to access and manipulate them.
+<bf>Gateways (GWs)</bf> are used in between two different types
+of messaging systems, for example between SMTP and X.400 mail.
+Gateways are conceptually made of two MTAs and a UA that interconnects them.
 
-There are two more acronyms worth looking at in the messaging model, namely 
-<bf>MTS (Message Transport System)</bf> and <bf>MHS (Message Handling System)</bf>.
-MTS is the collection of MTAs (and GWs), while MHS includes MTS and UA functionality 
-(UAs, MSs and AUs).
+There are two more acronyms worth looking at in the messaging model,
+namely <bf>MTS (Message Transport System)</bf> and
+<bf>MHS (Message Handling System)</bf>.
+MTS is the collection of MTAs (and GWs),
+while MHS includes MTS and UA functionality (UAs, MSs and AUs).
 
 <bf>This area will be modified!!!</bf>
 
