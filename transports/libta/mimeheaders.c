@@ -1218,16 +1218,18 @@ decodeXtext(xtext, obuf, obuflen)
 {
 	char *s = obuf;
 	--obuflen;
-	for ( ; *xtext && obuflen > 0; ++xtext, --obuflen) {
+	for ( ; *xtext && obuflen > 0; --obuflen) {
 	  if (*xtext == '+') {
 	    int c = '?';
 	    sscanf(xtext+1,"%02X",&c);
-	    *s++ = c;
+	    *s = c;
 	    if (*xtext) ++xtext;
 	    if (*xtext) ++xtext;
 	  } else {
-	    *s++ = *xtext;
+	    *s = *xtext;
 	  }
+	  ++s;
+	  ++xtext;
 	}
 	*s = '\0';
 	return s;
@@ -1263,17 +1265,32 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	if (no_for_clause) return 0; /* Forbidden.. */
 
 
+
+	if (*(rp->newmsgheadercvt) == NULL)
+	  if (!cvtspace_copy(rp)) return 0; /* XX: auch! */
+
+	inhdr = *(rp->newmsgheadercvt);
+
+
+	/* We have one advantage: The "Received:" header we
+	   want to fiddle with is the first one of them. */
+
+	if (!inhdr || !CISTREQN(*inhdr,"Received:",9)) {
+	  /* if (verboselog)fprintf(verboselog, "first *inhdr = '%s'\n",*inhdr ? *inhdr:"<NUL>"); */
+	  return 0; /* D'uh ??  Not 'Received:' ??? */
+	}
+
+
+
 	/* Begin at the indented line start.. */
 	/* strcpy(s, "\n\t"); s += 2; */
 
 	if (rp->orcpt) {
-	  /* XXX: Do decode ORCPT XTEXT data ?  Why bother ? */
+
 	  strcpy(fchead, "(ORCPT");
 	  s = forclause;
 	  *s++ = '<';
-	  s = decodeXtext(rp->orcpt, s,
-			  ((sizeof(forclause)-3) > 800 ?
-			   800 : (sizeof(forclause)-3)));
+	  s = decodeXtext(rp->orcpt, s, 800);
 	  *s++ = '>';
 	  *s = 0;
 	  clauselen = s - forclause;
@@ -1302,23 +1319,6 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	    strcpy(fctail, "(+ 1 other)");
 	  else
 	    *fctail = 0;
-	}
-
-
-
-
-	if (*(rp->newmsgheadercvt) == NULL)
-	  if (!cvtspace_copy(rp)) return 0; /* XX: auch! */
-
-	inhdr = *(rp->newmsgheadercvt);
-
-
-	/* We have one advantage: The "Received:" header we
-	   want to fiddle with is the first one of them. */
-
-	if (!inhdr || !CISTREQN(*inhdr,"Received:",9)) {
-	  /* if (verboselog)fprintf(verboselog, "first *inhdr = '%s'\n",*inhdr ? *inhdr:"<NUL>"); */
-	  return 0; /* D'uh ??  Not 'Received:' ??? */
 	}
 
 
@@ -1353,13 +1353,16 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 
 
 	receivedlen = strlen(top_received);
-	newreceived = malloc(receivedlen + clauselen + 20); /* fchead[] +
-							       fctail[] +
-							       various
-							       newlines.. */
-	newreceivedend = newreceived ? (newreceived + receivedlen + clauselen + 20) : newreceived;
-
+	newreceived = realloc(rp->top_received,
+			      receivedlen + clauselen + 30); /* fchead[] +
+								fctail[] +
+								various
+								newlines.. */
+	rp->top_received = newreceived;
 	if (!newreceived) return 0; /* Failed malloc.. */
+
+	newreceivedend = newreceived + (receivedlen + clauselen + 30);
+
 
 	/* Begin.. */
 	s = newreceived;
@@ -1450,9 +1453,10 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 #endif
 	if (*sc == 0) strcat(s, "\n");
 
+	s += strlen(s);
+	if (s >= newreceivedend) abort();
 
-	if (rp->top_received) free(rp->top_received);
-	rp->top_received = newreceived;
+
 #if 1
 	if (verboselog) {
 	  fprintf(verboselog,"Rewriting 'Received:' headers.  ");
