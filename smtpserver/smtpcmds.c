@@ -1100,6 +1100,9 @@ const char *buf, *cp;
 
     SS->rcpt_count += 1;
 
+    type(NULL,0,NULL," rcpt_count=%d  mail is %sopen\n",
+	 SS->rcpt_count, SS->mfp ? "":"NOT ");
+
     /* some smtp clients don't get the 503 right and try again, so
        tell the spammers exactly what's happening. */
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
