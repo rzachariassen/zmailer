@@ -1049,7 +1049,7 @@ deliver(SS, dp, startrp, endrp)
 	int ascii_clean = 0;
 	struct stat stbuf;
 	char SMTPbuf[2000];
-	char *s;
+	char *s, *se;
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
@@ -1061,6 +1061,8 @@ deliver(SS, dp, startrp, endrp)
 	struct ct_data  *CT  = NULL;
 	struct cte_data *CTE = NULL;
 	char **hdr;
+
+	se = SMTPbuf+sizeof(SMTPbuf)-40;
 
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
@@ -1233,20 +1235,22 @@ deliver(SS, dp, startrp, endrp)
 	SS->msize = size;
 
 	strcpy(SMTPbuf, "MAIL From:<");
+	s = SMTPbuf + 11;
 	if (!STREQ(startrp->addr->link->channel,"error")) {
 	  if (!startrp->ezmlm) {
-	    sprintf(SMTPbuf+11, "%.1000s", startrp->addr->link->user);
+	    /* Normal mode */
+	    sprintf(s, "%.1000s", startrp->addr->link->user);
+	    s += strlen(s);
 	  } else {
-	    char *p = SMTPbuf+11;
-	    const char *u;
+	    /* The EZMLM mode */
 	    int quote = 0;
-	    u = startrp->addr->link->user;
-	    for ( ; *u; ++u) {
+	    const char *u = startrp->addr->link->user;
+	    for ( ; *u && u < SMTPbuf+1000; ++u) {
 	      char c = *u;
 	      if (c == '\\') {
-		*p++ = c; ++u;
+		*s++ = c; ++u;
 		if (*u == 0) break;
-		*p++ = *u;
+		*s++ = *u;
 		continue;
 	      }
 	      if (c == quote) /* 'c' is non-zero here */
@@ -1255,17 +1259,17 @@ deliver(SS, dp, startrp, endrp)
 		quote = '"';
 	      else if (!quote && (c == '@'))
 		break;
-	      *p++ = c;
+	      *s++ = c;
 	    }
 	    if (*u == '@') {
-	      strcpy(p, startrp->ezmlm);
-	      p += strlen(p);
+	      strcpy(s, startrp->ezmlm);
+	      s += strlen(s);
 	    }
-	    strcpy(p, u);
+	    strcpy(s, u);
+	    s += strlen(s);
 	  }
-	}
+	} /* non-error source address mode */
 
-	s = SMTPbuf + strlen(SMTPbuf);
 	*s++ = '>';
 
 	if (SS->ehlo_capabilities & ESMTP_8BITMIME) {
