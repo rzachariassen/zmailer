@@ -3589,7 +3589,7 @@ smtp_sync(SS, r, nonblocking)
 	  if (s[0] >= '0' && s[0] <= '9' &&
 	      s[1] >= '0' && s[1] <= '9' &&
 	      s[2] >= '0' && s[2] <= '9' &&
-	      s[3] == ' ') {
+	      (s[3] == ' ' || s[3] == 0)) {
 	    code = atoi(s);
 
 	    /* We have a 'terminal' line */
@@ -4099,7 +4099,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  --cp;
 	*++cp = '\0';
 	for (i = 0; i < 4; ++i)		/* can't happen, right? wrong... */
-	  if (buf[i] == ' ' || buf[i] == '\r')
+	  if (buf[i] == ' ' || buf[i] == '\r' || buf[i] == '\n')
 	    break;
 	if (i == 4) --i;
 	ch = buf[i];

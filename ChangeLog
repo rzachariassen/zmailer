@@ -1,3 +1,12 @@
+1998-08-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    While reviewing new draft-ietf-drums-smtpupd-08.txt,
+	    I found out that occasionally some SMTP servers do
+	    reply just '250\r\n', which would confuse PIPELINING
+	    mode codepaths, very least.  (Although with the
+	    ENHANCEDSTATUSCODES that is an unlikely occurrence..)
+
 1998-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* include/malloc.h, include/zsyslog.h, libsh/builtins.c,
