@@ -4472,8 +4472,6 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      err = 1;
 	  }
 
-	  r = EX_OK;
-
 	  if (err) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");
@@ -4494,9 +4492,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - timeout on smtpwrite())\n", logtag());
-#endif
 	    /* Alarm OFF */
 	    r = EX_TEMPFAIL;
+#endif
 	  } else if (r != len) {
 	    sprintf(SS->remotemsg, "smtp; 500 (SMTP cmd write failure: Only wrote %d of %d bytes!)", r, len);
 	    time(&endtime);
@@ -4508,12 +4506,13 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - second timeout on smtpwrite() )\n", logtag());
-#endif
 	    /* Alarm OFF */
 	    r = EX_TEMPFAIL;
+#endif
 	  }
 	  if (logfp)
 	    fprintf(logfp, "%sw\t%s\n", logtag(), strbuf);
+	  r = EX_TEMPFAIL;
 	}
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
