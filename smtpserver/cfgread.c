@@ -294,9 +294,10 @@ static void cfparam(str, size, cfgfilename, linenum)
 	use_tcpwrapper = 1;
     }
 
-    else if (cistrcmp(name, "tarpit") == 0 && param2 /* 2 params */) {
+    else if (cistrcmp(name, "tarpit") == 0 && param3 /* 3 params */) {
 	sscanf(param1,"%d",&tarpit_initial);
 	sscanf(param2,"%d",&tarpit_exponent);
+	sscanf(param3,"%d",&tarpit_toplimit);
     }
 
     else if (cistrcmp(name, "deliverby") == 0) {
