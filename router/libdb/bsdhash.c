@@ -87,7 +87,7 @@ open_bhash(sip, flag, comment)
 				DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
 				0644, NULL, NULL, &db);
 #else
-		  db = dbopen(sip->file, flag, 0, DB_HASH, &BINFO);
+		  db = dbopen(sip->file, flag, 0, DB_HASH, NULL);
 #endif
 		  if (db != NULL)
 		    break;

@@ -1,3 +1,8 @@
+1999-06-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/libdb/bsdhash.c:
+	    Fix of old BSD DB 1.85 type behaviour.
+
 1999-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in, ChangeLog:
