@@ -1244,12 +1244,13 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	int semicindex, receivedlen;
 	char *newreceived;
 	const char *newreceivedend;
+	const char *top_received, *sc;
 
 	char fchead[10], forclause[1024], fctail[20], *s;
 	int clauselen;
 	int col;
 
-	char **inhdr, *sc;
+	char **inhdr;
 
 	static int no_for_clause = -1;
 
@@ -1321,27 +1322,25 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	}
 
 
-	if (rp->top_received)
-	  ctlfree(rp->desc,rp->top_received);
 
-	rp->top_received = strdup(*inhdr);
+	top_received = *inhdr;
 
 
 	/* Look for the LAST semicolon in this Received: header.. */
 
-	sc = strrchr(rp->top_received, ';');
+	sc = strrchr(top_received, ';');
 	if (sc) {
-	  semicindex = sc - rp->top_received;
+	  semicindex = sc - top_received;
 	} else {
 	  /* No semicolon at all, last NEWLINE then ? */
-	  semicindex = strlen(rp->top_received);
-	  sc = rp->top_received + semicindex;
+	  semicindex = strlen(top_received);
+	  sc = top_received + semicindex;
 	  if (sc[-1] == '\n') { --sc; --semicindex; }
 	}
 
 	{
 	  /* Find out the column of the cut-point.. */
-	  const char *p = rp->top_received;
+	  const char *p = top_received;
 	  col = 0;
 	  for ( ; *p && (p <= sc) ; ++p) {
 	    const char c = *p;
@@ -1353,7 +1352,7 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	}
 
 
-	receivedlen = strlen(rp->top_received);
+	receivedlen = strlen(top_received);
 	newreceived = malloc(receivedlen + clauselen + 20); /* fchead[] +
 							       fctail[] +
 							       various
@@ -1364,7 +1363,7 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 
 	/* Begin.. */
 	s = newreceived;
-	memcpy(s, rp->top_received, semicindex);
+	memcpy(s, top_received, semicindex);
 	s += semicindex;
 
 	if ((col + 1 + strlen(fchead)) >= 78) {
@@ -1452,7 +1451,7 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	if (*sc == 0) strcat(s, "\n");
 
 
-	ctlfree(rp->desc,rp->top_received);
+	if (rp->top_received) free(rp->top_received);
 	rp->top_received = newreceived;
 #if 1
 	if (verboselog) {

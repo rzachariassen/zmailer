@@ -69,13 +69,14 @@ ctlfree(dp,anyp)
 	struct ctldesc *dp;
 	void *anyp;
 {
-	void * lowlim  = (void *) dp->contents;
-	void * highlim = (void *)(((char*)lowlim) + dp->contentsize);
+	unsigned long lowlim  = (unsigned long) dp->contents;
+	unsigned long highlim = (unsigned long)(((char*)lowlim) + dp->contentsize);
 #if 0
 	fprintf(stderr,"# ctlfree(%p) (%p,%p] @%p\n", anyp,
 		lowlim, highlim, __builtin_return_address(0));
 #endif
-	if (anyp && (anyp < lowlim || anyp >= highlim))
+	if (anyp && (((unsigned long)anyp) < lowlim ||
+		     ((unsigned long)anyp) >= highlim))
 	  free(anyp);	/* It isn't within DP->CONTENTS data.. */
 }
 
@@ -141,7 +142,7 @@ ctlclose(dp)
 	  if (ap->routermxes) {
 	    free((char *)ap->routermxes);
 	  }
-	  if (rp->top_received) ctlfree(dp, rp->top_received);
+	  if (rp->top_received) free((void*)(rp->top_received));
 	
 	  free((char *)rp);
 	}
