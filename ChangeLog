@@ -1,8 +1,31 @@
+2000-11-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    Turn the listening sockets into NON-BLOCKING mode,
+	    and once connection is accept(2)ed, turn the communication
+	    socket into blocking mode.
+
+	* transports/smtp/getmxrr.c:
+	    Randomish bounces seen at  vger.kernel.org  for domains
+	    which have non-functional DNS servers (likely due to
+	    network failure, or some such.)  Symptom seems to
+	    indicate NXDOMAIN DNS query reply status, but the
+	    darn thing happens *rarely*...
+	    ... I am not sure this change is a smart thing to do,
+	    ... and latter on I removed this change.
+	    It looks like getting NXDOMAIN is trouble at whatever
+	    system happens to be the DNS server, and we are better
+	    of when we don't trouble ourselves too much with
+	    circumventations at the resolver code for it.
+
 2000-10-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:
 	    Move the  notarystatsave()  function call up so that it will
-	    always be called for various subfunctions.
+	    always be called for all collected replies.  Formelly there
+	    were cases where it didn't get called, which caused somewhat
+	    weird looking results when the TA program switched to alternate
+	    destination domain.
 
 	* libc/getaddrinfo.c:
 	    Disable entirely the AF_LOCAL support.

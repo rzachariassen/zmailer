@@ -995,16 +995,20 @@ char **argv;
 	   allow rather high limits, lets try to use it!
 	   (The classical default is: 5) */
 
+
+	fd_nonblockingmode(s25);
 	if (listen(s25, ListenQueueSize) < 0) {
 	  fprintf(stderr, "%s: listen(smtp_sock,%d): %s\n",
 		  progname, ListenQueueSize, strerror(errno));
 	  exit(1);
 	}
 
-	if (ssmtp >= 0 &&
-	    listen(ssmtp, ListenQueueSize) < 0) {
-	  fprintf(stderr, "%s: listen(ssmtp_sock,%d): %s\n",
-		  progname, ListenQueueSize, strerror(errno));
+	if (ssmtp >= 0) {
+	  fd_nonblockingmode(ssmtp);
+	  if (listen(ssmtp, ListenQueueSize) < 0) {
+	    fprintf(stderr, "%s: listen(ssmtp_sock,%d): %s\n",
+		    progname, ListenQueueSize, strerror(errno));
+	  }
 	}
 
 	settrusteduser();	/* dig out the trusted user ID */
@@ -1163,7 +1167,7 @@ char **argv;
 
 	    close(s25);	/* Listening socket.. */
 	    if (ssmtp >= 0)
-	      close(ssmtp);
+	      close(ssmtp); /* another of them */
 
 	    pid = getpid();
 
@@ -1559,17 +1563,13 @@ SmtpState *SS;
     if (i) return i;
 
     if (SS->s_readout >= SS->s_bufread) {
-	/* So if it did dry up, try non-blocking read */
-	int flags = fcntl(SS->inputfd, F_GETFL, 0);
+        /* So if it did dry up, try non-blocking read */
+	int flags = fd_nonblockingmode(SS->inputfd);
 	SS->s_readout = 0;
+	
 #if defined(O_NONBLOCK) || defined(FNDELAY)
-#ifdef O_NONBLOCK
-	fcntl(SS->inputfd, F_SETFL, flags | O_NONBLOCK);
-#else
-	fcntl(SS->inputfd, F_SETFL, flags | FNDELAY);
-#endif
 	SS->s_bufread = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
-	fcntl(SS->inputfd, F_SETFL, flags);
+	fd_restoremode(SS->inputfd, flags);
 	if (SS->s_bufread > 0)
 	    return SS->s_bufread;
 #endif
@@ -1656,6 +1656,9 @@ int infd;
     SS->s_status = 0;
     SS->s_bufread = -1;
     SS->s_readout = 0;
+
+    fd_blockingmode(infd);
+    fd_blockingmode(outfd); /* Just in case these are separate FDs.. */
 }
 
 

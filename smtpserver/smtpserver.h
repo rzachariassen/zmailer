@@ -520,3 +520,8 @@ extern char *rfc822date __((time_t *));
 
 extern int encodebase64string __((const char *instr, int inlen, char *outstr, int outspc));
 extern int decodebase64string __((const char *instr, int inlen, char *outstr, int outspc, const char **inleftover));
+
+/* transports/libta/nonblocking.c */
+extern int  fd_nonblockingmode __((int fd));
+extern int  fd_blockingmode __((int fd));
+extern void fd_restoremode __((int fd, int mode));
