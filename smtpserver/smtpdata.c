@@ -138,7 +138,7 @@ const char *buf, *cp;
 	    if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
 		if (logfp != NULL) {
 		  fprintf(logfp,"%d#\tmail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)\n",
-			  polbuf, errno, strerror(errno));
+			  pid, polbuf, errno, strerror(errno));
 		}
 		type(SS, 452, m430, "Message file disposition failed");
 		typeflush(SS);
@@ -307,7 +307,7 @@ const char *buf, *cp;
 	    if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
 		if (logfp != NULL) {
 		  fprintf(logfp,"%d#\tmail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)\n",
-			  "policy", errno, strerror(errno));
+			  pid, "policy", errno, strerror(errno));
 		}
 		type(SS, 452, m430, "Message file disposition failed");
 		SS->mfp = NULL;

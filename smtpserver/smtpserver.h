@@ -260,7 +260,7 @@ extern void debug_report __((SmtpState *, int, const char *, const char *));
 extern void header_to_mime __((char *, int *, int));
 extern void help __((SmtpState *, struct smtpconf *, const char *));
 extern time_t time __((time_t *));
-extern char *router __((SmtpState *, const char *, int, const char *, const int));
+extern char *router __((SmtpState *, const char *, const int, const char *, const int));
 #ifndef MALLOC_TRACE		/* turns these into macroes.. */
 #ifndef __XMALLOC_H__		/* at ../include/malloc.h */
 extern univptr_t emalloc __((size_t));

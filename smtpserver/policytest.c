@@ -481,7 +481,7 @@ const char *pbuf;
 	if (result == 0)	/* Found. */
 	    break;
 
-	mask_ip_bits((char*)&pbuf[2], countmax - count, countmax);
+	mask_ip_bits((u_char*)&pbuf[2], countmax - count, countmax);
 
 	if (pbuf[1] == P_K_IPv4)
 	    ((char*)pbuf)[6] = 32 - count;	/* Width */
@@ -797,7 +797,7 @@ int inlen;
       } else {
 	char *s = strchr(pbuf+3,']');
 	if (s) *s = 0;
-	if (inet_pton(AF_INET, pbuf+3, pbuf+2) < 1) {
+	if (inet_pton(AF_INET, pbuf+3, (u_char *)pbuf+2) < 1) {
 	  /* XX: Duh ?  Our input is syntax checked, so
 	     this ERROR should not happen.. */
 	}
