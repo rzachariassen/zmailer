@@ -51,6 +51,7 @@ static int u_ok       DARGS ;
 static int u_ok2      DARGS ;
 static int u_ok3      DARGS ;
 static int u_deferred DARGS ;
+static int u_deferall DARGS ;
 static int u_error    DARGS ;
 static int u_error2   DARGS ;
 static int u_retryat  DARGS ;
@@ -63,6 +64,7 @@ static struct diagcodes {
 		{	"ok2",		u_ok2		},
 		{	"ok3",		u_ok3		},
 		{	"deferred",	u_deferred	},
+		{	"deferall",	u_deferall	},
 		{	"error",	u_error		},
 		{	"error2",	u_error2	},
 		{	"retryat",	u_retryat	},
@@ -778,6 +780,89 @@ static int u_deferred(proc, vp, index, inum, offset, notary, message)
 	 * the time is already in the future should help out.
 	 */
 	reschedule(vp, -1, index);
+	return 1;
+}
+
+static int u_deferall(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
+{
+	/* The "DeferALL" differs from e.g. "deferred" by putting the same
+	   message to *all* subsequent items in this vp thread!
+	   However this is alike the "retryat" in moving the TA-proc
+	   states around! */
+
+	--vp->attempts; /* Did attempt this vertex! */
+	if (vp->thread)
+	  vp->thread->attempts -= 1; /* and on this thread too! */
+
+	index = -1;
+
+	if ((proc->state   == CFSTATE_STUFFING) &&
+	    (proc->tofd    >= 0)) {
+
+	  /* Fed work-entry caused 'retryat' to occur; stop
+	     feeding and move to the finishing state before
+	     continuing anywhere... */
+
+	  if (proc->pthread && proc->pthread->nextfeed &&
+	      proc->pthread->nextfeed->ce_expiry > 0 &&
+	      proc->pthread->nextfeed->ce_expiry < now) {
+
+	    /* Whops! next one is an *old* message, keep it in
+	       the STUFFING state, and let other messages of
+	       the queue possibly get the same quick diagnostics
+	       after at least one activation... */
+	  } else {
+	    /* sfprintf(sfstderr,
+	       "%% u_deferall(proc=%p) -> CFSTATE_FINISHING\n", proc); */
+	    proc->state = CFSTATE_FINISHING;
+	  }
+	}
+
+	for (; vp; vp = vp->nextitem /*, offset=-1 */) {
+
+	  /* Artificially "attempt" processing of these vertices ! */
+	  ++vp->attempts; /* Did attempt this vertex! */
+	  if (vp->thread)
+	    vp->thread->attempts += 1; /* and on this thread too! */
+
+	  /* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferall %s\n",
+	     vp->cfp->logident, inum, offset, notary,
+	     message ? message : "-"); */
+
+	  if (message != NULL) {
+	    if (vp->message != NULL)
+	      free(vp->message);
+	    /* sfprintf(sfstderr, "add message '%s' to node %s/%s\n",
+	       message, vp->orig[L_CHANNEL]->name,
+	       vp->orig[L_HOST]->name); */
+	    vp->message = strsave(message);
+	  }
+
+#if 0
+	  if (vp->cfp->contents != NULL) {
+	    Sfio_t *vfp = vfp_open(vp->cfp);
+	    if (vfp) {
+	      sfprintf(vfp, "%s: deferall %s\n",
+		       vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		       message == NULL ? "(sent)" : message);
+	      sfclose(vfp);
+	    }
+	  }
+#endif
+	  /*
+	   * Even though we may get several of these per web entry,
+	   * the heuristic in reschedule() to ignore the request if
+	   * the time is already in the future should help out.
+	   */
+	  if (vp->thread != NULL)
+	    thread_reschedule(vp->thread, 60, -1);
+	}
+
 	return 1;
 }
 

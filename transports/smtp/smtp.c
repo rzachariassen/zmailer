@@ -2349,7 +2349,7 @@ smtpconn(SS, host, noMX)
 		 EX_TEMPFAIL ?   Well, getmxrr() did set some reports,
 		 lets use them! */
 	      if ((r == EAI_NONAME || r == EAI_AGAIN) && rc == EX_TEMPFAIL)
-		return rc;
+		return EX_DEFERALL;
 
 	      if ( r == EAI_AGAIN ) {
 
@@ -2361,7 +2361,7 @@ smtpconn(SS, host, noMX)
 		  fprintf(SS->verboselog,"%s\n",SS->remotemsg+6);
 		if (ai != NULL)
 		  freeaddrinfo(ai);
-		return EX_TEMPFAIL;
+		return EX_DEFERALL;
 	      }
 
 	      if ( r == EAI_NODATA ) {
@@ -2374,13 +2374,12 @@ smtpconn(SS, host, noMX)
 		if (ai != NULL)
 		  freeaddrinfo(ai);
 		if (rc == EX_TEMPFAIL)
-		  return rc;
+		  return EX_DEFERALL;
 		return EX_UNAVAILABLE;
 	      }
 
 	      r = EX_UNAVAILABLE; /* This gives instant rejection */
-	      if (rc == EX_TEMPFAIL)
-		r = rc;
+	      if (rc == EX_TEMPFAIL) r = rc;
 
 	      if (strchr(host,'_') != NULL) {
 		sprintf(SS->remotemsg,
@@ -2428,6 +2427,10 @@ smtpconn(SS, host, noMX)
 		 current EX_TEMPFAIL, which will cause timeout latter on.. */
 	      if (ai != NULL)
 		freeaddrinfo(ai);
+
+	      /* We translate these TEMPFAILs to DEFERALLs! */
+	      if (r == EX_TEMPFAIL) r = EX_DEFERALL;
+
 	      return r;
 	    }
 	    {
@@ -2460,7 +2463,7 @@ smtpconn(SS, host, noMX)
 		retval = EX_OK;
 		break;
 	      } else if (r == EX_TEMPFAIL)
-		retval = EX_TEMPFAIL;
+		retval = EX_DEFERALL;
 	    }
 	  }
 	} /* end of HOSTNAME MX lookup processing */
@@ -2549,7 +2552,7 @@ makeconn(SS, hostname, ai, ismx)
 #endif	/* BIND */
 
 
-	retval = EX_TEMPFAIL;
+	retval = EX_DEFERALL;
 #if 0
 	if (SS->verboselog) {
 	  fprintf(SS->verboselog,"makeconn('%.200s') to IP addresses:", hostbuf);

@@ -811,8 +811,12 @@ information for the recipient.
 .I Status
 is one of
 .BR ok ,
+.BR ok2 ,
+.BR ok3 ,
 .BR error ,
+.BR error2 ,
 .BR deferred ,
+.BR deferall ,
 or
 .BR retryat ,
 and the

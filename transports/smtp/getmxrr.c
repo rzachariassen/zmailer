@@ -83,7 +83,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.3 (DNS-failure)",SS->remotemsg);
 #endif
-	  return EX_TEMPFAIL;
+	  return EX_DEFERALL;
 	}
 
 	time(&now);
@@ -138,7 +138,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
 #endif
-	    return EX_TEMPFAIL;
+	    return EX_DEFERALL;
 	  case NOERROR:
 	    mx[0].host = NULL;
 	    return EX_OK;
@@ -166,7 +166,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif
 
 	  if (had_eai_again)
-	    return EX_TEMPFAIL;
+	    return EX_DEFERALL;
 	  return EX_UNAVAILABLE;
 	}
 	nmx = 0;
@@ -300,14 +300,14 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  rmsgappend(SS, 1, "\r   AnswerCount  %d > 0!!", ancount);
 
 
-	  return EX_TEMPFAIL; /* FIXME?? FIXME?? */
+	  return EX_DEFERALL; /* FIXME?? FIXME?? */
 	}
 
 	if (nmx == 0 && realname[0] != 0) {
 	  /* do it recursively for the real name */
 	  n = getmxrr(SS, (char *)realname, mx, maxmx, depth+1);
 	  if (had_eai_again)
-	    return EX_TEMPFAIL;
+	    return EX_DEFERALL;
 	  return n;
 	} else if (nmx == 0) {
 	  /* "give it the benefit of doubt" */
@@ -315,7 +315,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  mx[0].ai   = NULL;
 	  SS->mxcount = 0;
 	  if (had_eai_again)
-	    return EX_TEMPFAIL;
+	    return EX_DEFERALL;
 	  return EX_OK;
 	}
 
@@ -693,7 +693,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  mx[0].host = NULL;
 	  SS->mxcount = 0;
 	  if (had_eai_again)
-	    return EX_TEMPFAIL;
+	    return EX_DEFERALL;
 	  return EX_OK;
 	}
 #ifndef TEST
@@ -732,7 +732,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	SS->mxcount = nmx;
 
 	if (n == 0 && had_eai_again)
-	  return EX_TEMPFAIL;
+	  return EX_DEFERALL;
 
 	if (n == 0) {/* MX's exist, but their WKS's show no TCP smtp service */
 	  rmsgappend(SS, 1, "\r=> NONE of MXes support SMTP!");
@@ -809,7 +809,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	/* Even with errors in data retrieval, if we get
 	   ANY   MX entries, we are a happy camper! */
 	if (had_eai_again && nmx == 0)
-	  return EX_TEMPFAIL;
+	  return EX_DEFERALL;
 	return EX_OK;
 }
 
@@ -983,6 +983,9 @@ int main(argc, argv)
 	  break;
 	case EX_NOPERM:
 	  s = "EX_NOPERM";
+	  break;
+	case EX_DEFERALL:
+	  s = "EX_DEFERALL";
 	  break;
 	default:
 	  s = "UNKNOWN!";

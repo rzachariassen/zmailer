@@ -41,6 +41,7 @@ mailq \- zmailer mail queue printer
 ]
 [
 .B "\-c channel \-h host"
+]
 [
 .I host
 ]

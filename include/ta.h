@@ -20,6 +20,9 @@
 #include <sfio.h>
 
 
+#define EX_DEFERALL 100 /* Outside <sysexits.h> codes */
+
+
 struct taddress {
 	struct taddress	*link;		/* next sender / sender for this rcpt */
 	const char	*channel;

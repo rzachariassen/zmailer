@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-2000
+ *	<mea@nic.funet.fi>, copyright 1992-2001
  */
 
 /*
@@ -328,6 +328,10 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 		}
 		else
 		  statmsg = "deferred";
+		mark = _CFTAG_DEFER;
+		break;
+	case EX_DEFERALL:
+		statmsg = "deferall";
 		mark = _CFTAG_DEFER;
 		break;
 	case EX_NOPERM:

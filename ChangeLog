@@ -1,5 +1,16 @@
 2001-05-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* include/ta.h, scheduler/update.c, transports/libta/diagnostic.c,
+	  transports/smtp/getmxrr.c, transports/smtp/smtp.c:
+	    Define and use  EX_DEFERALL  exit code, which introduces a new,
+	    somewhat differently behaving handling of temporary kind of
+	    failures -- intended for smtp transport-agent for DNS lookup
+	    failures of some domains, and connection failures.
+	    To large extent this behaves as if "retryat +60" were defined,
+	    but this will also mark ALL subsequent messages in the thread
+	    (via "nextitem" chain) to 1) have been attempted, and 2) with
+	    the same message as we initially have.
+
 	* scheduler/mailq.c:
 	    The 'mailq -v' did show the ta-work-specification-file
 	    size, not message size in 'bytes %ld' printout.. :-(
