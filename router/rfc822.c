@@ -1582,6 +1582,7 @@ sequencer(e, file)
 	FindHeader("from",e->e_resent);
 	if (h == NULL) {
 		FindEnvelope(eFrom);
+		oh = h;
 		if (h == NULL) {	/* panic... can't happen... */
 			dprintf(" none available!\n");
 			optsave(FYI_NOSENDER, e);
@@ -1614,7 +1615,36 @@ sequencer(e, file)
 			    }
 			  }
 			} else {
-			  dprintf(" HUH! Nothing set!\n");
+			  /* No "From:", but do have "from " envelope,
+			     and no "channel " envelope. */
+
+			  int hlen = 0;
+			  const char *line = (oh->h_lines ? oh->h_lines->t_pname : NULL);
+			  char *ss;
+			  if (!line) {
+			    if (oh->h_contents.a &&
+				oh->h_contents.a->a_tokens &&
+				oh->h_contents.a->a_tokens->p_tokens)
+			      line = oh->h_contents.a->a_tokens->p_tokens->t_pname;
+			  }
+			  hlen = strlen(line);
+
+			  ss = (char*)tmalloc(10+hlen);
+			  sprintf(ss,"From: <%s>", line);
+
+			  nh = makeHeader(spt_headers, ss, 4);
+			  nh->h_lines = makeToken(ss+5,strlen(ss+5));
+			  nh->h_lines->t_type = Line;
+			  nh->h_contents = hdr_scanparse(e, nh, 0, 0);
+			  nh->h_stamp = hdr_type(nh);
+			  FindHeader("to",e->e_resent);
+			  if (h == NULL) {
+			    for (h = e->e_headers; h != NULL; h = h->h_next)
+			      if (CISTREQ(h->h_pname, "subject"))
+				break;
+			  }
+			  InsertHeader(h, nh);
+			  dprintf(" nope (added)!\n");
 			}
 		}
 	} else

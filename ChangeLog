@@ -1,5 +1,8 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822.c:
+	    If the message had no 'From: ' header, generate one for it.
+
 	* proto/cf/standard.cf:
 	    Add "bitnet" and "uucp" into the default toplevels list.
 
