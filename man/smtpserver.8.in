@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "30 Aug 1999"
+.TH SMTPSERVER 8 "3 Sep 1999"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -302,13 +302,16 @@ for it, as in general they work quite fine.
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
 
-.IP PARAM\ MSA-mode
+.IP PARAM\ MSA\-mode
 .I Message Submission Agent Mode
 (RFC 2476).
 
 Require successfull user authentication before message submission during
 SMTP session from outside of "fulltrustnet" and "relaycustnet"
 (see smtp-policy.src).
+
+.IP PARAM\ SMTP\-Auth\-Pipe\ /path/to/program
+See ``doc/guides/smtp-msa-mode'' file.
 
 .IP PARAM\ no\-multiline\-replies
 Turn off ZMailer's default multiline replies; many systems (especially
@@ -378,6 +381,9 @@ PARAM   VRFYcmd
 #               # user authentication before message submission during
 #               # SMTP session from outside of "fulltrustnet" and
 #               # "relaycustnet" (see smtp-policy.src).
+#
+#PARAM SMTP-Auth-Pipe /path/to/program
+#               # See  doc/guides/smtp-msa-mode  "document"
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO

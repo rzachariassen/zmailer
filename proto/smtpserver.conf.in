@@ -50,6 +50,9 @@
 #			# SMTP session from outside of "fulltrustnet" and
 #			# "relaycustnet" (see smtp-policy.src).
 #
+#PARAM SMTP-Auth-Pipe /path/to/program
+#			# See  doc/guides/smtp-msa-mode  "document"
+#
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
 #PARAM	NoPIPELINING

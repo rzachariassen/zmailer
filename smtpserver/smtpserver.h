@@ -249,6 +249,7 @@ extern int tls_ask_cert, tls_req_cert;
 extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
 extern int log_rcvd_tls_mode, log_rcvd_tls_ccert;
 extern int auth_login_without_tls;
+extern char *smtpauth_via_pipe;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;

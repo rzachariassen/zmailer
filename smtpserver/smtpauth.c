@@ -52,6 +52,7 @@ and receiving server (S:) would reply with:
 */
 
 extern char * zpwmatch __((char *, char *, long *uidp));
+extern char * pipezpwmatch __((char *, char *, char *, long *uidp));
 
 #if 0 /* DUMMY BEAST... */
 
@@ -208,7 +209,12 @@ void smtp_auth(SS,buf,cp)
     else if (tls_loglevel > 0)
       type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
 
-    if ((zpw = zpwmatch(uname, bbuf, &uid)) == NULL) {
+    if (smtpauth_via_pipe)
+      zpw = pipezpwmatch(smtpauth_via_pipe, uname, bbuf, &uid);
+    else
+      zpw = zpwmatch(uname, bbuf, &uid);
+
+    if (zpw == NULL) {
 	SS->authuser = uname;
 	type(SS, 235, NULL, "Authentication successful.");
     } else {

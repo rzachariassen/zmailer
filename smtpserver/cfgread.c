@@ -181,6 +181,8 @@ static void cfparam(str)
       auth_login_without_tls = 1;
     } else if (cistrcmp(name, "msa-mode") == 0) {
       msa_mode = 1;
+    } else if (cistrcmp(name, "smtp-auth-pipe") == 0 && param1) {
+      smtpauth_via_pipe = strdup(param1);
     }
 
     /* Store various things into 'rvcdfrom' header per selectors */

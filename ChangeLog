@@ -1,5 +1,14 @@
 1999-09-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/zpwmatch-pipe.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpauth.c,
+	  smtpserver/cfgread.c, proto/smtpserver.conf.in,
+	  man/smtpserver.8, smtpserver/Makefile.in:
+	    Integrated Artur Urbanowicz's "use external program
+	    for authentication" approach to the baseline system.
+	    (Documents could use some additional word about the
+	     topic..)
+	
 	* smtpserver/zpwmatch.c:
 	    Fix  HAVE_SHADOW_H  branch of the code per report
 	    from Eugene Crosser.
@@ -35,7 +44,7 @@
 	  doc/guides/smtp-msa-mode:
 	    Heaps of changes from an ISP guy
 	    Artur Urbanowicz <artur.urbanowicz@man.lublin.pl>
-	
+
 	* transports/libta/diagnostic.c:
 	    Report the 'host' part of the referred channel/host pair
 	    for which the diagnostic is being presented.

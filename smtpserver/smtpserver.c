@@ -223,6 +223,7 @@ int log_rcvd_authuser = 0;
 int log_rcvd_tls_mode = 0;
 int log_rcvd_tls_ccert = 0;
 int auth_login_without_tls = 0;
+char *smtpauth_via_pipe = NULL;
 Usockaddr bindaddr;
 int bindaddr_set    = 0;
 u_short bindport = 0;
