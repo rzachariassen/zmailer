@@ -14,9 +14,11 @@ TOPDIR=		..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
 AR=		@AR@
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
 LIBC_INCL=	@INCLRESOLV@
 INCLUDEDIR=	@includedir@
-LIBRARYDIR=	$(prefix)@libdir@
+LIBRARYDIR=	@libdir@
 INSTALL=	@INSTALL@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
