@@ -317,8 +317,10 @@ main(argc, argv)
 		  die(1, "errors during startup");
 		}
 
-		if (tac == 0)		/* leave worldy matters behind */
+		if (tac == 0) {		/* leave worldy matters behind */
 		  detach();
+		  close(0); open("/dev/null", O_RDONLY, 0);
+		}
 		printf("%s: router daemon (%s)\n\tstarted at %s\n",
 		       progname, Version, rfc822date(&now));
 		if (killflg)

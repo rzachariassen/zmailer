@@ -1,5 +1,8 @@
 2004-10-23  Matti Aarnio  <mea@zmailer.org>
 
+	* router/router.c:
+	    Unnecessarily open file found in router, too..
+
 	* scheduler/scheduler.c:
 	    Hunting unnecessarily open file-descriptors in scheduler,
 	    and its TimeServer subprocess.
