@@ -1321,15 +1321,17 @@ void resync_file(proc, file)
 
 	  if (oldcfp->head == NULL) {
 	    cfp_free(oldcfp,NULL);
-	    sfprintf(sfstdout," .. LOST in resync ??!\n");
+	    if (verbose)
+	      sfprintf(sfstdout," .. LOST in resync ??!\n");
 	  } else
-	    sfprintf(sfstdout," .. resynced!\n");
+	    if (verbose)
+	      sfprintf(sfstdout," .. resynced!\n");
 
 	} else
 #endif
 	  {
-
-	    sfprintf(sfstdout," .. NOT resynced!\n");
+	    if (verbose)
+	      sfprintf(sfstdout," .. NOT resynced!\n");
 	    /* Sigh.. Throw everything away :-( */
 	    oldcfp->id = ino;
 	    cfp_free(oldcfp, NULL);

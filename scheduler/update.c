@@ -177,7 +177,7 @@ update(fd, diagnostic)
 	    if (proc->overfed > 0) {
 	      /* It was overfed, decrement that counter first.. */
 	      proc->overfed -= 1;
-#if 0
+#if 1
 	      /* We were "simulated hungry" */
 	      proc->hungry  -= 1;
 #endif
@@ -204,7 +204,7 @@ update(fd, diagnostic)
 		if (proc->overfed >= proc->thg->ce.overfeed)
 		  break;	/* if the limit is zero, don't overfeed ever.*/
 		/* Ok, increment the counter, and loop back.. */
-#if 0
+#if 1
 		proc->hungry += 1; /* Simulate hunger.. */
 #endif
 		pick_next_vertex(proc, 1, 0);

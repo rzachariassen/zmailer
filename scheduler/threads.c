@@ -819,7 +819,7 @@ struct thread *thr;
 	  thr->proc     = proc;
 	  *ipp          = proc->next;
 	  proc->next    = NULL;
-	  proc->overfed = 0;
+	  /* proc->overfed = 0; */
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -857,7 +857,7 @@ struct thread *thr;
 
 	  /* Its idle process, feed it! */
 
-#if 1
+#if 0
 	  proc->fed = 0;
 #else
 	  proc->hungry = 1;	/* Simulate hunger.. */
