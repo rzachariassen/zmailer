@@ -1,5 +1,17 @@
 2003-04-14  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Quite old configuration thing bites us with newer  autoconf
+	    produced sed-scripts.  Namely   @ROUTEUSER_IN_ABNORMAL_UNIX@
+	    value in running  $MAILSHARE/zmailer.conf   file  will
+	    cause sed to spin in place.
+
+	* include/ta.h,  transports/libta/ctlopen.c,
+	  transports/libta/fwriteheader.c, transports/libta/mimeheaders.c,
+	  transports/libta/swriteheader.c:
+	    Tuning a bit more of "from-clause" processing so that it
+	    sticks better within 80 columns.
+
 	* libc/myhostname.c:
 	    From  Eugene Crosser:  find out my local
 	    hostname only once (e.g. scheduler et.al.

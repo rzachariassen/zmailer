@@ -7042,6 +7042,11 @@ elif test "$withval" = no; then
 else
     ROUTEUSER_IN_ABNORMAL_UNIX=abnormal
 fi
+# There might be old (non-substituted) value lurking...
+if test "$ROUTEUSER_IN_ABNORMAL_UNIX" = "@ROUTEUSER_IN_ABNORMAL_UNIX@"
+then
+    ROUTEUSER_IN_ABNORMAL_UNIX=abnormal
+fi
 echo "$as_me:$LINENO: result: Using ZMailer ROUTEUSER_IN_ABNORMAL_UNIX value: '$ROUTEUSER_IN_ABNORMAL_UNIX'" >&5
 echo "${ECHO_T}Using ZMailer ROUTEUSER_IN_ABNORMAL_UNIX value: '$ROUTEUSER_IN_ABNORMAL_UNIX'" >&6
 
