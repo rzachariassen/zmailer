@@ -781,6 +781,7 @@ static int mq2cmd_show(mq,s)
 
     MIBMtaEntry->sc.MQ2sockCommandShowThread ++;
 
+    mq2_puts(mq, "+OK until LF.LF\n");
     mq2_thread_report(mq, MQ2MODE_FULL, channel, host);
     mq2_puts_(mq, ".\n");
     return 0;

@@ -69,6 +69,7 @@ FEATURE:
   (Solaris et.al. which don't allow ARGV overwrite..
    DNS lookups, connecting, protocol exchanges, ...)
   + tool(s) to read that segment
+	-- Counter stuff exists on  2003-May-26
 
 INSTALL:
 	Badly out of date!
