@@ -391,7 +391,7 @@ const char *onam, *nam, *val;
 	GCPRO4(l, lc, tmp, l1);
 
 	cdr(l) = NULL;
-	car(l) = s_copy_tree(car(l));
+	car(l) = s_copy_chain(car(l));
 	pl = &car(l);
 	l1 = *pl;
 	for (lc = l1; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
@@ -556,9 +556,9 @@ router(a, uid, type)
 			UNGCPRO1;
 			return NULL;
 		}
-		l = s_copy_tree(s_value);
+		l = s_copy_chain(s_value);
 	} else {
-		l = s_copy_tree(s_value);
+		l = s_copy_chain(s_value);
 		l = ncons(l);
 		l = ncons(l);
 	}

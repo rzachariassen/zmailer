@@ -1,6 +1,9 @@
 /*
  *	Copyright 1989 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	Rewrite by Matti Aarnio <mea@nic.funet.fi> 1999
+ *
  */
 
 /*
@@ -14,6 +17,7 @@
   #include "io.h"
   #include "shconfig.h"  */
 
+extern int D_conscell;
 extern conscell *envarlist;
 
 #ifdef	MALLOC_TRACE
@@ -84,41 +88,36 @@ conscell *
 _s_copy_tree(list)
 	conscell *list;  /* input list is gc-protected */
 {
-	conscell *new = NULL, *foo = NULL;
-	GCVARS3;
+	conscell *new = NULL, *p, **pav;
+	GCVARS1;
 
 	if (list == NULL)
 		return NULL;
 
-	GCPRO3(list, new, foo);
+	GCPRO1(new);
 
-	if (STRING(list)) {
-		/* malloc new string and conscell to store it in */
-		new = copycell(list);
-		/* copycell() generates always just NEWSTRING, we preserve
-		   some more flags... */
-		new->flags = (list->flags & ~CONSTSTRING) | NEWSTRING;
-		cdr(new) = NULL;
+	pav = &new;
 
-	} else if ((foo = _s_copy_tree(car(list))) != NULL) {
-		/* malloc new conscell to store foo in car of */
-		new = copycell(list);
-		car(new) = foo;
+	for ( ; list != NULL ; list = cdr(list)) {
+
+	  *pav = p = copycell(list);
+
+	  if (STRING(list))
+	    /* copycell() generates always just NEWSTRING, we preserve
+	       some more flags... */
+	    new->flags = (list->flags & ~CONSTSTRING) | NEWSTRING;
+
+	  pav = &cdr(p);
+
+	  /* The CAR branch too! */
+	  if (LIST(p) && car(p) != NULL)
+	    car(p) = _s_copy_tree(car(p));
+
 	}
-	if ((foo = _s_copy_tree(cdr(list))) != NULL) {
-		/* malloc new conscell to store foo in cdr of */
-		if (new == NULL) new = copycell(list);
-		cdr(new) = foo;
-	}
-	if (new == NULL) {
-		/* malloc new conscell as a copy of this one */
-		new = copycell(list);
-	}
-	UNGCPRO3;
+
+	UNGCPRO1;
 	return new;
 }
-
-extern int D_conscell;
 
 conscell *
 s_copy_tree(list)
@@ -132,6 +131,66 @@ s_copy_tree(list)
 #else
 	if (D_conscell)
 	  fprintf(stderr," s_copy_tree() returns %p\n", list);
+#endif
+	return list;
+}
+
+
+/* Do just CDR chain copying -- DON'T DESCEND TO COPY CAR ELEMENTS! */
+
+extern conscell * __s_copy_chain __((conscell *, const char *, const char *));
+
+conscell *
+__s_copy_chain(list,filename,linename)
+	register conscell *list;
+	const char *filename, *linename;
+{
+	return s_copy_chain(list);
+}
+
+conscell *
+_s_copy_chain(list)
+	conscell *list;  /* input list is gc-protected */
+{
+	conscell *new = NULL, **pav = &new, *p;
+	GCVARS1;
+
+	if (list == NULL)
+		return NULL;
+
+	GCPRO1(new);
+
+	for ( ; list != NULL ; list = cdr(list) ) {
+
+	  *pav = p = copycell(list);
+
+	  if (STRING(list))
+	    /* copycell() generates always just NEWSTRING, we preserve
+	       some more flags... */
+	    p->flags = (list->flags & ~CONSTSTRING) | NEWSTRING;
+
+	  pav = &cdr(p);
+
+	  /* No CAR branch recursion! */
+
+	}
+
+	UNGCPRO1;
+	return new;
+}
+
+conscell *
+s_copy_chain(list)
+	conscell *list;  /* input list is gc-protected */
+{
+	list = _s_copy_chain(list);
+#ifdef __GNUC__
+	if (D_conscell)
+	  fprintf(stderr," s_copy_chain() returns %p to caller at %p\n", list,
+		  __builtin_return_address(0));
+#else
+	if (D_conscell)
+	  fprintf(stderr," s_copy_chain() returns %p\n", list);
 #endif
 	return list;
 }

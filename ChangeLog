@@ -1,5 +1,17 @@
 1999-05-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* libsh/expand.c + include/listutils.h, libsh/builtins.c,
+	  libsh/interpret.c, libsh/listmalloc.c, libsh/listtrees.c,
+	  libsh/variables.c, router/db.c, router/functions.c,
+	  router/shliaise.c:
+	    After much wondering about profiles (-pg), realized that
+	    about 20% of total runtime is spent in fairly complicated
+	    recursive list object copying, while the default case of it
+	    is a linear list, which should be really simple...  Also,
+	    there is absolutely *no* reason to copy CAR() branch in
+	    most cases!  In fact we seem NEVER have need for full TREE
+	    copying, just current CDR chain!
+
 	* include/ta.h, include/libz.h, lib/taspoolid.c, router/prototypes.h,
 	  router/rfc822.c, router/rtsyslog.c, scheduler/scheduler.h,
 	  scheduler/scheduler.c, scheduler/mailq.c, scheduler/update.c,

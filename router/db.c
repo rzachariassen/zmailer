@@ -822,7 +822,7 @@ db(dbname, key)
 				if (D_db)
 					fprintf(stderr, "... found in cache\n");
 				/* return a scratch value */
-				tmp = s_copy_tree(dbip->cache->value);
+				tmp = s_copy_chain(dbip->cache->value);
 				return tmp;
 			}
 			++j;
@@ -942,20 +942,14 @@ db(dbname, key)
 				fprintf(stderr, "\n");
 		}
 		stickymem = oval;
-#if 0
-		ll = s_copy_tree(l);	/* scratch version returned to shell */
-#else
 		ll = l;
-#endif
+
 	} else if (dbip->cache_size > 0) {
+
 		stickymem = oval;
 		free(realkey);
-#if 0
-		ll = s_copy_tree(l);	/* scratch version returned to shell */
-		/* s_free_tree(l); */
-#else
 		ll = l;
-#endif
+
 	} else
 		ll = l;
 

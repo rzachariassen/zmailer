@@ -585,7 +585,11 @@ expand(d)
 
 	/* grindef("EXP = ", d); */
 
-	d = s_copy_tree(d); /* this chain of data will be modified below! */
+	/* *NOT* copying at first with s_copy_tree -- 13 % of total system
+	   runtime is in THAT call from THIS function! */
+
+	d = s_copy_chain(d); /* Copy the LINEAR CHAIN, not the whole tree! */
+
 	orig = d;
 	pav = &globbed;
 	for (head = d; d != NULL; d = next) {
@@ -613,9 +617,9 @@ expand(d)
 		if (head == d) {
 			/* skip leading whitespace */
 			while (slen > 0 && WHITESPACE(*cp)) ++cp, --slen;
-			/* This is WRITABLE string, s_copy_tree() took
+			/* This is WRITABLE string, s_copy_chain() took
 			   care of that above! */
-			/* XX: IF THE FUNCTIONALITY OF  s_copy_tree() IS
+			/* XX: IF THE FUNCTIONALITY OF  s_copy_chain() IS
 			   CHANGED FROM CURRENT 'copy all strings a fresh'
 			   TO E.G. 'share strings among cells', THEN THIS
 			   CODE MUST BE MODIFIED! */

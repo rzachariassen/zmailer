@@ -1386,7 +1386,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 					}
 					d = conststring(uBLANK,0);
 				} else {
-					d = s_copy_tree(d);
+					d = s_copy_chain(d);
 				}
 				if (!quote && STRING(d) && *(d->string) == '\0')
 					break;
@@ -1435,7 +1435,7 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 				}
 				d = conststring(uBLANK,0);
 			} else {
-				d = s_copy_tree(d);
+				d = s_copy_chain(d);
 			}
 			command->buffer = d;
 			while (d != NULL) {

@@ -176,7 +176,7 @@ v_expand(s, caller, retcode)
 		if (caller == NULL || cdar(caller->argv) == NULL) {
 			goto end_v_expand;
 		}
-		d = s_copy_tree(cdar(caller->argv));
+		d = s_copy_chain(cdar(caller->argv));
 		for (l = d; l != NULL && cdr(l) != NULL ; l = cdr(l)) {
 			tmp = conststring(" ",1);
 			cdr(tmp) = cdr(l);
@@ -410,7 +410,7 @@ v_envinit()
 		nconc(envarlist, s);
 	}
 	/* now make it into a list of plists */
-	e = s_copy_tree(car(envarlist));
+	e = s_copy_chain(car(envarlist));
 	envarlist = ncons(envarlist);	/* ((env)) */
 	/* ... and prepend the normal scope */
 	/* ... and put it in the list of pre-defined non-env. variables */

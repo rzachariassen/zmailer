@@ -1638,9 +1638,9 @@ run_listexpand(avl, il)
 		slen = strlen(s);
 		cddr(l)   = newstring(dupnstr(s, slen), slen);
 		if (plustail != NULL) {
-		  cdr(cddr(l))  = s_copy_tree(plustail);
+		  cdr(cddr(l))  = s_copy_chain(plustail);
 		  if (domain != NULL)
-		    cddr(cddr(l)) = s_copy_tree(domain);
+		    cddr(cddr(l)) = s_copy_chain(domain);
 		}
 		l = ncons(l);
 
@@ -1708,9 +1708,9 @@ run_listexpand(avl, il)
 		      UNGCPRO3;
 		      return NULL;
 		    }
-		    l = s_copy_tree(lrc);
+		    l = s_copy_chain(lrc);
 		  } else {
-		    l = s_copy_tree(lrc);
+		    l = s_copy_chain(lrc);
 		    l = ncons(l);
 		    l = ncons(l);
 		  }

@@ -541,6 +541,8 @@ conscell *copycell(X)
   *tmp = *X;
   if (STRING(tmp)) {
     tmp->string = dupnstr(tmp->string, tmp->slen);
+    /* Copycell does *NOT* preserve other string flags, caller
+       must do that! */
     tmp->flags = NEWSTRING;
   }
   return tmp;

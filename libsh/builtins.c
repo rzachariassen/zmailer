@@ -195,8 +195,8 @@ sh_elements(avl, il)
 		return p;
 	il = cadar(avl);
 
-	il = s_copy_tree(il); /* Creates new cells, but this is
-				 also last call to the creator here. */
+	il = s_copy_chain(il); /* Creates new cells, but this is
+				  also last call to the creator here. */
 
 	for (p = il; p != NULL; p = cdr(p))
 		p->flags |= ELEMENT;
@@ -235,7 +235,7 @@ sh_lappend(avl, il)
 	tmp = cdr(key); /* data is the next elt after the variable name */
 	if (LIST(tmp))  /* If it is a LIST object, descend into it */
 	  tmp = car(tmp);
-	data = s_copy_tree(tmp); /* The only cell-allocator in here */
+	data = s_copy_chain(tmp); /* The only cell-allocator in here */
 
 	if (car(d) != NULL) {
 	  d = car(d);
@@ -324,7 +324,7 @@ sh_lreplace(avl, il)
 	data = NULL;
 	GCPRO4(data, tmp, d, key);
 
-	data = s_copy_tree(tmp);
+	data = s_copy_chain(tmp);
 
 	dp = &car(cdr(d)); /* This is variable pointing object */
 	d = *dp;
@@ -438,7 +438,7 @@ sh_get(avl, il)
 		cddr(plist) = d;
 
 		stickymem = MEM_MALLOC;
-		cdr(plist) = s_copy_tree(cdr(plist)); /* input gc-protected */
+		cdr(plist) = s_copy_chain(cdr(plist)); /* input gc-protected */
 		stickymem = oval;
 	}
 

@@ -132,6 +132,8 @@ EXTINLINE conscell *copycell(conscell *X) {
   *tmp = *X;
   if (STRING(tmp)) {
     tmp->string = dupnstr(tmp->cstring,tmp->slen);
+    /* Copycell does *NOT* preserve other string flags,
+       caller must do that! */
     tmp->flags = NEWSTRING;
   }
   return tmp;
@@ -206,7 +208,9 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 ({conscell *_tmp = newcell(); *_tmp = *(X);		\
  if (STRING(_tmp)) {					\
    _tmp->string = dupnstr(_tmp->cstring,_tmp->slen);	\
-   _tmp->flags =  NEWSTRING;				\
+    /* Copycell does *NOT* preserve other string flags, \
+       caller must do that! */				\
+   _tmp->flags = NEWSTRING;				\
  } _tmp;})
 
 /* nconc(list, list) -> old (,@list ,@list) */
@@ -253,13 +257,13 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 #ifdef	MALLOC_TRACE
 #ifndef	s_copy_tree
 extern conscell *__s_copy_tree __((conscell *, const char *, const char *));
-extern void __s_free_tree __((conscell *, const char *, const char *));
 #define s_copy_tree(l)		__s_copy_tree((l), __FILE__, __LINE__)
-#define s_free_tree(l)		__s_free_tree((l), __FILE__, __LINE__)
+extern conscell *__s_copy_chain __((conscell *, const char *, const char *));
+#define s_copy_chain(l)		__s_copy_chain((l), __FILE__, __LINE__)
 #endif	/* !s_copy_tree */
 #else	/* !MALLOC_TRACE */
 extern conscell *s_copy_tree __((conscell *));
-extern void      s_free_tree __((conscell *));
+extern conscell *s_copy_chain __((conscell *));
 #endif	/* MALLOC_TRACE */
 
 /* LISPic memory allocator, and other stuff.. */
