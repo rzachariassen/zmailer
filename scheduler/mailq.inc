@@ -31,6 +31,11 @@ as this is backed on mmap(2)ed file.
   sfprintf(fp,"\n");
 
 
+/*<VAR><NAME>SYS.*</NAME><DESC>
+Various top-level things, e.g. process group leader PIDs et.al.
+</DESC></VAR>*/
+
+
 #define PIDTEST(varname, var2)  \
   i = (M.varname != 0 &&				\
        (kill(M.varname, 0) < 0 && errno == ESRCH));	\
@@ -167,6 +172,11 @@ gets way below that 2 gigs...
 
 
   sfprintf(fp,"\n");
+
+/*<VAR><NAME>SS.*</NAME><DESC>
+SmtpServer counters and gauges.
+</DESC></VAR>*/
+
 
   sfprintf(fp,"SS.Processes-G                        %4d\n",
 	   M.ss.IncomingSMTPSERVERprocesses);
@@ -548,6 +558,11 @@ smtpserver onwards to the system proper.
 
   sfprintf(fp,"\n");
 
+/*<VAR><NAME>RT.*</NAME><DESC>
+RouTer counters and gauges.
+</DESC></VAR>*/
+
+
   sfprintf(fp,"RT.RouterProcesses-G             %9d\n",
 	   M.rt.RouterProcesses);
 /*<VAR><NAME>RT.RouterProcesses-G</NAME><DESC>
@@ -568,7 +583,7 @@ all configured-to-be-used resources are in use.
 
 It is possible, that there is some problem in the system, and
 the processing router processes keep crashing.  Then you will
-see this count keep counting up, while the router process count
+see this count keep counting up, while the RouterProcesses-G
 stays stable, or perhaps jumps up and down a bit.
 </DESC></VAR>*/
   sfprintf(fp,"RT.RouterProcessFaults          %10u\n",
@@ -589,6 +604,10 @@ Number of messages received into router queue-manager input queue.
 	   M.rt.ReceivedRecipients);
 /*<VAR><NAME>RT.ReceivedRecipients</NAME><DESC>
 Number of parsed recipients in processed messages.
+
+Where RT.ReceivedMessages is kept with router input queue manager, this
+count is known only when a message is actually processed.
+Essentially same problem, as with  RT.StoredRecipients-G.
 </DESC></VAR>*/
   sfprintf(fp,"RT.TransmittedMessages          %10u\n",
 	   M.rt.TransmittedMessages);
@@ -650,102 +669,268 @@ Total size of messages in router input queue.
 
   sfprintf(fp,"\n");
 
+/*<VAR><NAME>SC.*</NAME><DESC>
+SCheduler counters and gauges.
+</DESC></VAR>*/
+
   sfprintf(fp,"SC.ReceivedMessages             %10u\n",
 	   M.sc.ReceivedMessagesSc);
+/*<VAR><NAME>SC.ReceivedMessages</NAME><DESC>
+Number of messages inserted in Scheduler's pre-digestion queue.
+From there they are assimilated into processing in rate-limited
+manner in order to limit the effect of queue assimilation into
+system functionality..
+</DESC></VAR>*/
   sfprintf(fp,"SC.ReceivedRecipients           %10u\n",
 	   M.sc.ReceivedRecipientsSc);
+/*<VAR><NAME>SC.ReceivedRecipients</NAME><DESC>
+Number of assimilated recipient descriptors.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransmittedMessages          %10u\n",
 	   M.sc.TransmittedMessagesSc);
+/*<VAR><NAME>SC.TransmittedMessages</NAME><DESC>
+Number of messages that have all their recipients completed
+(successes and failures together) out from the internal state.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransmittedRecipients        %10u\n",
 	   M.sc.TransmittedRecipientsSc);
+/*<VAR><NAME>SC.TransmittedRecipients</NAME><DESC>
+Number of recipient addresses that have been completed
+(successes and failures together) out from the internal state.
+</DESC></VAR>*/
 
   sfprintf(fp,"SC.StoredMessages-G              %9d\n",
 	   M.sc.StoredMessagesSc);
+/*<VAR><NAME>SC.StoredMessages-G</NAME><DESC>
+Gauge of message files in the queue.
+</DESC></VAR>*/
   sfprintf(fp,"SC.StoredThreads-G               %9d\n",
 	   M.sc.StoredThreadsSc);
+/*<VAR><NAME>SC.StoredThreads-G</NAME><DESC>
+Gauge  of different  channel/host   pairs total in the queue state.
+</DESC></VAR>*/
   sfprintf(fp,"SC.StoredVertices-G              %9d\n",
 	   M.sc.StoredVerticesSc);
+/*<VAR><NAME>SC.StoredVertices-G</NAME><DESC>
+Sum of number of messages in each thread.
+</DESC></VAR>*/
   sfprintf(fp,"SC.StoredRecipients-G            %9d\n",
 	   M.sc.StoredRecipientsSc);
+/*<VAR><NAME>SC.StoredRecipients-G</NAME><DESC>
+Sum of actual recipients in each message in each thread.
+</DESC></VAR>*/
 
   sfprintf(fp,"SC.ReceivedVolume-kB            %10u\n",
 	   M.sc.ReceivedVolumeSc);
+/*<VAR><NAME>SC.ReceivedVolume-kB</NAME><DESC>
+Received messages spool file(s) size sum in kilobytes.
+</DESC></VAR>*/
   sfprintf(fp,"SC.StoredVolume-kB-G             %9d\n",
 	   M.sc.StoredVolumeSc);
+/*<VAR><NAME>SC.StoredVolume-kB</NAME><DESC>
+Still in queue messages spool file(s) size sum in kilobytes.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransmittedVolume-kB         %10u\n",
 	   M.sc.TransmittedVolumeSc);
+/*<VAR><NAME>SC.TransmittedVolume-kB</NAME><DESC>
+Sum of message spool file(s) sizes completed so far.
+</DESC></VAR>*/
 
   sfprintf(fp,"SC.TransportAgentForks          %10u\n",
 	   M.sc.TransportAgentForksSc);
+/*<VAR><NAME>SC.TransportAgentForks</NAME><DESC>
+Number of times the scheduler has started a new transport-agent process.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransportAgentProcesses-G     %9d\n",
 	   M.sc.TransportAgentProcessesSc);
+/*<VAR><NAME>SC.TransportAgentProcesses-G</NAME><DESC>
+Number of transport agent processes currently running under the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransportAgentsActive-G       %9d\n",
 	   M.sc.TransportAgentsActiveSc);
+/*<VAR><NAME>SC.TransportAgentsActive-G</NAME><DESC>
+Number of transport agent processes currently considered actively
+working on something.
+</DESC></VAR>*/
   sfprintf(fp,"SC.TransportAgentsIdle-G         %9d\n",
 	   M.sc.TransportAgentsIdleSc);
+/*<VAR><NAME>SC.TransportAgentsIdle-G</NAME><DESC>
+Number of transport agent processes currently placed into "idle"
+state in toder to be recycled to some other job.
+(Forking is so expensive thing...)
+</DESC></VAR>*/
 
   sfprintf(fp,"SC.MQ2Parallel-G                 %9d\n",
 	   M.sc.MQ2sockParallel);
+/*<VAR><NAME>SC.MQ2Parallel-G</NAME><DESC>
+Gauge of currently active "mailq" (in protocol version 2 mode) connections.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2Connects                  %10u\n",
 	   M.sc.MQ2sockConnects);
+/*<VAR><NAME>SC.MQ2Connects</NAME><DESC>
+Count of received connects to "mailq" (in protocol version 2 mode) socket.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2TcpWrapRej                %10u\n",
 	   M.sc.MQ2sockTcpWrapRej);
+/*<VAR><NAME>SC.MQ2TcpWrapRej</NAME><DESC>
+Number of times that tcp-wrapper has rejected the connection to
+the mailq-v2 socket.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2AuthRej                   %10u\n",
 	   M.sc.MQ2sockAuthRej);
+/*<VAR><NAME>SC.MQ2AuthRej</NAME><DESC>
+Number of times that mailq-v2 socket authentication has failed.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2TimedOut                  %10u\n",
 	   M.sc.MQ2sockTimedOut);
+/*<VAR><NAME>SC.MQ2TimedOut</NAME><DESC>
+Count of cases, where MQ2 socket has become too old, and has been killed due to it.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2ReadEOF                   %10u\n",
 	   M.sc.MQ2sockReadEOF);
+/*<VAR><NAME>SC.MQ2ReadEOF</NAME><DESC>
+Count of cases, where the MQ2 socket has been closed by the remote end
+without doing proper "QUIT" command.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2ReadFails                 %10u\n",
 	   M.sc.MQ2sockReadFails);
+/*<VAR><NAME>SC.MQ2ReadFails</NAME><DESC>
+Very odd internal error in code logic.  Should see "timed out", or
+"Read EOF" cases, only.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2WriteFails                %10u\n",
 	   M.sc.MQ2sockWriteFails);
+/*<VAR><NAME>SC.MQ2WriteFails</NAME><DESC>
+Write to MQ2 socket has failed for other than EAGAIN/EINTR reason.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2Commands                  %10u\n",
 	   M.sc.MQ2sockCommands);
+/*<VAR><NAME>SC.MQ2Commands</NAME><DESC>
+Count of command lines received in MQ2 sockets.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandsRej               %10u\n",
 	   M.sc.MQ2sockCommandsRej);
+/*<VAR><NAME>SC.MQ2CommandsRej</NAME><DESC>
+Count of rejected command lines received in MQ2 sockets.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandAUTH               %10u\n",
 	   M.sc.MQ2sockCommandAUTH);
+/*<VAR><NAME>SC.MQ2CommandAUTH</NAME><DESC>
+Count of received AUTH commands.
+Should match count of MQ2 sockets (unless somebody tries to break in..)
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandQUIT               %10u\n",
 	   M.sc.MQ2sockCommandQUIT);
+/*<VAR><NAME>SC.MQ2CommandQUIT</NAME><DESC>
+Count of received QUIT commands.
+Should match count of MQ2 sockets.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandETRN               %10u\n",
 	   M.sc.MQ2sockCommandETRN);
+/*<VAR><NAME>SC.MQ2CommandETRN</NAME><DESC>
+Count of received ETRN commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandKillThr            %10u\n",
 	   M.sc.MQ2sockCommandKillThr);
+/*<VAR><NAME>SC.MQ2CommandKillThr</NAME><DESC>
+Count of received KILL THR commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandKillMsg            %10u\n",
 	   M.sc.MQ2sockCommandKillMsg);
+/*<VAR><NAME>SC.MQ2CommandKillMsg</NAME><DESC>
+Count of received KILL MSG commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandKillProcess        %10u\n",
 	   M.sc.MQ2sockCommandKillProcess);
+/*<VAR><NAME>SC.MQ2CommandKillProcess</NAME><DESC>
+Count of received KILL PROC commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandRerouteThr         %10u\n",
 	   M.sc.MQ2sockCommandRerouteThr);
+/*<VAR><NAME>SC.MQ2CommandRerouteThr</NAME><DESC>
+Count of received REROUTE THR commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandRerouteMsg         %10u\n",
 	   M.sc.MQ2sockCommandRerouteMsg);
+/*<VAR><NAME>SC.MQ2CommandRerouteMsg</NAME><DESC>
+Count of received REROUTE MSG commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowQueueThreads   %10u\n",
 	   M.sc.MQ2sockCommandShowQueueThreads);
+/*<VAR><NAME>SC.MQ2CommandShowQueueThreads</NAME><DESC>
+Count of received SHOW QUEUE THREADS commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowQueueThreads2  %10u\n",
 	   M.sc.MQ2sockCommandShowQueueThreads2);
+/*<VAR><NAME>SC.MQ2CommandShowQueueThreads2</NAME><DESC>
+Count of received SHOW QUEUE THREADS2 commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowQueueShort     %10u\n",
 	   M.sc.MQ2sockCommandShowQueueShort);
+/*<VAR><NAME>SC.MQ2CommandShowQueueShort</NAME><DESC>
+Count of received SHOW QUEUE SHORT commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowQueueVeryShort %10u\n",
 	   M.sc.MQ2sockCommandShowQueueVeryShort);
+/*<VAR><NAME>SC.MQ2CommandShowQueueVeryShort</NAME><DESC>
+Count of received SHOW SNMP commands.
+These are merely two last lines of "mailq -Q" output.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowThread         %10u\n",
 	   M.sc.MQ2sockCommandShowThread);
+/*<VAR><NAME>SC.MQ2CommandShowThread</NAME><DESC>
+Count of received SHOW THREAD 'channel' 'host' commands.
+</DESC></VAR>*/
   sfprintf(fp,"SC.MQ2CommandShowCounters       %10u\n",
 	   M.sc.MQ2sockCommandShowCounters);
+/*<VAR><NAME>SC.MQ2CommandShowCounters</NAME><DESC>
+Count of received SHOW COUNTERS commands.
+(e.g. MQ2 way of asking these counters now being described.)
+</DESC></VAR>*/
 
 
   sfprintf(fp,"\n");
 
+/*<VAR><NAME>TA-SMTP.*</NAME><DESC>
+SMTP transpor agent counters and gauges.
+</DESC></VAR>*/
+
+
   sfprintf(fp,"TA-SMTP.TaProcessStarts         %10u\n",
 	   M.tasmtp.TaProcessStarts);
+/*<VAR><NAME>TA-SMTP.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.TaProcCount-G            %9d\n",
 	   M.tasmtp.TaProcCountG);
+/*<VAR><NAME>TA-SMTP.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.TaIdleStates            %10u\n",
 	   M.tasmtp.TaIdleStates);
+/*<VAR><NAME>TA-SMTP.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.TaMessages              %10u\n",
 	   M.tasmtp.TaMessages);
+/*<VAR><NAME>TA-SMTP.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.TaDeliveryStarts        %10u\n",
 	   M.tasmtp.TaDeliveryStarts);
+/*<VAR><NAME>TA-SMTP.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
+
+
+/*
+<VAR><NAME>TO BE WRITTEN</NAME><DESC>
+There are lots and lots more variables to describe in TA-SMTP section.
+</DESC></VAR>
+*/
 
 
   sfprintf(fp,"TA-SMTP.SmtpStarts              %10u\n",
@@ -845,11 +1030,19 @@ Total size of messages in router input queue.
 
   sfprintf(fp,"TA-SMTP.RcptsOk                 %10u\n",
 	   M.tasmtp.TaRcptsOk);
+/*<VAR><NAME>TA-SMTP.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.RcptsRetry              %10u\n",
 	   M.tasmtp.TaRcptsRetry);
+/*<VAR><NAME>TA-SMTP.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMTP.RcptsFail               %10u\n",
 	   M.tasmtp.TaRcptsFail);
-
+/*<VAR><NAME>TA-SMTP.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 #if 0
   sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n",
@@ -865,139 +1058,320 @@ Total size of messages in router input queue.
 
   sfprintf(fp,"\n");
 
+/*<VAR><NAME>TA-SMCM.*</NAME><DESC>
+SendMail Compatible Mailer transport agent counters and gauges.
+</DESC></VAR>*/
+
+
   sfprintf(fp,"TA-SMCM.TaProcessStarts         %10u\n",
 	   M.tasmcm.TaProcessStarts);
+/*<VAR><NAME>TA-SMCM.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.TaProcCount-G            %9d\n",
 	   M.tasmcm.TaProcCountG);
+/*<VAR><NAME>TA-SMCM.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.TaIdleStates            %10u\n",
 	   M.tasmcm.TaIdleStates);
+/*<VAR><NAME>TA-SMCM.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.TaMessages              %10u\n",
 	   M.tasmcm.TaMessages);
+/*<VAR><NAME>TA-SMCM.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.TaDeliveryStarts        %10u\n",
 	   M.tasmcm.TaDeliveryStarts);
+/*<VAR><NAME>TA-SMCM.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-SMCM.RcptsOk                 %10u\n",
 	   M.tasmcm.TaRcptsOk);
+/*<VAR><NAME>TA-SMCM.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.RcptsRetry              %10u\n",
 	   M.tasmcm.TaRcptsRetry);
+/*<VAR><NAME>TA-SMCM.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-SMCM.RcptsFail               %10u\n",
 	   M.tasmcm.TaRcptsFail);
+/*<VAR><NAME>TA-SMCM.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 
 
 
 
   sfprintf(fp,"\n");
+
+/*<VAR><NAME>TA-MBOX.*</NAME><DESC>
+MailBOX transport agent  counters and gauges.
+</DESC></VAR>*/
+
 
   sfprintf(fp,"TA-MBOX.TaProcessStarts         %10u\n",
 	   M.tambox.TaProcessStarts);
+/*<VAR><NAME>TA-MBOX.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.TaProcCount-G            %9d\n",
 	   M.tambox.TaProcCountG);
+/*<VAR><NAME>TA-MBOX.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.TaIdleStates            %10u\n",
 	   M.tambox.TaIdleStates);
+/*<VAR><NAME>TA-MBOX.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.TaMessages              %10u\n",
 	   M.tambox.TaMessages);
+/*<VAR><NAME>TA-MBOX.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.TaDeliveryStarts        %10u\n",
 	   M.tambox.TaDeliveryStarts);
+/*<VAR><NAME>TA-MBOX.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-MBOX.RcptsOk                 %10u\n",
 	   M.tambox.TaRcptsOk);
+/*<VAR><NAME>TA-MBOX.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.RcptsRetry              %10u\n",
 	   M.tambox.TaRcptsRetry);
+/*<VAR><NAME>TA-MBOX.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-MBOX.RcptsFail               %10u\n",
 	   M.tambox.TaRcptsFail);
+/*<VAR><NAME>TA-MBOX.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 
 
   sfprintf(fp,"\n");
+
+/*<VAR><NAME>TA-HOLD.*</NAME><DESC>
+HOLD transport agent  counters and gauges.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-HOLD.TaProcessStarts         %10u\n",
 	   M.tahold.TaProcessStarts);
+/*<VAR><NAME>TA-HOLD.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.TaProcCount-G            %9d\n",
 	   M.tahold.TaProcCountG);
+/*<VAR><NAME>TA-HOLD.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.TaIdleStates            %10u\n",
 	   M.tahold.TaIdleStates);
+/*<VAR><NAME>TA-HOLD.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.TaMessages              %10u\n",
 	   M.tahold.TaMessages);
+/*<VAR><NAME>TA-HOLD.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.TaDeliveryStarts        %10u\n",
 	   M.tahold.TaDeliveryStarts);
+/*<VAR><NAME>TA-HOLD.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-HOLD.RcptsOk                 %10u\n",
 	   M.tahold.TaRcptsOk);
+/*<VAR><NAME>TA-HOLD.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.RcptsRetry              %10u\n",
 	   M.tahold.TaRcptsRetry);
+/*<VAR><NAME>TA-HOLD.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-HOLD.RcptsFail               %10u\n",
 	   M.tahold.TaRcptsFail);
+/*<VAR><NAME>TA-HOLD.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 
 
   sfprintf(fp,"\n");
+
+/*<VAR><NAME>TA-ERRM.*</NAME><DESC>
+ERRorMail transport agent  counters and gauges.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-ERRM.TaProcessStarts         %10u\n",
 	   M.taerrm.TaProcessStarts);
+/*<VAR><NAME>TA-ERRM.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.TaProcCount-G            %9d\n",
 	   M.taerrm.TaProcCountG);
+/*<VAR><NAME>TA-ERRM.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.TaIdleStates            %10u\n",
 	   M.taerrm.TaIdleStates);
+/*<VAR><NAME>TA-ERRM.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.TaMessages              %10u\n",
 	   M.taerrm.TaMessages);
+/*<VAR><NAME>TA-ERRM.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.TaDeliveryStarts        %10u\n",
 	   M.taerrm.TaDeliveryStarts);
+/*<VAR><NAME>TA-ERRM.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-ERRM.RcptsOk                 %10u\n",
 	   M.taerrm.TaRcptsOk);
+/*<VAR><NAME>TA-ERRM.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.RcptsRetry              %10u\n",
 	   M.taerrm.TaRcptsRetry);
+/*<VAR><NAME>TA-ERRM.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-ERRM.RcptsFail               %10u\n",
 	   M.taerrm.TaRcptsFail);
+/*<VAR><NAME>TA-ERRM.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 
 
   sfprintf(fp,"\n");
+
+/*<VAR><NAME>TA-EXPI.*</NAME><DESC>
+EXPIrer transport agent  counters and gauges.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-EXPI.TaProcessStarts         %10u\n",
 	   M.taexpi.TaProcessStarts);
+/*<VAR><NAME>TA-EXPI.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.TaProcCount-G            %9d\n",
 	   M.taexpi.TaProcCountG);
+/*<VAR><NAME>TA-EXPI.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.TaIdleStates            %10u\n",
 	   M.taexpi.TaIdleStates);
+/*<VAR><NAME>TA-EXPI.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.TaMessages              %10u\n",
 	   M.taexpi.TaMessages);
+/*<VAR><NAME>TA-EXPI.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.TaDeliveryStarts        %10u\n",
 	   M.taexpi.TaDeliveryStarts);
+/*<VAR><NAME>TA-EXPI.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-EXPI.RcptsOk                 %10u\n",
 	   M.taexpi.TaRcptsOk);
+/*<VAR><NAME>TA-EXPI.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.RcptsRetry              %10u\n",
 	   M.taexpi.TaRcptsRetry);
+/*<VAR><NAME>TA-EXPI.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-EXPI.RcptsFail               %10u\n",
 	   M.taexpi.TaRcptsFail);
+/*<VAR><NAME>TA-EXPI.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
 
 
 
   sfprintf(fp,"\n");
 
+/*<VAR><NAME>TA-RERT.*</NAME><DESC>
+RERouTer transport agent  counters and gauges.
+</DESC></VAR>*/
+
   sfprintf(fp,"TA-RERT.TaProcessStarts         %10u\n",
 	   M.tarert.TaProcessStarts);
+/*<VAR><NAME>TA-RERT.TaProcessStarts</NAME><DESC>
+Number of times that this transport agent processes type have been
+started in this system during this SHM blocks lifetime.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.TaProcCount-G            %9d\n",
 	   M.tarert.TaProcCountG);
+/*<VAR><NAME>TA-RERT.TaProcCount-G</NAME><DESC>
+Gauge of presently running transport agent processes of this type.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.TaIdleStates            %10u\n",
 	   M.tarert.TaIdleStates);
+/*<VAR><NAME>TA-RERT.TaIdleStates</NAME><DESC>
+Number of times this transport agent process type has been placed
+into "idle" state by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.TaMessages              %10u\n",
 	   M.tarert.TaMessages);
+/*<VAR><NAME>TA-RERT.TaMessages</NAME><DESC>
+Number of tasks fed to this transport agent process type by the scheduler.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.TaDeliveryStarts        %10u\n",
 	   M.tarert.TaDeliveryStarts);
+/*<VAR><NAME>TA-RERT.TaDeliveryStarts</NAME><DESC>
+Number of times that this transport agent type has started a delivery on
+given tasks.  This might be lower count, than TaMessages.
+</DESC></VAR>*/
 
   sfprintf(fp,"TA-RERT.RcptsOk                 %10u\n",
 	   M.tarert.TaRcptsOk);
+/*<VAR><NAME>TA-RERT.RcptsOk</NAME><DESC>
+Number of recipient addresses that have been diagnosed as successfully processed.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.RcptsRetry              %10u\n",
 	   M.tarert.TaRcptsRetry);
+/*<VAR><NAME>TA-RERT.RcptsRetry</NAME><DESC>
+Number of recipient addresses that have been diagnosed as needing to be retried.
+</DESC></VAR>*/
   sfprintf(fp,"TA-RERT.RcptsFail               %10u\n",
 	   M.tarert.TaRcptsFail);
-
-
-/*
-<VAR><NAME>TO BE WRITTEN</NAME><DESC>
-There are lots and lots more variables to describe...
-</DESC></VAR>
-*/
+/*<VAR><NAME>TA-RERT.RcptsFail</NAME><DESC>
+Number of recipient addresses that have been diagnosed as unsuccessfully processed.
+</DESC></VAR>*/
