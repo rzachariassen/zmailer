@@ -2261,7 +2261,7 @@ prctladdr(info, fp, cfflag, comment)
 	register conscell *l, *x;
 	const char *user = "?user?";
 	const char *channel = NULL;
-	const char *privilege = NULL;
+	const char *privilege = NULL, *p;
 
 	/* We print the quad of  channel/host/user/privilege  information
 	   with this routine, and we return pointer to the user info.
@@ -2314,15 +2314,25 @@ prctladdr(info, fp, cfflag, comment)
 	    }
 	    if (cdr(l))
 	      putc(' ', fp);
-	  } else if (strcmp(channel,"error")!=0)
+	  } else if (channel && strcmp(channel,"error")!=0)
 	    fprintf(stderr, "Malformed %s\n", comment);
 	}
 	if ((cfflag == _CF_SENDER) && channel && strcmp(channel,"error") == 0)
 		user = ""; /* error channel source address -> no user! */
-	if (!privilege || !('0' <= *privilege && *privilege <= '9')) {
-	  fprintf(stderr, "Malformed %s privilege data!\n", comment);
+
+	if (!privilege) {
+	  fprintf(stderr, "Malformed (missing) %s privilege data!\n", comment);
 	  return NULL;
 	}
+	p = privilege;
+	if (*p == '-') ++p;
+	while ('0' <= *p && *p <= '9') ++p;
+	if (*p) {
+	  fprintf(stderr, "Malformed ('%s') %s privilege data!\n",
+		  privilege, comment);
+	  return NULL;
+	}
+
 	return user;
 }
 
