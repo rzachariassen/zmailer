@@ -6,10 +6,8 @@ Adapted from material at:
 Here are steps to add OpenSSL to the ZMailer smtpserver:
 
 A)  OpenSSL library:
- 1) Pick source via  www.openssl.org
-    Minimum level 0.9.2b, perhaps even newer, as its usage does
-    assume  <openssl/ssl.h>  which is very recent invention at
-    the source tree..
+ 1) Pick source via  www.openssl.org;  MINIMUM LEVEL: 0.9.3a
+    (that is what I used..)
 
  2) Compile that system with default prefix:
 	./config --prefix=/usr/local/ssl

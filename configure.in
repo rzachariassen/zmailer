@@ -1440,6 +1440,7 @@ fi
 AC_SUBST(OPENSSLPREFIX)
 AC_SUBST(OPENSSLINCL)
 AC_SUBST(OPENSSLLIB)
+
 AC_ARG_WITH(openssl-prefix, [  --with-openssl-prefix=/dir/path (defines both include and lib)],
 	OPENSSLPREFIX="$withval")
 AC_ARG_WITH(openssl-include, [  --with-openssl-include=/dir/incl/path],
@@ -1465,6 +1466,27 @@ fi
 if test -n "$OPENSSLINCL" -a -n "$OPENSSLLIB" ; then
   AC_DEFINE(HAVE_OPENSSL)
 fi
+
+if test -z "$OPENSSLINCL" ; then
+  # No Explicite setup, lets do some auto-tests
+  if test -f /usr/local/ssl/include/openssl/ssl.h ; then
+    # Gee, OpenSSL 0.9.3a at default prefix!
+    AC_DEFINE(HAVE_OPENSSL)
+    OPENSSLPREFIX="/usr/local/ssl"
+    OPENSSLINCL="-I$OPENSSLPREFIX/include"
+    OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at default location])
+  fi
+  if test -f /usr/include/openssl/ssl.h ; then
+    # Gee, OpenSSL 0.9.3a at  "--prefix=/usr" !!!
+    AC_DEFINE(HAVE_OPENSSL)
+    OPENSSLPREFIX="/usr"
+    OPENSSLINCL=""
+    OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at system root!])
+  fi
+fi
+
 
 AC_CHECK_FUNCS(crypt)
 

@@ -43,7 +43,7 @@ PARAM	VRFYcmd
 #PARAM	NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
-#PARAM  no-multiline-replies # except to EHLO
+PARAM  no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
 #
 # HDR220 metatags:
 #  %% -- '%' character
@@ -89,12 +89,12 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #PARAM	tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
 #PARAM	tls-key-file	@MAILVAR@/db/smtpserver-key.pem
 #  # Then some futher thoughs that may materialize some time..
+#PARAM tls-loglevel	0
+#PARAM tls-ccert-vd	0
+#PARAM tls-ask-cert	0
+#PARAM tls-require-cert 0
 ##PARAM tls-CApath ... (somewhen: ways to verify client's certificates)
-##PARAM tls-loglevel	0
 ##PARAM tls-enforce-tls	1
-##PARAM tls-ccert-vd	0
-##PARAM tls-ask-cert	0
-##PARAM tls-require-cert 0
 
 # Elements to be added into "Received:" header's initial comment part:
 #
