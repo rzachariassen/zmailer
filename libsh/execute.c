@@ -897,7 +897,7 @@ runio(ioopp)
 	errflag = 0;
 	for (ioop = ioprev, ionext = NULL; ioop != NULL; ioop = ioop->next) {
 
-#ifdef DEBUG
+#ifdef DEBUG_xxx
 fprintf(stderr,"runio(@%p) ioop=%p &ioop->command->buffer=%p\n",
 	__builtin_return_address(0), ioop, &ioop->command->buffer);
 #endif

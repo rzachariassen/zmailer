@@ -386,11 +386,18 @@ int cons_garbage_collect()
 
 		/* This was not reachable, no marker was added.. */
 		if (ISNEW(cc)) {   /* if (cc->flags & NEWSTRING) */
+#ifdef __GNUC__
 		    if (D_conscell)
 		      fprintf(stderr,
 			      " freestr(%p) cell=%p called from %p s='%s'\n",
 			      cc->string, cc, __builtin_return_address(0),
 			      cc->string);
+#else
+		    if (D_conscell)
+		      fprintf(stderr,
+			      " freestr(%p) cell=%p s='%s'\n",
+			      cc->cstring, cc, cc->cstring);
+#endif
 		    freestr(cc->string,cc->slen);
 		    cc->string = NULL;
 		}
