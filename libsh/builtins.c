@@ -476,12 +476,19 @@ sh_echo(argc, argv)
 	int n;
 
 	--argc, ++argv;
+	/* '-n' ?? */
 	if (argc > 0
 	    && argv[0][0] == '-' && argv[0][1] == 'n' && argv[0][2] == '\0') {
 		--argc, ++argv;
 		n = 0;
 	} else
 		n = 1;
+	/* '--' ?? */
+	if (argc > 0
+	    && argv[0][0] == '-' && argv[0][1] == '-' && argv[0][2] == '\0') {
+		--argc, ++argv;
+	}
+
 	while (--argc >= 0) {
 		fputs(*argv++, stdout);
 		if (argc > 0)
