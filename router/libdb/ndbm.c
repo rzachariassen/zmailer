@@ -35,7 +35,7 @@ open_ndbm(sip, flag, comment)
 	symid = symbol_db(sip->file, spt_files->symbols);
 	spl = sp_lookup(symid, spt_files);
 	if (spl != NULL && flag == O_RDWR && spl->mark != O_RDWR)
-		close_ndbm(sip);
+		close_ndbm(sip,"open_ndbm");
 	if (spl == NULL || (db = (DBM *)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
 		  db = dbm_open(sip->file, flag, 0);
@@ -86,13 +86,13 @@ reopen:
 	if (val.dptr == NULL) {
 #ifdef HAVE_DBM_ERROR
 	  if (!retry && dbm_error(db)) {
-	    close_ndbm(sip);
+	    close_ndbm(sip,"search_ndbm");
 	    ++retry;
 	    goto reopen;
 	  }
 #else
 	  if (!retry && errno != 0) {
-	    close_ndbm(sip);
+	    close_ndbm(sip,"search_ndbm");
 	    ++retry;
 	    goto reopen;
 	  }
@@ -107,8 +107,9 @@ reopen:
  */
 
 void
-close_ndbm(sip)
+close_ndbm(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	DBM *db;
 	struct spblk *spl;

@@ -10,6 +10,7 @@
 #include "mailer.h"
 #include "search.h"
 #include "io.h"
+#include <ctype.h>
 #ifdef HAVE_LDAP
 #include "lber.h"
 #include "ldap.h"
@@ -257,8 +258,9 @@ ldap_exit:
 }
 
 void
-close_ldap(sip)
+close_ldap(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	LDAPMAP *lmap;
 	struct spblk *spl;

@@ -64,8 +64,6 @@ defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
 defNNTPSERVER='nntp'
 ac_default_zmconfig="${ZCONFIG-/etc/zmailer.conf}"
 
-AC_CONFIG_HEADER(config.h)
-
 if test "x$prefix" = "xNONE" ; then
   AC_MSG_RESULT([!!!])
   AC_MSG_RESULT([!!! You did not define  --prefix=DIR  -parameter !!!])
@@ -867,24 +865,29 @@ fi
 
 # Lets build a nice single substitute variable
 AC_SUBST(LIBDBMS)
+AC_SUBST(LIBLOCALDBMS)
 # GDBM must be last as if we have LIBDB at the system instead of real
 # LIBNDBM, we still have ndbm routines, but want to use (likely)
 # ones from LIBDB instead of LIBGDBM...
 sep=""
 if test "x$LIBNDBM" != "x" ; then
   LIBDBMS="$LIBDBMS$sep$LIBNDBM"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBNDBM"
   sep=" "
 fi
 if test "x$LIBSDBM" != "x" ; then
   LIBDBMS="$LIBDBMS$sep$LIBSDBM"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBSDBM"
   sep=" "
 fi
 if test "x$LIBDB" != "x" ; then
   LIBDBMS="$LIBDBMS$sep$LIBDB"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBDB"
   sep=" "
 fi
 if test "x$LIBGDBM" != "x" ; then
   LIBDBMS="$LIBDBMS$sep$LIBGDBM"
+  LIBLOCALDBMS="$LIBLOCALDBMS$sep$LIBGDBM"
   sep=" "
 fi
 if test "x$LIBLDAP" != "x" ; then

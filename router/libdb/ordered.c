@@ -169,7 +169,7 @@ search_bin(sip)
 
 	  if (fgets(fixbuf, sizeof fixbuf, fp) == NULL) {
 	    if (!retry && ferror(fp)) {
-	      close_seq(sip);
+	      close_seq(sip, "search_bin");
 	      ++retry;
 	      goto reopen;
 	    }

@@ -81,11 +81,11 @@ search_dbm(sip)
 	key.dsize = strlen(sip->key) + 1;
 	val = fetch(key);
 	if (val.dptr == NULL) {
-		close_dbm(sip);
+		close_dbm(sip,"search_dbm");
 		return NULL;
 	}
 	tmp = newstring(dupnstr(val.dptr, val.dsize), val.dsize);
-	close_dbm(sip);
+	close_dbm(sip,"search_dbm");
 	return tmp;
 }
 
@@ -94,8 +94,9 @@ search_dbm(sip)
  */
 
 void
-close_dbm(sip)
+close_dbm(sip, comment)
 	search_info *sip;
+	const char *comment;
 {
 	if (sip->file == NULL)
 		return;
@@ -129,10 +130,10 @@ add_dbm(sip, value)
 		v_set(DEFER, DEFER_IO_ERROR);
 		fprintf(stderr, "add_dbm: cannot store (\"%s\",\"%s\")\n",
 				sip->key, value);
-		close_dbm(sip);
+		close_dbm(sip, "add_dbm");
 		return EOF;
 	}
-	close_dbm(sip);
+	close_dbm(sip, "add_dbm");
 	return 0;
 }
 
@@ -154,10 +155,10 @@ remove_dbm(sip)
 		++deferit;
 		v_set(DEFER, DEFER_IO_ERROR);
 		fprintf(stderr, "remove_dbm: cannot remove \"%s\"\n", sip->key);
-		close_dbm(sip);
+		close_dbm(sip, "remove_dbm");
 		return EOF;
 	}
-	close_dbm(sip);
+	close_dbm(sip, "remove_dbm");
 	return 0;
 }
 
@@ -184,7 +185,7 @@ print_dbm(sip, outfp)
 			fprintf(outfp, "%s\t%s\n", key.dptr, val.dptr);
 	}
 	fflush(outfp);
-	close_dbm(sip);
+	close_dbm(sip, "print_dbm");
 }
 
 /*
@@ -210,7 +211,7 @@ count_dbm(sip, outfp)
 	  }
 	fprintf(outfp,"%d\n",count);
 	fflush(outfp);
-	close_dbm(sip);
+	close_dbm(sip, "count_dbm");
 }
 
 /*

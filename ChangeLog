@@ -1,8 +1,28 @@
+1999-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/libdb/ndbm.c, router/libdb/ldap.c, router/libdb/dbm.c:
+	    Eugene Crosser spotted that I had forgotten to change
+	    some close_*() parameters to match new prototypes, which
+	    I introduced while debugging BSD DB 2.something at Linux
+	    Alpha RedHat 6.0 system.  Eugene sent patches for ndbm.c,
+	    and ldap.c.
+
+	* configure.in, smtpserver/Makefile.in, utils/makedb/Makefile.in,
+	  utils/vacation/Makefile.in:
+	    Introduce new '@LIBLOCALDBMD@' substitution which does not
+	    include possible LDAP for applications which *don't* use
+	    LDAP in themselves.  (Eugene Crosser report about missing
+	    @LIBSOCKET@ substitution because of ldap things at makedb..)
+
 1999-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/transport.c:
 	    To sub-process (Transport Agent) pass environment variables:
 	       TZ, PATH, ZCONFIG
+	    I had thought that syslogd does timestamp formulation, but no...
+	    It is within the  syslog()  library routine where that happens!
+	    Thus our childs will need at least TZ (SysV-like systems) to know
+	    what the local timezone is :-/
 
 	* transports/smtp/smtp.c:
 	    Treat "No MX, no A" as a serious error worth discarding the
