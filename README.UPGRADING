@@ -20,7 +20,9 @@
 		Clearing the resulting /etc/zmailer.conf (or whatever)
 		file to have   ROUTEUSER_IN_ABNORMAL_UNIX=     will
 		allow online router under smtpserver to yield instant
-		'no such user' reports.
+		'no such user' reports.  Do make sure you have error
+		form file:  proto/forms/nosuchuser  copies into proper
+		place (and possibly customized..)
 
 	ZMailer-2.99.51-patch1
 		The default behaviour of ssift and tsift of stripping

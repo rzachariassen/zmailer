@@ -219,12 +219,16 @@ SYSLOGFLG=RT
 #
 #ORGDOMAIN=my.local.domain
 
-# Depending, are you running strange private authentications, or not,
-# make sure following is uncommented if you *are* using private databases,
-# as then ZMailer's router won't claim wronly userid to be nonexistent..
+# Depending, are you running strange private customer account databases
+# hooked (only) into 'mailbox', or not, make sure following is non-empty
+# if you *are* using private databases, as then ZMailer's router won't
+# claim wronly userid to be nonexistent.. These shunted tests look for
+# HOMEDIRECTORY, which might be nonexistent thing at such funny systems...
 # An EMPTY string means "this is NORMAL unix":
+#
 # (A "bug" is that this isn't automatically substituted, but non-void
 #  content gives behaviour that has been around for quite a while...)
+#
 ROUTEUSER_IN_ABNORMAL_UNIX=@ROUTEUSER_IN_ABNORMAL_UNIX@
 
 # Some sites (well, one FUNET site), has LISTSERV, this is for
