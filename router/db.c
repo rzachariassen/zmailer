@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Modifications/maintance, Matti Aarnio, over years 1990-2000
+ *	Modifications/maintance, Matti Aarnio, over years 1990-2001
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
  */
@@ -964,11 +964,43 @@ db(dbname, argv10)
 	UNGCPRO3;
  post_subst:
 
-	/* TODO: %0 .. %9 substitutions ? */
+	if (ll) {
+	  char *buf, *s;
+	  const char *p;
+	  int buflen;
 
-	if (si.argv1) free(si.argv1);
-	si.argv1 = NULL;
+	  l = tmp = NULL;
+	  GCPRO3(l, ll, tmp);
 
+	  buflen = strlen(p);
+	  p = ll->cstring;
+
+	  /* TODO: %0 .. %9 substitutions ? */
+	  for (;*p;++p) {
+	    if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
+	      int slen = 0;
+	      switch (p[1]) {
+	      case '0':
+		s = si.key;
+		break;
+	      case '1':
+		s = si.argv1;
+		break;
+	      default:
+		s = si.argv1;
+		break;
+	      }
+	      slen = strlen(s);
+	      if (!buf)
+		buf = malloc(buflen + slen);
+	    }
+	  }
+
+	  if (si.argv1) free(si.argv1);
+	  si.argv1 = NULL;
+
+	  UNGCPRO3;
+	}
 	return ll;
 }
 

@@ -1621,11 +1621,7 @@ void query2(fpi, fpo)
 		ocp = s;
 		s = skip821address(s); /* skip user */
 		*s++ = 0;
-		fprintf(stdout,"\t");
-		if (j == 0)
-		  fprintf(stdout,"  to");
-		fprintf(stdout,"\t%s\n",ocp);
-
+		fprintf(stdout,"\t  to\t%s\n",ocp);
 
 	      } else /* not have cfp */ {
 		/* Can't show 'message-id', nor 'to' addresses,
@@ -1638,8 +1634,16 @@ void query2(fpi, fpo)
 
 	      /* remember to show the diagnostics */
 
-	      if (*(split[9]))
-		printf("\t\t%s\n", split[9]);
+	      /* Show all CR separated sub-lines as their OWN 'diag' lines! */
+
+	      s = split[9];
+	      while (*s == '\r') ++s;
+	      for (;*s;++s) {
+		printf("\t  diag\t");
+		for (;*s && *s != '\r'; ++s) putchar(*s);
+		putchar('\n');
+		while (*s == '\r') ++s;
+	      }
 
 	    } /* verbose */
 
