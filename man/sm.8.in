@@ -70,7 +70,7 @@ keyword from the command line with a specification of a delivery program.
 This is very similar to the way the definition of a mailer in Sendmail
 requires flags, a program name, and a command line specification.
 These are in fact the fields of the entries of the configuration file.
-Lines starting with whitespace or a '#' are ignored, and all others are
+Lines starting with whitespace or a ``#'' are ignored, and all others are
 assumed to follow this format:
 .sp
 .ta 1i 1.7i 4.3i
@@ -99,26 +99,32 @@ is used as the field separator for all the fields.
 The
 .I flags
 field contains a concatenation of one-letter flags.  If no flags are desired,
-a '-' character should be used to indicate presense of the field.  All normal
+a ``-'' character should be used to indicate presense of the field.  All normal
 Sendmail flags are recognized, but the ones that do not make sense in the
 context of ZMailer will produce an error.  The flags that change the behaviour
 of
 .I sm
 are:
 .IP b
-will activate BSMTP-type wrapping with "hidden-dot" algorithm; e.g.
+will activate BSMTP-type wrapping with ``hidden-dot'' algorithm; e.g.
 quite ordinary SMTP stream, but in "batch mode".
 .IP B
-The first '\fIB\fR' turns on similar BSMTP wrapping as '\fIb\fR', but
+The first ``\fIB\fR'' turns on similar BSMTP wrapping as ``\fIb\fR'', but
 adds SIZE and, if the
 .I sm
 is started with option
-.RI ' \-8 ',
+.RI `` \-8 '',
 also 8BITMIME options.
-The second '\fIB\fR' adds there also DSN (Delivery Status Notification)
+The second ``\fIB\fR'' adds there also DSN (Delivery Status Notification)
 parameters.
+.IP H
+Adds ``HELO'' or ``EHLO'' into front of the BSMTP stream.
+Normally the BSMTP streams
+.B do not
+have ``HELO/EHLO'' in front of them to avoid problems with
+catenation of BSMTP messages for streamed UUCP transfers, for example.
 .IP E
-will prepend '>' to any message body line starting with 'From '.
+will prepend ``>'' to any message body line starting with ``From '' (From space).
 .IP f
 adds "-f \fIsender\fR" arguments to the delivery program.
 .IP n
