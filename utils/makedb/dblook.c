@@ -1,4 +1,4 @@
-/* Copyright 1993-2000 - Matti Aarnio <mea@nic.funet.fi>
+/* Copyright 1993-2001 - Matti Aarnio <mea@nic.funet.fi>
    This will be free software, but only when it is finished.
 
    The way the Zmailer uses DBM entries is by using strings with
@@ -21,9 +21,15 @@
 #include <gdbm.h>
 #undef datum
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
+
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
+    !defined(HAVE_DB_CREATE)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB3_DB_H
+# include <db3/db.h>
 #else
 #ifdef HAVE_DB2_DB_H
 # include <db2/db.h>
@@ -33,6 +39,7 @@
 #else
 #ifdef HAVE_DB1_DB_H
 # include <db1/db.h>
+#endif
 #endif
 #endif
 #endif
@@ -273,8 +280,114 @@ char *argv[];
     return 0;
   }
 #endif /* GDBM */
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#ifdef HAVE_DB_OPEN2
+
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+
+#ifdef HAVE_DB_CREATE
+
+  if (strcmp(argv[1],"btree")==0) {
+    DB *dbfile;
+    DBT key;
+    DBT result;
+    int rc;
+
+    dbfile = NULL;
+    rc = db_create(&dbfile, NULL, 0);
+    if (rc == 0)
+      rc = dbfile->open(dbfile, dbasename, NULL, DB_BTREE,
+			DB_RDONLY, 0644);
+
+
+    if (!dbfile || rc != 0) {
+      fprintf(stderr,"Failed to open '%s' BTREE-dbase (try with whole filename?)\n",dbasename);
+      return 1;
+    }
+
+    if (dumpflag) {
+      DBC *curs;
+      memset(&curs, 0, sizeof(curs));
+      rc = (dbfile->cursor)(dbfile, NULL, &curs, 0);
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
+      rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      if (rc) fprintf(stderr,"cursor errno=%d (%s)\n",rc, strerror(rc));
+      while ( rc == 0 ) {
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
+	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
+      }
+      (curs->c_close)(curs);
+    } else {
+      memset(&key,    0, sizeof(key));
+      memset(&result, 0, sizeof(result));
+      key.data = argv[3];
+      key.size = strlen(argv[3]) +1;
+
+      rc = (dbfile->get)(dbfile, NULL, &key, &result, 0);
+
+      if (rc != 0) {
+	fprintf(stderr,"Key %s not found\n",argv[3]);
+	return 2;
+      }
+      printf("siz:%ld, dat: %s\n", (long)result.size, (char*)result.data);
+    }
+
+    (dbfile->close)(dbfile, 0);
+
+    return 0;
+  }
+
+  if (strcmp(argv[1],"bhash")==0) {
+    DB *dbfile;
+    DBT key;
+    DBT result;
+    int rc;
+
+    dbfile = NULL;
+    rc = db_create(&dbfile, NULL, 0);
+    if (rc == 0)
+      rc = dbfile->open(dbfile, dbasename, NULL, DB_HASH,
+			DB_RDONLY, 0644);
+
+
+    if (!dbfile || rc != 0) {
+      fprintf(stderr,"Failed to open '%s' BHASH-dbase (try with whole filename)\n",dbasename);
+      return 1;
+    }
+
+    if (dumpflag) {
+      DBC *curs;
+      memset(&curs, 0, sizeof(curs));
+      rc = (dbfile->cursor)(dbfile, NULL, &curs, 0);
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
+      rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      while ( rc == 0 ) {
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
+	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
+      }
+      (curs->c_close)(curs);
+    } else {
+      memset(&key,    0, sizeof(key));
+      memset(&result, 0, sizeof(result));
+      key.data = argv[3];
+      key.size = strlen(argv[3]) +1;
+
+      rc = (dbfile->get)(dbfile, NULL, &key, &result, 0);
+
+      if (rc != 0) {
+	fprintf(stderr,"Key %s not found\n",argv[3]);
+	return 2;
+      }
+      printf("siz:%ld, dat: %s\n",(long)result.size,(char*)result.data);
+    }
+
+    (dbfile->close)(dbfile, 0);
+
+    return 0;
+  }
+
+#elif defined(HAVE_DB_OPEN2)
+
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;
     DBT key;
@@ -373,7 +486,9 @@ char *argv[];
 
     return 0;
   }
+
 #else /* Old BSD DB 1.* */
+
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;
     DBT key;

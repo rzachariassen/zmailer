@@ -2,20 +2,28 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1996-2000 Matti Aarnio
+ *	Copyright 1996-2001 Matti Aarnio
  */
 
 /* LINTLIBRARY */
 
 #include "mailer.h"
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
 
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
+    !defined(HAVE_DB_CREATE)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB3_DB_H
+# include <db3/db.h>
 #else
 #ifdef HAVE_DB2_DB_H
 # include <db2/db.h>
@@ -25,6 +33,7 @@
 #else
 #ifdef HAVE_DB1_DB_H
 # include <db1/db.h>
+#endif
 #endif
 #endif
 #endif
@@ -75,7 +84,7 @@ close_btree(sip,comment)
 #endif
 	if (spl == NULL || (db = (DB *)spl->data) == NULL)
 		return;
-#ifdef HAVE_DB_OPEN2
+#ifdef HAVE_DB_CLOSE2
 	(db->close)(db,0);
 #else
 	(db->close)(db);
@@ -113,7 +122,18 @@ open_btree(sip, flag, comment)
 		close_btree(sip,"open_btree");
 	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
-#ifdef HAVE_DB_OPEN2
+#if   defined(HAVE_DB_CREATE)
+		  int err;
+		  db = NULL;
+		  /*unlink("/tmp/ -mark1- ");*/
+		  err = db_create(&db, NULL, 0);
+		  if (err == 0 && db != NULL)
+		    err = db->open(db, sip->file, NULL, DB_BTREE,
+				   DB_NOMMAP |
+				   ((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
+				   0644);
+		  /*unlink("/tmp/ -mark2- ");*/
+#elif defined(HAVE_DB_OPEN2)
 		  int err;
 		  db = NULL;
 		  /*unlink("/tmp/ -mark1- ");*/

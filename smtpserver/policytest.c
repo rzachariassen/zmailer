@@ -1,6 +1,6 @@
 /*
  *  relaytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997-2000
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-2001
  *
  */
 
@@ -19,9 +19,15 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
+
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
+    !defined(HAVE_DB_CREATE)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB3_DB_H
+# include <db3/db.h>
 #else
 #ifdef HAVE_DB2_DB_H
 # include <db2/db.h>
@@ -36,6 +42,8 @@
 #endif
 #endif
 #endif
+#endif
+
 
 #ifdef HAVE_NDBM
 #define datum Ndatum
@@ -231,7 +239,7 @@ int *rlenp;			/* result length ptr ! */
 #ifdef HAVE_GDBM
     Gdatum Gkey, Gresult;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     DBT Bkey, Bresult;
     int rc;
 #endif
@@ -657,35 +665,62 @@ int whosonrc;
 	openok = (rel->gdbm != NULL);
 	break;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB_H) || defined(HAVE_DB1_DB_H) || defined(HAVE_DB2_DB_H) \
+    || defined(HAVE_DB3_DB_H)
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);
-#ifdef HAVE_DB_OPEN2
+
+#if   defined(HAVE_DB_CREATE)
+
+	rel->btree = NULL;
+	openok = db_create(&rel->btree, NULL, 0);
+	if (openok == 0)
+	  openok = rel->btree->open(rel->btree, dbname, NULL,  DB_BTREE,
+				    DB_RDONLY, 0);
+	openok = !openok;
+
+#elif defined(HAVE_DB_OPEN2)
+
 	rel->btree = NULL;
 #ifndef DB_RDONLY
 # define DB_RDONLY O_RDONLY
 #endif
-	db_open(dbname, DB_BTREE, DB_RDONLY, 0644, NULL, NULL, &rel->btree);
+	openok = db_open(dbname, DB_BTREE, DB_RDONLY, 0644,
+			 NULL, NULL, &rel->btree);
+	openok = !openok;
 #else
 	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
-#endif
 	openok = (rel->btree != NULL);
+#endif
 	break;
 
     case _dbt_bhash:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.dbh", rel->dbpath);
-#ifdef HAVE_DB_OPEN2
+
+#if   defined(HAVE_DB_CREATE)
+
+	rel->bhash = NULL;
+	openok = db_create(&rel->bhash, NULL, 0);
+	if (openok == 0)
+	  openok = rel->btree->open(rel->bhash, dbname, NULL, DB_HASH,
+				    DB_RDONLY, 0);
+	openok = !openok;
+
+#elif defined(HAVE_DB_OPEN2)
+
 	rel->bhash = NULL;
 #ifndef DB_RDONLY
 # define DB_RDONLY O_RDONLY
 #endif
-	db_open(dbname, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &rel->bhash);
+	openok = db_open(dbname, DB_HASH, DB_RDONLY, 0644,
+			 NULL, NULL, &rel->bhash);
+	openok = !openok;
 #else
 	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
-#endif
 	openok = (rel->bhash != NULL);
+#endif
 	break;
 #endif
     default:

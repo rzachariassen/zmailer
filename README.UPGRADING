@@ -12,6 +12,16 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.56
+		Support for SleepyCat's BSD DB 3.* database library.
+		While the db's are still called 'btree' and 'bhash',
+		the binary file formats of those files ARE NOT COMPATIBLE
+		WITH BSD DB-1.85/DB-2.x PRODUCED ONES!
+		The databases must be recompiled if that format is used!
+			# cd $MAILVAR/db
+			# ../bin/zmailer newdb
+			# ../bin/policy-builder.sh -n
+
 	ZMailer-2.99.55-patch1 (just after release cut):
 		A change in TA-scheduler communication channel protocols
 		means that scheduler and TAs MUST be of same revision level!

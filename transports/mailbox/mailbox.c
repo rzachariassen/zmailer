@@ -543,8 +543,10 @@ main(argc, argv)
 	  exit(EX_NOPERM);
 	}
 
+#if 0 /* hmm.. weird obsolete code ? */
 	SETEUID(0);		/* make us root all over */
 	currenteuid = 0;
+#endif
 
 	logfp = NULL;
 	if (logfile != NULL) {

@@ -1,4 +1,4 @@
-/* Copyright 1993-1997 - Matti Aarnio
+/* Copyright 1993-2001 - Matti Aarnio
 
    The way the Zmailer uses DBM entries is by using strings with
    their terminating NULL as keys, and as data..  Thus the length
@@ -25,9 +25,15 @@
 #include <gdbm.h>
 #undef datum
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
+
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
+    !defined(HAVE_DB_CREATE)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB3_DB_H
+# include <db3/db.h>
 #else
 #ifdef HAVE_DB2_DB_H
 # include <db2/db.h>
@@ -37,6 +43,7 @@
 #else
 #ifdef HAVE_DB1_DB_H
 # include <db1/db.h>
+#endif
 #endif
 #endif
 #endif
@@ -82,7 +89,7 @@ int err;
 #ifdef HAVE_GDBM
 	fprintf(stderr, " gdbm");
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	fprintf(stderr, " btree bhash");
 #endif
 	fprintf(stderr, "\n");
@@ -99,9 +106,14 @@ int err;
 #ifdef HAVE_GDBM
 	fprintf(stderr, "  (GDBM appends .gdbm, to the actual db file name..)\n");
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	fprintf(stderr, "  (BTREE appends .db, to the actual db file name..)\n");
 	fprintf(stderr, "  (BHASH appends .pag, and .dir into actual db file names..)\n");
+#if defined(HAVE_DB2) || defined(HAVE_DB3)
+	fprintf(stderr, "  (Version: %s)\n", db_version(NULL,NULL,NULL));
+#else
+	fprintf(stderr, "  (Version 1.x ?)\n");
+#endif
 #endif
 	fprintf(stderr, "\n");
 
@@ -204,7 +216,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 				overwritemode ? GDBM_REPLACE : GDBM_INSERT);
 	}
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	if (typ == 3 || typ == 4) {
 		DBT Bkey, Bdat;
 
@@ -263,7 +275,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	    datalen = Gdat.dsize;
 	  }
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	  if (typ == 3 || typ == 4) {
 	    DBT Bkey, Bdat;
 
@@ -861,7 +873,7 @@ char *argv[];
 	typ = 2;
     else
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     if (cistrcmp(dbtype, "btree") == 0)
 	typ = 3;
     if (cistrcmp(dbtype, "bhash") == 0)
@@ -885,8 +897,33 @@ char *argv[];
 	dbf = gdbmfile;
     }
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#ifdef HAVE_DB_OPEN2
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB_CREATE
+    if (typ == 3) {
+        int err;
+	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
+	strcat(dbasename, ".db");	/* ALWAYS append this */
+	dbfile = NULL;
+	err = db_create(&dbfile, NULL, 0);
+	if (! err)
+	  err = dbfile->open(dbfile, dbasename, NULL, DB_BTREE,
+			     DB_CREATE|DB_TRUNCATE, 0644);
+	if (!err)
+	  dbf = dbfile;
+    }
+    if (typ == 4) {
+        int err;
+	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
+	strcat(dbasename, ".db");	/* ALWAYS append this */
+	dbfile = NULL;
+	err = db_create(&dbfile, NULL, 0);
+	if (! err)
+	  err = dbfile->open(dbfile, dbasename, NULL, DB_HASH,
+			     DB_CREATE|DB_TRUNCATE, 0644);
+	if (!err)
+	  dbf = dbfile;
+    }
+#elif defined(HAVE_DB_OPEN2)
     if (typ == 3) {
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
@@ -936,10 +973,10 @@ char *argv[];
     if (typ == 2)
 	gdbm_close(gdbmfile);
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     if (typ == 3 || typ == 4) {
 	(dbfile->sync) (dbfile, 0);
-#ifdef HAVE_DB_OPEN2
+#ifdef HAVE_DB_CLOSE2
 	(dbfile->close) (dbfile, 0);
 #else
 	(dbfile->close) (dbfile);

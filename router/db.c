@@ -142,13 +142,16 @@ struct db_kind {
 		  add_dbm, remove_dbm, print_dbm, count_dbm, owner_dbm,
 		  NULL, Nul, NULL } },
 #endif	/* HAVE_DBM */
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB1)  || defined(HAVE_DB2) || defined(HAVE_DB3)
 { "btree",	{ NULL, NULL, 0, 0, 0, NULL, search_btree, close_btree,
 		  add_btree, remove_btree, print_btree, count_btree,
 		  owner_btree, modp_btree, Nul, NULL } },
 { "bhash",	{ NULL, NULL, 0, 0, 0, NULL, search_bhash, close_bhash,
 		  add_bhash, remove_bhash, print_bhash, count_bhash,
 		  owner_bhash, modp_bhash, Nul, NULL } },
+#endif
 #endif	/* HAVE_DB_H */
 #ifdef	HAVE_YP
 { "yp",		{ NULL, NULL, 0, 0, 0, NULL, search_yp, NULL, NULL,

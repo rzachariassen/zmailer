@@ -21,12 +21,12 @@ do
 	do
 		z=`expr $y + 1`
 		if [ -f $x.$y.gz ]; then
-		    /bin/mv $x.$y.gz $x.$z.gz
+		    mv $x.$y.gz $x.$z.gz
 		fi
 	done
 	if [ -f $x ]; then
-		/bin/mv	$x $x.0
-		/bin/touch $x
+		mv	$x $x.0
+		touch $x
 	fi
 done
 

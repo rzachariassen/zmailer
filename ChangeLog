@@ -3,6 +3,25 @@
 	* configure.in, acconfig.h:
 	    Autoconfig detection of  SleepyCat DB 3.x
 
+	* router/db.c, router/libdb/bsdbtree.c, router/libdb/bsdhash,
+	  smtpserver/policytest.c, utils/makedb/dblook.c,
+	  utils/makedb/makedb.c, utils/vacation/vacation.c:
+	    Use the SleepyCat DB 3.x call API; even prefer it!
+	    (Except for vacation: Prefer NDBM, then GDBM, BSD DB...)
+
+	* README.UPGRADING:
+	    Note the usage of SleepyCat DB 3.x !
+
+	* transports/mailbox/mailbox.c:
+	    Got a spotting of code which isn't needed..
+
+	* utils/rotate-logs.sh.in:
+	    Let the $PATH to handle command binary locating.
+	    That is, 'mv' and 'touch' are trusted to $PATH...
+
+	* proto/zmailer.sh.in:
+	    Fix typos at '-q' option processing!
+
 2001-09-27  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* packaging/rpm/*:

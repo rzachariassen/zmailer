@@ -2,7 +2,7 @@
  *  vacation -- originally BSD vacation by Eric Allman,
  *
  *  Adapted to ZMailer by Rayan Zachariassen, and further
- *  modified by Matti Aarnio over years 1988(?) thru 2000.
+ *  modified by Matti Aarnio over years 1988(?) thru 2001
  */
 
 #include "mailer.h"
@@ -26,6 +26,11 @@
 /* #include <tzfile.h> */  /* Not needed ? */
 #include <errno.h>
 #include <sysexits.h>
+
+/* Database format preferrence order:
+   NDBM, GDBM, SleepyCat3, SleepyCat2, BSD DB 1
+*/
+
 #ifdef	HAVE_NDBM
 #include <ndbm.h>
 #include <fcntl.h>
@@ -34,9 +39,14 @@
 #include <gdbm.h>
 #include <fcntl.h>
 #else
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
+    !defined(HAVE_DB_CREATE)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB3_DB_H
+# include <db3/db.h>
 #else
 #ifdef HAVE_DB2_DB_H
 # include <db2/db.h>
@@ -46,6 +56,7 @@
 #else
 #ifdef HAVE_DB1_DB_H
 # include <db1/db.h>
+#endif
 #endif
 #endif
 #endif
@@ -257,7 +268,17 @@ main(argc, argv)
 			 S_IRUSR|S_IWUSR, NULL );
 #else
 	db = NULL;
-#ifdef HAVE_DB_OPEN2
+#ifdef HAVE_DB_CREATE
+	if (dblog) {
+	  ret = db_create(&db, NULL, 0);
+	  if (ret == 0)
+	    ret = db->open(db, VDB ".db", NULL, DB_BTREE,
+			   DB_CREATE, S_IRUSR|S_IWUSR);
+	  if (ret)
+	    db = NULL;
+	}
+	
+#elif defined(HAVE_DB_OPEN2)
 	if (dblog)
 	  db_open(VDB ".db", DB_BTREE, DB_CREATE, S_IRUSR|S_IWUSR,
 		  NULL, NULL, &db);
@@ -308,7 +329,7 @@ main(argc, argv)
 	if (dblog)
 	  gdbm_close(db);
 #else
-#ifdef HAVE_DB_OPEN2
+#ifdef HAVE_DB_CLOSE2
 	if (dblog)
 	  db->close(db, 0);
 #else

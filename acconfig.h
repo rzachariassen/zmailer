@@ -94,6 +94,10 @@
 
 /* Have SleepyCat's BSD DB 2.x version of BSD DB database */
 #undef HAVE_DB_OPEN2
+
+/* Have SleepyCat's BSD DB 2.x+ version of BSD DB database with 2-arg close */
+#undef HAVE_DB_CLOSE2
+
 /* Have SleepyCat's BSD DB 3.x version of BSD DB database */
 #undef HAVE_DB_CREATE
 

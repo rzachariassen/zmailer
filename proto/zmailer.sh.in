@@ -24,7 +24,7 @@ checkfreeze () {
 # -----------------------------------------------------------------------
 
 echoo () {
-    if [ $quiet -eq 0 ] && echo $eopt "$@$eeol"
+    [ $quiet -eq 0 ] && echo $eopt "$@$eeol"
 }
 
 # -----------------------------------------------------------------------
@@ -89,7 +89,7 @@ do
     shift
 
     case "$op" in
-	-1)  quiet=1
+	-q)  quiet=1
 	    ;;
         stop|kill|nuke|kills|killr)     # print nothing
             ;;
