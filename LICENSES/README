@@ -1,0 +1,57 @@
+	Licenses for ZMailer, and bundled components
+
+		ARTISTIC   BSD	GPL-2	LGPL-2
+
+Also other licenses may apply, see files/symlinks in  LICENSES/  subdirectory.
+
+
+Below "you" is defined as packager, not as recipient of that package.
+The packager must indicate which license(s) have been chosen to apply.
+
+The license for ZMailer is herewith set as: "pick any you like":
+
+    - ARTISTIC:
+		The PERL way; respect copyrights, otherwise do whatever
+		you like, preferrably also contribute changes to the
+		baseline.  Details are in the file.
+
+    - BSD:
+		Demands only, that you don't remove copyright
+		notices. Otherwise you are free to e.g. hoard your
+		changes / new features.  Details are in the file.
+
+    - GPL-2 / LGPL-2:
+		Of these the LGPL is applicable to all parts of ZMailer
+		that are libraries, or you were able to otherwise embedd
+		in librarized form.  Otherwise use GPL.
+
+		Demands contributing changes back to the baseline or
+		very least redistributing (or offering to..) sources
+		along with binaries, etc.  Details are in the file.
+
+
+I (Matti Aarnio) have also contemplated adapting Mozilla/Netscape community
+license, or Qt's QPL, but those go a tad far in demands of wanting the
+modifications to be fed to the original author.
+
+
+In every case:
+
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+and:
+
+ Disputes with Matti Aarnio (current primary maintainer) shall
+ be handled per Finnish laws  in Helsinki City Courts.
+
+
+Matti Aarnio - mea@nic.funet.fi - matti.aarnio@zmailer.org - 2003-06-27

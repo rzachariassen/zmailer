@@ -1,0 +1,11 @@
+25-Jul-96/mea@nic.funet.fi
+
+	These files are taken from   bind-4.9.4-REL  resolver
+	library, and are intended to over-shadow all vendor
+	provided resolver versions used by the ZMailer
+
+	Modifications to these are minimal to make them as much
+	stand-alone as possible.
+
+Copyright and license is - I think - BSD
+(note added in 2003-06-27 / mea@nic.funet.fi)
