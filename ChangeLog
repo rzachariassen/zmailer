@@ -1,3 +1,13 @@
+2003-11-21  Matti Aarnio  <mea@zmailer.org>
+
+	* man/smtpserver.8.in, smtpserver/smtpserver.c,
+	  smtpserver/smtpauth.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c:
+	    Created "-s sloppy" runtime option to turn
+	    on fully sloppy behaviour with no expection
+	    to get HELO greeting, nor "<"/">" pair in
+	    email addresses.
+
 2003-11-20  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:

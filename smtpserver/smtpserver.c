@@ -664,9 +664,12 @@ char **argv;
 	    routerprog = strdup(optarg);
 	    break;
 	  case 's':		/* checking style */
-	    if (strcmp(optarg,"strict")==0)
+	    if (strcmp(optarg,"strict")==0) {
 	      strict_protocol = 1;
-	    else
+	    } else if (strcmp(optarg,"sloppy")==0) {
+	      strict_protocol = -1;
+	      SS.state = MailOrHello;
+	    } else
 	      style = strdup(optarg);
 	    break;
 	  case 'S':		/* Log-suffix style */
@@ -2254,11 +2257,11 @@ int insecure;
 	eobuf = &buf[i-1];	/* Buf end ptr.. */
 
 	/* Chop the trailing spaces */
-	if (!strict_protocol) {
+	if (strict_protocol < 1) {
 	  while ((eobuf > buf) && (eobuf[-1] == ' ' ||
 				   eobuf[-1] == '\t'))
 	    *--eobuf = '\0';
-	} else if (strict_protocol &&
+	} else if ((strict_protocol > 0) &&
 		   eobuf > buf && (eobuf[-1] == ' ' ||
 				   eobuf[-1] == '\t')) {
 	  /* XX: Warn about trailing whitespaces on inputs!
@@ -2273,7 +2276,7 @@ int insecure;
 	    fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now-logtagepoch), buf);
 	    fflush(logfp);
 	}
-	if (rc >= 0 && !strict_protocol) {
+	if (rc >= 0 && (strict_protocol < 1)) {
 	  if (CISTREQN(buf,"HELO",4) ||
 	      CISTREQN(buf,"EHLO",4))
 	    rc = -1; /* Sigh... Bloody windows users naming their
@@ -2291,7 +2294,7 @@ int insecure;
 	    MIBMtaEntry->ss.IncomingCommands_unknown ++;
 	    continue;
 	}
-	if (!strict_protocol && c != '\n' && i > 3) {
+	if (c != '\n' && i > 3) {
 	  /* Some bloody systems send:  "QUIT\r",
 	     and then close the socket... */
 	  if (CISTREQ(buf,"QUIT") == 0) {
@@ -2299,7 +2302,8 @@ int insecure;
 	    c = '\n'; /* Be happy... */
 	  }
 	}
-	if ((strict_protocol && (c != '\n' || co != '\r')) || (c != '\n')) {
+	if (((strict_protocol > 0) &&
+	     (c != '\n' || co != '\r')) || (c != '\n')) {
 	    if (i < (sizeof(buf)-1))
 		type(SS, 500, m552, "Line not terminated with CRLF..");
 	    else
@@ -2491,7 +2495,7 @@ int insecure;
 
 	    MIBMtaEntry->ss.IncomingSMTP_RSET ++;
 
-	    if (*cp != 0 && strict_protocol) {
+	    if (*cp != 0 && (strict_protocol > 0)) {
 	      type(SS, 501, m554, "Extra junk after 'RSET' verb");
 	      break;
 	    }

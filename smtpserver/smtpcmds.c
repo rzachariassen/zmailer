@@ -77,7 +77,7 @@ const char *s;
     const char *p = rfc821_domain(s, STYLE(SS->cfinfo, 'R'));
     if (p == s)
 	return 1;
-    if (!strict_protocol)
+    if (strict_protocol < 1)
       while (*p == ' ' || *p == '\n')
 	++p;
     if (*p == 0)
@@ -172,7 +172,7 @@ const char *buf, *cp;
     strncpy(SS->helobuf, buf, sizeof(SS->helobuf));
     SS->helobuf[sizeof(SS->helobuf)-1] = 0;
 
-    if (strict_protocol && *cp == ' ')
+    if ((strict_protocol > 0) && *cp == ' ')
       ++cp;
     else
       while (*cp == ' ' || *cp == '\t') ++cp;
@@ -429,18 +429,22 @@ int insecure;
     }
 
     if (*cp == ' ') ++cp;
-    if (!strict_protocol || sloppy) while (*cp == ' ' || *cp == '\t') ++cp;
+
+    if ((strict_protocol < 1) || sloppy)
+      while (*cp == ' ' || *cp == '\t') ++cp;
+
     if (!CISTREQN(cp, "From:", 5)) {
 	smtp_tarpit(SS);
 	type(SS, 501, m552, "where is From: in that?");
 	return -1;
     }
     cp += 5;
-    if (!strict_protocol || sloppy)
+
+    if ((strict_protocol != 0) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
-	  if (!sloppy) {
+	  if (!sloppy && (strict_protocol >= 0)) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m517, "where is <...> in that?");
 	    return -1;
@@ -464,7 +468,7 @@ int insecure;
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
     if (*cp == '<') {
       if (!sloppy) {
-	s = rfc821_path(cp, strict || strict_protocol);
+	s = rfc821_path(cp, strict || (strict_protocol > 0));
 	if (s == cp) {
 	  /* Failure.. ? */
 	  type(SS, -501, m517, "For input: %s", cp);
@@ -556,7 +560,7 @@ int insecure;
     while (*s) {
 	while (*s == ' ' || (sloppy && *s == '\t')) {
 	    ++s;
-	    if (strict_protocol) break;
+	    if (strict_protocol > 0) break;
 	    if (strict && !sloppy) break;
 	}
 	if (dsn_ok && CISTREQN("RET=", s, 4)) {
@@ -1098,7 +1102,8 @@ const char *buf, *cp;
     }
 
     if (*cp == ' ') ++cp;
-    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+    if (strict_protocol < 1)
+      while (*cp == ' ' || *cp == '\t') ++cp;
 
     if (!CISTREQN(cp, "To:", 3)) {
 	smtp_tarpit(SS);
@@ -1106,10 +1111,10 @@ const char *buf, *cp;
 	return -1;
     }
     cp += 3;
-    if (!strict_protocol || sloppy)
+    if ((strict_protocol != 0) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace(*cp)) {
-	  if (!sloppy) {
+	  if (!sloppy && (strict_protocol >= 0)) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m513, "where is <...> in this?  %s", cp);
 	    return -1;
@@ -1136,7 +1141,7 @@ const char *buf, *cp;
     }
     if (*cp == '<') {
       /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
-      s = rfc821_path(cp, strict || strict_protocol);
+      s = rfc821_path(cp, strict || (strict_protocol > 0));
       if (!sloppy) {
 	if (s == cp) {
 	  /* Failure ?  Perhaps we are RESTRICTIVE, and the address
@@ -1197,7 +1202,7 @@ const char *buf, *cp;
     } else {
       /* We can be here only with non-strict mode (i.e. Sloppy..) */
 
-      s = rfc821_path2(cp, strict || strict_protocol);
+      s = rfc821_path2(cp, strict || (strict_protocol > 0));
       if (s == cp) {
 	/* Failure.. */
 	type821err(SS, 501, m513, buf, "Path data: %.200s", rfc821_error);
@@ -1239,7 +1244,7 @@ const char *buf, *cp;
     while (*s) {
 	while (*s == ' ' || (sloppy && *s == '\t')) {
 	    ++s;
-	    if (strict_protocol) break;
+	    if (strict_protocol > 0) break;
 	    if (strict && !sloppy) break;
 	}
 	/* IETF-NOTARY  SMTP-DSN extensions */

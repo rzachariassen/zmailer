@@ -233,7 +233,8 @@ void smtp_auth(SS,buf,cp)
 	}
 
 	if (*cp == ' ') ++cp;
-	if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+	if (strict_protocol < 1)
+	  while (*cp == ' ' || *cp == '\t') ++cp;
 
 #ifdef HAVE_SASL2
 	if (!do_sasl)
@@ -261,7 +262,8 @@ void smtp_auth(SS,buf,cp)
 
 	    cp += 5;
 	    if (*cp == ' ') ++cp;
-	    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+	    if (strict_protocol < 1)
+	      while (*cp == ' ' || *cp == '\t') ++cp;
 	    
 	    if (*cp != 0) {
 

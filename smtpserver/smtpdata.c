@@ -88,8 +88,8 @@ const char *buf, *cp;
     MIBMtaEntry->ss.ReceivedRecipientsSs += SS->ok_rcpt_count;
     MIBMtaEntry->ss.IncomingSMTP_DATA   += 1;
 
-    while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
-    if (strict_protocol && *cp != 0) {
+    while ((strict_protocol < 1) && (*cp == ' ' || *cp == '\t')) ++cp;
+    if ((strict_protocol > 0) && *cp != 0) {
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	type(SS, 501, m554, "Extra junk after 'DATA' verb");
 	return 0;
