@@ -452,7 +452,7 @@ fi
 
 #	only allow .forward file reading if privs allow it
 
-	hashomedir=0
+	hashomedir=
 	if homedir="$(homedirectory "$user")" ; then
 		hashomedir=1
 	else
