@@ -162,6 +162,8 @@ struct _tokenpair {
   { "message",		P_A_MESSAGE		},
   { "test-dns-rbl",	P_A_TestDnsRBL		},
   { "localdomain",	P_A_LocalDomain		},
+  { "maxinsize",	P_A_InboundSizeLimit	},
+  { "maxoutsize",	P_A_OutboundSizeLimit	},
   { NULL, 0 },
 };
 

@@ -261,8 +261,15 @@ const char *buf, *cp;
 
 	/* ESMTP -- RFC 1651,1652,1653,1428 thingies */
 	char sizebuf[20];
+	long policyinlimit = policyinsizelimit(policydb, &SS->policystate);
+	long maxinlimit = maxsize;
 
-	sprintf(sizebuf, "SIZE %ld", maxsize);	/* 0: No fixed max size
+	if (maxinlimit && policyinlimit && policyinlimit < maxinlimit)
+	  maxinlimit = policyinlimit;
+	if (!maxinlimit && policyinlimit) /* Policy says: LIMIT, default 0 */
+	  maxinlimit = policyinlimit;
+
+	sprintf(sizebuf, "SIZE %ld", maxinlimit);	/* 0: No fixed max size
 						   in force, else:
 						   The FIXED maximum */
 	type(SS, -250, NULL, sizebuf);

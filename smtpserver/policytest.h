@@ -30,6 +30,9 @@ struct policystate {		/* Part of SmtpState structure */
     /* The lattest result message (line) */
     char *message;
     char *msgstr;
+    long maxinsize;
+    long maxoutsize;
+    int  islocaldomain;
 };
 
 
@@ -97,6 +100,7 @@ extern int policyinit __((struct policytest ** relp, struct policystate * ps));
 extern int policytest __((struct policytest * rel, struct policystate * ps, PolicyTest how, const char *str, const int len));
 extern int policytestaddr __((struct policytest * rel, struct policystate * ps, PolicyTest how, Usockaddr * raddr));
 extern char *policymsg __((struct policytest *rel, struct policystate *ps));
+extern long  policyinsizelimit __((struct policytest *rel, struct policystate *ps));
 
 extern struct policytest *policydb;
 

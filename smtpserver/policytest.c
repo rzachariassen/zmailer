@@ -8,6 +8,8 @@
  * TODO:
  *  - Attribute 'request' initializations for resolving
  *  - Addresses in form  <@foo:uu@dd>, <host!user>, <host!user@domain>
+ *  - config-file stored messages.. when to pick next, and when not.
+ *    (now will pick the first one, but there is no conditionality)
  */
 
 #include "hostenv.h"
@@ -309,6 +311,8 @@ int init;
     }
     --recursions;
 
+    state->request |= (1 << P_A_MESSAGE);
+
     if (debug)
        printf("Key: %s\n", showkey(key));
 /*
@@ -361,34 +365,40 @@ int init;
 	if (debug)
 	  printf("  Attribute: %s\n", showattr(str));
 
-	if (str[1] == P_A_MESSAGE) {
-	  if (state->msgstr != NULL)
-	    free(state->msgstr);
-	  state->msgstr = strdup(str+2);
-	  rlen -= str[0];
-	  str  += str[0];
-	  continue;
-	}
-
 	interest = 1 << str[1];	/* Convert attrib. num. value into flag bit */
 	if ((interest & state->request) == 0) {
 	    /* Not interested in this attribute, skip into next. */
-	    rlen -= str[0];
-	    str  += str[0];
 	    if (debug)
 	      printf("    not interested, skipped...\n");
-	    continue;
+
+	    goto nextattr;
 	} else {
 	    /* Mask it off. */
 	    state->request &= ~interest;
 	}
 
-	if (str[2] != '+' && str[2] != '-') {
+	if (str[1] == P_A_MESSAGE) {
+
+	  if (state->msgstr != NULL)
+	    free(state->msgstr);
+	  state->msgstr = strdup(str+2);
+	  goto nextattr;
+
+	} else if (str[1] == P_A_InboundSizeLimit) {
+
+	  sscanf(str+2,"%li", &state->maxinsize);
+	  goto nextattr;
+
+	} else if (str[1] == P_A_OutboundSizeLimit) {
+
+	  sscanf(str+2,"%li", &state->maxoutsize);
+	  goto nextattr;
+
+	} else if (str[2] != '+' && str[2] != '-') {
+
 	  if (debug)
 	    printf("Unknown flag: %s\n", &str[2]);
-	  rlen -= str[0];
-	  str  += str[0];
-	  continue;
+	  goto nextattr;
 	}
 	/* Store valid attribute.
 	   str[1] is attributes id constant, str[2] attribute flag. */
@@ -402,6 +412,8 @@ int init;
 	  if (debug)
 	    printf("  Unknown attribute, number: %d\n", str[1] & 0xFF);
 	}
+
+    nextattr:
 
 	rlen -= str[0];
 	str  += str[0];
@@ -615,10 +627,12 @@ const char *pbuf;
 
     /* state->request initialization !! */
 
-    state->request = ( 1 << P_A_REJECTNET    |
-		       1 << P_A_FREEZENET    |
-		       1 << P_A_RELAYCUSTNET |
-		       1 << P_A_TestDnsRBL   );
+    state->request = ( 1 << P_A_REJECTNET         |
+		       1 << P_A_FREEZENET         |
+		       1 << P_A_RELAYCUSTNET      |
+		       1 << P_A_TestDnsRBL        |
+		       1 << P_A_InboundSizeLimit  |
+		       1 << P_A_OutboundSizeLimit   );
 
 
     if (checkaddr(rel, state, pbuf) != 0)
@@ -1263,4 +1277,12 @@ struct policytest *rel;
 struct policystate *state;
 {
     return state->message;
+}
+
+long
+policyinsizelimit(rel, state)
+struct policytest *rel;
+struct policystate *state;
+{
+    return state->maxinsize;
 }
