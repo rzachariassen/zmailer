@@ -31,6 +31,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	  living connection...
 
 - smtpserver
+  - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and
 	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
@@ -121,6 +122,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- ~/.forward -files (and home directories)
 
 - transports/smtp/smtp.c: (and scheduler)
+	- VERIFY: BDAT (and DATA) status processing in case the remote
+	  yields disk-full temporary error.
 	- To rewrite the MX processing in streamlined flashion (see next)
 	- In case two domains have common (sub-)set of MX servers, and
 	  we have been feeding mail to domain A thru MX-server B, and
