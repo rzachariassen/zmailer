@@ -2,14 +2,15 @@
 
 	* scheduler/mailq.c:
 	    Just before closing the MAILQ-v2 command socket, do
-	    send there "QUIT\n" command too!
+	    send there "QUIT\n" command too!  Sure the EOF handles
+	    the cleanup too, but ...
 
 	* scheduler/mq2.c, scheduler/mailq.pl, scheduler/update.c:
-	   Andrey Blochintsev <bag@iptelecom.net.ua>  sent patch
-	   to implement "KILL MSG" type functionality via the MAILQ-v2
-	   socket command.  Client to implement it is in (surprise),
-	   the perl-testbench of MQ2...  Yours Truly did small style
-	   edits (like C99/C++ style "//" comment change to "/*" )
+	    Andrey Blochintsev <bag@iptelecom.net.ua>  sent patch
+	    to implement "KILL MSG" type functionality via the MAILQ-v2
+	    socket command.  Client to implement it is in (surprise),
+	    the perl-testbench of MQ2...  Yours Truly did small style
+	    edits (like C99/C++ style "//" comment change to "/*" )
 
 2003-05-29  Matti Aarnio  <mea@zmailer.org>
 

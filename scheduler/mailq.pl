@@ -49,14 +49,17 @@ if ($main::opts{'K'} ne '') {
     exit 0;
 } elsif ($main::opts{'Q'} == 3) {
     local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
+    $main::s->bye();
     printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
     exit 0;
 } elsif ($main::opts{'Q'} == 2) {
     local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE SHORT");
+    $main::s->bye();
     printf "SHOW QUEUE SHORT:\n%s\n",join("\n",@main::rc);
     exit 0;
 } elsif ($main::opts{'Q'} == 1) {
     local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE THREADS");
+    $main::s->bye();
     printf "SHOW QUEUE THREADS:\n%s\n",join("\n",@main::rc);
     exit 0;
 }
