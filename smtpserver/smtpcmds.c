@@ -623,7 +623,7 @@ int insecure;
 	    }
 	    /* This data we use, gather the value */
 	    SS->sizeoptval = 0;
-	    while (isascii(*s) && isdigit(*s)) {
+	    while (isascii((255 & *s)) && isdigit((255 & *s))) {
 	        if (SS->sizeoptval > 100000000) /* Next to exceed 1G ? */
 		  break;
 		SS->sizeoptval *= 10;
