@@ -168,6 +168,7 @@ void dumpit(fp, flag, keyptr, keylen, datptr, datlen)
       if (len > datlen) len = datlen;
       showpolicydata(fp, dp, len);
       datlen -= len;
+      dp += len;
     }
     putc('\n',fp);
   }
