@@ -1638,7 +1638,7 @@ void query2(fpi, fpo)
 
 	      s = split[9];
 	      while (*s == '\r') ++s;
-	      for (;*s;++s) {
+	      while (*s) {
 		printf("\t  diag\t");
 		for (;*s && *s != '\r'; ++s) putchar(*s);
 		putchar('\n');
