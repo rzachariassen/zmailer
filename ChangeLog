@@ -1,3 +1,13 @@
+2001-09-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/policytest.c:
+	    For HELO/EHLO parameters, do a bit less work, ignore
+	    case of '[1.2.3.4]' type parameters completely.
+
+	* proto/scheduler.conf.in:
+	    Set default expiration to be 5 days (from old 3 days).
+	    RFC 2821 does suggest 4-5 days.
+
 2001-09-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* acconfig.h, config.h.in, configure.in, include/hostenv.h,
@@ -18,7 +28,6 @@
 	    - several printf warnings
 	    - sfio #define collision avoidance
 	    - SETEUID() and friends
-	  
 
 	* proto/zmailer.sh.in:
 	    A  -q  option for completely quiet operation

@@ -143,8 +143,8 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 #
 */*	interval=1m
 	idlemax=4m # Max lifetime of idled TA before it is killed
-	# expire messages after 3 days without full delivery
-	expiry=3d
+	# expire messages after 5 days without full delivery
+	expiry=5d
 	# when the scheduler gets to the end of the retry sequence,
 	# it starts over at some random point in the middle.  The
 	# numbers are factors of the scheduling interval.
@@ -224,7 +224,7 @@ local/pipe*
 	# Originally we had 3 hour expiry, but if your local system goes to
 	# a fizz (freezes, that is), your local mail may start to bounce
 	# before anybody notices anything...
-	expiry=3d
+	expiry=5d
 	# want 20 channel slots, but only one HOST
 	maxchannel=15
 	maxring=5
@@ -247,7 +247,7 @@ local/*
 	# Originally we had 3 hour expiry, but if your local system goes to
 	# a fizz (freezes, that is), your local mail may start to bounce
 	# before anybody notices anything...
-	expiry=3d
+	expiry=5d
 	# want 20 channel slots, but only one HOST
 	maxchannel=15
 	maxring=5

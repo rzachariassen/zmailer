@@ -1174,27 +1174,50 @@ const int len;
     if (state->full_trust)
 	return 0;
 
-    /* state->request initialization !! */
-    state->request = ( 1 << P_A_REJECTNET    |
-		       1 << P_A_FREEZENET  );
+    /*
+     * This is somewhat controversial.
+     * This exists solely to allow simplification of
+     * smtpserver.conf  file by having the HELO/EHLO
+     * strings to be rejected stored in the policy
+     * database.
+     *
+     * In Sep-2001 it became apparent that very least
+     * there is no point in analyzing '[...]' numeric
+     * HELO parameter contained address data.
+     *
+     * Current code will only look for the input string
+     * in the database (by domain lookup protocol), and
+     * react on it by smalling the door shut (if any).
+     *
+     */
 
-    check_domain(rel, state, str, len);
+
+    if (*str != '[') { /* Don't test address literals! */
+
+      /* state->request initialization !! */
+      state->request = ( 1 << P_A_REJECTNET    |
+			 1 << P_A_FREEZENET  );
+
+      check_domain(rel, state, str, len);
 
 /*
    # if (name of SMTP client has 'rejectnet +' attribute) then
    #    any further conversation refused
    #      [state->always_reject = 1; return -1;]
  */
-    if (valueeq(state->values[P_A_REJECTNET], "+")) {
+      if (valueeq(state->values[P_A_REJECTNET], "+")) {
 	state->always_reject = 1;
 	PICK_PA_MSG(P_A_REJECTNET);
 	return -1;
-    }
-    if (valueeq(state->values[P_A_FREEZENET], "+")) {
+      }
+      if (valueeq(state->values[P_A_FREEZENET], "+")) {
 	state->always_freeze = 1;
 	PICK_PA_MSG(P_A_FREEZENET);
 	return  1;
+      }
+
     }
+
     return 0;
 }
 
