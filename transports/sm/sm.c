@@ -851,10 +851,8 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  char iobuf[BUFSIZ];
 	  FILE *mfp = fdopen(mfd,"r");
-
-	  fseek(mfp,(off_t)(dp->msgbodyoffset),SEEK_SET);
-
 	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
+	  fseek(mfp, dp->msgbodyoffset, SEEK_SET);
 
 #define MFPCLOSE i = dup(mfd); fclose(mfp); dup2(i,mfd); close(i);
 
@@ -868,7 +866,7 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	  /*
 	     if(verboselog) fprintf(verboselog,
 	     "sm: Convert mode: %d, fd=%d, fdoffset=%d, bodyoffset=%d\n",
-	     convertmode, mfd, (int)lseek(mfd,(off_t)0,1),
+	     convertmode, mfd, (int)lseek(mfd, (off_t)0, SEEK_CUR),
 	     dp->msgbodyoffset);
 	   */
 
@@ -1316,7 +1314,7 @@ struct ctldesc *dp;
 	    if (errno == EINTR)
 	      continue;
 	    readalready = 0;
-	    lseek(mfd,dp->msgbodyoffset,0);
+	    lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	    return 0;
 	  }
 	  lastwasnl = (let_buffer[i-1] == '\n');
@@ -1324,14 +1322,14 @@ struct ctldesc *dp;
 	  bufferfull++;
 	  for (i=0; i < readalready; ++i)
 	    if (128 & (let_buffer[i])) {
-	      lseek(mfd,dp->msgbodyoffset,0);
+	      lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	      /* We propably have not read everything of the file! */
 	      readalready = 0;
 	      return 0;		/* Not clean ! */
 	    }
 	}
 	/* Got to EOF, and still it is clean 7-BIT! */
-	lseek(mfd,dp->msgbodyoffset,0);
+	lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 
 	if (bufferfull > 1)	/* not all in memory, need to reread */
 	  readalready = 0;

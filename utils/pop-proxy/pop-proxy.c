@@ -486,6 +486,10 @@ int main(int argc, char *argv[])
 	int raddrlen;
 	int issock = 1;
 
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+	setvbuf(stdin,  NULL, _IONBF, 0);
+
 	while ((c = getopt(argc,argv,"p:T:?")) != EOF) {
 	  /* Reserved options:
 	      -S            This is SSLeay POP3 proxy
@@ -511,10 +515,6 @@ int main(int argc, char *argv[])
 	    break;
 	  }
 	}
-
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
-	setvbuf(stdin,  NULL, _IONBF, 0);
 
 	time(&t0);
 

@@ -622,6 +622,9 @@ main(argc, argv)
 	RETSIGTYPE (*oldsig)__((int));
 	const char *smtphost, *punthost = NULL;
 
+	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
+	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
+
 	pid = getpid();
 	msgfile = "?";
 	getout = 0;
@@ -784,9 +787,6 @@ main(argc, argv)
 	} else
 	  need_host = 1;
 
-	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
-	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
-
 	if (myhostnameopt == 0) {
 	  /* Default it only when not having an explicite value
 	     in it..   James S MacKinnon <jmack@Phys.UAlberta.Ca> */
@@ -799,6 +799,7 @@ main(argc, argv)
 	  exit(0);
 	}
 
+	logfp = NULL;
 	if (logfile != NULL) {
 	  if ((fd = open(logfile, O_CREAT|O_APPEND|O_WRONLY, 0644)) < 0)
 	    fprintf(stdout,
@@ -806,8 +807,7 @@ main(argc, argv)
 		    argv[0], logfile);
 	  else
 	    logfp = (FILE *)fdopen(fd, "a");
-	} else
-	  logfp = NULL;
+	}
 
 	if (logfp)
 	  setvbuf(logfp, NULL, _IOLBF, 0);
