@@ -123,8 +123,9 @@ fi
 
 #| If the localnames file does not exist, assume we must do local
 #| delivery for our own hostname.  If the localnames file does exist,
-#| it must contain a simple sorted list of (domain)names we should
-#| deliver locally.  One per line.  Case is ignored.
+#| it must contain a simple list of (domain)names we should deliver
+#| locally.  One per line.  Case is ignored.
+#|
 #| In some situations (a cluster of mail servers) it is prudent to be able
 #| to have exclusions in the localnames file.  If we do this through
 #| another file containing the names of the other mail servers, we can keep
@@ -132,7 +133,7 @@ fi
 #| describes the service domains.
 
 if [ -f $MAILVAR/db/otherservers ]; then
-	relation -lt ordered -f $MAILVAR/db/otherservers -b otherservers
+	relation -lmt unordered -f $MAILVAR/db/otherservers -d pathalias otherservers
 else
 	otherservers (name) { return 1 }
 fi
