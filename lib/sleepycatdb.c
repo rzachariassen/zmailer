@@ -26,6 +26,9 @@
 #include "libz.h"
 
 
+ZSleepyEnvSet *ZSleepyEnvSetRoot = NULL;
+
+
 /*
  * readsleepycfg
  */
@@ -35,7 +38,7 @@
  *  Config file syntax for SleepyCat DB 3.x/4.x:
  *
  *   envhome = /path/to/envhome/directory
- *   envflags = CDB, RO
+ *   envflags = CDB, CREATE, RO
  *   envmode  = 0644
  *   tempdir  = /path/to/tmp/dir
  *
@@ -44,21 +47,20 @@
 
 
 
-void readsleepycfg(prv)
+static int readsleepycfg(prv)
      ZSleepyPrivate* prv;
 {
 	FILE *cfgfp;
 	char cfgline[250];
+	ZSleepyEnvSet ZSE;
+	int zseset = 0;
 
-#if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	prv->envhome  = NULL;
-	prv->envflags = 0;
-	prv->tmpdir   = NULL;
-#endif
-	if (!prv->cfgname) return;
+	memset(&ZSE, 0, sizeof(ZSE));
+
+	if (!prv->cfgname) return -1;
 
 	cfgfp = fopen(prv->cfgname,"r");
-	if (!cfgfp) return;
+	if (!cfgfp) return -1;
 
 	while (cfgfp && !ferror(cfgfp) && !feof(cfgfp)) {
 	  char *cmd, *param, c;
@@ -71,49 +73,117 @@ void readsleepycfg(prv)
 	  s = strchr(cfgline, '\n');
 	  if (s) *s = 0; /* Zap ending LF */
 
-	  cmd   = cfgline;
-	  param = strtok(cfgline," \t:=");
-	  strtok(NULL, " \t\n");
+	  cmd = cfgline;
+	  s   = cfgline;
+	  while (*s && *s != ' ' && *s != '\t' && *s != ':' && *s != '=') ++s;
+	  if (*s) *s++ = 0;
+	  while (*s && (*s == ' ' || *s == '\t' || *s == ':' || *s == '='))++s;
+	  param = s;
 
 	  if (CISTREQ(cmd,"envhome")) {
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	    prv->envhome  = strdup(param);
+	    if (ZSE.envhome) free((void*)ZSE.envhome);
+	    ZSE.envhome  = strdup(param);
+	    zseset = 1;
 #endif
 	    continue;
 	  }
 	  if (CISTREQ(cmd,"envflags")) {
 	    /*   envflags = CDB, RO  */
-	    prv->envflags = 0;
+	    long envflags2 = 0;
+	    ZSE.envflags = 0;
 	    while (param && *param != 0) {
 	      char *p = param;
-	      param = strtok(p," \t,");
-	      if (CISTREQ(p, "cdb")) {
+
+	      while (*p && !strchr(" \t,",*p)) ++p;
+	      if (*p) *p++ = 0;
+	      while (*p && strchr(" \t,",*p)) ++p;
+
+	      if (CISTREQ(param, "cdb")) {
 #if defined(DB_INIT_CDB) && defined(DB_INIT_MPOOL)
-		prv->envflags = DB_INIT_CDB|DB_INIT_MPOOL;
+		ZSE.envflags = DB_INIT_CDB|DB_INIT_MPOOL;
+		zseset = 1;
 #endif
 	      }
-	      if (CISTREQ(p, "ro")) {
+	      if (CISTREQ(param, "create")) {
+#if defined(DB_INIT_CDB) && defined(DB_INIT_MPOOL)
+		envflags2 |= DB_CREATE;
+		zseset = 1;
+#endif
+	      }
+	      if (CISTREQ(param, "ro")) {
 		prv->roflag = 1;
 	      }
+	      param = p;
+
 	    }
+	    ZSE.envflags |= envflags2;
 	    continue;
 	  }
 	  if (CISTREQ(cmd,"envmode")) {
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	    prv->envmode = 0600;
-	    sscanf(param,"%o",&prv->envmode);
+	    ZSE.envmode = 0600;
+	    sscanf(param,"%o",&ZSE.envmode);
+	    zseset = 1;
 #endif
 	    continue;
 	  }
 	  if (CISTREQ(cmd,"tmpdir")) {
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	    prv->tmpdir  = strdup(param);
+	    ZSE.tmpdir  = strdup(param);
+	    if (ZSE.tmpdir) free((void*)ZSE.tmpdir);
+	    zseset = 1;
 #endif
 	    continue;
 	  }
 	}
 
 	fclose(cfgfp);
+
+
+	if (zseset && ZSE.envhome) {
+
+	  /* Ok, something usefull set, lets see if there exists a ZSE
+	     set with alike values..  Well, alike ENVHOME value. */
+
+	  ZSleepyEnvSet *zesp = ZSleepyEnvSetRoot;
+	  ZSleepyEnvSet *zesp0 = zesp;
+
+	  if (zesp) {
+	    do {
+	      if (strcmp(zesp->envhome,ZSE.envhome) == 0) {
+		/* Alike value ! */
+		prv->ZSE = zesp;
+		zesp->refcount += 1;
+		if (ZSE.envhome) free((void*)ZSE.envhome);
+		if (ZSE.tmpdir)  free((void*)ZSE.tmpdir);
+		return 0;
+	      }
+	      zesp = zesp->next;
+	    } while (zesp != zesp0);
+	  }
+	  /* No environment found .. */
+	  /* .. so we add it into the chain. */
+	  zesp = malloc(sizeof(*zesp));
+	  if (!zesp) return -1;
+	  if (!ZSleepyEnvSetRoot) {
+	    /* We are the new root! */
+	    ZSleepyEnvSetRoot = zesp;
+	    ZSE.next = zesp;
+	    ZSE.prev = zesp;
+	  } else {
+	    /* We join the chain */
+	    ZSE.next = zesp0->next;
+	    ZSE.prev = zesp0;
+	    zesp0->next    = zesp;
+	    ZSE.next->prev = zesp;
+	  }
+	  *zesp = ZSE; /* Store the ready bundle.. */
+	  prv->ZSE = zesp;
+	  zesp->refcount = 1;
+
+	}
+	return 0;
 }
 
 
@@ -132,7 +202,7 @@ ZSleepyPrivate *zsleepyprivateinit(filename, cfgname, dbtype)
 	prv->filename = filename;
 	prv->cfgname  = cfgname;
 
-	readsleepycfg(cfgname);
+	readsleepycfg(prv);
 
 	return prv;
 }
@@ -140,12 +210,29 @@ ZSleepyPrivate *zsleepyprivateinit(filename, cfgname, dbtype)
 void zsleepyprivatefree(prv)
      ZSleepyPrivate *prv;
 {
+	ZSleepyEnvSet *ZSE = prv->ZSE;
+	if (ZSE && ZSE->refcount == 1) {
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	if (prv->env)
-	  prv->env->close(prv->env, 0);
-	if (prv->envhome) free((void*)(prv->envhome));
-	if (prv->tmpdir)  free((void*)(prv->tmpdir));
+	  ZSE->env->close(prv->ZSE->env, 0);
 #endif
+	  if (ZSE->envhome) free((void*)(ZSE->envhome));
+	  if (ZSE->tmpdir)  free((void*)(ZSE->tmpdir));
+	  /* Unlink from the chains */
+
+	  if (ZSE->next != ZSE->prev) {
+	    ZSE->next->prev = ZSE->next;
+	    ZSE->prev->next = ZSE->prev;
+	    /* Wether it was us, or not.. */
+	    ZSleepyEnvSetRoot = ZSE->prev;
+	  } else {
+	    /* prev == next -- us alone.. */
+	    ZSleepyEnvSetRoot = NULL;
+	  }
+	  free(ZSE);
+
+	} else if (ZSE && ZSE->refcount > 1)
+	  ZSE->refcount -= 1;
+
 	free(prv);
 }
 
@@ -164,29 +251,32 @@ int zsleepyprivateopen(prv, roflag, mode)
 
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
 
-	if (prv->envhome) {
-	    err = db_env_create(&prv->env, 0);
+	if (prv->ZSE && prv->ZSE->envhome && !prv->ZSE->env) {
+	    err = db_env_create(&prv->ZSE->env, 0);
 	    if (err) return err; /* Uhh.. */
 
-	    if (prv->tmpdir)
-	      err = prv->env->set_tmp_dir(prv->env, prv->tmpdir);
+	    if (prv->ZSE->tmpdir)
+	      err = prv->ZSE->env->set_tmp_dir(prv->ZSE->env,
+					       prv->ZSE->tmpdir);
 
 	    if (err) return err; /* Uhh.. */
 
-	    err = prv->env->open(prv->env,
-				 prv->envhome,
-				 prv->envflags,
-				 prv->envmode);
+	    err = prv->ZSE->env->open(prv->ZSE->env,
+				 prv->ZSE->envhome,
+				 prv->ZSE->envflags,
+				 prv->ZSE->envmode);
 
 	    if (err) return err; /* Uhh.. */
 	}
 
-	err = db_create(&db, prv->env, 0);
+	err = db_create(&db, prv->ZSE ? prv->ZSE->env : NULL, 0);
 	if (err == 0 && db != NULL)
 	    err = db->open( db, prv->filename, NULL, prv->dbtype,
 			    ((roflag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 			    mode );
-
+	if (err != 0 && db != NULL) {
+	  db->close(db, 0);
+	}
 #else
 #if defined(HAVE_DB2)
 

@@ -560,13 +560,17 @@ iclistdbs(spl)
 	} else if (dbip->driver == find_longest_match) {
 	  printf("{lm}");  i += 4;
 	}
+	if (dbip->cfgfile) { putchar('C'); ++i; }
 	
 	if (i == 0)
 		putchar('-'), ++i;
 	i = (i > 4) ? 1 : 5 - i;
 
 	printf("%*s", i, " ");
-	
+
+	if (dbip->cfgfile)
+	  printf("%s ", dbip->cfgfile);
+
 	if (dbip->lookup != search_core   &&
 	    dbip->lookup != search_header &&
 	    dbip->file   != NULL) {
@@ -641,6 +645,7 @@ run_db(argc, argv)
 		}
 	}
 
+	memset(&si, 0, sizeof(si));
 	si.file      =  dbip->file;
 	si.cfgfile   =  dbip->cfgfile;
 	si.key       =   argv[3];
@@ -800,6 +805,7 @@ db(dbname, argc, argv20)
 	} else
 	  khash = crc32(key);
 
+	memset(&si, 0, sizeof(si));
 	si.file      =  dbip->file;
 	si.cfgfile   =  dbip->cfgfile;
 	si.key       =   key;

@@ -49,6 +49,25 @@
 #endif
 
 
+typedef struct _sleepyenvset {
+
+	struct _sleepyenvset *next, *prev;
+	int			refcount;
+
+	const char		*envhome;
+	long			 envflags;
+	int			 envmode;
+	const char		*tmpdir;
+
+  /* This does not exist at DB1, I recall..
+     .. and is different at DB2 ... */
+
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
+	DB_ENV			*env;
+#endif
+} ZSleepyEnvSet;
+
+
 typedef struct {
   const char *cfgname;
   const char *filename;
@@ -59,24 +78,14 @@ typedef struct {
   time_t      mtime;
   int         roflag;
 
-
-  /* This does not exist at DB1, I recall..
-     .. and is different at DB2 ... */
-
-#if defined(HAVE_DB3) || defined(HAVE_DB4)
-  DB_ENV     *env;
-#endif
-
-  const char *envhome;
-  long        envflags;
-  int	      envmode;
-
-  const char *tmpdir;
-
   int	      readonly;
+
+  ZSleepyEnvSet	*ZSE;
 
 } ZSleepyPrivate;
 
+
+extern ZSleepyEnvSet *ZSleepyEnvSetRoot;
 
 
 extern ZSleepyPrivate *zsleepyprivateinit __((const char *filename, const char *cfgname, DBTYPE dbtype));

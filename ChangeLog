@@ -1,3 +1,18 @@
+2002-06-25  Matti Aarnio  <mea@zmailer.org>
+
+	* include/sleepycatdb.h, lib/sleepycatdb.c,
+	  router/libdb/bsdbtree.c, router/libdb/bsdhash.c:
+	    More work at the SleepyCat DB Concurrent Data Store  support.
+
+	* router/db.c:
+	    Clean a bit of the database call mechanism passed parameter block
+	    by doing initial memset(,0,) on it..
+
+	* libc/mail.c, libc/sfmail.c:
+	    Change (slightly) of how the initial temporary file name
+	    is formed so that there are no leading white spaces at a
+	    host which has shorter than 7 chars hostname..
+
 2002-06-20  Matti Aarnio  <mea@zmailer.org>
 
 	* include/sleepycatdb.h, lib/sleepycatdb.c, proto/newdbprocessor.in:

@@ -1,6 +1,5 @@
 /*
- *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
- *	This will be free software, but only when it is finished.
+ *      A component of ZMailer
  *
  *	Copyright 1996-2002 Matti Aarnio
  */
@@ -79,16 +78,21 @@ open_btree(sip, roflag, comment)
 
 	if (db == NULL) {
 
-	    *prvp = zsleepyprivateinit(sip->file, sip->cfgfile, DB_BTREE);
-	    if (!*prvp) return NULL; /* URGH!! Out of memory! */
-
 	    for (i = 0; i < 3; ++i) {
 
 		int err;
+
+		*prvp = zsleepyprivateinit(sip->file, sip->cfgfile, DB_BTREE);
+		if (!*prvp) break; /* URGH!! Out of memory! */
+
 	        err = zsleepyprivateopen(*prvp, roflag, 0644);
 		db = (*prvp)->db;
 
 		if (db != NULL)  break;
+
+		if (*prvp)
+		  zsleepyprivatefree(*prvp);
+		*prvp = NULL;
 
 		sleep(1); /* Open failed, retry after a moment */
 	    }
@@ -439,9 +443,6 @@ modp_btree(sip)
 	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
 	if (*prvp) roflag = (*prvp)->roflag;
 
-	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
-					     Of course it changes.. */
-
 	db = open_btree(sip, roflag, "owner_btree"); /* if it isn't open.. */
 	if (db == NULL) return 0;
 
@@ -457,7 +458,9 @@ modp_btree(sip)
 	}
 	if (stbuf.st_nlink == 0)
 		return 1;	/* Unlinked underneath of us! */
-	
+
+	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
+					     Of course it changes.. */
 
 	rval = (stbuf.st_mtime != (*prvp)->mtime || stbuf.st_nlink != 1);
 
