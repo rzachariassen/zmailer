@@ -101,7 +101,10 @@ pathcmp(ap, bp)
 	register const void **a = (const void **)ap;
 	register const void **b = (const void **)bp;
 
-	return strcmp(*a, *b);
+	/* sort to reverse order, easier to collate
+	   into an object chain */
+
+	return -strcmp(*a, *b);
 }
 
 /* note that | is going to be used instead of / in some pathname examples */
@@ -127,7 +130,7 @@ sglob(ibuf)
 	int *ibuf;	/* unglobbed pathname w/ each byte stored as int */
 {
 	register int i, n;
-	conscell **pp, *cc;
+	conscell *pp, *cc = NULL;
 	struct sawpath *spp;
 	struct sawpath head;
 	char	*pwd,		/* points to end of current directory in cwd */
@@ -169,12 +172,11 @@ sglob(ibuf)
 	/* construct a sorted linked list */
 	cc = NULL;
 	GCPRO1(cc);
-	pp = &cc;
 	for (i = 0; i < n; ++i) {
 		int slen = strlen(base[i]);
-		*pp = newstring(dupnstr(base[i],slen),slen);
-		pp = &cdr(*pp);
-		*pp = NULL;
+		pp = newstring(dupnstr(base[i],slen),slen);
+		cdr(pp) = cc;
+		cc = pp;
 		/* printf("saw %s\n", base[i]); */
 	}
 	UNGCPRO1;
