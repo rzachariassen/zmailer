@@ -865,6 +865,11 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	/* If a message gets a "retryat" signal, kick this thread at
 	   next  "#hungry"  into FINISHING state */
 
+	if (verbose)
+	  sfprintf(sfstdout,
+		   "RETRYAT: proc=%p (S=%d OF=%d tofd=%d) vp=%p[%d] message='%s'\n",
+		   proc, (int)proc->state, proc->overfed, proc->tofd, vp, index);
+
 	if ((proc->state   == CFSTATE_LARVA) &&
 	    (proc->overfed == 1) &&
 	    (proc->tofd    >= 0))
