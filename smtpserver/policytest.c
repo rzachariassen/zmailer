@@ -1147,7 +1147,7 @@ const int len;
     }
 
     if (state->always_accept) {
-      int rc = sender_dns_verify('+', at+1, len - (1 + at - str));
+      int rc = sender_dns_verify('-', at+1, len - (1 + at - str));
       if (debug)
 	printf("... returns: %d\n", rc);
       return rc;
