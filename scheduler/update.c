@@ -271,7 +271,7 @@ unctlfile(cfp, no_unlink)
 
 	  eunlink(path);
 	  if (verbose)
-	    sfprintf(sfstdout,"%s: unlink %s (mid=0x%p)",
+	    sfprintf(sfstdout,"%s: unlink %s (mid=%p)",
 		     cfp->logident, path, cfp->mid);
 
 	  if (cfp->dirind > 0)
@@ -324,7 +324,7 @@ void unvertex(vp, justfree, ok)
 
 	if (verbose && justfree < 0)
 	  sfprintf(sfstderr,
-		   "unvertex(vtx=0x%p (thr=0x%p proc=0x%p, ng=%d) ,%d,%d)\n",
+		   "unvertex(vtx=%p (thr=%p proc=%p, ng=%d) ,%d,%d)\n",
 		   vp,vp->thread,vp->proc,vp->ngroup,justfree,ok);
 
 	if (vp->thread != NULL &&
@@ -357,7 +357,7 @@ void unvertex(vp, justfree, ok)
 	       from 'vp', or it is NULL. */
 #if 0
 	    sfprintf(sfstderr,
-		     "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
+		     "unvertex(vtx=%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
 		     vp, justfree, ok, vp->cfp->mid);
 	    /* We may become called with child feeder yet unflushed;
 	       shall we kill the kid ? (pick_next_vertex won't change
