@@ -1564,10 +1564,10 @@ SmtpState *SS;
 
     if (SS->s_readout >= SS->s_bufread) {
         /* So if it did dry up, try non-blocking read */
+#if defined(O_NONBLOCK) || defined(FNDELAY)
 	int flags = fd_nonblockingmode(SS->inputfd);
 	SS->s_readout = 0;
 	
-#if defined(O_NONBLOCK) || defined(FNDELAY)
 	SS->s_bufread = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	fd_restoremode(SS->inputfd, flags);
 	if (SS->s_bufread > 0)
