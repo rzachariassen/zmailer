@@ -28,7 +28,9 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(MAILBOX_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a
 LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc -lsfio
-LIBDEB=		$(TOPDIR)/libs/libtag
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
+		$(TOPDIR)/libs/libsfio.a
 LINTLIB=	../libta/llib-llibta.ln
 
 # defines related to 'mailbox' and 'lock':

@@ -27,7 +27,9 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPSERVER_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)
-LIBDEB=		$(TOPDIR)/libs/libtag
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
+		$(TOPDIR)/libs/libident.a
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \

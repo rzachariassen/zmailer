@@ -25,7 +25,9 @@ LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 #
 LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc -lta $(LIBMALLOC)
-LIBDEB=		$(TOPDIR)/libs/libtag
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
+		$(TOPDIR)/libs/libsh.a $(TOPDIR)/libs/libzmdb.a
 LINTLIB=	libdb/llib-llibdb.ln $(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln
 SSL=		$(TOPDIR)/ssl/ssl
 RUNSSL=	rm -f $(TOPDIR)/include/rfc822.entry rfc822.sst.? ; \

@@ -1,5 +1,8 @@
 2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* **/Makefile.in:
+	    Changes on what we refer at LIBDEB= definitions.
+
 	* transports/libta/mimeheaders.c:
 	    - Missing initialization of one buffer -> result is
 	      memory scrible and utter chaos..

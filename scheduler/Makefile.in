@@ -27,7 +27,8 @@ MQCFLAGS=	$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(MAILQ_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lzm -lzc  -lta
-LIBDEB=		$(TOPDIR)/libs/libtag
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
 #
 OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o  \

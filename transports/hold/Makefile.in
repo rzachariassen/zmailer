@@ -24,7 +24,8 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(HOLD_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
 LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc
-LIBDEB=		$(TOPDIR)/libs/libtag
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a
 LINTLIB=	../libta/llib-llibta.ln
 
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)

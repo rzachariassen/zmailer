@@ -19,7 +19,8 @@ MKDIR=		@MKDIR@
 #
 INCL=           -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=            -L$(TOPDIR)/libs -lzm -lzc
-LIBDEB=         $(TOPDIR)/libs/libtag
+LIBDEB=         $(TOPDIR)/libs/libtag $(TOPDIR)/libs/libzm.a \
+		$(TOPDIR)/libs/libzc.a
 CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SENDMAIL_INCL)
 SENDMAILPATH=	$(prefix)@SENDMAILPATH@
 
