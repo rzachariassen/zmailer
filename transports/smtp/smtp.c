@@ -286,6 +286,7 @@ typedef struct {
   char *pipebuf;
   int pipeindex;		/* commands associated w/ those responses */
   int pipespace;
+  int pipereplies;		/* Replies handled so far */
   char **pipecmds;
   struct rcpt **pipercpts;	/* recipients -""- */
 
@@ -344,7 +345,7 @@ extern int smtpconn   __((SmtpState *SS, const char *host, int noMX));
 extern int smtp_ehlo  __((SmtpState *SS, const char *strbuf));
 extern int ehlo_check __((SmtpState *SS, const char *buf));
 extern void smtp_flush __((SmtpState *SS));
-extern int smtp_sync  __((SmtpState *SS, int));
+extern int smtp_sync  __((SmtpState *SS, int, int));
 extern int smtpwrite  __((SmtpState *SS, int saverpt, const char *linebuf, int pipelining, struct rcpt *syncrp));
 extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));
 
@@ -374,6 +375,7 @@ extern void getdaemon();
 extern int  has_readable __((int));
 extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS));
+extern void pipeblockread __((SmtpState *SS));
 
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
 extern void report __((SmtpState *SS, char *fmt, ...));
@@ -1154,6 +1156,7 @@ deliver(SS, dp, startrp, endrp)
 	  more_rp = NULL;
 	}
 
+	/* We are starting a new pipelined phase */
 	smtp_flush(SS); /* Flush in every case */
 
 	/* Store estimate on how large a file it is */
@@ -1215,7 +1218,7 @@ deliver(SS, dp, startrp, endrp)
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
 	  if (pipelining && SS->smtpfp /* might have timed out */)
-	    r = smtp_sync(SS, r);
+	    r = smtp_sync(SS, r, 0);
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
 	    notaryreport(rp->addr->user, FAILED,
@@ -1261,7 +1264,7 @@ deliver(SS, dp, startrp, endrp)
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
 	    if (pipelining && SS->smtpfp)
-	      r = smtp_sync(SS, r);
+	      r = smtp_sync(SS, r, 0);
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(NULL, FAILED, NULL, NULL);
 	    diagnostic(rp, r, 0, "%s", SS->remotemsg);
@@ -1318,8 +1321,9 @@ deliver(SS, dp, startrp, endrp)
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
 	  /* Now it is time to do synchronization .. */
-	  if (SS->smtpfp)
-	    r = smtp_sync(SS, EX_OK); /* Up & until "DATA".. */
+	  if (SS->smtpfp) {
+	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
+	  }
 	  if (r != EX_OK) {
 	    /* XX:
 	       #error  Uncertain of what to do ...
@@ -1350,7 +1354,7 @@ deliver(SS, dp, startrp, endrp)
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
 	    if (SS->smtpfp)
-	      r = smtp_sync(SS, r); /* Sync it.. */
+	      r = smtp_sync(SS, r, 0); /* Sync it.. */
 	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
 	      if (rp->status == EX_OK) {
 		/* NOTARY: address / action / status / diagnostic / wtt */
@@ -1365,7 +1369,7 @@ deliver(SS, dp, startrp, endrp)
 	  notary_setxdelay((int)(endtime-starttime));
 	  /* Now it is time to do synchronization .. */
 	  if (SS->smtpfp)
-	    r = smtp_sync(SS, EX_OK); /* Up & until "DATA".. */
+	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
 	  if (r != EX_OK) {
 	    /* XX:
 	       #error  Uncertain of what to do ...
@@ -2941,6 +2945,38 @@ if (SS->verboselog)
 #endif
 	    if (conndebug)
 	      fprintf(stderr, "connected!\n");
+
+	    /* We have successfull connection,
+	       lets record its peering data */
+
+	    memset(&upeername, 0, sizeof(upeername));
+	    upeernamelen = sizeof(upeername);
+	    getsockname(s, (struct sockaddr*) &upeername, &upeernamelen);
+
+#if defined(AF_INET6) && defined(INET6)
+	    if (upeername.sai6.sin6_family == AF_INET6) {
+	      int len = strlen(SS->ipaddress);
+	      strcat(SS->ipaddress, "|");
+	      inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
+			SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
+	      sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
+		      ntohs(upeername.sai6.sin6_port));
+	    } else
+#endif
+	      if (upeername.sai.sin_family == AF_INET) {
+		int len = strlen(SS->ipaddress);
+		strcat(SS->ipaddress, "|");
+		inet_ntop(AF_INET, &upeername.sai.sin_addr,
+			  SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
+		sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
+			ntohs(upeername.sai.sin_port));
+	      } else
+		{
+		  strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
+		}
+
+	    notary_setwttip(SS->ipaddress);
+
 	    return EX_OK;
 	  }
 	  /* setreuid(0,0); */
@@ -2957,34 +2993,6 @@ if (SS->verboselog)
 	se = strerror(errnosave);
 
 	alarm(0);
-
-	memset(&upeername, 0, sizeof(upeername));
-	upeernamelen = sizeof(upeername);
-	getsockname(s, (struct sockaddr*) &upeername, &upeernamelen);
-
-#if defined(AF_INET6) && defined(INET6)
-	if (upeername.sai6.sin6_family == AF_INET6) {
-	  int len = strlen(SS->ipaddress);
-	  strcat(SS->ipaddress, "|");
-	  inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
-		    SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
-	  sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
-		  ntohs(upeername.sai6.sin6_port));
-	} else
-#endif
-	  if (upeername.sai.sin_family == AF_INET) {
-	    int len = strlen(SS->ipaddress);
-	    strcat(SS->ipaddress, "|");
-	    inet_ntop(AF_INET, &upeername.sai.sin_addr,
-		      SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
-	    sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
-		    ntohs(upeername.sai.sin_port));
-	  } else
-	    {
-	      strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
-	    }
-
-	notary_setwttip(SS->ipaddress);
 
 	sprintf(SS->remotemsg, "smtp; 500 (connect to %.200s [%.200s]: %s)",
 		hostname, SS->ipaddress, se);
@@ -3133,7 +3141,8 @@ smtp_flush(SS)
 	for (;SS->pipeindex > 0; --SS->pipeindex) {
 	  free(SS->pipecmds[SS->pipeindex-1]);
 	}
-	SS->pipeindex = 0;
+	SS->pipeindex   = 0;
+	SS->pipereplies = 0;
 }
 
 
@@ -3167,7 +3176,7 @@ int bdat_flush(SS, lastflg)
 	SS->chunksize = 0;
 
 	if (lastflg)
-	  r = smtp_sync(SS, r);
+	  r = smtp_sync(SS, r, 0);
 
 	return r;
 }
@@ -3329,9 +3338,9 @@ char **statusp;
 
 
 int
-smtp_sync(SS, r)
+smtp_sync(SS, r, nonblocking)
 	SmtpState *SS;
-	int r;
+	int r, nonblocking; /* XX: implement nonblocking */
 {
 	char *s, *eof, *eol;
 	int infd = FILENO(SS->smtpfp);
@@ -3354,7 +3363,8 @@ smtp_sync(SS, r)
 
 	s = SS->pipebuf;
 	eol = s;
-	for (idx = 0; idx < SS->pipeindex; ++idx) {
+	for (idx = SS->pipereplies; idx < SS->pipeindex; ++idx) {
+	  SS->pipereplies = idx;
       rescan_line_0: /* processed some continuation line */
 	  s = eol;
       rescan_line:   /* Got additional input */
@@ -3495,7 +3505,7 @@ smtp_sync(SS, r)
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
 	      diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
 	    } else {
-	      /* XX: No reports for  MAIL FROM:<> nor for DATA phases ? */
+	      /* XX: No reports for  MAIL FROM:<> nor for DATA/BDAT phases ? */
 	      if (idx == 0) {
 		if (code >= 500)
 		  SS->rcptstates |= FROMSTATE_500;
