@@ -51,6 +51,49 @@ char argv[];
     } else
       err = 1;
   }
+  if (!err) {
+    char *s, *p;
+    /* Turn '+' to space */
+    while ((s = strchr(getstr,'+')) != NULL) *s = ' ';
+    p = s = getstr;
+    while (*s) {
+      if (*s == '%') {
+	/* '%HH' -> a char */
+	int c1 = *++s;
+	int c2;
+	if ('0' <= c1 && c1 <= '9')
+	  c1 = c1 - '0';
+	else if ('A' <= c1 && c1 <= 'F')
+	  c1 = c1 - 'A' + 10;
+	else if ('a' <= c1 && c1 <= 'f')
+	  c1 = c1 - 'a' + 10;
+	else
+	  err = 1;
+	if (*s) c2 = *++s;
+	if ('0' <= c2 && c2 <= '9')
+	  c2 = c2 - '0';
+	else if ('A' <= c2 && c2 <= 'F')
+	  c2 = c2 - 'A' + 10;
+	else if ('a' <= c2 && c2 <= 'f')
+	  c2 = c2 - 'a' + 10;
+	else
+	  err = 1;
+	if (!err) {
+	  c1 <<= 4;
+	  c1 |= c2;
+	  if (c1 < ' ' || c2 >= 127)
+	    err = 1;
+	}
+	if (!err)
+	  *p++ = c1;
+	if (*s) ++s;
+	continue;
+      }
+      /* Anything else, just copy.. */
+      *p++ = *s++;
+    }
+    *p = 0;
+  }
 
   setvbuf(stdout, NULL, _IOLBF, 0);
   setvbuf(stderr, NULL, _IOLBF, 0);
@@ -339,9 +382,12 @@ getmxrr(host, mx, maxmx, depth)
 	    fprintf(stdout,"<H1>ERROR:  DNS Server Failure: domain=``%s''</H1>\n", host);
 	    return EX_TEMPFAIL;
 	  case NOERROR:
-	    fprintf(stdout,"<H1>ERROR:  NO MX DATA: domain=``%s''</H1>\n", host);
-	    mx[0].host = NULL;
-	    return EX_TEMPFAIL;
+	    fprintf(stdout,"<H1>BAD:  NO MX DATA: domain=``%s''  We SIMULATE!</H1>\n", host);
+	    fprintf(stdout,"<H1>Do have at least one MX entry added!</H1>\n");
+	    mx[0].host = host;
+	    mx[0].pref = 999999;
+	    mx[1].host = NULL;
+	    return 0;
 	  case FORMERR:
 	    fprintf(stdout,"<H1>ERROR:  DNS Internal FORMERR error: domain=``%s''</H1>\n", host);
 	    return EX_NOPERM;
@@ -430,7 +476,7 @@ getmxrr(host, mx, maxmx, depth)
 	fprintf(stdout, "</PRE>\n<P>\n");
 
 	if (nmx == 1) {
-	  fprintf(stdout, "<H2>Only one MX record, well, no backups, but as all systems are looking for MX record <I>in every case</I>, not bad..</H2>\n<P>\n");
+	  fprintf(stdout, "<H2>Only one MX record...<BR>Well, no backups, but as all systems are looking for MX record <I>in every case</I>, not bad..</H2>\n<P>\n");
 	}
 
 	mx[nmx].host = NULL;
@@ -585,7 +631,7 @@ vcsetup(sa, fdp, myname, mynamemax)
 
 
 int smtpgetc(sock, tout)
-int sock, tout;
+     int sock, tout;
 {
 	static unsigned char buf[1024];
 	static int bufin = 0, bufout = 0;
@@ -650,9 +696,26 @@ int sock, tout;
 	}
 }
 
+void htmlwrite(str, len)
+     char *str;
+{
+	int i;
+	for (i = 0; i < len; ++i) {
+	  if (str[i] == '\n' ||
+	      (str[i] >= ' ' && str[i] < 127)) {
+	    if (str[i] == '\n')
+	      fprintf(stdout, "\n");
+	    else
+	      fprintf(stdout, "&#%d;", str[i]);
+	  }
+	  else
+	    fprintf(stdout, "\\0x%02X", str[i]);
+	}
+}
+
 
 int readsmtp(sock)
-int sock;
+     int sock;
 {
 	char linebuf[8192];
 	int c = 0, i;
@@ -693,17 +756,7 @@ int sock;
 
 	  if (linelen > 0) {
 	    fprintf(stdout, " ");
-	    for (i = 0; i < linelen; ++i) {
-	      if (linebuf[i] == '\n' ||
-		  (linebuf[i] >= ' ' && linebuf[i] < 127)) {
-		if (linebuf[i] == '\n')
-		  fprintf(stdout, "\n");
-		else
-		  fprintf(stdout, "&#%d;", linebuf[i]);
-	      }
-	      else
-		fprintf(stdout, "\\0x%02X", linebuf[i]);
-	    }
+	    htmlwrite(linebuf, linelen);
 	  }
 	}
 	if (c < 0 && no_more) c = 0;
@@ -713,8 +766,8 @@ int sock;
 
 
 int writesmtp(sock, str)
-int sock;
-char *str;
+     int sock;
+     char *str;
 {
 	int rc, len, e;
 
@@ -755,13 +808,16 @@ char *str;
 }
 
 
-void smtptest(thatdomain, ai)
-char *thatdomain;
-struct addrinfo *ai;
+void smtptest(thatuser, ai)
+     char *thatuser;
+     struct addrinfo *ai;
 {
 	int sock, rc, wtout = 0;
 	char myhostname[200];
 	char smtpline[500];
+
+	char *thatdomain = strchr(thatuser, '@');
+	if (!thatdomain) thatdomain = thatuser; else ++thatdomain;
 
 	/* Try two sessions:
 	   1) HELO + MAIL FROM:<> + RCPT TO:<postmaster@thatdomain> + close
@@ -806,14 +862,29 @@ struct addrinfo *ai;
 	if (rc < 0 || rc > 299) goto end_test_1;
 
 	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
-	fprintf(stdout, " RCPT TO:&lt;postmaster@%s&gt;\n", thatdomain);
+	fprintf(stdout, " RCPT TO:&lt;postmaster@");
+	htmlwrite(thatdomain,strlen(thatdomain));
+	fprintf(stdout,"&gt;\n");
 	rc = writesmtp(sock, smtpline);
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
 	if (rc < 0 || rc > 299) goto end_test_1;
 
+	if (thatdomain != thatuser) {
+	  sprintf(smtpline, "RCPT TO:<%s>\r\n", thatuser);
+	  fprintf(stdout, " RCPT TO:&lt;");
+	  htmlwrite(thatuser,strlen(thatuser));
+	  fprintf(stdout,"&gt;\n");
+	  rc = writesmtp(sock, smtpline);
+	  if (rc == ETIMEDOUT) wtout = 1;
+	  if (rc != EX_OK) goto end_test_1;
+	  rc = readsmtp(sock); /* Read response.. */
+	  if (rc < 0 || rc > 299) goto end_test_1;
+	}
+
 	rc = 0; /* All fine, no complaints! */
+
 
  end_test_1:
 	sprintf(smtpline, "RSET\r\nQUIT\r\n");
@@ -831,8 +902,8 @@ struct addrinfo *ai;
 
 
 void testmxsrv(thatdomain, hname)
-char *thatdomain;
-char *hname;
+     char *thatdomain;
+     char *hname;
 {
 	struct addrinfo req, *ai, *ai2, *a;
 	int i, i2;
@@ -934,11 +1005,13 @@ char *hname;
 }
 
 
-void mxverifyrun(thatdomain)
-char *thatdomain;
+void mxverifyrun(thatuser)
+     char *thatuser;
 {
 	struct mxdata mx[80+1];
 	int rc, i;
+	char *thatdomain = strchr(thatuser,'@');
+	if (!thatdomain) thatdomain = thatuser; else ++thatdomain;
 
 	rc = getmxrr(thatdomain, mx, 80, 0);
 	if (rc) return;
@@ -949,6 +1022,6 @@ char *thatdomain;
 	  fprintf(stdout, "<P>\n");
 	  fprintf(stdout,"<H1>Testing MX server: %s</H1>\n", mx[i].host);
 	  fprintf(stdout,"<P>\n");
-	  testmxsrv(thatdomain, mx[i].host);
+	  testmxsrv(thatuser, mx[i].host);
 	}
 }
