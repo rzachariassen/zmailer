@@ -715,15 +715,14 @@ checkrouter()
 	if (postoffice == NULL)
 	  return;
 	sprintf(path, "%s/%s", postoffice, ROUTERDIR);
-
 	n = countfiles(path);
-
-	fprintf(stdout,"%d entr%s in router queue: ", n, n != 1 ? "ies" : "y");
+	fprintf(stdout,"%d entr%s in %s/ directory: ", n, n != 1 ? "ies" : "y", path);
 
 	if (nonlocal)
 	  r = -2;
 	else
 	  r = isalive(PID_ROUTER, &pid, &fp);
+
 	switch (r) {
 	case EX_UNAVAILABLE:
 	  /* if the .router.pid file is younger than any core file,
@@ -780,7 +779,7 @@ checkrouter()
 void
 checkscheduler()
 {
-	int pid, n, r;
+	int pid, n, n2, r;
 	FILE *fp;
 
 	if (postoffice == NULL)
@@ -790,11 +789,9 @@ checkscheduler()
 	othern  = 0;
 
 	sprintf(path, "%s/%s", postoffice, TRANSPORTDIR);
-
 	n = countfiles(path);
-
-	fprintf(stdout,"%d message%s in transport queue: ",
-	       n, n != 1 ? "s" : "");
+	fprintf(stdout,"%d message%s in %s/ directory: ",
+	       n, n != 1 ? "s" : "", path);
 
 	if (nonlocal)
 	  r = -2;
@@ -825,6 +822,11 @@ checkscheduler()
 	  fprintf(stdout," (core exists)");
 	fprintf(stdout,"\n");
 
+	sprintf(path, "%s/%s", postoffice, QUEUEDIR);
+	n2 = countfiles(path);
+	if (n != n2)
+	  fprintf(stdout,"%d message%s in %s/ directory\n",
+		  n2, n2 != 1 ? "s" : "", path);
 }
 
 int

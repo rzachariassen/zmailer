@@ -1,3 +1,15 @@
+2003-07-23  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/scheduler.c:
+	    Don't unlink the message file in case its opening fails.
+	    (Like when scheduler/system has ran out of fd's)
+
+	* scheduler/mailq.c:
+	    Count also files in the $POSTOFFICE/queue/, and show it, if it
+	    _differs_ from  $POSTOFFICE/transport/  count.
+	    Changed also slightly the output texts, which _MAY_ affect
+	    some management scripts!
+
 2003-07-01  Matti Aarnio  <mea@zmailer.org>
 
 	* doc/guides/smtp-policy, proto/smtpserver.conf.in,

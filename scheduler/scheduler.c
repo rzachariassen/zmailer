@@ -1442,8 +1442,12 @@ int syncweb(dq)
 
 	  /* Can open ? */
 	  if ((fd = eopen(file, O_RDWR, 0)) < 0) {
+	    /* Don't unlink here, ... */
+	    /* errno == EMFILE  --> out of FDs!  URGH! */
+#if 0
 	    if (getuid() == 0)
 	      eunlink(file,"sch-syncweb");	/* hrmpf! */
+#endif
 	  } else {
 	    /* Ok, schedule! */
 	    if (schedule(fd, file, ino, 0) != NULL) {
