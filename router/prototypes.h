@@ -116,7 +116,7 @@ extern void	squirrel __((struct envelope *e, const char *keyword, const char *te
 extern struct header	*erraddress __((struct envelope *e));
 extern void	defer __((struct envelope *e, const char *why));
 extern struct header	*mkSender __((struct envelope *e, const char *name, int flag));
-extern struct header	*mkTrace __((struct envelope *e));
+extern struct header	*mkTrace __((struct envelope *e, struct header *rcvdhdr));
 extern conscell	*pickaddress __((conscell *l));
 extern int	thesender __((struct envelope *e, struct address *a));
 extern conscell	*makequad __((void));

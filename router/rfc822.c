@@ -498,6 +498,14 @@ int	isRecpntAddr = 0;
 	for (h = e->e_eHeaders; h != NULL; h = h->h_next) \
 	    if (h->h_descriptor->class == X) \
 		break;
+#define FindEnvelopeLast(X)	\
+	{ struct header *__h_1 = NULL;			\
+	  for (h = e->e_eHeaders; h != NULL; h = h->h_next) \
+	    if (h->h_descriptor->class == X)		\
+		__h_1 = h;				\
+	  h = __h_1;					\
+	}
+
 
 #define RESENT_SIZE (sizeof "resent-" - 1)
 
@@ -977,8 +985,9 @@ static const struct headerinfo	traceDesc =
 	{ "received", Received, nilUserType, normal };
 
 struct header *
-mkTrace(e)
+mkTrace(e, rcvdhdr)
 	struct envelope *e;
+	struct header *rcvdhdr;
 {
 	register struct header	*h, *th;
 	struct addr *na;
@@ -992,7 +1001,7 @@ mkTrace(e)
 	th->h_contents.r = (struct received *)tmalloc(sizeof (struct received));
 	th->h_lines = NULL;
 
-	FindEnvelope(eRcvdFrom);
+	h = rcvdhdr; /* FindEnvelopeLast(eRcvdFrom); */
 	/* from */
 	if (h != NULL)
 		th->h_contents.r->r_from = h->h_contents.a;
@@ -1177,6 +1186,7 @@ sequencer(e, file)
 	const char *file;
 {
 	struct header  *h, *ph, *nh = NULL, *oh, *msgidh, **hp;
+	struct header  *rcvdhdr;
 	struct address *a, *ap;
 	struct addr    *p = NULL;
 	char	       *ofpname, *path, *qpath;
@@ -1213,10 +1223,11 @@ sequencer(e, file)
 	if (deferuid)
 	  return PERR_DEFERRED;
 
-	FindEnvelope(eRcvdFrom);
+	FindEnvelopeLast(eRcvdFrom);
+	rcvdhdr = h;
 	if (e->e_trusted) {
-	  if (h != NULL)
-	    smtprelay = h->h_lines->t_pname;
+	  if (rcvdhdr != NULL)
+	    smtprelay = rcvdhdr->h_lines->t_pname;
 	  else {
 	    const char *s  = uidpwnam(e->e_statbuf.st_uid);
 	    char *sr = strnsave("",strlen(s)+20);
@@ -1228,7 +1239,7 @@ sequencer(e, file)
 	  char *ts;
 	  int totlen;
 
-	  if (h != NULL) {
+	  if (rcvdhdr != NULL) {
 
 	    /* Ok, we don't trust it!  In fact we might overrule the data
 	       that the message writer coded in... */
@@ -1237,15 +1248,15 @@ sequencer(e, file)
 	    s = uidpwnam(e->e_statbuf.st_uid);
 	    ps = "";
 	    totlen = 10 + strlen(s) + 60;
-	    if (h) {
-	      ps = h->h_lines->t_pname;
+	    if (rcvdhdr) {
+	      ps = rcvdhdr->h_lines->t_pname;
 	      totlen += strlen(ps) + 10;
 	    }
 	    /* ts = strnsave("", totlen); */
 	    ts = tmalloc(totlen); /* Alloc the space */
-	    if (h) {
+	    if (rcvdhdr) {
 	      sprintf(ts, "rcvdfrom STDIN (from localhost user: '%s' uid#%ld fake: %s)",
-		      s, (long) e->e_statbuf.st_uid, h->h_lines->t_pname);
+		      s, (long) e->e_statbuf.st_uid, rcvdhdr->h_lines->t_pname);
 	    } else
 	      sprintf(ts, "rcvdfrom STDIN (from localhost user: '%s' uid#%ld)",
 		      s, (long) e->e_statbuf.st_uid);
@@ -1260,14 +1271,14 @@ sequencer(e, file)
 		    s, (long) e->e_statbuf.st_uid);
 	  }
 
-	  h = makeHeader(spt_eheaders, ts, 8);
-	  h->h_next = e->e_eHeaders;
-	  e->e_eHeaders = h;
+	  rcvdhdr = makeHeader(spt_eheaders, ts, 8);
+	  rcvdhdr->h_next = e->e_eHeaders;
+	  e->e_eHeaders = rcvdhdr;
 
-	  h->h_lines    = makeToken(ts+9, strlen(ts+9));
-	  h->h_lines->t_type = Line;
-	  h->h_contents = hdr_scanparse(e, h, 0, 0);
-	  h->h_stamp    = hdr_type(h);
+	  rcvdhdr->h_lines    = makeToken(ts+9, strlen(ts+9));
+	  rcvdhdr->h_lines->t_type = Line;
+	  rcvdhdr->h_contents = hdr_scanparse(e, rcvdhdr, 0, 0);
+	  rcvdhdr->h_stamp    = hdr_type(rcvdhdr);
 
 	  smtprelay     = ts+9;
 	}
@@ -1280,7 +1291,7 @@ sequencer(e, file)
 	perr = 0;
 	if (myhostname) {	/* appease honeyman et al groupies */
 		dprintf("Stamp it with a trace header\n");
-		h = mkTrace(e);
+		h = mkTrace(e, rcvdhdr);
 		if (h != NULL) {
 			h->h_next = e->e_headers;
 			e->e_headers = h;
@@ -1491,7 +1502,8 @@ sequencer(e, file)
 				optsave(FYI_NOCHANNEL, e);
 			}
 		}
-		FindEnvelope(eRcvdFrom);
+
+		h = rcvdhdr; /* FindEnvelopeLast(eRcvdFrom); */
 		if (h != NULL && h->h_contents.a && h->h_contents.a->a_pname) {
 			/* a previous host was specified */
 			slen = strlen(h->h_contents.a->a_pname);
