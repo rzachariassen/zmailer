@@ -145,24 +145,44 @@ whathost(file)
 	const char	*file;
 {
 	FILE	*mntp;
-	MNTTYPE	*mnt;
+	MNTTYPE	*mnt = NULL;
 	struct stat	filestat, dirstat;
 	char *s;
+	int rc, e, retries = 0;
+	const char *errstr = NULL;
+
+ retry:
+	e = errno;
+
+	++retries;
+	if (retries > 1) sleep(1);
+	if (retries > 4) {
+	  errno = e;
+	  perror(errstr ? errstr : "<unknown>");
+	  return NULL;
+	}
 
 	if (stat(file, &filestat) < 0) {
-		perror(file);
-		return(NULL);
+	  errstr = file;
+	  goto retry;
 	}
 	if ((mntp = setmntent(MOUNTED, "r")) == NULL) {
-		perror(MOUNTED);
-		return(NULL);
+	  errstr = MOUNTED;
+	  goto retry;
 	}
 	while ((mnt = getmntent(mntp)) != 0) {
 		if (strcmp(mnt->mnt_type, MNTTYPE_IGNORE) == 0 ||
 		    strcmp(mnt->mnt_type, MNTTYPE_SWAP) == 0)
 			continue;
-		if ((stat(mnt->mnt_dir, &dirstat) >= 0) &&
-		   (filestat.st_dev == dirstat.st_dev)) {
+		rc = stat(mnt->mnt_dir, &dirstat);
+		if (rc < 0) {
+		  e = errno;
+		  endmntent(mntp);
+		  errstr = mnt->mnt_dir;
+		  errno = e;
+		  goto retry;
+		}
+		if ((rc >= 0) && (filestat.st_dev == dirstat.st_dev)) {
 			s = strchr(mnt->mnt_fsname,':');
 			if (s != NULL) {
 			  *s = 0;

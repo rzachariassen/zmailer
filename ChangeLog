@@ -1,3 +1,14 @@
+2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libc/whathost.c:
+	    Improved error handling by adding posixy redo of things
+	    in case stat()s yield an error.. (Solaris 2.6 is complaining
+	    somewhat in these routines..)
+
+	* transports/smtp/smtptls.c:
+	    Moved things around so that it works also when compiled
+	    WITHOUT (Open)SSL.
+
 2000-04-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
@@ -11,7 +22,7 @@
 
 	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Under TLS do always flush replies - to simulate one other
-	    MTA running under TLS wrapper.
+	    MTA running under TLS wrapper. (This was a bit latter removed.)
 
 2000-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

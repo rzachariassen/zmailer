@@ -1054,7 +1054,9 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	const char * p = (const char *)vp;
 	int r, rr, e, i;
 
+#ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
+#endif /* - HAVE_OPENSSL */
 
 	rr = -1; /* No successfull write */
 	e = errno; /* Whatever the previous one was.. */
@@ -1230,9 +1232,9 @@ int smtp_nbread(SS, buf, spc)
 	int r, e;
 	int infd = SS->smtpfd;
 
+#ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
 
-#ifdef HAVE_OPENSSL
 	if (SS->sslmode) {
 	  r = SSL_read(SS->ssl, buf, spc);
 	  e = SSL_get_error(SS->ssl, r);
@@ -1249,18 +1251,18 @@ int smtp_nbread(SS, buf, spc)
 	    SS->wantreadwrite =  0;
 	    break;
 	  }
-	} else {
+	  if (tls_loglevel >= 3) {
+	    msg_info(NULL,"smtp_nbread() rc=%d errno=%d", r, e);
+	    if (r > 0) tls_dump(buf, r);
+	  }
+	} else
 #endif /* - HAVE_OPENSSL */
-	  /* Normal read(2) */
-	  r = read(infd, buf, spc);
-	  e = errno;
-	}
+	  {
+	    /* Normal read(2) */
+	    r = read(infd, buf, spc);
+	    e = errno;
+	  }
   
-	if (tls_loglevel >= 3) {
-	  msg_info(NULL,"smtp_nbread() rc=%d errno=%d", r, e);
-	  if (r > 0) tls_dump(buf, r);
-	}
-
 	errno = e;
 	return r;
 }
