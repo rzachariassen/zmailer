@@ -1,3 +1,17 @@
+2003-09-01  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/prototypes.h:
+	    Change 'const char *log;' to 'const char *logfn;'
+
+	* utils/perl/Makefile.in:
+	    Deeper study of what to do in perl module compilation.
+	    Now  "make install DESTDIR=.." parameter should have
+	    real effect.
+
+	* transports/libta/ctlopen.c:
+	    One test of  ta_use_mmap  was slightly wrong, and
+	    end result was faulty  let_buffer()  initialization.
+
 2003-08-29  Matti Aarnio  <mea@zmailer.org>
 
 	* debian/*

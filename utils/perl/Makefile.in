@@ -31,12 +31,12 @@ PERL=		@PERL@
 all:	mailq/Makefile
 
 install: mailq/Makefile
-	cd mailq && $(MAKE) $(MFLAGS) DESTDIR=${DESTDIR} install
+	cd mailq && $(MAKE) $(MFLAGS) install PREFIX="${DESTDIR}/usr" INSTALLDIRS=vendor
 
 mailq/Makefile:
 	if [ ! -d mailq ] ; then mkdir mailq ; fi
 	if [ ! -f mailq/Makefile.PL ] ; then cp -pr $(srcdir)/mailq/* mailq/ ; fi
-	cd mailq && $(PERL) Makefile.PL && $(MAKE) $(MFLAGS)
+	cd mailq && $(PERL) Makefile.PL INSTALLDIRS=vendor && $(MAKE) $(MFLAGS)
 
 
 .c.o:
