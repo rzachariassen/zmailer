@@ -161,7 +161,7 @@ char *argv[];
 #ifdef HAVE_GDBM_H
   if (strcmp(argv[1],"gdbm")==0) {
     GDBM_FILE gdbmfile;
-    Gdatum key;
+    Gdatum key, nextkey;
     Gdatum result;
     gdbmfile = gdbm_open(dbasename, 0, GDBM_READER, 0644, NULL);
 
@@ -175,7 +175,10 @@ char *argv[];
       while (key.dptr != NULL) {
 	result = gdbm_fetch(gdbmfile, key);
 	dumpit(stdout, key.dptr, key.dsize, result.dptr, result.dsize);
-	key = gdbm_nextkey(gdbmfile, key);
+	if (result.dptr) free(result.dptr);
+	nextkey = gdbm_nextkey(gdbmfile, key);
+	free(key.dptr);
+	key = nextkey;
       }
     } else {
       key.dptr = argv[3];

@@ -232,20 +232,18 @@ print_gdbm(sip, outfp)
 	if (db == NULL)
 		return;
 
-	for (key = gdbm_firstkey(db); key.dptr != NULL; nextkey = gdbm_nextkey(db, key)) {
+	key = gdbm_firstkey(db);
+	while (key.dptr) {
 		val = gdbm_fetch(db, key);
-		if (val.dptr == NULL) {
-			key = nextkey;
-			continue;
-		}
 		if (gdbm_errno)
 			break;
 		if (val.dptr == NULL || *val.dptr == '\0')
 			fprintf(outfp, "%s\n", key.dptr);
 		else
 			fprintf(outfp, "%s\t%s\n", key.dptr, val.dptr);
-		if (val.dptr != NULL)
+		if (val.dptr)
 			free(val.dptr);
+		nextkey = gdbm_nextkey(db, key);
 		free(key.dptr);
 		key = nextkey;
 	}
@@ -266,13 +264,16 @@ count_gdbm(sip, outfp)
 	int count = 0;
 
 	db = open_gdbm(sip, O_RDONLY, "count_gdbm");
-	if (db != NULL)
-	  for (key = gdbm_firstkey(db); key.dptr != NULL; nextkey = gdbm_nextkey(db, key)) {
-	    if (gdbm_errno != 0)
-	      break;
+	if (db != NULL) {
+	  key = gdbm_firstkey(db);
+	  while (key.dptr) {
 	    ++count;
+	    nextkey = gdbm_nextkey(db, key);
+	    if (key.dptr) free(key.dptr);
+	    if (gdbm_errno) break;
 	    key = nextkey;
 	  }
+	}
 	fprintf(outfp,"%d\n",count);
 	fflush(outfp);
 }
