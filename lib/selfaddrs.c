@@ -247,8 +247,7 @@ other_socktype:
 	close(s);
 
 #if defined(AF_INET6) && defined(INET6)
-	if (af != AF_INET6) {
-	  af = AF_INET6;
+	if (pf != PF_INET6) {
 	  pf = PF_INET6;
 	  goto other_socktype;
 	}
