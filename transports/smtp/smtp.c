@@ -2471,8 +2471,8 @@ smtpconn(SS, host, noMX)
 	      if (r == EX_OK) {
 		retval = EX_OK;
 		break;
-	      } else if (r == EX_TEMPFAIL)
-		retval = EX_DEFERALL;
+	      } else if (r == EX_TEMPFAIL || r == EX_DEFERALL)
+		retval = r;
 	    }
 	  }
 	} /* end of HOSTNAME MX lookup processing */
