@@ -1156,6 +1156,17 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	   skenario..
 	*/
 
+	if (verbose) {
+	  sfprintf(sfstdout,"sync_cfps() OLDVTXES =");
+	  for (ovp = oldcfp->head; ovp; ovp = ovp->next[L_CTLFILE])
+	    sfprintf(sfstdout," %p", ovp);
+	  sfprintf(sfstdout,"\n");
+	  sfprintf(sfstdout,"sync_cfps() NEWVTXES =");
+	  for (nvp = newcfp->head; nvp; nvp = nvp->next[L_CTLFILE])
+	    sfprintf(sfstdout," %p", ovp);
+	  sfprintf(sfstdout,"\n");
+	}
+
 	ovp = oldcfp->head;
 	nvp = newcfp->head;
 
@@ -1310,9 +1321,10 @@ void resync_file(proc, file)
 	  return;
 	}
 
+#if 1 /* XX: not usable before  sync_cfps()  works! */
+
 	newcfp = schedule(fd, file, ino, 1);
 
-#if 0 /* XX: not usable before  sync_cfps()  works! */
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 

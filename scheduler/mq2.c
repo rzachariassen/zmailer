@@ -209,12 +209,13 @@ int mq2_wflush(mq)
   /* Shrink the outbuf, if you can.. */
   if (mq->outbufcount > 0) {
     int l = mq->outbufsize - mq->outbufcount;
-    memcpy(mq->outbuf, mq->outbuf + mq->outbufcount, l);
+    if (l)
+      memcpy(mq->outbuf, mq->outbuf + mq->outbufcount, l);
     mq->outbufcount = 0;
     mq->outbufsize = l;
   }
 
-  if (verbose)
+  if (verbose && (mq->outbufsize - mq->outbufcount))
     fprintf(stderr," -- ok; buf left: %d chars\n",
 	    mq->outbufsize - mq->outbufcount);
 
