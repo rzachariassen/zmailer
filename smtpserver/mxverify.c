@@ -661,17 +661,17 @@ int mx_client_verify(state, retmode, domain, alen)
 	if (rc == -EX_TEMPFAIL) {
 	  return -104;
 	}
+
+	if (rc == 2)
+	  return -3; /* Hard error, all the same */
+
 	if (retmode == '+') {
 	  if (rc == -EX_NOHOST ||
 	      rc == -EX_UNAVAILABLE)
 	    return -2; /* Definitely hard errors */
-	  if (rc == 2)
-	    return -103;
 	  return -102; /* Soft error */
 	}
 
-	if (rc == 2)
-	  return -3;
 	return -2;     /* Reject */
 }
 
@@ -700,6 +700,10 @@ int sender_dns_verify(state, retmode, domain, alen)
 	if (rc == -EX_TEMPFAIL) {
 	  return -104;
 	}
+
+	if (rc == 2)
+	  return -3; /* Hard error all the same */
+
 	if (retmode == '+') {
 	  if (rc == -EX_NOHOST      ||
 	      rc == -EX_UNAVAILABLE ||
@@ -708,13 +712,9 @@ int sender_dns_verify(state, retmode, domain, alen)
 #endif
 	      rc == EAI_NONAME)
 	    return -2; /* Definitely hard errors */
-	  if (rc == 2)
-	    return -103;
 	  return -102; /* Soft error */
 	}
 
-	if (rc == 2)
-	  return -3;
 	return -2;     /* Reject */
 }
 
