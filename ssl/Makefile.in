@@ -24,9 +24,11 @@ ssl.o: $(srcdir)/ssl.c
 depend:	# Err...
 
 test:	ssl
+	if [ ! -f ssl.ssl ]; then ln -s $(srcdir)/ssl.ssl $(srcdir)/ssl_sst.c \
+					$(srcdir)/ssl_sst.h . ; fi
 	./ssl ssl.ssl
-	diff ssl.sst.c ssl:sst.c
-	diff ssl.sst.h ssl:sst.h
+	diff ssl.sst.c ssl_sst.c
+	diff ssl.sst.h ssl_sst.h
 
 # Actually this isn't usually installed at all, rather it is used from
 # its own place while compiling Zmailer..
