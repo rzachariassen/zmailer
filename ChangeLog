@@ -1,5 +1,10 @@
 2003-05-06  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/zmailer.sh.in:
+	    Reworked  'resubmit'  command internal mechanism
+	    to handle cases, where the 'deferred' directory
+	    has thousands of messages.  A bit perl required..
+
 	* lib/mail.c:
 	    realloc()ing uninitialized variable -- OOPS!
 	    (Since 2003-4-17)
