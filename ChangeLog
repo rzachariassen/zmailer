@@ -1,5 +1,9 @@
 2000-09-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* libresolv/sys/bitypes.h, sfio/src/lib/sfio/sfhdr.h,
+	  ssl/ssl.c:
+	    Experimental changes to support compilation at AIX 4.1.
+
 	* proto/db/dbases.conf:
 	    The 'thishost' relations used to carry '-d pathalias'
 	    driver option on original systems, now it was missing..

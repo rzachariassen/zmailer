@@ -93,11 +93,17 @@ extern FILE *fopen();
 /* extern char *sprintf();
    extern int fprintf();
    extern int printf(); */
+#ifndef strcpy
 extern char *strcpy();
+#endif
+#ifndef strcmp
+extern int strcmp();
+#endif
+#ifndef strlen
+extern int strlen();
+#endif
 extern int atoi();
 extern int getopt();
-extern int strcmp();
-extern int strlen();
 /* extern int tolower(); */
 /* extern void abort(); */
 /* extern void exit(); */

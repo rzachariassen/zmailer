@@ -59,7 +59,8 @@
 
 #ifndef __BIT_TYPES_DEFINED__
 # if (defined(BSD) && (BSD >= 199306)) || \
-     (defined(_BSDI_VERSION) && (_BSDI_VERSION >= 199312)) 
+     (defined(_BSDI_VERSION) && (_BSDI_VERSION >= 199312)) \
+ 	|| defined(_AIX) /* AIX 4.1.* very least ? */
 #  define __BIT_TYPES_DEFINED__
 # endif
 #endif

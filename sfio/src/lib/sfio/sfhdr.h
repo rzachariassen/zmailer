@@ -147,7 +147,15 @@
 #endif
 
 #if _socket_peek
-#include	<sys/socket.h>
+# ifdef _AIX
+#  undef SF_CLOSE
+#  include	<sys/socket.h>
+#  undef SF_CLOSE
+/* From sfio.h, but must not be defined until after socket.h! */
+#  define SF_CLOSE 4
+# else /* !_AIX */
+#  include	<sys/socket.h>
+# endif
 #endif
 
 #ifndef X_OK	/* executable */
@@ -875,12 +883,21 @@ extern char*	getenv _ARG_((const char*));
 extern void*	malloc _ARG_((size_t));
 extern void*	realloc _ARG_((void*, size_t));
 extern void	free _ARG_((void*));
+#ifndef strlen
 extern size_t	strlen _ARG_((const char*));
+#endif
+#ifndef strcpy
 extern char*	strcpy _ARG_((char*, const char*));
-
+#endif
+#ifndef memset
 extern Void_t*	memset _ARG_((void*, int, size_t));
+#endif
+#ifndef memchr
 extern Void_t*	memchr _ARG_((const void*, int, size_t));
+#endif
+#ifndef memccpy
 extern Void_t*	memccpy _ARG_((void*, const void*, int, size_t));
+#endif
 #ifndef memcpy
 extern Void_t*	memcpy _ARG_((void*, const void*, size_t));
 #endif
@@ -903,8 +920,12 @@ extern int	wait _ARG_((int*));
 extern int	pipe _ARG_((int*));
 extern int	access _ARG_((const char*, int));
 extern uint	sleep _ARG_((uint));
+#ifndef execl
 extern int	execl _ARG_((const char*, const char*,...));
+#endif
+#ifndef execv
 extern int	execv _ARG_((const char*, char**));
+#endif
 #if !defined(fork)
 extern int	fork _ARG_((void));
 #endif
