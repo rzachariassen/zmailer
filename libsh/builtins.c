@@ -1,6 +1,7 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *	Some functions Copyright 1991-2001 Matti Aarnio.
  */
 
 #include "hostenv.h"
