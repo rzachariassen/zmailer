@@ -406,10 +406,10 @@ getmxrr(host, mx, maxmx, depth)
 	    return EX_TEMPFAIL;
 	  case NOERROR:
 	    if (plaintext) {
-	      fprintf(stdout,"BAD:  NO MX DATA: domain=``%s''  We SIMULATE!\n", host);
+	      fprintf(stdout,"Questionable:  NO MX DATA: domain=``%s''  We SIMULATE!\n", host);
 	      fprintf(stdout,"Do have at least one MX entry added!\n");
 	    } else {
-	      fprintf(stdout,"<H1>BAD:  NO MX DATA: domain=``%s''  We SIMULATE!</H1>\n", host);
+	      fprintf(stdout,"<H1>Questionable:  NO MX DATA: domain=``%s''  We SIMULATE!</H1>\n", host);
 	      fprintf(stdout,"<H1>Do have at least one MX entry added!</H1>\n");
 	    }
 	    mx[0].host = host;

@@ -192,6 +192,7 @@ outbuf_fillup:
 	  if (now > tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
 	    /* Timed out, and have a writable SMTP connection active.. */
 	    /* Lets write a NOOP there. */
+	    SS->rcptstates = 0;
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
@@ -713,9 +714,10 @@ main(argc, argv)
 	       In theory we could use same host via MX, but...     */
 	    if (host && !STREQ(s,(char*)host)) {
 	      if (SS.smtpfp) {
-		if (!getout && !zmalloc_failure)
+		if (!getout && !zmalloc_failure) {
+		  SS.rcptstates = 0;
 		  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
-		else
+		} else
 		  smtpstatus = EX_OK;
 		smtpclose(&SS, 0);
 		notary_setwtt(NULL);
@@ -810,8 +812,10 @@ main(argc, argv)
 	  ctlclose((struct ctldesc *)dp);
 	} /* while (!getout) ... */
 
-	if (SS.smtpfp && !getout)
+	if (SS.smtpfp && !getout) {
+	  SS.rcptstates = 0;
 	  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
+	}
 
 	/* Close the channel -- if it is open anymore .. */
 	if (SS.smtpfp) {
@@ -1120,6 +1124,7 @@ deliver(SS, dp, startrp, endrp)
 	  startrp = more_rp;
 	  more_rp = NULL;
 	}
+	SS->rcptstates = 0;
 
 	/* We are starting a new pipelined phase */
 	smtp_flush(SS); /* Flush in every case */
@@ -1195,12 +1200,14 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate     = SMTPSTATE_RCPTTO; /* 1 + MAILFROM.. */
 
-	  if (SS->smtpfp)
+	  if (SS->smtpfp) {
+	    SS->rcptstates = 0;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      if ( ! mail_from_failed ) {
 		mail_from_failed = 1;
 		goto more_recipients;
 	      }
+	  }
 
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
@@ -1215,7 +1222,6 @@ deliver(SS, dp, startrp, endrp)
 	mail_from_failed = 0;
 	nrcpt = 0;
 	rcpt_cnt = 0;
-	SS->rcptstates = 0;
 
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 
@@ -1298,9 +1304,11 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate     = SMTPSTATE_DATA; /* 1 + RCPTTO.. */
 
-	  if (SS->smtpfp)
+	  if (SS->smtpfp) {
+	    SS->rcptstates = 0;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      r = EX_TEMPFAIL ;
+	  }
 
 	  if (r == EX_OK && more_rp)
 	    /* we have more recipients,
@@ -1364,9 +1372,11 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp)
+	    if (SS->smtpfp) {
+	      SS->rcptstates = 0;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
+	    }
 	    return r;
 	  }
 
@@ -1392,9 +1402,11 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp)
+	    if (SS->smtpfp) {
+	      SS->rcptstates = 0;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
+	    }
 	    return r;
 	  }
 	  time(&endtime);
@@ -1428,6 +1440,7 @@ deliver(SS, dp, startrp, endrp)
 	    if (SS->smtpfp &&
 		(SS->rcptstates & RCPTSTATE_400) &&
 		(SS->rcptstates & FROMSTATE_OK)) {
+	      SS->rcptstates = 0;
 	      smtpwrite(SS, 0, "QUIT", -1, NULL);
 	      smtpclose(SS,1);
 	      if (logfp)
@@ -1439,6 +1452,7 @@ deliver(SS, dp, startrp, endrp)
 	      r = EX_TEMPFAIL;
 	    }
 	    if (SS->smtpfp) {
+	      SS->rcptstates = 0;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
 	    }
@@ -1460,9 +1474,11 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp)
+	    if (SS->smtpfp) {
+	      SS->rcptstates = 0;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
+	    }
 	    return r;
 	  }
 	  timeout = timeout_dot;
@@ -1527,9 +1543,11 @@ deliver(SS, dp, startrp, endrp)
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
-	  if (SS->smtpfp)
+	  if (SS->smtpfp) {
+	    SS->rcptstates = 0;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      r = EX_TEMPFAIL;
+	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 
@@ -1679,6 +1697,7 @@ deliver(SS, dp, startrp, endrp)
 	if (SS->smtpfp &&
 	    (SS->rcptstates & RCPTSTATE_400) &&
 	    (SS->rcptstates & FROMSTATE_OK)) {
+	  SS->rcptstates = 0;
 	  smtpwrite(SS, 0, "QUIT", -1, NULL);
 	  smtpclose(SS,1);
 	  fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
@@ -1687,6 +1706,7 @@ deliver(SS, dp, startrp, endrp)
 	  close_after_data = 1;
 	}
 	if (SS->smtpfp && close_after_data) {
+	  SS->rcptstates = 0;
 	  smtpwrite(SS, 0, "QUIT", -1, NULL);
 	  smtpclose(SS,1);
 	  fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode.", logtag());
@@ -1700,9 +1720,11 @@ deliver(SS, dp, startrp, endrp)
 
 	SS->cmdstate = SMTPSTATE_DATADOTRSET;
 
-	if (r != EX_OK && SS->smtpfp && !getout)
+	if (r != EX_OK && SS->smtpfp && !getout) {
+	  SS->rcptstates = 0;
 	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	    r = EX_TEMPFAIL;
+	}
 
 	if (SS->chunkbuf) free(SS->chunkbuf);
 
@@ -1833,6 +1855,7 @@ smtpopen(SS, host, noMX)
 	    if ((i == EX_OK) && tls_available &&
 		(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
 
+	      SS->rcptstates = 0;
 	      i = smtpwrite(SS, 0, "STARTTLS", 0, NULL);
 	      if (i == EX_OK) {
 		/* Wow, "STARTTLS" command started successfully! */
@@ -1938,7 +1961,7 @@ smtpopen(SS, host, noMX)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);
 	    else
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
-	    i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
+	    i = smtp_ehlo(SS, SMTPbuf);
 	    if (i != EX_OK && SS->smtpfp) {
 	      smtpclose(SS, 1);
 	      if (logfp)
@@ -1950,6 +1973,7 @@ smtpopen(SS, host, noMX)
 	      i = makereconn(SS);
 	      if (i != EX_OK)
 		continue;;
+	      SS->rcptstates = 0;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	      if (i != EX_OK && SS->smtpfp) {
 		smtpclose(SS, 1);
@@ -2558,6 +2582,7 @@ makeconn(SS, ai, ismx)
 		SS->esmtp_on_banner = 0;
 
 	      /* Wait for the initial "220-" greeting */
+	      SS->rcptstates = 0;
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
 	      if (retval != EX_OK)
 		/*
@@ -4021,6 +4046,7 @@ smtp_ehlo(SS, strbuf)
 	int rc;
 	SS->within_ehlo = (SS->esmtp_on_banner > -2);
 	SS->ehlo_capabilities = 0;
+	SS->rcptstates = 0;
 	rc = smtpwrite(SS, 1, strbuf, 0, NULL);
 	SS->within_ehlo = 0;
 	return rc;
