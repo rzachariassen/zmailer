@@ -139,9 +139,10 @@ to configure two kinds of things:
 
 .IP PARAM\ \-entries
 allow server start-time parametrization of several things, including:
+.nf
 .I \-\ help-texts
 .I \-\ acceptance/rejection\ database\ definitions
-
+.fi
 .IP The\ style\ (\fI\-s\fR)\ option
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
@@ -236,6 +237,17 @@ sloppy			S
 *                       R
 .fi
 .sp
+.SH TCP-WRAPPER AND SMTPSERVER
+If the ZMailer system is configured with tcp-wrapper code, then service-id
+"smtp-receive" is looked for all those addresses that are allowed to feed
+smtp email in.
+.P
+Usually this mode of operation is not used, and "hosts.allow"
+file contains entry:
+.P
+.nf
+  smtp-receive : ALL@ALL
+.fi
 .SH FILES
 .I /etc/zmailer.conf
 .br
