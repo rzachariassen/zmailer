@@ -1,0 +1,205 @@
+#! @PERL@
+
+#  NEWDB processor in all wraps..
+#
+
+
+exit 99
+
+
+# -----------------------------------------------------------------------
+#    newdbprocessor()  -- converts DB configuration to ZMSH scripts
+#                         which the router digests at its startup.
+#
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv control data (or "-")
+#|                  newdb_compile_options (-a for aliases!)
+#|                     dbfile (or "-")
+#|                         dbflags (or "-") ...
+#|
+#| The  dbtype  can be "magic" '$DBTYPE', or any other valid database
+#| type for the Router.  Somewhat magic treatment (newdb runs) are
+#| done when the dbtype is any of: *DBTYPE/dbm/gdbm/ndbm/btree
+#|
+#| The "dbfile" need not be located underneath of $MAILVAR, as long as
+#| it is in system local filesystem (for performance reasons.)  E.g.
+#| one can place one of e.g. aliases files to some persons directory.
+#|
+
+#|Example:
+#|
+#|Security sensitive ones ("dbpriv" must be defined!)
+#| aliases         $DBTYPE  0:0:644    -la $MAILVAR/db/aliases        -lm
+#| aliases         $DBTYPE  root:0:644 -la $MAILVAR/db/aliases-2      -lm
+#| fqdnaliases     $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnaliases    -lm
+#| userdb          $DBTYPE  root:0:644 -la $MAILVAR/db/userdb         -lm
+#|
+#|Security insensitive ones ("dbpriv" need not be defined!)
+#| fqdnaliasesldap ldap     -    -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
+#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames      -lm
+#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap      -lm
+#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts   -lm
+#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes       -lm -d longestmatch
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes         -lm
+#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames     -lm
+#| thishost        unordered -   -   $MAILVAR/db/localnames     -l
+#| thishost        bind,mxlocal - -  -                          -l
+#| otherservers    unordered -   -   $MAILVAR/db/otherservers   -lm -d pathalias
+#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active         -lm
+#
+#
+
+newdbprocessor() {
+    infn=$1
+
+    relnames=`cat $infn | awk '/^[0-9a-zA-Z]/{print $1;}' | sort | uniq`
+
+    cd $MAILVAR/db
+
+    echoo "( "
+
+    for rel in $relnames
+    do
+	echoo "${rel}{"
+	ofn="$rel.zmsh"
+	tfn="/tmp/newdb.$$"
+	rnum=1
+	> $tfn # Trunc the file
+	cat > $ofn <<EOF
+# ZMSH init script for relation: $rel
+
+# ---boilerplate head
+EOF
+	# --- construct each relation, and binding at lookup, generate the db
+	cat $infn | ( 
+	oo=''
+	while read rname rtype rpriv rndbopt rdbfile rdbflags
+	do
+	    if [ "$rel" = "$rname" ]; then
+		rn="${rel}_$rnum"
+		rnum=`expr $rnum + 1`
+
+		rdbext=''
+		rdbtype=''
+		rdbexttst=''
+		# Process options into what the newdb really likes to get..
+		case "$rndbopt" in
+		-)
+		    rndbopt=''
+		    ;;
+		-l)
+		    rndbopt='-l'
+		    ;;
+		-la)
+		    rndbopt='-l -a'
+		    ;;
+		esac
+		eval fn=$rdbfile
+		echoo "$oo$rn"
+		oo=','
+		case "$rtype" in
+		    *DBTYPE)
+			rdbexttst='$DBEXTtest'
+			rdbext='$DBEXT'
+			rdbtype='$DBTYPE'
+			newdb -s $rndbopt -t $DBTYPE $fn
+			echoo ":NEW"
+			;;
+		    ndbm)
+			rdbexttst='.pag'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t ndbm $fn
+			echoo ":NEW"
+			;;
+		    dbm)
+			rdbexttst='.pag'
+			rdbext=''
+			rdbtype=$rtype
+			newdb -s $rndbopt -t dbm $fn
+			echoo ":NEW"
+			;;
+		    sdbm)
+			rdbexttst='.pag'
+			rdbext=''
+			rdbtype=$rtype
+			newdb -s $rndbopt -t sdbm $fn
+			echoo ":NEW"
+			;;
+		    gdbm)
+			rdbexttst='.gdbm'
+			rdbext='.gdbm'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t gdbm $fn
+			echoo ":NEW"
+			;;
+		    btree)
+			rdbexttst='.db'
+			rdbext='.db'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t btree $fn
+			echoo ":NEW"
+			;;
+		    bhash)
+			rdbexttst='.dbh'
+			rdbext='.dbh'
+			rdbtype=$rtype
+			newdb -s $rndbopt -t btree $fn
+			echoo ":NEW"
+			;;
+		    *)
+			rdbexttst='.dat'
+			rdbext='.dat'
+			
+			;;
+		    esac
+		if [ "$rpriv" = "-" ]; then
+		    # ---- No privilege things collected -----
+		    cat >> $tfn <<EOF
+	if a="\$($rn "\$key")"; then
+	    return "\$a"
+	fi
+EOF
+		else
+		    # ---- privilege things to collect ----
+		    # rpriv is a colon separated duplet/triplet:
+		    # ... FIXME! Implement in SH !?  Or change this to PERL ?
+		    cat >> $tfn <<EOF
+	if a="\$($rn "\$key")"; then
+	    priv="\$(filepriv -M 644 $rdbfile$rdbexttst \\
+			    \$(db owner $rn))" &&
+	    return "\$a"
+	fi
+EOF
+		fi
+		if [ "$rdbfile" = "-" ]; then
+		    cat >> $ofn <<EOF
+	relation $rdbflags -t $rtype $rn
+EOF
+		else
+		    cat >> $ofn <<EOF
+	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn
+EOF
+		fi
+	    fi
+	done )
+	# --- put out tails, and complete..
+	cat >> $ofn <<EOF
+# boilerplate tail---
+
+$rel(key) {
+    local a
+EOF
+	cat $tfn >> $ofn
+	cat >> $ofn <<EOF
+    return 1
+}
+EOF
+	rm -f $tfn
+	echoo "} "
+    done
+
+    echoo ") "
+}
+

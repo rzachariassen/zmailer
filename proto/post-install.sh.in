@@ -102,11 +102,11 @@ dirprealloc()
     > $DIR/filename.0
     SIZE=`ls -ld $DIR/.|awk '{print $5}'`
     while [ $SIZE -lt $DSIZE ]; do
-	ln $DIR/filename.0 $DIR/filename.$NAME
+	ln $DIR/filename.0 $DIR/filenamefilenamefilenamefilenamefilenamefilenamefilenamefilename.$NAME
 	SIZE=`ls -ld $DIR/.|awk '{print $5}'`
 	NAME=`expr $NAME + 1`
     done
-    rm -f $DIR/*
+    (cd $DIR; rm -f *)
 }
 
 mkpostofficedir()
@@ -156,6 +156,8 @@ ZCONFIG=@ZMAILERCFGFILE@
 MKDIR="@MKDIR@"
 
 . $ZCONFIG
+
+if [ -z "$MAILSHARE" ]
 
 MD5SUM="@MD5SUM@"
 
