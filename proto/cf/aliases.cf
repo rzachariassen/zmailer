@@ -204,14 +204,15 @@ routeuser (quad, plustail, domain) {
 	# Use of 'host' field means we can't use 
 
 	user="$(user $quad)"
-	key="$chan$(host $quad)$user"
+	key="$user"
 
 	type="$(get $attr type)"
 
 	case "$type" in
 	sender)
 		a=$(userdb "$user:mailname") || return (($quad))
-		return ((("$chan" "$a" "$user" $attr))) ;;
+		return ((("$chan" "$a" "$user" $attr)))
+		;;
 	esac
 
 	# get rid of the attribute tag for alias loop prevention
@@ -259,16 +260,18 @@ routeuser (quad, plustail, domain) {
 		;;
 	':include:[\ \t]*(.+)[\ \t]*'
 		# Weird format to do explicite white-space stripping...
-		db add expansions "$key" file
 		priv=$(get $attr privilege)
-		[ -f "\1" ] &&
-		 priv=$(getpriv "644" $priv "\1" include) &&
+		if [ -f "\1" ] && $(didexpand ':include:') &&
+		   priv=$(getpriv "644" $priv "\1" include) ; then
+		  # sendmail-like :include: expansion
+		  db add expansions "$key.:include:" 1
 		  nattr=$(newattribute $attr privilege $priv) &&
 		   defer='' &&
-		return $(runas $priv cat "\1" | \
-			 listexpand -E "postmaster" -e root -p $priv	\
-				    -c ":include:\1 file expansion"	\
-				    "$nattr" "\1" "$host" "" "$domain" )
+		  return $(runas $priv cat "\1" | \
+			   listexpand -E "postmaster" -e root -p $priv	\
+				      -c ":include:\1 file expansion"	\
+				      "$nattr" "\1" "$host" "" "$domain" )
+		fi
 		;;
 
 #	# This following requires ZM 2.99.46+ shell language!
@@ -290,12 +293,7 @@ routeuser (quad, plustail, domain) {
 	tfiss
 
 #	alias expansion
-	#[ -z "$didexpand" ] && a="$(aliases "$user")" &&
-	#	db add expansions "$key" alias &&
-	#	priv=$(filepriv -M 644 $MAILVAR/db/aliases \
-	#				$(db owner aliases)) &&
-	#	nattr=$(newattribute $attr privilege $priv) &&
-	#	...
+
 	if $(didexpand aliases) && a="$(aliases "$user")" ; then
 		db add expansions "$key.aliases" 1
 		nattr=$(newattribute $attr privilege $priv)
@@ -311,7 +309,8 @@ routeuser (quad, plustail, domain) {
 
 # ---- from rrouter.cf:
 
-	if a="$(fullnamemap "$user")" ; then
+	if $(didexpand fullnamemap) && a="$(fullnamemap "$user")" ; then
+		db add expansions "$key.fullnamemap" 1
 		return $(rrouter "$a" "$user" $attr "$plustail" "$domain")
 	fi
 	if [ "$do_newsgroup" ] && [ -n "$(newsgroup "$user")" ]; then
@@ -321,9 +320,7 @@ routeuser (quad, plustail, domain) {
 # ---- end of "from rrouter.cf":
 
 	# Listed in 'expired accounts' database ?
-	if [ -z "$PUNTHOST" ] && $(didexpand expired) &&
-	    a=$(expired "$user") ; then
-		db add expansions "$key.expired" 1
+	if [ -z "$PUNTHOST" ] && a=$(expired "$user") ; then
 		return (((error acctexpired "$user" $attr)))
 	fi
 
@@ -331,7 +328,6 @@ routeuser (quad, plustail, domain) {
 		tsift "$pobox" in
 		([^:]+):([^:]+):(.+)
 			if [ "\1" != $hostname ]; then
-				db add expansions "$key.mboxmap" 1
 				return (((smtp "\1" "$user@\1" $attr)))
 			fi
 			user="\3"	# this is also good for .forward stuff
@@ -365,8 +361,8 @@ routeuser (quad, plustail, domain) {
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
 	#l="$preowner$lcuser$postowner$domain"
-	if [ -f "$a" ] && $(didexpand list) ; then
-	    db add expansions "$key.list" 1
+	if [ -f "$a" ] && $(didexpand lists) ; then
+	    db add expansions "$key.lists" 1
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
 		return $(runas $priv cat "$a" | \
@@ -378,8 +374,8 @@ routeuser (quad, plustail, domain) {
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
 	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
-	if [ -f "$a" ] && $(didexpand list) ; then
-	    db add expansions "$key.list" 1
+	if [ -f "$a" ] && $(didexpand modlists) ; then
+	    db add expansions "$key.modlists" 1
 	    priv=$(getpriv "664" $priv "$a" maillist)
 	    case "$lcuser" in
 		*-mod)
@@ -521,13 +517,9 @@ fi
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	    (.+)\+.+
 		# Try expanding 'user+', and then plain 'user'
-		a=$(expansions "$(channel $quad)\1+")
-		if [ -n "$a" ] ; then
-			return (((bitbucket "$(host $quad)2" "$(user $quad)" $(attributes $quad))))
-			# Return empty -- plusfull was expanded!
-		fi
-		if a="$(aliases "\1+")"; then
-		  db add expansions "$key.aliases" 1
+		key="\1+"
+		if $(didexpand 'aliases+') && a="$(aliases "\1+")"; then
+		  db add expansions "$key.aliases+" 1
 		  nattr=$(newattribute $attr privilege $priv)
 
 		  return $(echo "$a" |			\
@@ -543,16 +535,11 @@ fi
 	    (.+)\+(.*)
 		# It was 'user+', try now plain 'user' for
 		# aliases, and .forward
-		a=$(expansions "$(channel $quad)\1") &&
-		if [ -n "$a" ] ; then
-			return (((bitbucket "$(host $quad)3" "$(user $quad)" $(attributes $quad))))
-			# Return empty -- plusfull was expanded!
-		fi
-
+		key="\1"
 		plustail2="+\2"
 
-		if a="$(aliases "\1")"; then
-		  db add expansions "$key.aliases" 1
+		if $(didexpand aliases+-) && a="$(aliases "\1")"; then
+		  db add expansions "$key.aliases+-" 1
 		  nattr=$(newattribute $attr privilege $priv)
 
 		  return $(echo "$a" |			\
@@ -564,14 +551,15 @@ fi
 
 		fi
 
-		a="$(fullnamemap "\1")" && \
+		if $(didexpand 'fullnamemap+-') && a="$(fullnamemap "\1")";then
+		  db add expansions "$key.fullnamemap+-" 1
 		  return $(rrouter "$a" "$user" $attr "$plustail2" "$domain")
+		fi
 
 		pobox="$(mboxmap "\1")" &&
 		  tsift "$pobox" in
 		  ([^:]+):([^:]+):(.+)
 			if [ "\1" != $hostname ]; then
-				db add expansions "$key" mboxmap
 				return (((smtp "\1" "$user@\1" $attr)))
 			fi
 			plustail="$plustail2"
@@ -616,8 +604,7 @@ fi
 
 	# local user with no alias and no .forward file
 
-	if [ -n "$pobox" ] && $(didexpand pobox) ; then
-		db add expansions "$key.pobox" 1
+	if [ -n "$pobox" ] ; then
 		priv=$(login2uid "$user")
 		return (((local "pob:$user" "$pobox$plustail$domain" $(newattribute $attr privilege $priv))))
 	fi
@@ -626,24 +613,6 @@ fi
 	# oh well... give up, and sent to the PUNTHOST
 	if [ -n "$PUNTHOST" ]; then
 		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
-	elif [ -n "$didexpandxx" ]; then
-		case "$didexpand" in
-		user|alias)
-			db add expansions "$key" other
-			;;
-		local)
-			# This is nasty special case -- a failing .forward
-			# will generate "\user" which in turn will generate
-			# didexpand="local" and $user without the leading \
-			# Treat it as local delivery.
-			return (((local "$(host $quad)" "$user" $(attributes $quad))))
-			;;
-		*)	# the address just disappears... we've got it already
-			#log expansion "$(expansions "$key"):"
-			#return ()
-			return (((bitbucket "$(host $quad)5" "$(user $quad)" $(attributes $quad))))
-			;;
-		esac
 	fi
 
 	case "$user" in
