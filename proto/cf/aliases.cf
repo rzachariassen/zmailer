@@ -32,11 +32,8 @@ provide aliases
 
 if [ -f $MAILVAR/db/aliases ]; then
 	# Need to be updated at boot ?
-	if [ ! -f $MAILVAR/db/aliases$DBEXTtest ]; then
-		# Yes, so update!
-		$MAILBIN/zmailer newaliases
-	fi
-	if [ $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
+	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
+	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
 		# Yes, so update!
 		$MAILBIN/zmailer newaliases
 	fi
@@ -107,12 +104,20 @@ routeuser (quad, domain) {
 	# will have subsequently DIFFERENT values for it.
 
 	key="$(channel $quad)$(user $quad)"
-	didexpand=$(expansions "$key") &&
+	didexpand=$(expansions "$key")
+
+	[ -n "$didexpand" ] &&
+	case "$didexpand" in
+#	user)	# Empty .forward  will cause us to call back into here :-(
+#		;;
+	*)	
 		# Sigh, the easiest way to handle duplicate invokations
 		# in here is to yield "bitbucket".  In theory we could
 		# yield (), but the router dislikes it.  (Must teach
 		# it for good manners..)
-		return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+		return (((bitbucket "$(host $quad)1" "$(user $quad)" $(attributes $quad))))
+		;;
+	esac
 
 	al=()
 
@@ -150,6 +155,9 @@ routeuser (quad, domain) {
 		return $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
 	ssift "$user" in
+	\\(.*)	user="\1" # Back-quoted username -- most likely
+		didexpand=local
+		;;
 	:include:(.+)
 		db add expansions "$key" file
 		priv=$(get $attr privilege)
@@ -181,7 +189,7 @@ routeuser (quad, domain) {
 	tfiss
 
 #	alias expansion
-	a="$(aliases "$user")" &&
+	a="$(aliases "$user")" && [ -z "$didexpand" ] &&
 		db add expansions "$key" alias &&
 		priv=$(filepriv -M 644 $MAILVAR/db/aliases \
 					$(db owner aliases)) &&
@@ -192,11 +200,12 @@ routeuser (quad, domain) {
 						"$nattr" "$a" "$host")
 
 	# Listed in 'expired accounts' database ?
-	[ -z "$PUNTHOST" ] &&
+	[ -z "$PUNTHOST" ] &&  [ -z "$didexpand" ] &&
 	    a=$(expired "$user") &&
 		db add expansions "$key" expired &&
 		return (((error acctexpired "$user" $attr)))
 
+	[ -z "$didexpand" ] &&
 	pobox="$(mboxmap "$user")" &&
 	tsift "$pobox" in
 	([^:]+):([^:]+):(.+)
@@ -230,7 +239,7 @@ routeuser (quad, domain) {
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
 	#l="$preowner$lcuser$postowner$domain"
-	[ -f "$a" ] &&
+	[ -f "$a" ] && [ -z "$didexpand" ] &&
 	  db add expansions "$key" list &&
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
@@ -241,7 +250,7 @@ routeuser (quad, domain) {
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
 	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
-	if [ -f "$a" ] &&
+	if [ -f "$a" ] && [ -z "$didexpand" ] &&
 	   db add expansions "$key" list ; then
 		priv=$(getpriv "664" $priv "$a" maillist)
 		case "$lcuser" in
@@ -260,6 +269,8 @@ routeuser (quad, domain) {
 
 	# turn *-owner and *-request into the owner of a mailing list file
 	# turn *-group into members listed in /etc/groups
+
+	[ -z "$didexpand" ] &&
 	ssift "$lcuser" in
 	(.+)-owner
 		a="$MAILVAR/lists/\1"
@@ -299,9 +310,11 @@ routeuser (quad, domain) {
 	ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	(.+)\+.+
 		# Try expanding 'user+', and then plain 'user'
-		didexpand=$(expansions "$(channel $quad)\1+") &&
-			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+		didexpand=$(expansions "$(channel $quad)\1+")
+		if [ -n "$didexpand" ] ; then
+			return (((bitbucket "$(host $quad)2" "$(user $quad)" $(attributes $quad))))
 			# Return empty -- plusfull was expanded!
+		fi
 		a="$(aliases "\1+")" &&
 		  db add expansions "$key" alias &&
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
@@ -317,8 +330,10 @@ routeuser (quad, domain) {
 		# It was 'user+', try now plain 'user' for
 		# aliases, and .forward
 		didexpand=$(expansions "$(channel $quad)\1") &&
-			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+		if [ -n "$didexpand" ] ; then
+			return (((bitbucket "$(host $quad)3" "$(user $quad)" $(attributes $quad))))
 			# Return empty -- plusfull was expanded!
+		fi
 		a="$(aliases "\1")" &&
 		  db add expansions "$key" alias &&
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
@@ -359,9 +374,10 @@ routeuser (quad, domain) {
 	priv=$(get $attr privilege)
 
 	[ -z "$PUNTHOST" ] && [ -n "$homedir" ] && [ -f "$forward" ] &&
-		db add expansions "$key" user &&
-		priv=$(getpriv "644" $priv "$forward" .forward) &&
-		return $(listaddresses -e "$user" -c "$forward .forward expansion" < "$forward" | \
+	[ -z "$didexpand" ] &&
+	  db add expansions "$key" user &&
+	    priv=$(getpriv "644" $priv "$forward" .forward) &&
+	      return $(listaddresses -e '"'"\\\\$user"'"' -c "$forward .forward expansion" < "$forward" | \
 			 maprrouter $(newattribute $attr privilege $priv) \
 					"$forward" "$host")
 
@@ -380,11 +396,12 @@ routeuser (quad, domain) {
 	elif [ -n "$didexpand" ]; then
 		case $(expansions "$key") in
 		user|alias)
-			db add expansions "$key" other ;;
+			db add expansions "$key" other
+			;;
 		*)	# the address just disappears... we've got it already
 			#log expansion "$(expansions "$key"):"
 			#return ()
-			return (((bitbucket "$(host $quad)" "$(user $quad)" $(attributes $quad))))
+			return (((bitbucket "$(host $quad)5" "$(user $quad)" $(attributes $quad))))
 			;;
 		esac
 	fi

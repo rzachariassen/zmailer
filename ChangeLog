@@ -1,3 +1,11 @@
+1998-03-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/rrouter.cf, proto/cf/aliases.cf:
+	    When user has  .forward  but it is empty, aliasing pushed
+	    said user to bitbucket.  Now the .forward is expanded to
+	    be  "\username", and no recursed .forward will be entered.
+	    Thus the user will stay in the local system.
+
 1998-03-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/rfc822hdrs.c:

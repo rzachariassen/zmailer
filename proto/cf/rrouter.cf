@@ -206,7 +206,9 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	ssift "$address" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
-		return $(rrouter "\1" "$origaddr" $A "$plustail" "")
+		#return $(rrouter "\1" "$origaddr" $A "$plustail" "")
+		tmp=(local "$origaddr" "$address" $A)
+		return $(routeuser $tmp "")
 		;;
 
 	/.+	# file
