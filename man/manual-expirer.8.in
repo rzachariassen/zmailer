@@ -10,6 +10,11 @@ manual-expirer \- wrapper for expirer(8) transporter
 .I arguments
 ]
 .SH DESCRIPTION
+The
+.I manual-expirer
+is tool for ZMailer administrator for removing mails from the spool by
+expiring them prematurely.
+.PP
 .I manual-expirer
 wraps
 .IR expirer (8)
