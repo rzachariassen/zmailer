@@ -128,10 +128,11 @@ done
 # ----------------------------
 #    Database prototypes ???
 
-for x in $MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf \
-	 $MAILSHARE/proto/smtpserver.conf $MAILSHARE/proto/sm.conf  \
-	 $MAILVAR/db/proto/aliases $MAILVAR/db/proto/localnames     \
-	 $MAILVAR/db/proto/fqdnaliases $MAILVAR/db/proto/routes	    \
+for x in $MAILSHARE/proto/router.cf	   $MAILSHARE/proto/scheduler.conf  \
+	 $MAILSHARE/proto/smtpserver.conf  $MAILSHARE/proto/sm.conf	    \
+	 $MAILSHARE/proto/smtp-tls.conf					    \
+	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames     \
+	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes	    \
 	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx \
 	 $MAILVAR/db/proto/smtp-policy.relay
 do

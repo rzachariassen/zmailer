@@ -6,6 +6,8 @@
 
 #include "smtp.h"
 
+#define ALARM_BLOCKSIZE 2000 /* Not alarm() thing, but more for reports.. */
+
 
 /*
  * appendlet - append letter to file pointed at by fd

@@ -1,5 +1,21 @@
 2000-01-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* man/smtp.8, proto/smtp-tls.conf{,.in}, doc/guides/openssl,
+	  configure.in, proto/Makefile.in, proto/scheduler.conf.in,
+	  proto/post-install.sh.in:
+	    - Updated 'smtp.8' man-page
+	    - Updated OpenSSL GUIDE
+	    - Updated the prototype of  smtp-tls.conf  (and renamed
+	      it for autoconf reasons)
+	    - Install the  smtp-tls.conf  prototype file (for post-install)
+	    - Updated  post-install.sh
+	    - Added example usage clause to scheduler.conf.in
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c, transports/smtp/appendlet.c:
+	    Reworked the timeout parametrizations somewhat
+	    (per what a colleque of mine had asked for)
+
 	* router/libdb/header.c:
 	    Remove the "Date" headers from specially recognized set.
 	    Will end PARSING of the headers completely - it is an UA

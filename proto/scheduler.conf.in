@@ -365,6 +365,20 @@ smtp-etrn/*
 	queueonly
 	command="smtp -s -c $channel -l ${LOGDIR}/smtp-etrn"
 
+#
+# Destinations desired to use TLS (a.k.a. SSL) encryption can be
+# run like this example shows.  There are two possibilities about
+# REQUIRING the TLS encapsulation; that detail is configured inside
+# the  ``smtp-tls.conf'' file.
+#
+smtp-tls/*
+	maxchannel=199
+	maxring=20
+	interval=1h
+	retries="12"
+	queueonly
+	command="smtp -s -c $channel -T ${MAILSHARE}/smtp-tls.conf -l ${LOGDIR}/smtp-tls"
+
 # Connections to the outside shouldn't duplicate effort so we only allow one
 # per destination.
 smtp/*

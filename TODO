@@ -9,7 +9,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   *V* r       local "\"s.roffel\" s.roffel.m.rosendaal"@soneramail.nl "s.roffel\" s.roffel.m.rosendaal 60001
   *V* N ORCPT=rfc822;"\"s.roffel\"+20s.roffel.m.rosendaal"@soneramail.nl
   So it is ctlopen() around 2.99.52-pre2 ..
-  Hmm..  No, router bug indicated - ending quote is missing!
+  Hmm..  No; a router bug indicated - ending quote is missing!
   Indeed *wrapping* quotes are missing, and the first quote is not '\"'
 
 - router+scheduler+TA status MIB areas in an SHM segment
@@ -20,22 +20,15 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - smtp TA (all TAs ??) leak memory in MIME header processing,
   and (what is worse) they seem to refer thru pointers located
   within FREED memory blocks..
-
-- smtp TA SSL mode test & fixes
+    (refers thru freed memory cured (?) at 2.99.52, leak status unknown)
 
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
+    (cured at 2.99.52 ??)
 
 - "./configure --without-rfc822-tabs"  does turn line-start TABs
   to spaces, however there is no mechanism to turn line-start
   SPACEs to TABs. (Place to do it is likely router/rfc822hdrs.c)
-
-- scheduler feature:
-  When assimilating new tasks into existing threads, if the thread
-  has processes, and 'nextfeed == NULL' (all processes are in
-  'FINISHING' state ?), link the new vertex to be the 'nextfeed'
-  item.  --> new messages won't be delayed.  [ How about process
-  state-change from 'FINISHING' to 'STUFFING' in this situation ? ]
 
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea

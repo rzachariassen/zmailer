@@ -6,29 +6,8 @@
 
 #define	RFC974		/* If BIND, check that TCP SMTP service is enabled */
 
-#define	TIMEOUT		(5*60)	/* timeout in seconds, per exchange */
-#define ALARM_BLOCKSIZE (6*560) /* less than 'smtp_bufsize' */
-#define ALARM_DOTTOOK   (60*60)
-			/* RFC 1123 recommends:
-			     - Initial 220: 5 minutes
-			     - MAIL, RCPT : 5 minutes
-			     - DATA initialization (until "354.."): 2 minutes
-			     - While writing data, a block
-			       at the time: 3 minutes  (How large a block ?)
-			     - From "." to "250 OK": 10 minutes
-
-			   I think we simplify:  5 minutes each, except "."
-			   to "250 ok" which is 60 (!) minutes. (sendmail's
-			   default value.)
-			   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
-
-			 */
-
 #define DefCharset "ISO-8859-1"
-
-
 #define CHUNK_MAX_SIZE 64000
-
 #define DO_CHUNKING 1
 
 #include "hostenv.h"

@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-1999 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"
@@ -19,6 +19,12 @@
    default value.)
    Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
  */
+int timeout = 0;		/* how long do we wait for response? (sec.) */
+int timeout_cmd  =  5*60;
+int timeout_data =  2*60;
+int timeout_tcpw =  3*60;	/* All tcp writes ?? */
+int timeout_dot  = 60*60;
+int timeout_conn =  3*60;	/* connect() timeout */
 
 char *defcharset;
 char myhostname[MAXHOSTNAMELEN+1];
@@ -32,8 +38,6 @@ int verbosity = 0;
 int conndebug = 0;
 int dotmode = 0;		/* At the SMTP '.' phase, DON'T LEAVE IMMEDIATELY!. */
 int getout  = 0;		/* signal handler turns this on when we are wanted to abort! */
-int timeout = 0;		/* how long do we wait for response? (sec.) */
-int conntimeout = 3*60;		/* connect() timeout */
 int gotalarm = 0;		/* indicate that alarm happened! */
 jmp_buf procabortjmp;
 int procabortset = 0;
@@ -392,7 +396,7 @@ main(argc, argv)
 	if (oldsig != SIG_IGN)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 	SIGNAL_IGNORE(SIGPIPE);
-	timeout = TIMEOUT;
+	timeout = timeout_cmd;
 
 	progname = PROGNAME;
 	errflg = 0;
@@ -461,8 +465,46 @@ main(argc, argv)
 	    localidentity = strdup(optarg);
 	    break;
 	  case 'T':		/* specify Timeout in seconds */
-	    if ((timeout = atoi(optarg)) < 5) {
-	      fprintf(stderr, "%s: illegal timeout: %d\n", argv[0], timeout);
+	    if (strncasecmp(optarg,"conn=",5)==0) {
+	      timeout_conn = atoi(optarg+5);
+	      if (timeout_conn < 10) {
+		fprintf(stderr, "%s: bad tcp connection timeout: %s\n",
+			argv[0], optarg+5);
+		++errflg;
+	      }
+	      break;
+	    } else if (strncasecmp(optarg,"data=",5)==0) {
+	      timeout_data = atoi(optarg+5);
+	      if (timeout_data < 10) {
+		fprintf(stderr, "%s: bad data timeout: %s\n",
+			argv[0], optarg+5);
+		++errflg;
+	      }
+	      break;
+	    } else if (strncasecmp(optarg,"dot=",4)==0) {
+	      timeout_dot = atoi(optarg+4);
+	      if (timeout_dot < 10) {
+		fprintf(stderr, "%s: bad data-dot-reply timeout: %s\n",
+			argv[0], optarg+4);
+		++errflg;
+	      }
+	      break;
+	    } else if (strncasecmp(optarg,"tcpw=",5)==0) {
+	      timeout_tcpw = atoi(optarg+5);
+	      if (timeout_tcpw < 10) {
+		fprintf(stderr, "%s: bad tcp-write timeout: %s\n",
+			argv[0], optarg+5);
+		++errflg;
+	      }
+	      break;
+	    } else if (strncasecmp(optarg,"cmd=",4)==0) {
+	      timeout_cmd = atoi(optarg+4);
+	      optarg += 4;
+	    } else
+	      timeout_cmd = atoi(optarg);
+	    if (timeout_cmd < 5) {
+	      fprintf(stderr, "%s: bad general cmd timeout: %s\n",
+		      argv[0], optarg);
 	      ++errflg;
 	    }
 	    break;
@@ -1273,6 +1315,7 @@ deliver(SS, dp, startrp, endrp)
 	  /* Successes are reported AFTER the DATA-transfer is ok */
 	} else {
 	  /* Non-PIPELINING sync mode */
+	  timeout = timeout_data;
 	  r = smtpwrite(SS, 1, "DATA", 0, NULL);
 	  if (r != EX_OK) {
 	    time(&endtime);
@@ -1288,6 +1331,7 @@ deliver(SS, dp, startrp, endrp)
 		r = EX_IOERR;
 	    return r;
 	  }
+	  timeout = timeout_dot;
 	}
 	/* Headers are 7-bit stuff -- says MIME specs */
 
@@ -1407,7 +1451,7 @@ deliver(SS, dp, startrp, endrp)
 	 */
 	/* RFC-1123 says: 10 minutes! */
 	tout = timeout;
-	timeout = ALARM_DOTTOOK;
+	timeout = timeout_dot;
 
 	dotmode = 1;
 
@@ -2575,7 +2619,7 @@ if (SS->verboselog)
 
 	  /* Select for the establishment, or for the timeout */
 
-	  tv.tv_sec = conntimeout;
+	  tv.tv_sec = timeout_conn;
 	  tv.tv_usec = 0;
 	  _Z_FD_ZERO(wrset);
 	  _Z_FD_SET(sk, wrset);

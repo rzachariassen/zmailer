@@ -10,6 +10,8 @@
 
 #include "smtp.h"
 
+extern int timeout_tcpw;
+
 #ifdef HAVE_OPENSSL
 
 static const char MAIL_TLS_CLNT_CACHE[] = "TLSclntcache";
@@ -1179,7 +1181,8 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	  i = sffileno(sfp);
 	  _Z_FD_ZERO(wrset);
 	  _Z_FD_SET(i, wrset);
-	  tv.tv_sec = timeout;
+
+	  tv.tv_sec = timeout_tcpw;
 	  tv.tv_usec = 0;
 
 	  r = select(i+1, NULL, &wrset, NULL, &tv);

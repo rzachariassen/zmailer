@@ -79,6 +79,33 @@ PARAM	tls-key-file	@MAILVAR@/db/smtpserver-key.pem
 ##PARAM tls-ccert-vd	1
 
 
+ 5) For SMTP client to use TLS mode, runtime parameter '-S' defines
+    the location of the  ``smtp-tls.conf'' file with following parameters:
+
+    To simplify things, this can use *same* keys and certificates as
+    the smtpserver uses.
+
+#|
+#| This is example configuration file for TLS support at the SMTP TA
+#| programs, e.g. SMTP Client.
+#|
+
+tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
+tls-key-file	@MAILVAR@/db/smtpserver-key.pem
+tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
+
+#tls-CApath /path/to/CAdir/
+
+#tls-loglevel  0  # Value from 0 thru 4
+
+#|
+#| If the TLS mode is MANDATED for a session, copy this file to
+#| e.g. "smtp-tls-mandatory.conf", uncomment following line, and
+#|  point those channels to use that new file.
+#|
+#demand-tls-mode
+
+
 
 
 

@@ -5,11 +5,9 @@
 
 #| WORK IN PROGRESS - INCOMPLETE STUFF YET!
 
-#tls-cert-file /path/to/cert/file
-
-#tls-key-file /path/to/key/file
-
-#tls-CAfile /path/to/CAfile
+tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
+tls-key-file	@MAILVAR@/db/smtpserver-key.pem
+tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
 
 #tls-CApath /path/to/CAdir/
 
