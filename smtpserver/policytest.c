@@ -55,9 +55,17 @@
 #include "libc.h"
 #include "libz.h"
 
+#ifdef HAVE_SPF_ALT_SPF_H
+#include <spf_alt/spf.h>
+#include <spf_alt/spf_dns_resolv.h>
+#endif
+
 #define _POLICYTEST_INTERNAL_
 #include "policytest.h"
 
+int use_spf;
+int spf_received;
+int spf_threshold;
 
 /* We are not including  "smtpserver.h",  thus have to do local prototype.. */
 #if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
@@ -691,7 +699,7 @@ int whosonrc;
 	openok = db_create(&rel->btree, NULL, 0);
 	if (openok == 0)
 	  openok = rel->btree->open(rel->btree,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
 				    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 				    dbname, NULL,  DB_BTREE,
@@ -727,7 +735,7 @@ int whosonrc;
 	openok = db_create(&rel->bhash, NULL, 0);
 	if (openok == 0)
 	  openok = rel->bhash->open(rel->bhash,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
 				    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 				    dbname, NULL, DB_HASH,
@@ -775,7 +783,15 @@ int whosonrc;
 #endif
 
 #ifdef HAVE_WHOSON_H
+    if (debug) {
+      type(NULL,0,NULL,"TEST: have-whoson found");
+      type(NULL,0,NULL,"TEST: state-whoson=[%d] whosonrc=[%d]",
+	   state->whoson_result, whosonrc);
+    }
     state->whoson_result = whosonrc;
+#endif
+#ifdef HAVE_SPF_ALT_SPF_H
+    state->check_spf=0;
 #endif
     state->maxsameiplimit = -1;
     return 0;
@@ -833,7 +849,8 @@ int sourceaddr;
 			 1 << P_A_MaxSameIpSource    );
     if (!myaddress)
       state->request |= ( 1 << P_A_TestDnsRBL       |
-			  1 << P_A_RcptDnsRBL        );
+			  1 << P_A_RcptDnsRBL       |
+			  1 << P_A_CheckSPF          );
 
     state->maxinsize  = -1;
     state->maxoutsize = -1;
@@ -979,6 +996,36 @@ int sourceaddr;
       }
     }
 
+    if (valueeq(state->values[P_A_CheckSPF], "+")) {
+#ifdef HAVE_SPF_ALT_SPF_H
+      if (debug)
+	type(NULL,0,NULL," policytestaddr: 'spf +' found");
+      state->check_spf=1;
+/* must be in the policystate destructor
+      SPF_destroy_default_config();
+*/
+      if (state->spfcid) SPF_destroy_config(state->spfcid);
+      if ((state->spfcid=SPF_create_config()) == NULL) {
+	type(NULL,0,NULL," SPF_create_config() failed");
+	state->check_spf=0;
+      }
+      if (state->spfdcid) SPF_dns_destroy_config_resolv(state->spfdcid);
+      if ((state->spfdcid=SPF_dns_create_config_resolv(NULL, 0)) == NULL) {
+	type(NULL,0,NULL," SPF_dns_create_config() failed");
+	state->check_spf=0;
+      }
+      /* SPF_free_c_results(&state->local_policy); */
+      SPF_init_c_results(&state->local_policy);
+      if (SPF_compile_local_policy(state->spfcid,NULL,0,&state->local_policy)) {
+	type(NULL,0,NULL," SPF_compile_local_policy() failed: %s",
+						state->local_policy.err_msg);
+	state->check_spf=0;
+      }
+#else
+      type(NULL,0,NULL," compiled without SPF support, 'spf +' ignored");
+#endif
+    }
+
     if (state->values[P_A_TestDnsRBL] &&
 	!valueeq(state->values[P_A_TestDnsRBL], "-")) {
       int rc;
@@ -1101,6 +1148,31 @@ Usockaddr *raddr;
     state->content_filter = -1;
 
     rc = _addrtest_(rel, state, pbuf, 1);
+
+#ifdef HAVE_SPF_ALT_SPF_H
+    if (state->check_spf) {
+      if (debug) {
+	char aaa[32];
+	inet_ntop(raddr->v4.sin_family,&raddr->v4.sin_addr,aaa,sizeof(aaa));
+	type(NULL,0,NULL,"doing SPF_set_ipv4(%s)",aaa);
+      }
+#if defined(AF_INET6) && defined(INET6)
+      if (raddr->v6.sin6_family == AF_INET6) {
+	if (SPF_set_ipv6(state->spfcid, raddr->v6.sin6_addr)) {
+	  type(NULL,0,NULL,"SPF_set_ipv6() failed");
+	  state->check_spf=0;
+	}
+      } else
+#endif
+      {
+	if (SPF_set_ipv4(state->spfcid, raddr->v4.sin_addr)) {
+	  type(NULL,0,NULL,"SPF_set_ipv4() failed");
+	  state->check_spf=0;
+	}
+      }
+    }
+#endif /* HAVE_SPF_ALT_SPF_H */
+
     if (debug) fflush(stdout);
     return rc;
 }
@@ -1320,6 +1392,15 @@ const int len;
      *
      */
 
+#ifdef HAVE_SPF_ALT_SPF_H
+    if (state->check_spf) {
+      type(NULL,0,NULL,"doing SPF_set_helo_dom(\"%s\")",str);
+      if (SPF_set_helo_dom(state->spfcid, str)) {
+	  type(NULL,0,NULL,"SPF_set_helo_dom() failed");
+	  state->check_spf=0;
+      }
+    }
+#endif
 
     if (*str != '[') { /* Don't test address literals! */
 
@@ -1430,11 +1511,25 @@ const int len;
 {
     const char *at;
     int requestmask = 0;
+    int rc;
 
     state->rcpt_nocheck  = 0;
     state->sender_reject = 0;
     state->sender_freeze = 0;
     state->sender_norelay = 0;
+
+#ifdef HAVE_SPF_ALT_SPF_H
+    if (state->check_spf) {
+      char *nstr=strdup(str);
+      nstr[len]='\0';
+      type(NULL,0,NULL,"doing SPF_set_env_from(\"%s\")",nstr);
+      if (SPF_set_env_from(state->spfcid, nstr)) {
+	  type(NULL,0,NULL,"SPF_set_env_from(\"%s\") failed",nstr);
+	  state->check_spf=0;
+      }
+      free(nstr);
+    }
+#endif
 
     if (state->always_reject)
 	return -1;
@@ -1534,6 +1629,17 @@ const int len;
 	type(NULL,0,NULL," ... returns: %d", rc);
       return rc;
     }
+
+#ifdef HAVE_WHOSON_H
+    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+      if (debug)
+	type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found, accept? = %d",
+	     (state->whoson_result == 0));
+      if (state->whoson_result == 0)
+	return state->whoson_result;
+    }
+#endif
+
 #if 0 /* Eh..., NOT! */
     if (valueeq(state->values[P_A_RELAYCUSTOMER], "+")) {
 	if (debug)
@@ -1543,7 +1649,52 @@ const int len;
 	return  0;
     }
 #endif
-    return 0;
+    rc=0;
+#ifdef HAVE_SPF_ALT_SPF_H
+    if (state->check_spf) {
+      int spf_level;
+      SPF_output_t spf_output=SPF_result(state->spfcid,state->spfdcid,NULL);
+      if (debug) {
+	type(NULL,0,NULL," SPF_result=%d (%s) reason=%d  (%s) error=%d",
+					spf_output.result,
+					SPF_strresult(spf_output.result),
+					spf_output.reason,
+					SPF_strreason(spf_output.reason),
+					spf_output.err);
+	type(NULL,0,NULL,"%s",spf_output.smtp_comment?spf_output.smtp_comment:"<null>");
+      }
+      if (state->spf_received_hdr != NULL)
+	free(state->spf_received_hdr);
+      state->spf_received_hdr=strdup(spf_output.received_spf);
+      if (debug)
+	type(NULL,0,NULL,"%s",state->spf_received_hdr?
+					state->spf_received_hdr:"<null>");
+
+      switch (spf_output.result) {
+      case SPF_RESULT_PASS:	spf_level=5; break;
+      case SPF_RESULT_UNKNOWN:	spf_level=5; break;
+      case SPF_RESULT_ERROR:	spf_level=5; break;
+      case SPF_RESULT_NEUTRAL:	spf_level=4; break;
+      case SPF_RESULT_NONE:	spf_level=3; break;
+      case SPF_RESULT_SOFTFAIL:	spf_level=2; break;
+      case SPF_RESULT_FAIL:	spf_level=1; break;
+      default:			spf_level=5; break;
+      }
+      if (debug)
+	type(NULL,0,NULL,"rejecting if spf_level(%d) < spf_threshold(%d)",
+			spf_level,spf_threshold);
+      if (spf_level < spf_threshold) {
+	if (spf_output.smtp_comment) {
+	  state->message=strdup(spf_output.smtp_comment);
+	} else {
+	  PICK_PA_MSG(P_A_CheckSPF);
+	}
+	rc=-1;
+      }
+      SPF_free_output(&spf_output);
+    }
+#endif
+    return rc;
 }
 
 static int pt_rcptto(rel, state, str, len)
@@ -1560,8 +1711,17 @@ const int len;
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
     if (state->full_trust)    return  0;
+    if (state->always_accept) return  0;
     if (state->authuser)      return  0;
     if (state->trust_recipients) return 0;
+
+#ifdef HAVE_WHOSON_H
+    if (debug) {
+      type(NULL,0,NULL,"TEST: 'have-whoson' found");
+      type(NULL,0,NULL,"TEST: 'state-whoson=[%d] ",
+	   state->values[P_A_TrustWhosOn]);
+    }
+#endif
 
     /* rcptfreeze even for 'rcpt-nocheck' ? */
 
@@ -1569,10 +1729,19 @@ const int len;
     state->request = ( 1 << P_A_RELAYTARGET     |
 		       1 << P_A_ACCEPTbutFREEZE |
 		       1 << P_A_TestRcptDnsRBL  |
+		       1 << P_A_TrustWhosOn     |
 		       1 << P_A_LocalDomain );
 
     /* Test first the full address */
     if (check_user(rel, state, str, len) == 0) {
+#ifdef HAVE_WHOSON_H
+      if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+	if (state->whoson_result == 0){
+	  PICK_PA_MSG(P_A_TrustWhosOn);
+	  return 0;
+	}
+      }
+#endif
       if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
@@ -1611,6 +1780,7 @@ const int len;
 		       1 << P_A_ACCEPTifMX      |
 		       1 << P_A_ACCEPTifDNS     |
 		       1 << P_A_TestRcptDnsRBL  |
+		       1 << P_A_TrustWhosOn     |
 		       1 << P_A_LocalDomain );
 
     at = find_nonqchr(str, '@', len);
@@ -1659,6 +1829,7 @@ const int len;
 			   1 << P_A_ACCEPTbutFREEZE |
 			   1 << P_A_ACCEPTifMX      |
 			   1 << P_A_ACCEPTifDNS     |
+			   1 << P_A_TrustWhosOn     |
 			   1 << P_A_TestRcptDnsRBL  |
 			   1 << P_A_LocalDomain );
 
@@ -1690,6 +1861,7 @@ const int len;
 			   1 << P_A_ACCEPTbutFREEZE |
 			   1 << P_A_ACCEPTifMX      |
 			   1 << P_A_ACCEPTifDNS     |
+			   1 << P_A_TrustWhosOn     |
 			   1 << P_A_TestRcptDnsRBL  |
 			   1 << P_A_LocalDomain );
 
@@ -1710,6 +1882,15 @@ const int len;
 
 
     /* Do target specific rejects early */
+
+#ifdef HAVE_WHOSON_H
+    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+      if (state->whoson_result == 0){
+	PICK_PA_MSG(P_A_TrustWhosOn);
+	return 0;
+      }
+    }
+#endif
 
     if (valueeq(state->values[P_A_RELAYTARGET], "-")) {
       PICK_PA_MSG(P_A_RELAYTARGET);
@@ -1740,6 +1921,15 @@ const int len;
 	return -1;
       }
     }
+
+#ifdef HAVE_WHOSON_H
+    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+      if (state->whoson_result == 0){
+	PICK_PA_MSG(P_A_TrustWhosOn);
+	return 0;
+      }
+    }
+#endif
 
     if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
@@ -1863,6 +2053,16 @@ struct policystate *state;
 {
     return state->message;
 }
+
+#ifdef HAVE_SPF_ALT_SPF_H
+char *
+policyspfhdr(rel, state)
+struct policytest *rel;
+struct policystate *state;
+{
+    return state->spf_received_hdr;
+}
+#endif
 
 long
 policyinsizelimit(rel, state)

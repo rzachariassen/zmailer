@@ -329,7 +329,7 @@ ssputc(SS, ch, fp)
 {
   if (SS->chunkbuf == NULL) {
     if (sferror(fp)) return EOF;
-    if (sfputc(fp, ch) < 0) return EOF;
+    if (sfputc(fp, ch) < 0 || sferror(fp)) return EOF;
     return 0;
   }
   if (SS->chunksize >= CHUNK_MAX_SIZE) {

@@ -1,0 +1,39 @@
+ZMAILER-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, Counter32, Gauge32, MODULE-IDENTITY, mib-2,
+    Integer32, enterprises
+      FROM SNMPv2-SMI
+    DisplayString, TimeInterval
+      FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP
+      FROM SNMPv2-CONF
+    applIndex, URLString
+      FROM NETWORK-SERVICES-MIB;
+
+zmailerMIB MODULE-IDENTITY
+    LAST-UPDATED "200312120000Z"
+    ORGANIZATION "ZMailer.org"
+    CONTACT-INFO
+	"Matti Aarnio
+	 Email: zmailer-mib@zmailer.org"
+    DESCRIPTION
+	"The MIB module for managing ZMailer MTA instances."
+    REVISION  "200312120000Z"
+    DESCRIPTION
+	"Initial revision"
+	::= { exterprises 1000000 }
+
+--
+-- top-level structure
+--
+zmailerMIB-atyp	OBJECT IDENTIFIER ::= { zmailerMIB 1 }
+zmailerMIB-asyn	OBJECT IDENTIFIER ::= { zmailerMIB 2 }
+zmailerMIB-ocls	OBJECT IDENTIFIER ::= { zmailerMIB 3 }
+
+--
+-- the ZMAILER group
+--
+zmailer		OBJECT IDENTIFIER ::=
+
+END

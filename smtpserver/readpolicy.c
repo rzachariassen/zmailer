@@ -181,6 +181,7 @@ struct _tokenpair {
 #ifdef HAVE_WHOSON_H
   { "trust-whoson",	P_A_TrustWhosOn		},
 #endif
+  { "spf",		P_A_CheckSPF		},
   { "filtering",	P_A_Filtering		},
   { "maxsameipsource",	P_A_MaxSameIpSource	},
   { NULL, 0 },

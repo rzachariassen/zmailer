@@ -104,6 +104,15 @@ static int readsleepycfg(prv)
 		continue;
 	      }
 #endif
+#if defined(DB_RPCCLIENT)
+	      if (CISTREQ(param, "rpc")) {
+		ZSE.envflags |= DB_RPCCLIENT;
+		zseset = 1;
+
+		param = p;
+		continue;
+	      }
+#endif
 #ifdef DB_CREATE
 	      if (CISTREQ(param, "create")) {
 		ZSE.envflags |= DB_CREATE;
@@ -295,7 +304,7 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 	err = db_create(&db, prv->ZSE ? prv->ZSE->env : NULL, 0);
 	if (err == 0 && db != NULL) {
 	    err = db->open( db,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
 			    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 			    prv->filename, NULL, prv->dbtype,

@@ -124,9 +124,9 @@ different things:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Software binaries, and databases:
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's),
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared),
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (read-only, site shared)
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (site shared, read-only),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared, read-only),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's, r/w)
 </PARA></LISTITEM>
 <LISTITEM><PARA>The mailbox spool:
   <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBOX</>/</>
@@ -518,9 +518,9 @@ different things:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Software binaries, and databases:
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's),
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared),
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (read-only, site shared)
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (site shared, read-only),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared, read-only),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's, r/w)
 </PARA></LISTITEM>
 <LISTITEM><PARA>The mailbox spool:
   <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBOX</>/</>

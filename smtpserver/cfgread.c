@@ -455,6 +455,32 @@ static void cfparam(str, size, cfgfilename, linenum)
       }
     }
 
+    /* SPF related things */
+    /* Generate SPF-Received header */
+    else if (cistrcmp(name, "spf-received") == 0) {
+      use_spf=1;
+      spf_received=1;
+    }
+    /* Reject mail if SPF query result is equal or higher than threshold */
+    else if (cistrcmp(name, "spf-threshold") == 0 && param1 /* 1 param */) {
+      use_spf=1;
+      if (cistrcmp(param1, "fail")) {
+	spf_threshold=1;	/* relaxed - they say: fail but we accept */
+      } else if (cistrcmp(param1, "softfail")) {
+	spf_threshold=2;	/* default - they don't assume real reject */
+      } else if (cistrcmp(param1, "none")) {
+	spf_threshold=3;	/* stricter - but allow all who don't publish */
+      } else if (cistrcmp(param1, "neutral")) {
+	spf_threshold=4;	/* draconian - SFP-less won't pass */
+      } else if (cistrcmp(param1, "pass")) {
+	spf_threshold=5;	/* extreme - allow only explicit 'pass' */
+      } else {
+	type(NULL,0,NULL, "Cfgfile '%s' line %d param %s has bad arg: '%s'",
+		cfgfilename, linenum, name, param1);
+	spf_threshold=0;	/* always accept (even 'fail') */
+      }
+    }
+
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */
       type(NULL,0,NULL, "Cfgfile '%s' line %d has bad PARAM keyword/missing parameters: '%s'", cfgfilename, linenum, name);
@@ -542,6 +568,11 @@ readcffile(name)
 	    bindaddrs[ bindaddrs_count-1 ] = bindaddr;
 	}
     }
+#ifndef HAVE_SPF_ALT_SPF_H
+    if (use_spf) {
+      type(NULL,0,NULL, "SPF parameters specified but SPF support not compiled in");
+    }
+#endif
     return head;
 }
 

@@ -181,6 +181,9 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
 #endif
 
+#ifdef HAVE_SPF_ALT_SPF_H
+#include <spf_alt/spf.h>
+#endif
 
 #include "policytest.h"
 
@@ -433,6 +436,8 @@ extern int MaxSLBits;
 extern char *AuthMechanisms;
 extern int detect_incorrect_tls_use;
 extern int force_rcpt_notify_never;
+
+extern int use_spf, spf_received, spf_threshold;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;

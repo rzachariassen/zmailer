@@ -9,9 +9,9 @@
 #  Sendmail implements also ":mailname" things which map VISIBLE HEADER
 #  addresses to other.
 #
-#     root:maildrop    sysadmin@here.dom,bill@three.dom
-#     user:mailname  ->  user.name@here.dom
-#     user.name:maildrop -> user
+#     root:maildrop    sysadmin@here.dom,bill@there.dom  (NOT SUPPORTED)
+#     user:mailname      -> user.name@here.dom
+#     user.name:maildrop -> user                         (NOT SUPPORTED)
 #
 #  Sendmail has also mapping key  ":default:mailname"  however ZMailer
 #  doesn't support that one.
@@ -24,7 +24,7 @@
 #     user:mailname                     ->  user.name@here.dom
 #     user@some.dom:mailname            ->  user.name@other1.dom
 #     <anylocalpart>@some.dom:mailname  ->  <anylocalpart>@other2.dom
-#  mapping for allowing masking single users..
+#  mapping for allowing masking single users, and even rewriting domains
 #
 # Two percent substitutions are supported here:
 #   %1  user

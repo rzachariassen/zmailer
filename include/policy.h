@@ -90,9 +90,10 @@ struct policy_user {
 #define P_A_WarnRcptDnsRBL	24
 #define P_A_Filtering           25
 #define P_A_MaxSameIpSource	26
+#define P_A_CheckSPF	        27
 
 #define P_A_FirstAttr	        2
-#define P_A_LastAttr	        26
+#define P_A_LastAttr	        27
 /* Note: Attribute codes outside range 1..31 cause problems at policystate
          processing!  If you ever need modify these, fix the  policytest.c,
 	 and  policytest.h: struct policystate { char values[]; } array,
@@ -144,7 +145,8 @@ static char *_KA[] = {
 	"test-rcpt-dns-rbl",
 	"warn-rcpt-dns-rbl",
 	"filtering",
-	"maxsameipsource"
+	"maxsameipsource",
+	"spf"
 };
 #define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[(x) & 0xFF]:"??")
 

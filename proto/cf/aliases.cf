@@ -228,7 +228,7 @@ routeuser (quad, plustail, domain) {
 	user=$(user $quad)
 
 	if [ "$DOMAIN_AWARE_GETPWNAM" = "1" ] ; then
-		sysuser="$host"		# for local chan this is user@domain
+		sysuser="$host@domain"
 	else
 		sysuser="$user"
 	fi
@@ -543,61 +543,90 @@ routeuser (quad, plustail, domain) {
 # Something like: MAILMAN_ROOT=/var/mailman
 
 if [ -n "$MAILMAN_ROOT" ] ; then
+	local listname root_domain_name mailman_todo
 
-	a="$MAILMAN_ROOT/lists/$lcuser/"
-	if [ -d "$a" ] ; then
-		nattr=$(newattribute $attr privilege "0")
-		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
-		a=(((local pipe.$lcuser "|$MAILMAN_ROOT/mail/mailman post $lcuser" $nattr)))
-		postzapDSNnotify a +
-		return $a
-	fi
+	# Which domain is this message intended for?
+
+	tsift "$host" in
+
+	(.*)@.*\.([^\.]*)\.([^\.]*)
+		root_domain_name="\2"
+		;;
+	(.*)@([^\.]*)\.([^\.]*)
+		root_domain_name="\2"
+		;;
+	tfist
+
+	# Check to see if we have a list pseudo mail address
+	#
+	# Some of these may not be valid. Original list from Jeff Warnica.
+	# The -admin, -owner and -request updated for mailman 2.0.5.
+
+	listname=$lcuser
+	mailman_todo='post'
 
 	ssift "$lcuser" in
 
 	(.+)-owner
-		listbase="\1"
-		mailman_todo="owner"
+		listname="\1"
+		mailman_todo="mailowner"
 		;;
 	(.+)-admin
-		listbase="\1"
-		mailman_todo="admin"
+		listname="\1"
+		mailman_todo="mailowner"
 		;;
 	(.+)-bounces
-		listbase="\1"
+		listname="\1"
 		mailman_todo="bounces"
 		;;
 	(.+)-confirm
-		listbase="\1"
+		listname="\1"
 		mailman_todo="confirm"
 		;;
 	(.+)-join
-		listbase="\1"
+		listname="\1"
 		mailman_todo="join"
 		;;
 	(.+)-leave
-		listbase="\1"
+		listname="\1"
 		mailman_todo="leave"
 		;;
 	(.+)-request
-		listbase="\1"
-		mailman_todo="request"
+		listname="\1"
+		mailman_todo="mailcmd"
 		;;
 	(.+)-subscribe
-		listbase="\1"
+		listname="\1"
 		mailman_todo="subscribe"
 		;;
 	(.+)-unsubscribe
-		listbase="\1"
+		listname="\1"
 		mailman_todo="unsubscribe"
 		;;
 
 	tfiss
 
-	if [ -n "$listbase" ] ; then 
+	# General process here is to check if the receipent is a list
+	# with the domain name prepended to the receipent name. If so,
+	# the $listname variable is changed accordingly.
+	#
+	# Example: Mailman list is officially moac-climbing. Mail comes in as
+	# climbing@moac.org. The variable $root_domain_name is prepended and
+	# moac-climbing is found as a list.
+	#
+	# Note: Mailman lists need to be configured to allow the short name
+	# to be used. Under each list the "alias names" in privacy options
+	# needs to set. In the above example, I use 'climbing@' for the
+	# regexp.
+	#
+	if [ -d "$MAILMAN_ROOT/lists/$root_domain_name-$listname" ] ; then
+		listname="$root_domain_name-$listname"
+	fi
+
+	if [ -d "$MAILMAN_ROOT/lists/$listname" ] ; then
 		nattr=$(newattribute $attr privilege "0")
 		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
-		a=(((local pipe.$lcuser "|$MAILMAN_ROOT/mail/mailman $mailman_todo $listbase" $nattr)))
+		a=(((local pipe.$listname "|$MAILMAN_ROOT/mail/wrapper $mailman_todo $listname" $nattr)))
 		postzapDSNnotify a +
 		return $a
 	fi

@@ -1,0 +1,10 @@
+	NET-SNMP AgentX sub-agent for ZMailer
+
+
+This set of things is a work-in-progress about implementing SNMP
+readable version of the internal monitoring MIB.
+
+Specifically after the examples at:
+
+  http://www.net-snmp.org/tutorial-5/toolkit/demon/index.html
+

@@ -20,6 +20,21 @@
 #                                       # MAIL FROM session. Minimum: 100
 #PARAM sum-sizeoption-value
 #
+# SPF support options (see http://spf.pobox.com/)
+# Zmailer needs to be compiled with libspf_alt
+# (see http://www.midwestcs.com/spf/libspf-alt/)
+#
+#PARAM spf-received			# create "Received-SPF:" header
+#PARAM spf-threshold        softfail	# worst acceptable SPF check result
+#					# 'fail' - always accept
+#					# 'softfail' - accept if 'softfail',
+#					#   'unpublished', 'neutral', 'pass'
+#					# 'none' - treat 'softfail' as 'fail'
+#					#   accept all better results
+#					# 'neutral' - reject unpublished
+#					# 'pass' - accept only 'pass' and
+#					#   DNS errors.
+#
 #PARAM BindPort                   25    # Binding port
 #PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
 #PARAM BindAddress       [IPv6.0::0]    # and here is for IPv6 - NO SPACES!

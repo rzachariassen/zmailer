@@ -1,6 +1,6 @@
-PROGRAM=	smtpserver
+PROGRAM=	zmailer-subagent
 #
-# ZMailer SMTP server makefile
+# ZMailer NET-SNMP-AgentX-subagent
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -16,14 +16,14 @@ TOPDIR=		..
 MAILBIN=	$(DESTDIR)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-SMTPSERVER_INCL= @INCLRESOLV@ @INCLWRAP@ @INCLWHOSON@ @INCLSPF@ @OPENSSLINCL@ @GENINCL@ @SASL2INCL@
-SMTPSERVER_LIB=	 @GETPWLIB@ @LIBLOCALDBMS@ @LIBWRAP@ @LIBWHOSON@ @LIBSPF@ @LIBRESOLV@ @OPENSSLLIB@ @AUTHLIB@ @LIBSOCKET@ @GENLIB@ @SASL2LIB@
+#SNMPAGENT_INCL= @INCLRESOLV@ @INCLWRAP@ @INCLWHOSON@ @OPENSSLINCL@ @GENINCL@ @SASL2INCL@
+#SNMPAGENT_LIB=	 @GETPWLIB@ @LIBLOCALDBMS@ @LIBWRAP@ @LIBWHOSON@ @LIBRESOLV@ @OPENSSLLIB@ @AUTHLIB@ @LIBSOCKET@ @GENLIB@ @SASL2LIB@
 #  old vestiges: @LIBLOADAVER@
 #
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPSERVER_INCL) 
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SNMPAGENT_INCL) 
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)
@@ -58,17 +58,9 @@ $(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
 $(OBJS): $(srcdir)/smtpserver.h
 
 
-smtpserver.o: $(srcdir)/policytest.h
-smtpcmds.o:   $(srcdir)/policytest.h
-policytest.o: $(srcdir)/policytest.h
-contentpolicy.o: $(srcdir)/policytest.h
-
-zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
-	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c
-
 $(PROGRAM):	$(LIBDEB) $(OBJS)
 	$(MAKE) $(MFLAGS) version.o
-	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTPSERVER_LIB)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SNMPAGENT_LIB)
 
 version.c:	$(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@

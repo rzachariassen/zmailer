@@ -597,6 +597,25 @@ When desiring to test LMTP (RFC 2033), this parameter can be turned on,
 .I "however ZMailer is no real LMTP server, and this feature is"
 .I "only for debug purposes."
 .RE
+.IP "PARAM spf\-received"
+.RS
+Create Received\-SPF header if SPF check is done and data is available.
+.br
+See http://spf.pobox.com/ for explanation of SPF.
+.RE
+.IP "PARAM spf\-threshold keyword"
+.RS
+Accept incoming messages with level equal or higher than specified threshold.
+Levels are sorted as follows:
+.nf
+      fail:      1
+      softfail:  2
+      none:      3
+      neutral:   4
+      pass:      5
+.fi
+See http://spf.pobox.com/ for explanation of SPF.
+.RE
 .IP "Here is a possible configuration file:"
 .RS 2em
 .nf

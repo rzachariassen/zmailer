@@ -49,6 +49,13 @@ struct policystate {		/* Part of SmtpState structure */
 #ifdef HAVE_WHOSON_H
     int whoson_result;
 #endif
+#ifdef HAVE_SPF_ALT_SPF_H
+    int check_spf;
+    char *spf_received_hdr;
+    SPF_config_t spfcid;
+    SPF_dns_config_t spfdcid;
+    SPF_c_results_t local_policy;
+#endif
 };
 
 
@@ -118,6 +125,7 @@ extern int policyinit __((struct policytest ** relp, struct policystate * ps, in
 extern int policytest __((struct policytest * rel, struct policystate * ps, PolicyTest how, const char *str, const int len, const char *authuser));
 extern int policytestaddr __((struct policytest * rel, struct policystate * ps, PolicyTest how, Usockaddr * raddr));
 extern char *policymsg __((struct policytest *rel, struct policystate *ps));
+extern char *policyspfhdr __((struct policytest *rel, struct policystate *ps));
 extern long  policyinsizelimit __((struct policytest *rel, struct policystate *ps));
 extern long  policysameiplimit __((struct policytest *rel, struct policystate *ps));
 

@@ -452,6 +452,12 @@
 /* System has soclken_t type */
 #undef HAVE_SOCKLEN_T
 
+/* Define to 1 if you have the <spf_alt/spf.h> header file. */
+#undef HAVE_SPF_ALT_SPF_H
+
+/* Using spf includes at directory: $withval */
+#undef HAVE_SPF_H
+
 /* Define to 1 if you have the `statvfs' function. */
 #undef HAVE_STATVFS
 
@@ -649,7 +655,7 @@
 /* Define to 1 if you have the `waitpid' function. */
 #undef HAVE_WAITPID
 
-/* Define to 1 if you have the <whoson.h> header file. */
+/* Using whoson includes at directory: $withval */
 #undef HAVE_WHOSON_H
 
 /* Have YP/NIS in the system, and want to use it */
@@ -658,14 +664,28 @@
 /* Using our own special replacement library for IPv6 support */
 #undef HAVE__GETADDRINFO_
 
+/* Define to 1 if you have the </local/include/spf_alt/spf.h> header file. */
+#undef HAVE__LOCAL_INCLUDE_SPF_ALT_SPF_H
+
 /* Define to 1 if you have the </local/include/whoson.h> header file. */
 #undef HAVE__LOCAL_INCLUDE_WHOSON_H
+
+/* Define to 1 if you have the </opt/include/spf_alt/spf.h> header file. */
+#undef HAVE__OPT_INCLUDE_SPF_ALT_SPF_H
 
 /* Define to 1 if you have the </opt/include/whoson.h> header file. */
 #undef HAVE__OPT_INCLUDE_WHOSON_H
 
+/* Define to 1 if you have the </opt/local/include/spf_alt/spf.h> header file.
+   */
+#undef HAVE__OPT_LOCAL_INCLUDE_SPF_ALT_SPF_H
+
 /* Define to 1 if you have the </opt/local/include/whoson.h> header file. */
 #undef HAVE__OPT_LOCAL_INCLUDE_WHOSON_H
+
+/* Define to 1 if you have the </usr/local/include/spf_alt/spf.h> header file.
+   */
+#undef HAVE__USR_LOCAL_INCLUDE_SPF_ALT_SPF_H
 
 /* Define to 1 if you have the </usr/local/include/whoson.h> header file. */
 #undef HAVE__USR_LOCAL_INCLUDE_WHOSON_H
@@ -755,9 +775,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define if there is no specific function for reading filesystems usage
@@ -836,9 +856,11 @@
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t

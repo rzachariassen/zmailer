@@ -21,7 +21,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBZ_INCL)
 #
 OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
-	killprev.o linebuffer.o loginit.o die.o \
+	killprev.o linebuffer.o loginit.o die.o zmclib.o \
 	ranny.o trusted.o allocate.o prversion.o \
 	cleanenv.o splay.o rfc822scan.o token.o symbol.o \
 	strmatch.o nobody.o pwdgrp.o dottedquad.o hostent.o \
@@ -30,7 +30,7 @@ OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
 	parseintv.o zgetifaddress.o zgetbindaddr.o sleepycatdb.o \
 	zshmmibattach.o   fdstatfs.o
 SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
-	killprev.c linebuffer.c loginit.c die.c \
+	killprev.c linebuffer.c loginit.c die.c zmclib.c \
 	ranny.c trusted.c allocate.c prversion.c \
 	cleanenv.c splay.c rfc822scan.c token.c symbol.c \
 	strmatch.c nobody.c pwdgrp.c dottedquad.c hostent.c \

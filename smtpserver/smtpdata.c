@@ -169,6 +169,12 @@ const char *buf, *cp;
       fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
     }
 
+#ifdef HAVE_SPF_ALT_SPF_H
+    if (spf_received && policyspfhdr(policydb, &SS->policystate)) {
+      fprintf(SS->mfp,"%s\n", policyspfhdr(policydb, &SS->policystate));
+    }
+#endif
+
     /* We set alarm()s inside the mvdata() */
     *msg = 0;
     filsiz = mvdata(SS, msg);
@@ -461,6 +467,11 @@ const char *buf, *cp;
 	if (msa_mode && SS->authuser != NULL ) {
 	  fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
 	}
+#ifdef HAVE_SPF_ALT_SPF_H
+	if (spf_received && policyspfhdr(policydb, &SS->policystate)) {
+	  fprintf(SS->mfp,"%s\n", policyspfhdr(policydb, &SS->policystate));
+	}
+#endif
     }
     /* We set alarm()s inside the mvbdata() */
     *msg = 0;

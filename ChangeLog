@@ -1,3 +1,55 @@
+2004-03-11  Matti Aarnio  <mea@zmailer.org>
+
+	* utils/makedb/makedb.c, utils/makedb/dblook.c, lib/sleepycatdb.c,
+	  smtpserver/policytest.c:
+	    Support for SleepyCat DB 4.2
+
+	* smtpserver/policytest.c:
+	    "TrustWhosOn" shotgun patch from
+	    ("Neal Morgan" <Neal@Morgan-Systems.com>)
+	    Another patch from Eugene Crosser to
+	    add back a (state->always_accept) test.
+	    Which one of those now does the fix ?
+	    Hmm..
+
+	* config.h.in, configure.in, include/policy.h,
+	  man/smtpserver.8.in, proto/smtpserver.conf.in,
+	  proto/db/smtp-policy.src,  smtpserver/Makefile.in,
+	  smtpserver/cfgread.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h, smtpserver/readpolicy.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpserver.h:
+	    Eugene Crosser <crosser@rol.ru> sent big
+	    patch for implementing SPF in ZMailer.
+	    I don't quite agree with the ideas in
+	    SPF, but...
+
+	* transports/smtp/appendlet.c:
+	    sfputc() alone does never indicate EOF,
+	    that must be checked explicitely!
+	    (Andrey Blochintsev <bag@iptelecom.net.ua>)
+
+	* include/zmclib.c, lib/zmclib.c:
+	    A work-in-progress of librarizing multicast communication setup
+	    things.  The darn thing is _very_ complex, when one must handle
+	    multiple interfaces, including talking MC somewhere, where
+	    system default MC routes don't point to... (e.g. some backend
+	    lan..)
+
+	* proto/cf/aliases.cf:
+	    Eugene Crosser found out that I had been wrong all along..
+	    "bug in treating of domain_aware_getpwnam"
+
+	* proto/cf/aliases.cf:
+	    MailMan 2.0.5 integration scripts from 
+	    Xose Vazquez Perez <xose@wanadoo.es>
+
+	* snmp/README.NET-SNMP, snmp/Makefile.in, snmp/mta.h,
+	  snmp/mibs/MTA-MIB.txt, snmp/mibs/ZMAILER-MIB.txt,
+	  snmp/mibs/.index, snmp/mibs/NETWORK-SERVICES-MIB.txt,
+	  snmp/mta_columns.h, snmp/mta_enums.h, snmp/mta.c:
+	    Work in progress, can't say much yet...
+
+
 2003-11-29  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/db/dbases.conf,
@@ -6,7 +58,6 @@
 	    'user:mailname' things didn't produce public results.
 	    Support is present for mapping  user+foo  to  user.name+foo@domain
 	    thru %-substitution.
-	    TODO: crossbar.cf visible header rewriting with 'plustail'
 
 	* transports/smtp/appendlet.c:
 	    Slipped a brain-fart into this code during the earlier

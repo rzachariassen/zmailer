@@ -93,7 +93,13 @@ _rbl1           # Nothing at late phase
 #|
 #| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
 #| you can activate it by adding  'trust-whoson +' attribute pair to
-#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
+#| the wild-card IP address test:  [0.0.0.0]/0  of your choice.
+#|
+#|-----------
+#|
+#| If you compiled the package with SPF support (http://spf.pobox.com/),
+#| adding 'spf +' attribute pair will turn on SPF checks (and  creation
+#| of 'Received-SPF:' header if requested in smtpserver.conf).
 #|
 #|-----------
 #|
