@@ -1,12 +1,17 @@
 1999-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/readconfig.c, scheduler/transport.c:
+	    Reworked the handling of   command="..."  tags in the
+	    scheduler.conf  file.  Now it handles properly the initial
+	    literal environment variable settings.
+
 	* smtpserver/smtpserver.c, scheduler/scheduler.c,
 	  include/libz.h, lib/killprev.c:
 	    Remove the PIDFILE when the server goes away.
 	    (This isn't perfect method, but let it be..)
 
 	* router/functions.c:
-	    Created router function:  stable-process <filename>
+	    Created router function:  stableprocess <filename>
 	    which is a wrapper on process.cf defined process() with
 	    cleanup of gensym generated symbols. (Work In Progress;
 	    part of my ideas to completely rework router queue...)

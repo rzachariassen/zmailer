@@ -275,7 +275,10 @@ start_child(vhead, chwp, howp)
 	struct web *chwp, *howp;
 {
 #define MAXARGC 40
-	char	*av[1+MAXARGC], *ev[1+MAXARGC], *s, *os, *cp, *ocp, buf[MAXPATHLEN];
+	char *av[1+MAXARGC], *ev[1+MAXARGC], *s, *os, *cp, *ocp;
+	char buf[MAXPATHLEN*4];
+	char buf2[MAXPATHLEN];
+
 	int	 i, avi, evi;
 	static time_t prev_time = 0;
 	static int startcnt = 0; /* How many childs per second (time_t tick..) ? */
@@ -346,9 +349,30 @@ start_child(vhead, chwp, howp)
 	    os = s + 1;
 	  } else
 	    av[avi] = vhead->thgrp->ce.argv[i];
-	  if (avi == 0 && strchr(av[avi],'=') != NULL) {
-	    ev[evi] = av[avi];
+
+	  if (os >= (buf+sizeof(buf))) {
+	    fprintf(stderr,"BUFFER OVERFLOW IN ARGV[] SUBSTITUTIONS!\n");
+	    abort();
+	  }
+
+	  if (avi == 0 && strchr(av[0],'=') != NULL) {
+	    ev[evi] = av[0];
 	    ++evi;
+	  } else if (avi == 0 && av[0][0] != '/') {
+	    /* Must add ${MAILBIN}/ta/ to be the prefix.. */
+
+	    static char *mailbin = NULL;
+
+	    if (!mailbin) mailbin = getzenv("MAILBIN");
+	    if (!mailbin) mailbin = MAILBIN;
+
+	    sprintf(buf2,"%s/%s/%s", mailbin, qdefaultdir, av[0]);
+	    av[avi++] = buf2;
+	    if (strlen(buf2) > sizeof(buf2)) {
+	      /* Buffer overflow ! This should not happen, but ... */
+	      fprintf(stderr,"BUFFER OVERFLOW IN ARGV[0] CONSTRUCTION!\n");
+	      abort();
+	    }
 	  } else
 	    ++avi;
 	  if (avi >= MAXARGC) avi = MAXARGC;
@@ -359,9 +383,10 @@ start_child(vhead, chwp, howp)
 
 	/* fork off the appropriate command with the appropriate stdin */
 	if (verbose) {
-	  printf("$");
+	  printf("${ ");
 	  for (i = 0; ev[i] != NULL; ++i)
 	    printf(" %s", ev[i]);
+	  printf(" }");
 	  for (i = 0; ev[i] != NULL; ++i)
 	    printf(" %s", av[i]);
 	  printf("\n");
@@ -382,7 +407,7 @@ static int runcommand(argv, env, vhead, chwp, howp)
 
 	uid = vhead->thgrp->ce.uid;
 	gid = vhead->thgrp->ce.gid;
-	cmd = vhead->thgrp->ce.command;
+	cmd = argv[0];
 	prio= vhead->thgrp->ce.priority;
 
 	if (pipes_create(to,from) < 0) return 0;
