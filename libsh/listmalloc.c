@@ -443,7 +443,7 @@ conscell *
 
     ++newcell_callcount;
 
-    if (newcell_gc_internal < consblock_cellcounf)
+    if (newcell_gc_interval < consblock_cellcount)
       if (++newcell_gc_callcount >= newcell_gc_interval) {
 	cons_garbage_collect();
 	newcell_gc_callcount = 0;
