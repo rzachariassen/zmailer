@@ -990,7 +990,7 @@ sh_getopts(argc, argv)
 		fprintf(stderr, USAGE_GETOPTS, argv[0]);
 		return 1;
 	}
-	opterr = 0;
+	zopterr = 0;
 	--argc, ++argv;
 	optstring = argv[0];
 	--argc, ++argv;
@@ -1007,14 +1007,14 @@ sh_getopts(argc, argv)
 			}
 		*av = NULL;
 	}
-	c = getopt(argc, (char*const*)argv,
-		   optstring);	/* this MUST be our getopt() */
-	sprintf(buf, "%d", optind);
+	c = zgetopt(argc, (char*const*)argv,
+		    optstring);	/* this MUST be our getopt() */
+	sprintf(buf, "%d", zoptind);
 	v_set(OPTIND, buf);
 	if (c == EOF)
 		return 1;
-	if (optarg != NULL)	/* our getopt() makes this reliable */
-		v_set(OPTARG, optarg);
+	if (zoptarg != NULL)	/* our zgetopt() makes this reliable */
+		v_set(OPTARG, zoptarg);
 	sprintf(buf, "%c", c);
 	v_set(name, buf);
 	return 0;

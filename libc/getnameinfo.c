@@ -157,9 +157,12 @@ nrl_domainname ()
 }
 
 
+#ifndef HAVE_GETNAMEINFO
 int
 getnameinfo __((const struct sockaddr *sa, size_t addrlen, char *host,
-		size_t hostlen, char *serv, size_t servlen, int flags));
+		size_t hostlen, char *serv, size_t servlen,
+		unsigned int flags));
+#endif
 
 int
 getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
@@ -169,7 +172,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
      size_t hostlen;
      char *serv;
      size_t servlen;
-     int flags;
+     unsigned int flags;
 {
   int serrno = errno;
   int ok = 0;

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
  *
  *	We produce RFC 1894 format reports with everything it contains.
  */
@@ -309,6 +309,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	      strchr(eaddr,'=') == NULL /*Smells of X.400*/)))
 	  eaddr = "postmaster"; /* Paranoid, eh ? */
 	sfprintf(errfp, "channel error\n");
+	sfprintf(errfp, "errormsg\n"); /* SCHEDULER WROTE THIS! */
 
 	if (!*no_error_reportp)
 	  printenvaddr(errfp, eaddr);

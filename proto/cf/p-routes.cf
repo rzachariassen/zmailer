@@ -10,6 +10,15 @@ provide routes
 routes_neighbour (domain, address, A) {
 	local tmp
 
+	# We have Alternate default-lookup for cases of locally generated
+	# ERROR MESSAGES -- for case where the dot (.) leads to error!
+	# and we want to reply with DIFFERENT address, thus:  '.:ERROR' key.
+
+	$(iserrmessage) &&
+		tmp=$(routesdb "$domain" -: '.:ERROR') &&
+			tmp=$(routes_spec "$tmp" "$address" $A) &&
+				return $tmp
+
 	tmp=$(routesdb "$domain") &&
 		tmp=$(routes_spec "$tmp" "$address" $A) &&
 			return $tmp

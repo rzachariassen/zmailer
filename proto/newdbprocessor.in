@@ -34,18 +34,20 @@
 #| userdb          $DBTYPE  root:0:644 -la $MAILVAR/db/userdb         -lm
 #|
 #|Security insensitive ones ("dbpriv" need not be defined!)
-#| fqdnaliasesldap ldap     -    -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
-#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames      -lm
-#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap      -lm
-#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts   -lm
-#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes       -lm -d longestmatch
-#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes         -lm%
-#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames     -lm
-#| thishost        unordered -   -   $MAILVAR/db/localnames     -l
-#| thishost        bind,mxlocal - -  -                          -l
-#| otherservers    unordered -   -   $MAILVAR/db/otherservers   -lm -d pathalias
-#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active         -lm
-#
+#| fqdnaliasesldap ldap  - -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
+#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames    -lm
+#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap    -lm
+#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts -lm
+#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes     -lmd longestmatch
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes       -lm%:d pathalias
+#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames   -lmd pathalias
+#| thishost        unordered -   -   $MAILVAR/db/localnames   -l
+#| thishost        bind,mxlocal - -  -                        -l
+#| otherservers    unordered -   -   $MAILVAR/db/otherservers -lmd pathalias
+#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active       -lm
+#|
+#| anyname         NONE    -  -  -  -
+#|
 #
 
 # --------------------
@@ -85,6 +87,9 @@ $DBTYPE = $ZENV{'DBTYPE'};
 
 open(INFN, "< $infn") || die "Can't open file '$infn' for reading";
 
+#
+# Collect all relation names, and lines with them for latter processing
+#
 while (<INFN>) {
 
 	next unless(m/^[0-9a-zA-Z]/);
@@ -117,7 +122,7 @@ foreach $rel (keys %rels) {
     $oo='';
     # --- construct each relation, and binding at lookup, generate the db
     foreach $inp (@inps) {
-	($rname,$rtype,$rpriv,$rndbopt, $rdbfile, $rdbflags) = split(' ',$inp,6);
+	($rname,$rtype,$rpriv,$rndbopt,$rdbfile,$rdbflags) = split(' ',$inp,6);
 	next unless ( $rel eq $rname );
 
 	$rn="${rel}_$rnum";
@@ -159,6 +164,9 @@ foreach $rel (keys %rels) {
 		# } else {
 			# LDAP/BIND/ORDERED/UNORDERED ...
 		}
+	} elsif ($rtype eq 'NONE') {
+		$rdbexttst = '';
+		$rdbtype   = 'NONE';
 	} elsif ($rtype eq 'ndbm') {
 		$rdbexttst = '.pag';
 		$rdbtype   = $rtype;
@@ -224,8 +232,9 @@ foreach $rel (keys %rels) {
 		$rdbext    = '.dat';
 	}
 
-	local($optset) = ' $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9';
-	if (!($rdbflags =~ /\%/)) {
+	local($optset) = ' $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9 $o10 $o11 $o12 $o13 $o14 $o15 $o16 $o17 $o18 $o19';
+	if ((!($rdbflags =~ /:/)) &&
+	    (!($rdbflags =~ /\%/))) {
 	    $optset = '';
 	}
 
@@ -266,10 +275,12 @@ foreach $rel (keys %rels) {
 	fi");
 	}
 
-	if ($rdbfile eq '-') {
-	    push(@ofn, "	relation $rdbflags -t $rtype $rn");
-	} else {
-	    push(@ofn, "	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn");
+	if ($rtype ne 'NONE') {
+	    if ($rdbfile eq '-') {
+		push(@ofn, "	relation $rdbflags -t $rtype $rn");
+	    } else {
+		push(@ofn, "	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn");
+	    }
 	}
     } # --- foreach $inp (@inps) ....
 
@@ -277,7 +288,7 @@ foreach $rel (keys %rels) {
     # --- put out tails, and complete..
     push(@ofn, "# boilerplate tail---
 
-${rel}(key, o1, o2, o3, o4, o5, o6, o7, o8, o9) {
+${rel}(key, o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16, o17, o18, o19) {
     local a");
 
     push(@ofn, @tfn);

@@ -22,6 +22,7 @@
 #include "splay.h"
 #include "sh.h"
 
+#include "libc.h"
 #include "libsh.h"
 
 struct cmddef commands[] = {
@@ -171,9 +172,9 @@ zshinit(argc, argv)
 		zshprofile(LOGIN_SCRIPT);
 	}
 	loadit = errflag = 0;
-	optind = 1;	/* not to be influenced by previous getopt()'s */
+	zoptind = 1;	/* Not to be influenced by previous zgetopt()'s. */
 	while (1) {
-		c = getopt(argc, (char**)argv, "CGILMOPRSYc:l:isaefhkntuvx");
+		c = zgetopt(argc, (char**)argv, "CGILMOPRSYc:l:isaefhkntuvx");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -213,7 +214,7 @@ zshinit(argc, argv)
 				break;
 			}
 			setopt(c, 1);
-			zshprofile(optarg);
+			zshprofile(zoptarg);
 			break;
 		case 'l':	/* load the precompiled script, ignore optarg */
 		case 'i':	/* interactive shell */
@@ -245,13 +246,13 @@ zshinit(argc, argv)
 		exit(1);
 	}
 	if (!isset('s')) {
-		if (optind == argc) {
+		if (zoptind == argc) {
 			/* read commands from stdin */
 			setopt('s', 1);
-		} else if ((io = open(argv[optind], O_RDONLY, 0)) < 0) {
+		} else if ((io = open(argv[zoptind], O_RDONLY, 0)) < 0) {
 
 			fprintf(stderr, "%s: open(\"%s\"): %s\n",
-				progname, argv[optind],
+				progname, argv[zoptind],
 				strerror(errno));
 			exit(1);
 		} else if (io != 0) {
@@ -273,7 +274,7 @@ zshinit(argc, argv)
 	staticprot(& commandline); /* LispGC */
 	staticprot(& envarlist);   /* LispGC */
 
-	avcmd.argv = s_listify(argc-optind, &argv[optind]);
+	avcmd.argv = s_listify(argc-zoptind, &argv[zoptind]);
 
 	if (isset('s')) {
 		conscell *d = NULL;
@@ -299,8 +300,8 @@ zshinit(argc, argv)
 	/* we don't inherit IFS, enforced in envinit() */
 	v_set(IFS, DEFAULT_IFS);
 
-	if (isset('l') && argv[optind] != NULL)
-	  exit(leaux(-1, argv[optind], (struct stat *)NULL));
+	if (isset('l') && argv[zoptind] != NULL)
+	  exit(leaux(-1, argv[zoptind], (struct stat *)NULL));
 
 	stickymem = oval;
 }

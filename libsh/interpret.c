@@ -28,6 +28,7 @@
 #include "interpret.h"
 #include "io.h"
 #include "shconfig.h"
+#include "libc.h"
 #include "libz.h"
 #include "libsh.h"
 
@@ -108,8 +109,11 @@ dequote (str, len)
 	const char *str;
 	int   len;
 {
+#ifndef NO_DEQUOTE_AT_SIFTS
 	const char *sp, *ep;
-	char *s, *s0;
+	char *s;
+#endif
+	char *s0;
 
 #ifdef DEQUOTE_STICKY
 	memtypes stickytmp = stickymem;
@@ -1276,7 +1280,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 #endif	/* MAILER */
 	GCVARS6;
 
-	optind = 0;	/* for getopts */
+	zoptind = 0;	/* for zgetopts() */
 	commandIndex  = -1;
 	command = &commandStack[++commandIndex];
 	command->buffer = NULL;

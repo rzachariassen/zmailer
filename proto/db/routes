@@ -4,6 +4,14 @@
 #	name	channel!next_destination
 # A leading . on the name indicates that all subdomains match as well
 #
+# We have TWO different fallback lookup tags:
+#       .:ERROR  for cases where ERROR MESSAGES we generated are being routed
+#       .        for general case
+#
+# This dictomy is due to need to route everything by explicite tables,
+# EXCEPT in case of errors when '.' maps to 'error!something'
+# ("We know to whom we route, others get error report back.")
+#
 # To generate runtime BINARY database of this source, issue command:
 #   $MAILBIN/newdb $MAILSHARE/db/routes
 # or in this directory with usual configuration:
@@ -36,4 +44,11 @@
 #	myself       local!
 #	news.domain  usenet!
 #	uunode.dom   uucp!uunode
+#
+#	# Usual ISP smart-host setup
+#	.	smtpx!ISP.smtp.gw
+#
+#	# Not so usual - fallback to error, except for error messages
+#	.:ERROR	smtp!
+#	.	error!notourcustomer
 #

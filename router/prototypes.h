@@ -72,7 +72,7 @@ extern long	dateParse __((struct tm *localtmptr, token822 *t));
 extern int	run_relation __((int argc, const char *argv[]));
 extern struct sptree *icdbspltree __((const char *name));
 extern int	run_db __((int argc, const char *argv[]));
-extern conscell	  *db     __((const char *dbname, const char *argv10[]));
+extern conscell	  *db     __((const char *dbname, const int argc, const char *argv10[]));
 extern const char *dbfile __((const char *dbname));
 extern void	   dbfree __((void));
 extern const char *dbtype __((const char *dbname));
@@ -112,6 +112,8 @@ extern void	dumpHeaders __((struct header *h));
 extern void	dumpHeader __((struct header *h));
 extern int	isSenderAddr;
 extern int	isRecpntAddr;
+extern int	isErrorMsg;
+extern int	isErrChannel;
 extern void	squirrel __((struct envelope *e, const char *keyword, const char *text));
 extern struct header	*erraddress __((struct envelope *e));
 extern void	defer __((struct envelope *e, const char *why));
@@ -120,7 +122,6 @@ extern struct header	*mkTrace __((struct envelope *e, struct header *rcvdhdr));
 extern conscell	*pickaddress __((conscell *l));
 extern int	thesender __((struct envelope *e, struct address *a));
 extern conscell	*makequad __((void));
-extern int	iserrmessage __((void));
 extern int	sequencer __((struct envelope *e, const char *file));
 
 /* File: rfc822hdrs.c */

@@ -163,7 +163,6 @@ extern int funclevel;
 /* Globals .... */
 
 extern char *getenv __((const char *));
-extern char *optarg;
 extern char *strerror __((int));
 extern char *strsignal __((int));
 extern int D_assign;
@@ -171,8 +170,6 @@ extern int D_compare;
 extern int D_functions;
 extern int D_matched;
 extern int errno;
-extern int opterr;
-extern int optind;
 extern void *tmalloc __((const size_t n));
 #ifdef SPTREE_H
 extern void sp_null __((struct sptree *));

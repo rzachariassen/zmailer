@@ -18,9 +18,10 @@ int funclevel = 0;
 conscell **return_valuep = 0;
 #endif	/* MAILER */
 
+#include "libc.h"
 #include "libsh.h"
 
-extern int optind;
+extern int zoptind;
 
 int
 main(argc, argv)
@@ -30,7 +31,7 @@ main(argc, argv)
 	/* mal_debug(3); */
 	zshinit(argc, argv);
 	/* mal_leaktrace(1); */
-	trapexit(zshtoplevel(optind < argc ? argv[optind] : (char *)NULL));
+	trapexit(zshtoplevel(zoptind < argc ? argv[zoptind] : (char *)NULL));
 	/* NOTREACHED */
 	return 0;
 }

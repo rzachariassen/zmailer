@@ -70,7 +70,6 @@ extern char *getenv();
 extern GETEUID_TYPE geteuid();
 extern int gethostname();
 extern char *getlogin();
-extern int getopt();
 extern int getpeername();
 extern int getpid();
 extern int getppid();

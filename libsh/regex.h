@@ -463,7 +463,7 @@ extern int re_compile_fastmap _RE_ARGS ((struct re_pattern_buffer *buffer));
    match, or -2 for an internal error.  Also return register
    information in REGS (if REGS and BUFFER->no_sub are nonzero).  */
 extern int re_search
-  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string,
+  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *instring,
             int length, int start, int range, struct re_registers *regs));
 
 
@@ -478,7 +478,7 @@ extern int re_search_2
 /* Like `re_search', but return how many characters in STRING the regexp
    in BUFFER matched, starting at position START.  */
 extern int re_match
-  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string,
+  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *instring,
              int length, int start, struct re_registers *regs));
 
 

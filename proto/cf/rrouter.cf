@@ -77,7 +77,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 #	 handle special cases.....
 #	\\(.+)	return (((local - "$address" $A))) ;;
 	@	# handle <> form ???
-		tmp=(local user postmaster $A)
+		if [ "$(get $A type)" = sender ]; then
+			tmp=(error user postmaster $A)
+		else
+			tmp=(local user postmaster $A)
+		fi
 		return $(routeuser $tmp "$plustail" "")
 		;;
 

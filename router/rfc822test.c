@@ -6,10 +6,9 @@
 #include "hostenv.h"
 #include "mailer.h"
 #include <ctype.h>
+#include "libc.h"
 #include "libz.h"
 
-extern int optind;
-extern char *optarg;
 char *progname = "rfc822test";
 int D_alloc = 0;
 
@@ -38,10 +37,10 @@ main(argc, argv)
 
 	entry_pt = AddressList;
 	tracefp = NULL;
-	while ((c = getopt(argc, argv, "e:T")) != EOF) {
+	while ((c = zgetopt(argc, argv, "e:T")) != EOF) {
 		switch (c) {
 		case 'e':
-			entry_pt = (HeaderSemantics)atoi(optarg);
+			entry_pt = (HeaderSemantics)atoi(zoptarg);
 			break;
 		case 'T':
 			tracefp = stdout;

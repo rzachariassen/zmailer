@@ -13,10 +13,12 @@
 /* fullname.c */
 extern char *fullname __((const char *s, char buf[], int buflen, const char *up));
 
-#ifndef HAVE_STDLIB_H
 /* getopt.c */
-extern int getopt __((int argc, char * const *argv, const char *optstring));
-#endif
+extern int zgetopt __((int argc, char * const *argv, const char *optstring));
+extern int zoptopt;
+extern int zoptind;
+extern int zopterr;
+extern const char * zoptarg;
 
 /* getdtblsize.c */
 extern int getdtablesize __((void));
@@ -70,7 +72,7 @@ extern       int   getaddrinfo __((const char *, const char *, const struct addr
 typedef unsigned int socklen_t;
 #endif
 #ifndef HAVE_GETNAMEINFO
-extern       int   getnameinfo __((const struct sockaddr *, socklen_t, char *, size_t, char *, size_t, int));
+extern       int   getnameinfo __((const struct sockaddr *, socklen_t, char *, size_t, char *, size_t, unsigned int));
 #endif
 #ifndef HAVE_GETADDRINFO
 extern       void  freeaddrinfo __((struct addrinfo *));

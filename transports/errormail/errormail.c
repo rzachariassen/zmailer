@@ -274,6 +274,7 @@ process(dp)
 	}
 
 	sfprintf(mfp, "channel error\n");
+	sfprintf(mfp, "errormsg\n");
 
 	rp = dp->recipients;
 

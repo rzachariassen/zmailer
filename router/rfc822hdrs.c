@@ -566,7 +566,7 @@ hdr_print(h, fp)
 			if (pp)
 			  col = printLAddress(fp, pp, col, 8, 0);
 			else
-			  fprintf(fp, "(nil??)"), col += 7;
+			  fprintf(fp, "(nil?\?)"), col += 7;
 		    }
 		    hadspc = 0;
 		}

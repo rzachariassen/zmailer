@@ -79,14 +79,13 @@ makequad()
 	return l;
 }
 
-struct envelope *qate;
-
-int
-iserrmessage()
+static int
+iserrmessage(e)
+     struct envelope *e;
 {
-	return (qate      &&   qate->e_from_trusted   &&
-		(QCHANNEL(qate->e_from_trusted)->cstring == NULL ||
-		 CISTREQ(QCHANNEL(qate->e_from_trusted)->cstring, "error")));
+	return (e   &&   e->e_from_trusted   &&
+		(QCHANNEL(e->e_from_trusted)->cstring == NULL ||
+		 CISTREQ(QCHANNEL(e->e_from_trusted)->cstring, "error")));
 }
 
 
@@ -123,7 +122,8 @@ run_rfc822(argc, argv)
 #if 0
 	{
 	  int c;
-	  while ((c = getopt(argc, argv, "")) != EOF) {
+	  zoptind = 1;
+	  while ((c = zgetopt(argc, argv, "")) != EOF) {
 	    switch (c) {
 	    default:
 	      ++errflg;
@@ -131,7 +131,7 @@ run_rfc822(argc, argv)
 	    }
 	  }
 	}
-	if (errflg || optind != (argc - 1))
+	if (errflg || zoptind != (argc - 1))
 #endif
 	if (argc != 2)
 	  {
@@ -139,7 +139,7 @@ run_rfc822(argc, argv)
 		return PERR_USAGE;
 	}
 
-	/* file = argv[optind]; */
+	/* file = argv[zoptind]; */
 	file = argv[1];
 
 #ifdef	XMEM
@@ -152,7 +152,6 @@ run_rfc822(argc, argv)
 	/* XXX: If this tmalloc() fails, we crash! */
 	memset(e, 0, sizeof(*e)); /* Lots of pointers, etc here! */
 	GCPRO2(e->e_from_trusted, e->e_from_resolved);
-	qate = e;
 
 	if ((e->e_fp = fopen(file, "r")) == NULL) {
 	  fprintf(stderr, "router: cannot open %s\n", file);
@@ -256,17 +255,17 @@ makeLetter(e, octothorp)
 	e->e_msgOffset = 0;
 	e->e_nowtime = now = time(NULL);
 	if (efstat(FILENO(e->e_fp), &(e->e_statbuf)) < 0) {
-#ifdef	HAVE_ST_BLKSIZE
+#ifdef	HAVE_STRUCT_STAT_ST_BLKSIZE
 		e->e_statbuf.st_blksize = 0;
-#endif	/* !HAVE_ST_BLKSIZE */
+#endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 		e->e_statbuf.st_mtime = e->e_nowtime;
 	}
 	e->e_localtime = *(localtime(&(e->e_statbuf.st_mtime)));
-#ifdef	HAVE_ST_BLKSIZE
+#ifdef	HAVE_STRUCT_STAT_ST_BLKSIZE
 	initzline((int)e->e_statbuf.st_blksize);
-#else	/* !HAVE_ST_BLKSIZE */
+#else	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 	initzline(4096);
-#endif	/* !HAVE_ST_BLKSIZE */
+#endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 
 	inheader = 0;
 	while ((n = zgetline(e->e_fp)) > !octothorp) {
@@ -495,8 +494,15 @@ dumpHeader(h)
  * can find out whether they are dealing with a sender or recipient address.
  * The variables are accessed through C coded config file functions.
  */
-int	isSenderAddr = 0;
-int	isRecpntAddr = 0;
+int	isSenderAddr;
+int	isRecpntAddr;
+
+/*
+ * Routing can sometimes want to have different view of the world when
+ * the message is _internally_ tagged with an 'errormsg' envelope header.
+ */
+int	isErrorMsg;
+int	isErrChannel;
 
 
 #define FindEnvelope(X)	\
@@ -619,10 +625,10 @@ erraddress(e)
 	if (h == NULL) {
 		/* everything else failed, so use the owner of the file */
 		if (!e->e_trusted)
-			h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 1);
+/*ROUTER*/		h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 1);
 #if	0
 		else
-			h = mkSender(e, POSTMASTER, 1);
+/*ROUTER*/		h = mkSender(e, POSTMASTER, 1);
 #endif
 	}
 	return h;
@@ -920,7 +926,7 @@ mkSender(e, name, flag)
 		h = NULL;
 	if (h  &&  !flag  &&  !e->e_trusted) {
 		/* make sure the pretty login is valid. see thesender() */
-		l = router(h->h_contents.a, e->e_statbuf.st_uid, "sender", NULL);
+/*ROUTER*/	l = router(h->h_contents.a, e->e_statbuf.st_uid, "sender", NULL);
 		if (l) {
 			l = pickaddress(l);
 			flag = (QUSER(l) == NULL || !nullhost(QHOST(l)));
@@ -968,7 +974,7 @@ mkSender(e, name, flag)
 	}
 	*ppp = NULL;
 	if (l == NULL && !e->e_trusted) {
-		l = router(sh->h_contents.a, e->e_statbuf.st_uid, "sender", NULL);
+/*ROUTER*/	l = router(sh->h_contents.a, e->e_statbuf.st_uid, "sender", NULL);
 		if (l)
 			e->e_from_trusted = pickaddress(l);
 	}
@@ -1132,7 +1138,7 @@ thesender(e, a)
 {
 	conscell *l; /* Var life ends after return.. no GC protection */
 
-	l = router(a, e->e_statbuf.st_uid, "sender", NULL);
+/*ROUTER*/ l = router(a, e->e_statbuf.st_uid, "sender", NULL);
 	if (l == NULL)
 		return 0;
 	e->e_from_resolved = pickaddress(l);
@@ -1459,10 +1465,10 @@ sequencer(e, file)
 			h = copySender(e);
 		} else {
 			dprintf("Generate a sender based on owner of file\n");
-			h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 0);
+/*ROUTER*/		h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 0);
 		}
 		if (h == NULL)
-			h = mkSender(e, POSTMASTER, 1);
+/*ROUTER*/		h = mkSender(e, POSTMASTER, 1);
 		/* assert h != NULL */
 		h->h_next = e->e_eHeaders;
 		e->e_eHeaders = h;
@@ -1476,12 +1482,12 @@ sequencer(e, file)
 		dprintf("A sender was specified in the envelope\n");
 		if (!e->e_trusted) {
 			dprintf("Replace the sender based on owner of file\n");
-			h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 0);
+/*ROUTER*/		h = mkSender(e, uidpwnam(e->e_statbuf.st_uid), 0);
 		} else {
 			dprintf("Provide a full name for the originator\n");
 			/* ensure there is a fullnamemap entry */
 			login_to_uid(t->t_pname);
-			h = mkSender(e, t->t_pname, 0);
+/*ROUTER*/		h = mkSender(e, t->t_pname, 0);
 		}
 		h->h_next = e->e_eHeaders;
 		e->e_eHeaders = h;
@@ -1510,8 +1516,17 @@ sequencer(e, file)
 	dprintf("Originating channel determination\n");
 	def_uid = nobody;
 
+	isErrorMsg   = 0;
+	isErrChannel = 0;
+
 	if (e->e_trusted) {
 		/* The sender uid is known */
+
+		/* Is it perhaps an ERROR MESSAGE ? */
+		FindEnvelope(eErrorMsg);
+		if (h) isErrorMsg = 1;
+
+		/* Does it have CHANNEL ?  Is it "ERROR" ? */ 
 		FindEnvelope(eChannel);
 		if (h) {
 			dprintf("A channel was specified\n");
@@ -1532,6 +1547,9 @@ sequencer(e, file)
 				 */
 				optsave(FYI_NOCHANNEL, e);
 			}
+			if (iserrmessage(e))
+			  isErrChannel = 1;
+
 		}
 
 		h = rcvdhdr; /* FindEnvelopeLast(eRcvdFrom); */
@@ -1567,29 +1585,48 @@ sequencer(e, file)
 			  if (h == NULL || h->h_stamp == BadHeader)
 			    FindHeader("from",!e->e_resent);
 			  if (h == NULL || h->h_stamp == BadHeader)
-			    h = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
+			    /* BAD input, must try to do something.. */
+/*ROUTER*/		    h = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
 			}
 			if (h == NULL)
 				abort(); /* Failed to make sender header */
 
-			/* This conscell lifetime is limited.. */
-			l = router(h->h_contents.a,
+			if (isErrChannel) {
+			    char *ss = (char*)tmalloc(10);
+			    strcpy(ss, "from <>");
+
+			    h = makeHeader(spt_eheaders, ss, 4);
+			    h->h_lines = makeToken(ss+5,2);
+			    h->h_lines->t_type = Line;
+			    h->h_contents = hdr_scanparse(e, h, 0, 0);
+			    /* And now we bend the result beyond any
+			       recognition.. */
+			    h->h_contents.a->a_tokens->p_type     =  anAddress;
+			    h->h_contents.a->a_tokens->p_tokens->t_len  = 2;
+			    h->h_contents.a->a_tokens->p_tokens->t_type = Atom;
+			    h->h_contents.a->a_tokens->p_tokens->t_next = NULL;
+			    h->h_stamp = hdr_type(h);
+			}
+
+			/* This conscell lifetime is limited, no GC protect. */
+/*ROUTER*/		l = router(h->h_contents.a,
 				   e->e_statbuf.st_uid, "sender", NULL);
+
 			if (l == NULL) {
 			  /* From: <>,  and no envelope 'from' .. */
-			  h = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
+/*ROUTER*/		  h = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
 			  if (h == NULL)
 			    abort(); /* Can't make Sender header ?? */
-			  l = router(h->h_contents.a,
+/*ROUTER*/		  l = router(h->h_contents.a,
 				     e->e_statbuf.st_uid, "sender", NULL);
 			}
 			if (l) {
-				/*
-				 * In case the router returns several addresses,
-				 * we pick one at random to use for sender priv
-				 * determination.
-				 */
-				e->e_from_resolved = pickaddress(l);
+			  /*
+			   * In case the router returns several addresses,
+			   * we pick one at random to use for sender priv
+			   * determination.
+			   */
+			  e->e_from_resolved = pickaddress(l);
 			}
 		}
 		if (nullhost(QHOST(e->e_from_resolved)) &&
@@ -1620,7 +1657,7 @@ sequencer(e, file)
 		}
 		if (h && h->h_contents.a) {
 			/* a Sender: was given */
-			if (!thesender(e, h->h_contents.a)) {
+/*ROUTER*/			if (!thesender(e, h->h_contents.a)) {
 				/* but it is fake, so correct it */
 				dprintf("The Sender: is not the sender\n");
 				set_pname(e, h, "Fake-Sender");
@@ -1628,12 +1665,12 @@ sequencer(e, file)
 				h = NULL;
 		} else if (nh  &&  nh->h_contents.a) {
 			/* only a From: was given */
-			if (!thesender(e, nh->h_contents.a)) {
+/*ROUTER*/		if (!thesender(e, nh->h_contents.a)) {
 			  /* but it is fake, so add a Sender: */
 			  dprintf("The From: is not the sender\n");
 			  if (h) {
 			    /* use our empty Sender: */
-			    ph = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
+/*ROUTER*/		    ph = mkSender(e,uidpwnam(e->e_statbuf.st_uid),0);
 			    h->h_contents.a = ph->h_contents.a;
 			    h = NULL;
 			  } else
@@ -1642,7 +1679,7 @@ sequencer(e, file)
 			  h = NULL;
 		}
 		if (h) {
-		  InsertHeader(h,mkSender(e, uidpwnam(e->e_statbuf.st_uid),0));
+/*ROUTER*/	  InsertHeader(h,mkSender(e, uidpwnam(e->e_statbuf.st_uid),0));
 		  set_pname(e, nh, "Sender");
 		}
 	}
@@ -1756,33 +1793,25 @@ sequencer(e, file)
 			dprintf(" none available!\n");
 			optsave(FYI_NOSENDER, e);
 		} else {
-			FindEnvelope(eChannel);
-			if (h) {
-			  if ((ap = h->h_contents.a) != NULL
-			      && (p = ap->a_tokens) != NULL
-			      && (p->p_tokens != NULL)) {
-			    t = p->p_tokens;
-			    if (TOKENLEN(t) == 5 &&
-				strncmp(t->t_pname,"error",5)==0) {
+			if (isErrChannel) {
 
-			      char *ss = (char*)tmalloc(10);
-			      strcpy(ss, "From: <>");
+			    char *ss = (char*)tmalloc(10);
+			    strcpy(ss, "From: <>");
 
-			      nh = makeHeader(spt_headers, ss, 4);
-			      nh->h_lines = makeToken(ss+5,3);
-			      nh->h_lines->t_type = Line;
-			      nh->h_contents = hdr_scanparse(e, nh, 0, 0);
-			      nh->h_stamp = hdr_type(nh);
-			      FindHeader("to",e->e_resent);
-			      if (h == NULL) {
-				for (h = e->e_headers; h != NULL; h = h->h_next)
-				  if (CISTREQ(h->h_pname, "subject"))
-				    break;
-			      }
-			      InsertHeader(h, nh);
-			      dprintf(" nope (added)!\n");
+			    nh = makeHeader(spt_headers, ss, 4);
+			    nh->h_lines = makeToken(ss+5,3);
+			    nh->h_lines->t_type = Line;
+			    nh->h_contents = hdr_scanparse(e, nh, 0, 0);
+			    nh->h_stamp = hdr_type(nh);
+			    FindHeader("to",e->e_resent);
+			    if (h == NULL) {
+			      for (h = e->e_headers; h != NULL; h = h->h_next)
+				if (CISTREQ(h->h_pname, "subject"))
+				  break;
 			    }
-			  }
+			    InsertHeader(h, nh);
+			    dprintf(" nope (added)!\n");
+
 			} else {
 
 			  /* We make a copy of eFrom envelope header
@@ -1850,7 +1879,7 @@ sequencer(e, file)
 	errors_to = NULL;
 	senderstr = NULL;
 	if (e->e_from_trusted) {
-	  if (CISTREQ("error",QCHANNEL(e->e_from_trusted)->cstring)) {
+	  if (isErrChannel) {
 	    senderstr = "<>"; /* From "BOX" -- from an error channel! */
 	  } else {
 	    senderstr = QUSER(e->e_from_trusted)->cstring;
@@ -1886,7 +1915,7 @@ sequencer(e, file)
 			DSN = NULL;
 		}
 		for (a = h->h_contents.a; a != NULL; a = a->a_next) {
-			l = router(a, def_uid, "recipient", senderstr);
+/*ROUTER*/		l = router(a, def_uid, "recipient", senderstr);
 			if (l == NULL)
 				continue;
 
@@ -2048,6 +2077,7 @@ sequencer(e, file)
 	}
 
 	isSenderAddr = isRecpntAddr = 0;
+
 	dprintf("Make sure Date, From, To, are in the header\n");
 	FindHeader("date",e->e_resent);
 	if (h == NULL)
@@ -2155,7 +2185,7 @@ sequencer(e, file)
 	 * to your disk space.
 	 */
 
-	if (!iserrmessage()) {
+	if (!isErrChannel) {
 #if 1
                 if (errors_to) {        /* [mea@utu.fi] Stupid, but workable.. */
                         putc(_CF_ERRORADDR, ofp);
@@ -2245,7 +2275,7 @@ sequencer(e, file)
 			ofperrors |= ferror(ofp);
 			if (ofperrors) break; /* Sigh.. */
 
-			if (!iserrmessage() && nsp->errto &&
+			if (!isErrChannel && nsp->errto &&
 			    nsp->errto->string) {
 				/* print envelope sender address */
 				putc(_CF_ERRORADDR, ofp);

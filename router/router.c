@@ -55,7 +55,6 @@ int	canexit = 0;
 int	router_id = 0;
 int	deferit;
 int	deferuid;
-int	origoptind;
 int	savefile = 0;
 const char * zshopts = "-O";
 int	nosyslog = 1;
@@ -100,7 +99,7 @@ main(argc, argv)
 		progname = argv[0];
 	else
 		++progname;
-	origoptind = optind;	/* needed for reuse of getopt() */
+
 	logfn = config = NULL;
 	errflg = daemonflg = killflg = interactiveflg = version = 0;
 	tac = 0;
@@ -108,7 +107,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwW");
+		c = zgetopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwW");
 		if (c == EOF)
 			break;
 	  
@@ -120,7 +119,7 @@ main(argc, argv)
 #ifdef	XMEM
 			{ /* Rewritten to be portable...  Storing to
 			     fileno()" is not guaranteed to success.. */
-			  int fd = open(optarg, O_RDWR|O_CREAT|O_TRUNC,0644);
+			  int fd = open(zoptarg, O_RDWR|O_CREAT|O_TRUNC,0644);
 			  if (fd >= 0) {
 			    dup2(fd,30); /* we ASSUME have far less fd's
 					    in use.. */
@@ -135,23 +134,23 @@ main(argc, argv)
 #endif	/* XMEM */
 			break;
 		case 'n':
-			nrouters = atoi(optarg);
+			nrouters = atoi(zoptarg);
 			if (nrouters < 1)
 				nrouters = 1;
 			break;
 		case 'o':
-			zshopts = optarg;
+			zshopts = zoptarg;
 			break;
 		case 't':
 			if (tac < (sizeof tav)/(sizeof tav[0]))
-				tav[++tac] = optarg;
+				tav[++tac] = zoptarg;
 			else {
 				fprintf(stderr, "Too many trace options!\n");
-				fprintf(stderr, "Ignoring '%s'\n", optarg);
+				fprintf(stderr, "Ignoring '%s'\n", zoptarg);
 			}
 			break;
 		case 'f':	/* override default config file */
-			config = optarg;
+			config = (char*) zoptarg;
 			break;
 		case 'i':	/* first read config file, then read from tty */
 			interactiveflg = 1;
@@ -167,10 +166,10 @@ main(argc, argv)
 			nosyslog = 0;
 			break;
 		case 'L':	/* override default log file */
-			logfn = optarg;
+			logfn = zoptarg;
 			break;
 		case 'P':	/* override default postoffice */
-			postoffice = optarg;
+			postoffice = zoptarg;
 			break;
 		case 'V':
 			version = 1;
@@ -182,7 +181,7 @@ main(argc, argv)
 			do_hdr_warning = !do_hdr_warning;
 			break;
 		case 'r':
-			routerdirloops = atoi(optarg);
+			routerdirloops = atoi(zoptarg);
 			if (routerdirloops < 0)
 				routerdirloops = 0;
 			break;
@@ -222,7 +221,7 @@ main(argc, argv)
 
 	getnobody();
 
-	c = optind;	/* save optind since builtins can interfere with it */
+	c = zoptind;	/* save optind since builtins can interfere with it */
 
 	if (daemonflg && logfn == NULL) {
 		if ((cp = (char *) getzenv("LOGDIR")) != NULL)
@@ -309,7 +308,7 @@ main(argc, argv)
 	if (c < argc) {
 	  savefile = 1;
 	  /*
-	   * we need to use a local variable (c) because optind is global
+	   * we need to use a local variable (c) because zoptind is global
 	   * and can (and will) be modified by the funcall()'s we do.
 	   */
 	  do {

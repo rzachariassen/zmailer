@@ -44,6 +44,7 @@ extern conscell *s_value;
 #define ARGCV __((int argc, const char *argv[]))
 static int run_hostname    ARGCV;
 static int run_whataddress ARGCV;
+static int run_iserrormsg  ARGCV;
 static int run_erraddrlog  ARGCV;
 
 static conscell *run_dblookup __((conscell *avl, conscell *il));
@@ -102,6 +103,7 @@ struct shCmd fnctns[] = {
 {	"trace",	run_trace,	NULL,	NULL,	0	},
 {	"untrace",	run_trace,	NULL,	NULL,	0	},
 {	"hostname",	run_hostname,	NULL,	NULL,	0	},
+{	"iserrormsg",	run_iserrormsg,	NULL,	NULL,	0	},
 {	"sender",	run_whataddress,NULL,	NULL,	0	},
 {	"recipient",	run_whataddress,NULL,	NULL,	0	},
 {	"erraddron",	run_erraddrlog,	NULL,	NULL,	0	},
@@ -308,6 +310,18 @@ run_whataddress(argc, argv)
 }
 
 /*
+ * $(iserrormsg dummyargs)  returns a flag 
+ */
+
+static int
+run_iserrormsg(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	return !isErrorMsg;
+}
+
+/*
  * this is like accton(), but for logging errors in addresses.
  */
 
@@ -348,21 +362,21 @@ run_dblookup(avl, il)
 	conscell *avl, *il; /* Inputs gc protected */
 {
 	conscell *l;
-	const char *argv10[10];
+	const char *argv20[20];
 	int i;
 
-	memset(argv10, 0, sizeof(argv10));
+	memset(argv20, 0, sizeof(argv20));
 
 	il = cdar(avl);
 	if (il == NULL || !STRING(il)) {
-		fprintf(stderr, "Usage: %s key [up_to_9_substitution_elements]\n", car(avl)->string);
+		fprintf(stderr, "Usage: %s key [up_to_19_substitution_elements_or_options]\n", car(avl)->string);
 		return NULL;
 	}
 	i = 0;
-	for (; il && i < 9 && STRING(il); il = cdr(il))
-	  argv10[i++] = il->string;
+	for (; il && i < 19 && STRING(il); il = cdr(il))
+	  argv20[i++] = il->string;
 
-	l = db(car(avl)->string, argv10);
+	l = db(car(avl)->string, i, argv20);
 	if (l == NULL)
 		return NULL;
 	return l;
@@ -485,10 +499,10 @@ run_praliases(argc, argv)
 
 	verbose = 0;
 	indexfile = NULL;
-	optind = 1;
+	zoptind = 1;
 	errflg = 0;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "vo:t");
+		c = zgetopt(argc, (char*const*)argv, "vo:t");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -496,7 +510,7 @@ run_praliases(argc, argv)
 			++verbose;
 			break;
 		case 'o':
-			indexfile = optarg;
+			indexfile = zoptarg;
 			break;
 		case 't':
 			tabsep = 1;
@@ -506,7 +520,7 @@ run_praliases(argc, argv)
 			break;
 		}
 	}
-	if (errflg || optind != argc - 1) {
+	if (errflg || zoptind != argc - 1) {
 		fprintf(stderr,
 			"Usage: %s [ -v ] [ -o indexoutputfile ] aliasfile\n",
 			argv[0]);
@@ -514,9 +528,9 @@ run_praliases(argc, argv)
 	}
 
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
-	if ((e->e_fp = fopen(argv[optind], "r")) == NULL) {
+	if ((e->e_fp = fopen(argv[zoptind], "r")) == NULL) {
 		c = errno;
-		fprintf(stderr, "%s: open(\"%s\"): ", argv[0], argv[optind]);
+		fprintf(stderr, "%s: open(\"%s\"): ", argv[0], argv[zoptind]);
 		errno = c;
 		perror("");
 		status = PERR_BADOPEN;
@@ -524,7 +538,7 @@ run_praliases(argc, argv)
 		setvbuf(e->e_fp, buf, _IOFBF, sizeof buf);
 		osiop = siofds[FILENO(e->e_fp)];
 		siofds[FILENO(e->e_fp)] = NULL;
-		e->e_file = argv[optind];
+		e->e_file = argv[zoptind];
 		status = makeLetter(e, 1);	/* Parse the aliases database
 						   as if all entries were of
 						   same syntax as "To:" et.al.
@@ -1035,7 +1049,7 @@ run_listexpand(avl, il)
 	errflag = 0;
 	erroraddress = NULL;
 	comment = "list";
-	optind = 1;
+	zoptind = 1;
 
 	while (il != NULL && STRING(il) && il->string[0] == '-' &&
 	       cdr(il) != NULL && STRING(cdr(il))) {
@@ -1203,7 +1217,7 @@ run_listexpand(avl, il)
 		  ++errcount;
 		  if (hs.h_stamp == BadHeader) {
 		    if (erroraddress != NULL) {
-		      if (!iserrmessage()) {
+		      if (!isErrChannel) {
 			if (mfp == NULL) {
 			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
 			    osiop = siofds[FILENO(mfp)];
@@ -1548,23 +1562,23 @@ run_listaddresses(argc, argv)
 	errflag = 0;
 	erroraddress = NULL;
 	comment = "list";
-	optind = 1;
+	zoptind = 1;
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "c:e:E:");
+		c = zgetopt(argc, (char*const*)argv, "c:e:E:");
 		if (c == EOF)
 			break;
 		switch (c) {
 		case 'c':
-			comment = optarg;
+			comment = zoptarg;
 			break;
 		case 'e':
-			erroraddress = optarg;
+			erroraddress = zoptarg;
 			break;
 		case 'E':
 			if (errors_to != old_errorsto)
 			  free(errors_to);
-			errors_to = (void*)strdup(optarg);
+			errors_to = (void*)strdup(zoptarg);
 			break;
 		default:
 			++errflag;
@@ -1676,7 +1690,7 @@ run_listaddresses(argc, argv)
 		  ++errcount;
 		  if (hs.h_stamp == BadHeader) {
 		    if (erroraddress != NULL) {
-		      if (!iserrmessage()) {
+		      if (!isErrChannel) {
 			if (mfp == NULL) {
 			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
 			    osiop = siofds[FILENO(mfp)];
@@ -2132,26 +2146,26 @@ run_syslog(argc, argv)
 	int c;
 	int prio = LOG_INFO;
 	int errflg = 0;
-	optind = 1;
+	zoptind = 1;
 
-	while ((c = getopt(argc, (char*const*)argv, "p:")) != EOF) {
+	while ((c = zgetopt(argc, (char*const*)argv, "p:")) != EOF) {
 		switch (c) {
 		case 'p':	/* priority */
-			if(!strcmp(optarg, "debug")) {
+			if(!strcmp(zoptarg, "debug")) {
 				prio = LOG_DEBUG;
-			} else if(!strcmp(optarg, "info")) {
+			} else if(!strcmp(zoptarg, "info")) {
 				prio = LOG_INFO;
-			} else if(!strcmp(optarg, "notice")) {
+			} else if(!strcmp(zoptarg, "notice")) {
 				prio = LOG_NOTICE;
-			} else if(!strcmp(optarg, "warning")) {
+			} else if(!strcmp(zoptarg, "warning")) {
 				prio = LOG_WARNING;
-			} else if(!strcmp(optarg, "err")) {
+			} else if(!strcmp(zoptarg, "err")) {
 				prio = LOG_ERR;
-			} else if(!strcmp(optarg, "crit")) {
+			} else if(!strcmp(zoptarg, "crit")) {
 				prio = LOG_CRIT;
-			} else if(!strcmp(optarg, "alert")) {
+			} else if(!strcmp(zoptarg, "alert")) {
 				prio = LOG_ALERT;
-			} else if(!strcmp(optarg, "emerg")) {
+			} else if(!strcmp(zoptarg, "emerg")) {
 				prio = LOG_EMERG;
 			} else {
 				++errflg;
@@ -2163,11 +2177,11 @@ run_syslog(argc, argv)
 		}
 	}
 
-	if (errflg || optind != argc - 1) {
+	if (errflg || zoptind != argc - 1) {
 		fprintf(stderr, "Usage: %s [-p prio] string\n", argv[0]);
 		return 1;
 	}
-	zsyslog((prio, "%s", argv[optind]));
+	zsyslog((prio, "%s", argv[zoptind]));
 	return 0;
 }
 
@@ -2179,11 +2193,11 @@ run_recase(argc, argv)
 	char *cp;
 	int c, flag, errflg, action = 0;
 
-	optind = 1;
+	zoptind = 1;
 	errflg = 0;
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "ulp");
+		c = zgetopt(argc, (char*const*)argv, "ulp");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -2197,7 +2211,7 @@ run_recase(argc, argv)
 			break;
 		}
 	}
-	if (errflg || optind != argc - 1) {
+	if (errflg || zoptind != argc - 1) {
 		fprintf(stderr, "Usage: %s [ -u | -l | -p ] string\n",
 				argv[0]);
 		return 1;
@@ -2205,14 +2219,14 @@ run_recase(argc, argv)
 
 	switch (action) {
 	case 'u':
-		strupper((char*)argv[optind]);
+		strupper((char*)argv[zoptind]);
 		break;
 	case 'l':
-		strlower((char*)argv[optind]);
+		strlower((char*)argv[zoptind]);
 		break;
 	case 'p':
 		flag = 1;
-		for (cp = (char*)argv[optind]; *cp != '\0'; ++cp) {
+		for (cp = (char*)argv[zoptind]; *cp != '\0'; ++cp) {
 			if (isascii(*cp) && isalnum(*cp)) {
 				if (flag && islower(*cp))
 					*cp = toupper(*cp);
@@ -2224,7 +2238,7 @@ run_recase(argc, argv)
 		}
 		break;
 	}
-	printf("%s\n", argv[optind]);
+	printf("%s\n", argv[zoptind]);
 	return 0;
 }
 
@@ -2362,31 +2376,31 @@ run_condquote_(argc, argv, condq)
 	/* We remove quotes when they are not needed, and add them when
 	   they really are needed! */
 
-	optind = 1;
+	zoptind = 1;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "s:a:");
+	  c = zgetopt(argc, (char*const*)argv, "s:a:");
 	    
 	  if (c == EOF) break;
 	  switch (c) {
 	  case 's':
-	    spc = *optarg; /* First char only */
+	    spc = *zoptarg; /* First char only */
 	    break;
 	  case 'a':
-	    appstr = optarg;
+	    appstr = zoptarg;
 	    break;
 	  default:
 	    ++errflg;
 	    break;
 	  }
 	}
-	if (errflg || optind != argc - 1) {
+	if (errflg || zoptind != argc - 1) {
 	  fprintf(stderr,
 		  "Usage: %s [ -s SPCCHR ] [ -a APPENDSTR ] string\n",
 		  argv[0]);
 	  return 1;
 	}
 
-	s = argv[optind];
+	s = argv[zoptind];
 
 	mustquote = rfc822_mustquote(s, spc);
 	/* A bitset:

@@ -20,8 +20,10 @@ typedef struct _search_info {
 	const char	*key;
 	time_t		 ttl;
 	const char	*subtype;
-	const char	**argv10;
+	const char	*defaultkey;
+	const char	**argv20;
 	const char	*argv1;
+	unsigned long	flags;
 } search_info;
 
 struct file_map {

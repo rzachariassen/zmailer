@@ -122,6 +122,7 @@ struct notary {
 	const char	*dsn;
 };
 
+/* NOTE: This structure is constructed at couple of places! */
 struct address {
 	const char	*a_pname;		/* printable representation */
 	struct addr	*a_tokens;		/* RFC822 token list */
@@ -166,6 +167,8 @@ typedef enum {	normal,		/* nil */
 		Resent,		/* this is a resent- header field */
 		eIdentinfo,	/* identification info		  */
 		eChannel,	/* received by this transport channel (mailer)*/
+		eErrorMsg,	/* Flag-like header telling this is created
+				   by the SCHEDULER for err msgs! */
 		eExternal,	/* external source of info, untrustable */
 		eEnvid,		/* SMTP-DSN ENVID string */
 		eFrom,		/* envelope sender address */

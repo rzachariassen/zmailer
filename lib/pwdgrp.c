@@ -161,8 +161,10 @@ zgetgrnam(name)
 	  zgr.gr_name   = gr->gr_name;
 	  zgr.gr_passwd = gr->gr_passwd;
 	  zgr.gr_gid    = gr->gr_gid;
-	  zgr.gr_mem    = gr->gr_mem;
-
+	  zgr.gr_mem    = gr->gr_mem; /* FIXME: This is wrong way to COPY
+					 the thing, we really should copy
+					 the array of pointers, AND the
+					 buffer.. */
 	  return &zgr;
 	}
 

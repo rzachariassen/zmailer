@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #endif
 #include "libz.h"
+#include "dnsgetrr.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */

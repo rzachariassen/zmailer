@@ -19,14 +19,14 @@
 #define	putc	fputc
 #endif	/* lint */
 
-char	*optarg;	/* Global argument pointer. */
-int	optind = 1;	/* Global argv index. */
+char	*zoptarg;	/* Global argument pointer. */
+int	zoptind = 1;	/* Global argv index. */
 
 /*
  * N.B. use following at own risk
  */
-int	opterr = 1;	/* for compatibility, should error be printed? */
-int	optopt;		/* for compatibility, option character checked */
+int	zopterr = 1;	/* for compatibility, should error be printed? */
+int	zoptopt;	/* for compatibility, option character checked */
 
 static char	*scan = NULL;	/* Private scan pointer. */
 
@@ -34,7 +34,7 @@ static char	*scan = NULL;	/* Private scan pointer. */
  * Print message about a bad option.  Watch this definition, it's
  * not a single statement.
  */
-#define	BADOPT(mess, ch)	if (opterr) { \
+#define	BADOPT(mess, ch)	if (zopterr) { \
 					extern int fputs(), fputc(); \
 					(void) fputs(argv[0], stderr); \
 					(void) fputs(mess, stderr); \
@@ -44,7 +44,7 @@ static char	*scan = NULL;	/* Private scan pointer. */
 				return('?')
 
 int
-getopt(argc, argv, optstring)
+zgetopt(argc, argv, optstring)
 	int argc;
 	char *const argv[];
 	const char *optstring;
@@ -52,28 +52,31 @@ getopt(argc, argv, optstring)
 	register char c;
 	register const char *place;
 
-	optarg = NULL;
+	zoptarg = NULL;
 
-	if (optind == 1)
+	if (zoptind == 1)
 		scan = NULL;
 	
 	if (scan == NULL || *scan == '\0') {
-		if (optind >= argc || argv[optind][0] != '-' || argv[optind][1] == '\0')
+		if (zoptind >= argc || argv[zoptind][0] != '-' || argv[zoptind][1] == '\0')
 			return EOF;
-		if (argv[optind][1] == '-' && argv[optind][2] == '\0') {
-			optind++;
+		if (argv[zoptind][1] == '-' && argv[zoptind][2] == '\0') {
+			zoptind++;
 			return EOF;
 		}
 	
-		scan = argv[optind]+1;
-		optind++;
+		scan = argv[zoptind]+1;
+		zoptind++;
 	}
 
 	c = *scan++;
-	optopt = c & 0377;
-	for (place = optstring; place != NULL && *place != '\0'; ++place)
+	zoptopt = c & 0377;
+	for (place = optstring; place != NULL && *place != '\0'; ++place) {
 		if (*place == c)
 			break;
+		if (place[1] == ':')
+			++place;
+	}
 
 	if (place == NULL || *place == '\0' || c == ':' || c == '?') {
 		BADOPT(": unknown option -", c);
@@ -82,13 +85,13 @@ getopt(argc, argv, optstring)
 	place++;
 	if (*place == ':') {
 		if (*scan != '\0') {
-			optarg = scan;
+			zoptarg = scan;
 			scan = NULL;
-		} else if (optind >= argc) {
+		} else if (zoptind >= argc) {
 			BADOPT(": option requires argument -", c);
 		} else {
-			optarg = argv[optind];
-			optind++;
+			zoptarg = argv[zoptind];
+			zoptind++;
 		}
 	}
 

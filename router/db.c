@@ -82,6 +82,7 @@ struct db_info {
 #define	DB_MODCHECK	0x04
 #define DB_NEG_CACHE	0x08
 #define DB_PERCENTSUBST	0x10
+#define DB_DEFAULTKEY	0x20
 
 
 struct db_kind {
@@ -228,7 +229,8 @@ run_relation(argc, argv)
 	int c, errflg, set_cache_size, dbtest;
 	spkey_t symid;
 	memtypes oval;
-	char *cp, *dbtyp;
+	char *cp;
+	const char *dbtyp;
 
 	if (spt_files == NULL)          spt_files          = sp_init();
 	if (spt_files->symbols == NULL) spt_files->symbols = sp_init();
@@ -236,12 +238,12 @@ run_relation(argc, argv)
 	errflg = 0;
 	dbtyp = NULL;
 	set_cache_size = 0;
-	optind = 1;
+	zoptind = 1;
 	dbtest = 0;
 	proto_config
 		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "CbilmnNpud:f:s:L:t:Te:%");
+		c = zgetopt(argc, (char*const*)argv, ":%CbilmnNpud:f:s:L:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -249,11 +251,11 @@ run_relation(argc, argv)
 			proto_config.postproc = Boolean;
 			break;
 		case 'd':	/* driver routine */
-			if (strcmp(optarg, "pathalias.nodot") == 0)
+			if (strcmp(zoptarg, "pathalias.nodot") == 0)
 				proto_config.driver = find_nodot_domain;
-			else if (strcmp(optarg, "pathalias") == 0)
+			else if (strcmp(zoptarg, "pathalias") == 0)
 				proto_config.driver = find_domain;
-			else if (strcmp(optarg, "longestmatch") == 0)
+			else if (strcmp(zoptarg, "longestmatch") == 0)
 				proto_config.driver = find_longest_match;
 			else
 				++errflg;
@@ -261,7 +263,7 @@ run_relation(argc, argv)
 		case 'f':	/* file name */
 			oval = stickymem;
 			stickymem = MEM_PERM;
-			proto_config.file = strsave(optarg);
+			proto_config.file = strsave(zoptarg);
 			stickymem = oval;
 			break;
 		case 'i':	/* indirect reference postprocessor */
@@ -283,13 +285,13 @@ run_relation(argc, argv)
 			proto_config.postproc = Pathalias;
 			break;
 		case 's':	/* cache size */
-			proto_config.cache_size = atoi(optarg);
+			proto_config.cache_size = atoi(zoptarg);
 			set_cache_size = 1;
 			break;
 		case 't':	/* database type */
-			dbtyp = optarg;
-			if ((cp = strchr(optarg, ',')) != NULL
-			    || (cp = strchr(optarg, '/')) != NULL) {
+			dbtyp = zoptarg;
+			if ((cp = strchr(zoptarg, ',')) != NULL
+			    || (cp = strchr(zoptarg, '/')) != NULL) {
 				*cp++ = '\0';
 				oval = stickymem;
 				stickymem = MEM_PERM;
@@ -302,13 +304,16 @@ run_relation(argc, argv)
 			dbtest = 1;
 			break;
 		case 'e':	/* expiry - cache data time to live */
-			proto_config.ttl = atol(optarg);
+			proto_config.ttl = atol(zoptarg);
 			break;
 		case 'u':	/* map all keys to uppercase */
 			proto_config.flags |= DB_MAPTOUPPER;
 			break;
 		case '%':
 			proto_config.flags |= DB_PERCENTSUBST;
+			break;
+		case ':':
+			/* proto_config.flags |= DB_DEFAULTKEY; */
 			break;
 		case 'F':	/* find routine */
 		case 'S':	/* search routine */
@@ -317,7 +322,7 @@ run_relation(argc, argv)
 			break;
 		}
 	}
-	if (errflg || optind != argc - 1 || dbtyp == NULL) {
+	if (errflg || zoptind != argc - 1 || dbtyp == NULL) {
 		fprintf(stderr,
 		"Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnNpu -d driver] name\n",
 			argv[0]);
@@ -361,20 +366,20 @@ run_relation(argc, argv)
 	if (dbtest)
 	  return 0;
 
-	symid = symbol(argv[optind]); /* Database name symbol  */
+	symid = symbol(argv[zoptind]); /* Database name symbol  */
 	if (sp_lookup(symid, spt_databases) != NULL) {
 		fprintf(stderr, "%s: %s is already a defined database!\n",
-				argv[0], argv[optind]);
+				argv[0], argv[zoptind]);
 		return 4;
 	}
 	if (spt_builtins != NULL && sp_lookup(symid, spt_builtins) != NULL) {
 		fprintf(stderr, "%s: %s is already a built in function!\n",
-				argv[0], argv[optind]);
+				argv[0], argv[zoptind]);
 		return 5;
 	}
 	if (spt_funclist != NULL && sp_lookup(symid, spt_funclist) != NULL) {
 		fprintf(stderr, "%s: %s is already a defined function!\n",
-				argv[0], argv[optind]);
+				argv[0], argv[zoptind]);
 		return 6;
 	}
 	if (proto_config.postproc == Indirect &&
@@ -391,7 +396,7 @@ run_relation(argc, argv)
 		/* The database name is used as a key by the incore routines */
 		oval = stickymem;
 		stickymem = MEM_PERM;
-		proto_config.file = strsave(argv[optind]);
+		proto_config.file = strsave(argv[zoptind]);
 		stickymem = oval;
 		/* and the subtype is used to stash the splay tree */
 		proto_config.subtype = (char*) sp_init();
@@ -707,21 +712,23 @@ run_db(argc, argv)
  */
 
 conscell *
-db(dbname, argv10)
-	const char *dbname, *argv10[];
+db(dbname, argc, argv20)
+	const char *dbname, *argv20[];
+	const int argc;
 {
 	register int keylen;
 	conscell *l, *ll, *tmp;
 	struct spblk *spl;
 	struct db_info *dbip;
 	char *realkey;
-	const char *key = argv10[0];
+	const char *key = argv20[0];
 	search_info si;
 	struct cache *cache;
 	unsigned long khash;
 	char kbuf[BUFSIZ];	/* XX: */
 	int slen;
 	GCVARS3;
+	int zoptind = 1;
 
 	now = time(NULL);
 
@@ -768,8 +775,31 @@ db(dbname, argv10)
 	si.key     = key;
 	si.subtype = dbip->subtype;
 	si.ttl     = dbip->ttl;
-	si.argv10  = argv10;
+	si.argv20  = argv20;
 	si.argv1   = NULL;
+	si.defaultkey = NULL;
+	si.flags   = dbip->flags;
+
+	zoptind = 1;
+	/* Recognize options:
+	   -: defaultval
+	   -- end of options
+	   Rest will be alike sendmail $@ "options"
+	*/
+	while (argv20[zoptind] && zoptind < argc) {
+	  if (strcmp("--",argv20[zoptind])==0) {
+	    ++zoptind;
+	    break;
+	  }
+	  if (strcmp("-:",argv20[zoptind])==0) {
+	    ++zoptind;
+	    si.defaultkey = argv20[zoptind];
+	    ++zoptind;
+	    continue;
+	  }
+	  /* ?? Other options ?? */
+	  break;
+	}
 
 	if ((dbip->flags & DB_MODCHECK)
 	    && dbip->modcheckp != NULL && (*dbip->modcheckp)(&si)) {
@@ -985,18 +1015,21 @@ db(dbname, argv10)
 	  for (;*p;++p) {
 	    if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
 	      ++p;
+	      s = NULL;
 	      switch (*p) {
 	      case '0':
 		s = si.key;
 		break;
 	      case '1':
 		s = si.argv1;
-		if (!s) s = si.argv10[1];
+		if (!s && zoptind < argc) s = si.argv20[zoptind];
 		break;
 	      default:
 		i = (*p - '0');
-		if (si.argv1) --i;
-		s = si.argv10[i];
+		if (si.argv1)
+		  --i;
+		if (zoptind+i < argc)
+		  s = si.argv20[zoptind+i];
 		break;
 	      }
 	      if (s)
@@ -1020,18 +1053,21 @@ db(dbname, argv10)
 	    for (p = ll->cstring; *p; ++p) {
 	      if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
 		++p;
+		s = NULL;
 		switch (*p) {
 		case '0':
 		  s = si.key;
 		  break;
 		case '1':
 		  s = si.argv1;
-		  if (!s) s = si.argv10[1];
+		  if (!s && zoptind < argc) s = si.argv20[zoptind];
 		  break;
 		default:
 		  i = (*p - '1');
-		  if (si.argv1) --i;
-		  s = si.argv10[i];
+		  if (si.argv1)
+		    --i;
+		  if (zoptind+i < argc)
+		    s = si.argv20[zoptind+i];
 		  break;
 		}
 		if (s)
@@ -1240,6 +1276,10 @@ find_domain(lookupfn, sip)
 #endif
 	/* Still failed ?  Try to look for "." */
 	sip->key = ".";
+
+	if (sip->defaultkey)
+	  sip->key = sip->defaultkey;
+
 	l = (*lookupfn)(sip);
 	if (l) {
 		if (sip->argv1) free((void*)sip->argv1);
@@ -1377,6 +1417,10 @@ find_longest_match(lookupfn, sip)
 		}
 		/* Still failed ?  Try to look for "." */
 		sip->key = ".";
+
+		if (sip->defaultkey)
+		  sip->key = sip->defaultkey;
+
 		l = (*lookupfn)(sip);
 		if (l) {
 			if (sip->argv1) free((void*)sip->argv1);

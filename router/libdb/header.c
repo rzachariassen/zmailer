@@ -84,6 +84,7 @@ struct headerinfo envelope_hdrs[] = {
 { "env-end",	nilHeaderSemantics,	nilUserType,	eEnvEnd		},
 { "env-eof",	nilHeaderSemantics,	nilUserType,	eEnvEnd		},
 { "envid",	nilHeaderSemantics,	nilUserType,	eEnvid		},
+{ "errormsg",	nilHeaderSemantics,	nilUserType,	eErrorMsg	},
 { "external",	nilHeaderSemantics,	nilUserType,	eExternal	},
 { "from",		AMailboxList,	Sender,		eFrom		},
 { "fullname",		Phrase,		nilUserType,	eFullname	},

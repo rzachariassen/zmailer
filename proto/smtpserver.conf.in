@@ -41,6 +41,12 @@
 #                       # with the default code against system  /etc/passwd
 #                       # (or whatever source  getpwnam() uses for it..)
 #
+#PARAM  SMTP-auth-pipe /path/to/program
+#                       # External authentication program. The
+#                       # authenticator should read a username from
+#                       # command line and a password from standard input.
+#                       # Exit status 0 means successful authentication.
+#
 #PARAM  AUTH-LOGIN-also-without-TLS
 #                       # Enable, if the "AUTH LOGIN" is to be allowed to
 #                       # be used without running under SSL/TLS security
@@ -52,12 +58,6 @@
 #                       # networks or the networks with relaying enabled
 #                       # (see "fulltrustnet" and "relaycustnet" in
 #                       # smtp-policy.src file).
-#
-#PARAM  SMTP-auth-pipe /path/to/program
-#                       # External authentication program. The
-#                       # authenticator should read a username from
-#                       # command line and a password from standard input.
-#                       # Exit status 0 means successful authentication.
 #
 #PARAM  use-tcp-wrapper
 #               # If TCP-WRAPPER is configured in, uncommenting this
