@@ -249,7 +249,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 
 	if (debug)
 	  printf("000-  nscount=%d (== 0 ?)  arcount=%d  eom-cp=%d\n",
-		 nscount, arcount, eom-cp);
+		 nscount, arcount, (int)(eom-cp));
 
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
 

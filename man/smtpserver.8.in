@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2005-Jan-26"
+.TH SMTPSERVER 8zm "2005-Mar-04"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -624,8 +624,10 @@ HELP command response texts.
 See example in the sample configuration below.
 .RE
 .IP "PARAM policydb DBTYPE /path/to/dbfile"
+.IP "PARAM policydb\-submit DBTYPE /path/to/dbfile"
 .RS
-This defines smtp input policy filtering/analysis database location.
+These defines smtp input policy filtering/analysis database location
+for all protocols, and (if wanted) separately for submission.
 See the comments at the sample
 .I proto/db/smtp-policy.src
 file.
@@ -935,7 +937,8 @@ PARAM help ------------------------------------------------------
 # The policy database:
 # (NOTE: See `makedb' for its default suffixes!)
 #
-PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
+PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
+#PARAM  policydb-submit $DBTYPE  $MAILVAR/db/smtp-policy-submit
 #
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis

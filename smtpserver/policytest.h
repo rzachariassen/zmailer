@@ -60,6 +60,7 @@ struct policystate {		/* Part of SmtpState structure */
 			   and at least one of them is ours.
 			   But... what about it us being lowest/only MX ?
 			*/
+    int implied_submission_mode;
 #ifdef HAVE_WHOSON_H
     int whoson_result;
 #endif
@@ -146,7 +147,7 @@ typedef enum {
  */
 
 extern void policydefine __((struct policytest ** PTp, const char *dbtype, const char *dbpath));
-extern int policyinit __((struct policystate * PS, struct policytest *PT, int whoson_result));
+extern int policyinit __((struct policystate * PS, struct policytest *PT, int submitflg, int whoson_result));
 extern int policytest __((struct policystate * ps, PolicyTest how, const char *str, const int len, const char *authuser));
 extern int policytestaddr __((struct policystate * ps, PolicyTest how, Usockaddr * raddr));
 extern char *policymsg __((struct policystate *ps));
@@ -155,3 +156,4 @@ extern long  policyinsizelimit __((struct policystate *ps));
 extern long  policysameiplimit __((struct policystate *ps));
 
 extern struct policytest *policydb;
+extern struct policytest *policydb_submit;

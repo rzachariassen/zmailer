@@ -195,6 +195,275 @@ void policydefine(relp, dbtype, dbpath)
     rel->dbt    = _dbt_none;
 }
 
+
+
+int policyinit(state, rel, submission_mode_flags, whosonrc)
+     struct policystate *state;
+     struct policytest  *rel;
+     int submission_mode_flags;
+     int whosonrc;
+{
+    int openok;
+    char *dbname;
+
+    if (rel == NULL)
+      return -1;  /* Not defined! */
+
+    memset(state, 0, sizeof(*state));
+
+    /*
+     * state->implied_submission_mode = (submission_mode_flags & 1); ???
+     */
+
+    state->PT = rel; /* Store the policytest dataset into state pointer.. */
+
+#ifdef HAVE_NDBM
+    if (cistrcmp(rel->dbtype, "ndbm") == 0)
+	rel->dbt = _dbt_ndbm;
+#endif
+#ifdef HAVE_GDBM
+    if (cistrcmp(rel->dbtype, "gdbm") == 0)
+	rel->dbt = _dbt_gdbm;
+#endif
+#ifdef HAVE_DB
+    if (cistrcmp(rel->dbtype, "btree") == 0)
+	rel->dbt = _dbt_btree;
+    if (cistrcmp(rel->dbtype, "bhash") == 0)
+	rel->dbt = _dbt_bhash;
+#if defined(DB_RPCCLIENT)
+    if (cistrcmp(rel->dbtype, "sleepyrpc") == 0)
+	rel->dbt = _dbt_sleepyrpc;
+#endif
+#endif
+    if (rel->dbt == _dbt_none) {
+	/* XX: ERROR! Unknown/unsupported dbtype! */
+      state->PT = NULL;
+      return 1;
+    }
+    openok = 0;
+#ifdef HAVE_ALLOCA
+    dbname = (char*)alloca(strlen(rel->dbpath) + 8);
+#else
+    dbname = (char*)emalloc(strlen(rel->dbpath) + 8);
+#endif
+    switch (rel->dbt) {
+#ifdef HAVE_NDBM
+    case _dbt_ndbm:
+	/*
+	   rel->ndbm = dbm_open((char*)rel->dbpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
+	 */
+	strcpy(dbname, rel->dbpath);
+	rel->ndbm = dbm_open(dbname, O_RDONLY, 0644);
+	openok = (rel->ndbm != NULL);
+	break;
+#endif
+#ifdef HAVE_GDBM
+    case _dbt_gdbm:
+	/* Append '.gdbm' to the name */
+	sprintf(dbname, "%s.gdbm", rel->dbpath);
+	rel->gdbm = gdbm_open(dbname, 0, GDBM_READER, 0644, NULL);
+	openok = (rel->gdbm != NULL);
+	break;
+#endif
+#ifdef HAVE_DB
+#if defined(DB_RPCCLIENT)
+    case _dbt_sleepyrpc:
+      {
+	DB_ENV *env;
+
+	/* FIXME:FIXME:FIXME:
+	   Treat supplied  rel->dbpath  as host into for
+	   SleepyDB rpc server. Need also to have db name in there ??
+	   Or more parameters by listing them in separate file that
+	   is named in rel->dbpath  and parsed ?? 
+	    - RPChost
+	    - server timeout
+	    - client timeout
+	    - homedir in server
+	    - database (file)name
+	*/
+	
+        openok = db_env_create(& env, DB_RPCCLIENT);
+	/* XX: 0 == ok */
+	rel->db_._db_env = env;
+
+	openok = env->set_rpc_server( env, NULL, rel->dbpath,
+				      0 /* cl_timeout */, 0 /* sv_timeout */,
+				      0 );
+	/* XX: 0 == ok */
+
+	openok = env->open(env, rel->dbpath, DB_JOINENV, 0); /* FIXME!FIXME! */
+	/* XX: 0 == ok */
+
+	openok = db_create(& rel->sleepyrpc, env, 0);
+	/* XX: 0 == ok */
+
+
+	/* Append '.db' to the name */
+	sprintf(dbname, "%s.db", rel->dbpath);
+
+	openok = rel->sleepyrpc->open(rel->sleepyrpc,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+				      NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+				      dbname, NULL,  DB_BTREE,
+				      DB_RDONLY, 0);
+
+	break;
+      }
+#endif
+
+    case _dbt_btree:
+	/* Append '.db' to the name */
+	sprintf(dbname, "%s.db", rel->dbpath);
+
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
+
+	rel->btree = NULL;
+	openok = db_create(&rel->btree, NULL, 0);
+	if (openok == 0)
+	  openok = rel->btree->open(rel->btree,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+				    NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+				    dbname, NULL,  DB_BTREE,
+				    DB_RDONLY, 0);
+	if (debug && openok)
+	  type(NULL,0,NULL," btree->open('%s',BTREE, RDONLY) ret=%d",dbname,openok);
+	openok = !openok;
+
+#else
+#if defined(HAVE_DB2)
+
+	rel->btree = NULL;
+#ifndef DB_RDONLY
+# define DB_RDONLY O_RDONLY
+#endif
+	openok = db_open(dbname, DB_BTREE, DB_RDONLY, 0644,
+			 NULL, NULL, &rel->btree);
+	openok = !openok;
+#else /* HAVE_DB1 */
+	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
+	openok = (rel->btree != NULL);
+#endif
+#endif
+	break;
+
+    case _dbt_bhash:
+	/* Append '.db' to the name */
+	sprintf(dbname, "%s.dbh", rel->dbpath);
+
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
+
+	rel->bhash = NULL;
+	openok = db_create(&rel->bhash, NULL, 0);
+	if (openok == 0)
+	  openok = rel->bhash->open(rel->bhash,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+				    NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+				    dbname, NULL, DB_HASH,
+				    DB_RDONLY, 0);
+	if (debug && openok)
+	  type(NULL,0,NULL," bhash->open('%s',BHASH, RDONLY) ret=%d",dbname,openok);
+	openok = !openok;
+
+#else
+#if defined(HAVE_DB2)
+
+	rel->bhash = NULL;
+#ifndef DB_RDONLY
+# define DB_RDONLY O_RDONLY
+#endif
+	openok = db_open(dbname, DB_HASH, DB_RDONLY, 0644,
+			 NULL, NULL, &rel->bhash);
+	openok = !openok;
+#else /* HAVE_DB1 */
+	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
+	openok = (rel->bhash != NULL);
+#endif
+#endif
+	break;
+#endif
+    default:
+	break;
+    }
+    if (!openok) {
+	/* ERROR!  Could not open the database! */
+      if (debug) {
+	type(NULL,0,NULL," ERROR!  Could not open the database file '%s'; errno=%d!",
+	       dbname, errno);
+	fflush(stdout);
+      }
+      state->PT = NULL;
+
+#ifndef HAVE_ALLOCA
+      free(dbname);
+#endif
+      return 2;
+    }
+#ifndef HAVE_ALLOCA
+    free(dbname);
+#endif
+
+#ifdef HAVE_WHOSON_H
+    if (debug) {
+      type(NULL,0,NULL,"TEST: have-whoson found");
+      type(NULL,0,NULL,"TEST: state-whoson=[%d] whosonrc=[%d]",
+	   state->whoson_result, whosonrc);
+    }
+    state->whoson_result = whosonrc;
+#endif
+#ifdef Z_CHECK_SPF_DATA
+    state->check_spf=0;
+#endif
+    state->maxsameiplimit = -1;
+    return 0;
+}
+
+#ifdef Z_CHECK_SPF_DATA
+void initialize_spf(state)
+    struct policystate *state;
+{
+    if (state->spf_passed) return;
+    state->spf_passed=1;
+
+    state->check_spf=1;
+
+    if ((state->spfcid=SPF_create_config()) == NULL) {
+        type(NULL,0,NULL," SPF_create_config() failed");
+        state->check_spf=0;
+        return;
+    }
+
+    if ((state->spfdcid=SPF_dns_create_config_resolv(NULL, 0)) == NULL) {
+	type(NULL,0,NULL," SPF_dns_create_config() failed");
+	state->check_spf=0;
+	return;
+    }
+
+    SPF_init_c_results(&state->local_policy);
+    if (SPF_compile_local_policy(state->spfcid,
+				 spf_localpolicy,
+				 spf_whitelist_use_default,
+				 &state->local_policy)) {
+	type(NULL,0,NULL," SPF_compile_local_policy() failed: %s",
+	     state->local_policy.err_msg);
+	free(spf_localpolicy);
+	state->check_spf=0;
+	return;
+    }
+    if (debug)
+	type(NULL,0,NULL," SPF local_policy: %s",spf_localpolicy);
+#warning "strange looking  free(spf_localpolicy)  call here!"
+    free(spf_localpolicy); /* FIXME??FIXME??FIXME?? */
+
+    SPF_set_local_policy(state->spfcid,state->local_policy);
+}
+#endif
+
+
+
 /* Do the actual query - return pointer to the result record */
 static void *dbquery __((struct policytest *, const void *, const int, int *));
 
@@ -622,266 +891,6 @@ static int checkaddr(state, pbuf)
 }
 
 
-int policyinit(state, rel, whosonrc)
-     struct policystate *state;
-     struct policytest  *rel;
-     int whosonrc;
-{
-    int openok;
-    char *dbname;
-
-    if (rel == NULL)
-      return -1;  /* Not defined! */
-
-    memset(state, 0, sizeof(*state));
-
-    state->PT = rel; /* Store the policytest dataset into state pointer.. */
-
-#ifdef HAVE_NDBM
-    if (cistrcmp(rel->dbtype, "ndbm") == 0)
-	rel->dbt = _dbt_ndbm;
-#endif
-#ifdef HAVE_GDBM
-    if (cistrcmp(rel->dbtype, "gdbm") == 0)
-	rel->dbt = _dbt_gdbm;
-#endif
-#ifdef HAVE_DB
-    if (cistrcmp(rel->dbtype, "btree") == 0)
-	rel->dbt = _dbt_btree;
-    if (cistrcmp(rel->dbtype, "bhash") == 0)
-	rel->dbt = _dbt_bhash;
-#if defined(DB_RPCCLIENT)
-    if (cistrcmp(rel->dbtype, "sleepyrpc") == 0)
-	rel->dbt = _dbt_sleepyrpc;
-#endif
-#endif
-    if (rel->dbt == _dbt_none) {
-	/* XX: ERROR! Unknown/unsupported dbtype! */
-      state->PT = NULL;
-      return 1;
-    }
-    openok = 0;
-#ifdef HAVE_ALLOCA
-    dbname = (char*)alloca(strlen(rel->dbpath) + 8);
-#else
-    dbname = (char*)emalloc(strlen(rel->dbpath) + 8);
-#endif
-    switch (rel->dbt) {
-#ifdef HAVE_NDBM
-    case _dbt_ndbm:
-	/*
-	   rel->ndbm = dbm_open((char*)rel->dbpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
-	 */
-	strcpy(dbname, rel->dbpath);
-	rel->ndbm = dbm_open(dbname, O_RDONLY, 0644);
-	openok = (rel->ndbm != NULL);
-	break;
-#endif
-#ifdef HAVE_GDBM
-    case _dbt_gdbm:
-	/* Append '.gdbm' to the name */
-	sprintf(dbname, "%s.gdbm", rel->dbpath);
-	rel->gdbm = gdbm_open(dbname, 0, GDBM_READER, 0644, NULL);
-	openok = (rel->gdbm != NULL);
-	break;
-#endif
-#ifdef HAVE_DB
-#if defined(DB_RPCCLIENT)
-    case _dbt_sleepyrpc:
-      {
-	DB_ENV *env;
-
-	/* FIXME:FIXME:FIXME:
-	   Treat supplied  rel->dbpath  as host into for
-	   SleepyDB rpc server. Need also to have db name in there ??
-	   Or more parameters by listing them in separate file that
-	   is named in rel->dbpath  and parsed ?? 
-	    - RPChost
-	    - server timeout
-	    - client timeout
-	    - homedir in server
-	    - database (file)name
-	*/
-	
-        openok = db_env_create(& env, DB_RPCCLIENT);
-	/* XX: 0 == ok */
-	rel->db_._db_env = env;
-
-	openok = env->set_rpc_server( env, NULL, rel->dbpath,
-				      0 /* cl_timeout */, 0 /* sv_timeout */,
-				      0 );
-	/* XX: 0 == ok */
-
-	openok = env->open(env, rel->dbpath, DB_JOINENV, 0); /* FIXME!FIXME! */
-	/* XX: 0 == ok */
-
-	openok = db_create(& rel->sleepyrpc, env, 0);
-	/* XX: 0 == ok */
-
-
-	/* Append '.db' to the name */
-	sprintf(dbname, "%s.db", rel->dbpath);
-
-	openok = rel->sleepyrpc->open(rel->sleepyrpc,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
-				      NULL, /* TXN id was added at SleepyDB 4.1 */
-#endif
-				      dbname, NULL,  DB_BTREE,
-				      DB_RDONLY, 0);
-
-	break;
-      }
-#endif
-
-    case _dbt_btree:
-	/* Append '.db' to the name */
-	sprintf(dbname, "%s.db", rel->dbpath);
-
-#if defined(HAVE_DB3) || defined(HAVE_DB4)
-
-	rel->btree = NULL;
-	openok = db_create(&rel->btree, NULL, 0);
-	if (openok == 0)
-	  openok = rel->btree->open(rel->btree,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
-				    NULL, /* TXN id was added at SleepyDB 4.1 */
-#endif
-				    dbname, NULL,  DB_BTREE,
-				    DB_RDONLY, 0);
-	if (debug && openok)
-	  type(NULL,0,NULL," btree->open('%s',BTREE, RDONLY) ret=%d",dbname,openok);
-	openok = !openok;
-
-#else
-#if defined(HAVE_DB2)
-
-	rel->btree = NULL;
-#ifndef DB_RDONLY
-# define DB_RDONLY O_RDONLY
-#endif
-	openok = db_open(dbname, DB_BTREE, DB_RDONLY, 0644,
-			 NULL, NULL, &rel->btree);
-	openok = !openok;
-#else /* HAVE_DB1 */
-	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
-	openok = (rel->btree != NULL);
-#endif
-#endif
-	break;
-
-    case _dbt_bhash:
-	/* Append '.db' to the name */
-	sprintf(dbname, "%s.dbh", rel->dbpath);
-
-#if defined(HAVE_DB3) || defined(HAVE_DB4)
-
-	rel->bhash = NULL;
-	openok = db_create(&rel->bhash, NULL, 0);
-	if (openok == 0)
-	  openok = rel->bhash->open(rel->bhash,
-#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
-				    NULL, /* TXN id was added at SleepyDB 4.1 */
-#endif
-				    dbname, NULL, DB_HASH,
-				    DB_RDONLY, 0);
-	if (debug && openok)
-	  type(NULL,0,NULL," bhash->open('%s',BHASH, RDONLY) ret=%d",dbname,openok);
-	openok = !openok;
-
-#else
-#if defined(HAVE_DB2)
-
-	rel->bhash = NULL;
-#ifndef DB_RDONLY
-# define DB_RDONLY O_RDONLY
-#endif
-	openok = db_open(dbname, DB_HASH, DB_RDONLY, 0644,
-			 NULL, NULL, &rel->bhash);
-	openok = !openok;
-#else /* HAVE_DB1 */
-	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
-	openok = (rel->bhash != NULL);
-#endif
-#endif
-	break;
-#endif
-    default:
-	break;
-    }
-    if (!openok) {
-	/* ERROR!  Could not open the database! */
-      if (debug) {
-	type(NULL,0,NULL," ERROR!  Could not open the database file '%s'; errno=%d!",
-	       dbname, errno);
-	fflush(stdout);
-      }
-      state->PT = NULL;
-
-#ifndef HAVE_ALLOCA
-      free(dbname);
-#endif
-      return 2;
-    }
-#ifndef HAVE_ALLOCA
-    free(dbname);
-#endif
-
-#ifdef HAVE_WHOSON_H
-    if (debug) {
-      type(NULL,0,NULL,"TEST: have-whoson found");
-      type(NULL,0,NULL,"TEST: state-whoson=[%d] whosonrc=[%d]",
-	   state->whoson_result, whosonrc);
-    }
-    state->whoson_result = whosonrc;
-#endif
-#ifdef Z_CHECK_SPF_DATA
-    state->check_spf=0;
-#endif
-    state->maxsameiplimit = -1;
-    return 0;
-}
-
-#ifdef Z_CHECK_SPF_DATA
-void initialize_spf(state)
-    struct policystate *state;
-{
-    if (state->spf_passed) return;
-    state->spf_passed=1;
-
-    state->check_spf=1;
-
-    if ((state->spfcid=SPF_create_config()) == NULL) {
-        type(NULL,0,NULL," SPF_create_config() failed");
-        state->check_spf=0;
-        return;
-    }
-
-    if ((state->spfdcid=SPF_dns_create_config_resolv(NULL, 0)) == NULL) {
-	type(NULL,0,NULL," SPF_dns_create_config() failed");
-	state->check_spf=0;
-	return;
-    }
-
-    SPF_init_c_results(&state->local_policy);
-    if (SPF_compile_local_policy(state->spfcid,
-				 spf_localpolicy,
-				 spf_whitelist_use_default,
-				 &state->local_policy)) {
-	type(NULL,0,NULL," SPF_compile_local_policy() failed: %s",
-	     state->local_policy.err_msg);
-	free(spf_localpolicy);
-	state->check_spf=0;
-	return;
-    }
-    if (debug)
-	type(NULL,0,NULL," SPF local_policy: %s",spf_localpolicy);
-#warning "strange looking  free(spf_localpolicy)  call here!"
-    free(spf_localpolicy); /* FIXME??FIXME??FIXME?? */
-
-    SPF_set_local_policy(state->spfcid,state->local_policy);
-}
-#endif
-
 static int _addrtest_ __((struct policystate *state, const unsigned char *pbuf, int sourceaddr));
 
 static int _addrtest_(state, pbuf, sourceaddr)
@@ -1047,7 +1056,8 @@ static int _addrtest_(state, pbuf, sourceaddr)
       PICK_PA_MSG(P_A_TrustWhosOn);
     }
 #endif
-    if (/* !msa_mode && */ valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
+    if (/* !state->implied_submission_mode && */
+	valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'relaycustnet +' found");
       state->always_accept = 1;
@@ -1315,9 +1325,9 @@ static int check_domain(state, input, inlen)
 
     if (pbuf[2] == '[') {
       /* IP address literal ??? */
-      if (strncmp(pbuf+2+1,"ipv6",4)==0) {
+      if (strncmp((const char*)pbuf+2+1,"ipv6",4)==0) {
 #if defined(AF_INET6) && defined(INET6)
-	char *s = strchr(pbuf+3,']');
+	char *s = strchr((const char *)pbuf+3,']');
 	if (s) *s = 0;
 	if (inet_pton(AF_INET6, (const char*)pbuf+3+5, pbuf+2) < 1) {
 	  /* XX: Duh ?  Our input is syntax checked, so
@@ -1330,7 +1340,7 @@ static int check_domain(state, input, inlen)
 	/* XXX: Duh ??? IPv6 not supported, how to report errs ?? */
 #endif
       } else {
-	char *s = strchr(pbuf+3,']');
+	char *s = strchr((const char *)pbuf+3,']');
 	if (s) *s = 0;
 	if (inet_pton(AF_INET, (const char *)pbuf+3, (u_char *)pbuf+2) < 1) {
 	  /* XX: Duh ?  Our input is syntax checked, so
@@ -1574,7 +1584,8 @@ static int pt_sourcedomain(state, str, len)
     if (state->always_accept)
 	return 0;
 
-    if (/* !msa_mode && */ valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
+    if (/* !state->implied_submission_mode && */
+	valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
 	type(NULL,0,NULL," pt_sourceaddr: 'relaycustnet +' found");
       state->always_accept = 1;
@@ -1621,7 +1632,7 @@ static int pt_mailfrom(state, str, len)
 
 #ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
-      char *nstr=strdup(str);
+      char *nstr=strdup((const char *)str);
       nstr[len]='\0';
       if (debug) type(NULL,0,NULL,"doing SPF_set_env_from(\"%s\")",nstr);
       if (SPF_set_env_from(state->spfcid, nstr)) {

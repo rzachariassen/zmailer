@@ -238,11 +238,11 @@ derived directory paths is something like:
 or
 .I $MAILBOX/Y/X/username
 .PP
-.B Note:
+.IP Note1:
 The Base-26 output consumes 4.7 bits of the hash at the time,
-which means that a 32 bit has exhausts all of its bits in 7 levels.
+which means that a 32 bit hash exhausts all of its bits in 7 levels.
 .PP
-.B Note2:
+.IP Note2:
 Depth of hash tree should be determined by individual filesystem
 capabilities.
 For example Solaris 8 UFS can handle up to 254 things on one directory

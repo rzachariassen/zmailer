@@ -1,5 +1,11 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c, smtpserver/policytest.h, 
+	  smtpserver/mxverify.c,   smtpserver/policytest.c,
+	  smtpserver/cfgread.c,    man/smtpserver.8.in:
+	    - PARAM policydb-submit  -- separate DB for SUBMISSION
+	    - GCC-4.0.0 fixes.
+
 	* utils/vacation/vacation.c:
 	    Match SleepyCat DB 4.1 API
 

@@ -93,37 +93,38 @@ struct command command_list[] =
     {0, Null}
 };
 
-struct policytest *policydb = NULL;
-struct smtpconf *cfhead = NULL;
-struct smtpconf *cfinfo = NULL;
+struct policytest *policydb;
+struct policytest *policydb_submit;
+struct smtpconf *cfhead;
+struct smtpconf *cfinfo;
 
 const char *progname, *cmdline, *eocmdline, *logfile;
-char *routerprog = NULL;
-int logstyle = 0;		/* 0: no suffix, 1: 'myhostname', 2: 'rhostname' */
-int debug = 0;
+char *routerprog;
+int logstyle;		/* 0: no suffix, 1: 'myhostname', 2: 'rhostname' */
+int debug;
 int skeptical = 1;
-int checkhelo = 0;
-int verbose = 0;
+int checkhelo;
+int verbose;
 int daemon_flg = 1;
 int pid;
-int router_status = 0;
-FILE *logfp = NULL;
-int   logfp_to_syslog = 0;
-int D_alloc = 0;
-int smtp_syslog = 0;
+int router_status;
+FILE *logfp;
+int   logfp_to_syslog;
+int D_alloc;
+int smtp_syslog;
 #ifdef USE_TRANSLATION
-int X_translation = 0;
-int X_8bit = 0;
+int X_translation;
+int X_8bit;
 int X_settrrc = 9;
 #endif				/* USE_TRANSLATION */
-int strict_protocol = 0;
-int mustexit = 0;
-int configuration_ok = 0;
+int strict_protocol;
+int mustexit;
+int configuration_ok;
 int gotalarm;
 int unknown_cmd_limit = 10;
-int sum_sizeoption_value = 0;
-int always_flush_replies = 0;
-int sawsigchld = 0;
+int sum_sizeoption_value;
+int always_flush_replies;
+int sawsigchld;
 
 char   logtag[32];
 time_t logtagepoch, now;
@@ -585,8 +586,8 @@ int main(argc, argv, envp)
 	char *pidfile = PID_SMTPSERVER;
 	int pidfile_set = 0;
 	const char *t, *syslogflg;
-	size_t localsocksize; /* Solaris: size_t, new BSD: socklen_t */
-	size_t raddrlen;
+	unsigned int localsocksize; /* Solaris: size_t, new BSD: socklen_t */
+	unsigned int raddrlen;
 
 	SmtpState SS;
 
@@ -2430,10 +2431,23 @@ int insecure;
 
 
 #ifdef HAVE_WHOSON_H
+    if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
+      policystatus     = policyinit(&SS->policystate, policydb_submit, 
+				    (SS->with_protocol_set & WITH_SUBMIT) ? 3 : 2,
+				    SS->whoson_result);
+    else
       policystatus     = policyinit(&SS->policystate, policydb, 
+				    (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
 				    SS->whoson_result);
 #else
-      policystatus     = policyinit(&SS->policystate, policydb, 0);
+    if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
+      policystatus     = policyinit(&SS->policystate, policydb,
+				    (SS->with_protocol_set & WITH_SUBMIT) ? 3 : 2,
+				    0);
+    else
+      policystatus     = policyinit(&SS->policystate, policydb,
+				    (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
+				    0);
 #endif
 
     if (!SS->netconnected_flg) {

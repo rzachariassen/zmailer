@@ -434,6 +434,9 @@ static void cfparam(str, size, cfgfilename, linenum)
     else if (cistrcmp(name, "policydb") == 0 && param2 /* 2 params */) {
 	policydefine(&policydb, param1, param2);
     }
+    else if (cistrcmp(name, "policydb-submit") == 0 && param2 /* 2 params */) {
+	policydefine(&policydb_submit, param1, param2);
+    }
 
     else if (cistrcmp(name, "contentfilter") == 0 && param1) {
       if (access(param1, X_OK) == 0)
