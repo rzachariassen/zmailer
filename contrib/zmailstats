@@ -388,7 +388,8 @@ $delivered_count_total = 0;
 while (<>)
   {
   ($x_month,$x_day,$x_time,$transport,$id,$flag,$x_address) =
-	/^(\w\w\w)\s(\d{1,2})\s(\d\d:\d\d:\d\d)\s\w*\s(\w*)\[\d*\]:\s([\d\w\.])*:\s(\w*)=(\<\S+\>)/;
+	/^(\w\w\w)\s{1,2}(\d{1,2})\s(\d\d:\d\d:\d\d)\s\w*\s(\w*)\[\d*\]:\s([\d\w\.])*:\s(\w*)=(\<\S+\>)/;
+
   # Continue if invalid line
   if (!defined $flag || $transport eq "hold") { next };
   # Assume 1997. This should be fixed somehow
