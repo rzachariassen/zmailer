@@ -1080,7 +1080,7 @@ void query2(fpi, fpo)
 	MD5_CTX CTX;
 	unsigned char digbuf[16];
 
-	/* XX: Authenticate the query - get challenge */
+	/* Authenticate the query - get challenge */
 	bufsize = 0;
 	if (GETLINE(challenge, bufsize, bufspace, fpi))
 	  return;

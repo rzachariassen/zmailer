@@ -5,6 +5,8 @@
 #PARAM min-availspace           5000    # Minimum free in POSTOFFICE after
 #                                       # message has arrived; in KILOBYTES.
 #PARAM max-error-recipients        3	# More than this is propably SPAM!
+#PARAM max-unknown-commands       10    # Max unknown cmds before we hung up
+#
 #PARAM MaxSameIpSource		  10    # Max simultaneous connections
 #					# from any IP source address
 #PARAM MaxParallelConnections    800    # Max simultaneous connections
@@ -16,6 +18,7 @@
 #
 #PARAM RcptLimitCount          10000	# Max number of recipients for one
 #					# MAIL FROM session. Minimum: 100
+#PARAM sum-sizeoption-value
 #
 #PARAM BindPort	                  25	# Binding port
 #PARAM BindAddress         [0.0.0.0]	# Binding address - for multihomers..

@@ -172,10 +172,6 @@ transports/smtp:
 	  living connection...
 
 - smtpserver
-  - Cluster ETRN ???
-	When SMTPSERVER gets an ETRN request, it could use
-	MAILQv2 to communicate the info to the scheduler(s)
-	in load-balance/redundant cluster
 
   - BIND to INTERFACE's address -- assuming a set of servers
     has their system setups defining that a eth0:1 has individual

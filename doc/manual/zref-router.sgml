@@ -873,12 +873,12 @@ cd [directory]
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-{\tt cd} successful.
+<FUNCTION>cd</> successful.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -907,14 +907,14 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt cdr object-reference}
-
+<SYNOPSIS>
+cdr object-reference
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied lisp-object of 
-object-reference's {\tt cdr} operation.
+Pointer to copied lisp-object of object-reference's
+<FUNCTION>cdr</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -924,8 +924,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the {\tt rest}
-command.
+This command is synonymous to the <FUNCTION>rest</>
+function.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -938,14 +938,13 @@ command.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt channel object-reference}
-
+<SYNOPSIS>
+channel object-reference
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-The channel (1st) component of an address
-quad.
+The channel (1st) component of an address quad.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -955,8 +954,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The {\tt car} and {\tt first} commands are 
-synonymous to this command. 
+The <FUNCTION>car</> and <FUNCTION>first</> functions are 
+synonymous to this one. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -969,14 +968,15 @@ synonymous to this command.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt continue}
+<SYNOPSIS>
+ continue
+<SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 
 
@@ -1005,14 +1005,14 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt daemon}
-
+<SYNOPSIS>
+daemon
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
@@ -1028,11 +1028,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Starts the {\em router} running in daemon mode, 
-scanning the {\tt \$POSTOFFICE/router/} directory every few 
-seconds for message files to process. This function is invoked 
-automatically by other code in the {\em router} program and has no 
-other purpose.
+Starts the <EMPHASIS>router</> running in daemon mode, 
+scanning the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/router/</>
+directory every few seconds for message files to process.
+This function is invoked automatically by other code in
+the <EMPHASIS>router</> program and has no other purpose.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1083,12 +1083,12 @@ other purpose.
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -1171,24 +1171,27 @@ ldap      no  no    yes   no    no
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>dblookup</TITLE>
+<SECT2><TITLE><EMPHASIS>dblookup</></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt dblookup key}
+Does lookup via <FUNCTION>relation</> defined <EMPHASIS>dblookup</>
+vector:
+<SYNOPSIS>
+<EMPHASIS>dblookup</> key
+</SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt cell}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><EMPHASIS>cell</></TERM><LISTITEM><PARA>
 
-
+Lookup result
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt NULL}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><LITERAL>NULL</></TERM><LISTITEM><PARA>
 
 Error.  
 
@@ -1204,7 +1207,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+The access function to the database facilities in the 
+<EMPHASIS>router</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1217,14 +1221,14 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt echo [string-expressions]}
-
+<SYNOPSIS>
+echo [-n] [string-expressions]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
         
 
@@ -1236,7 +1240,7 @@ none
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n</></TERM><LISTITEM><PARA>
 
 Don't print newline at end of string.
 
@@ -1247,8 +1251,7 @@ Don't print newline at end of string.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The access function to the database facilities in the 
-{\em router}.
+none
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1261,13 +1264,13 @@ The access function to the database facilities in the
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt elements lisp-object}
-
+<SYNOPSIS>
+elements <EMPHASIS>lisp-object</>
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-{\tt lisp-object}
+<EMPHASIS>lisp-object</>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -1290,14 +1293,14 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt envars}
-
+<SYNOPSIS>
+envars
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
@@ -1326,9 +1329,9 @@ Print internal variable tree.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt erraddron [file]}
-
+<SYNOPSIS>
+erraddron [file]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1505,7 +1508,9 @@ The reason for the latter is that if grandparent directories are
 insecure, the system is likely to have just as bad potential 
 problems as can be created by using mail to run processes with
 forged powers (besides, doing the full check would be quite expensive).
+</PARA>
 
+<PARA>
 If a second argument is given, it is the numeric user id to assume 
 for the file. This means only the parent directory will be checked 
 for nonwritability and for having the same (or a 0) uid.
@@ -1909,13 +1914,6 @@ none
 This appends content of list object ({\em anyvalue}) to named
 {\em varname} variable.
 
-This function has been created to manage problems associated
-at the use of ``{\em setf}'', which in current implementation
-causes $O(n^{2})$ kind memory consumption by creating a new
-temporary copy of the target list into the heap for all invocations
-of ``{\em setf}''.  Result being that for a large list the system
-will quickly use massive amounts of heap.
-
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -2117,7 +2115,8 @@ A comment will be inserted in the error report.
 
 Implements the most common pipeline where 
 {\tt listaddresses} was used with more efficient memory consumption 
-handling. (That is, without variable duplicating {\tt setf}'s.)
+handling.
+
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2198,35 +2197,33 @@ none
 
 This replaces designated field on {\em varname} variable containing
 list-like data with {\em anyvalue} value.
+</PARA>
 
+<PARA>
 The field designation can be given in numeric form, where
 the field index can be numeric (first field is zero), or
 {\em keyname} on key/value pair list.
+</PARA>
 
+<PARA>
 If a key is not found (with key/value pairs), then designated pair
 is added to the list.
+</PARA>
 
-\begin{alltt}
-tt=(aa 11 bb 22 cc 33 dd 44)
-lreplace tt aa zz
-grind $tt
-(zz 11 bb 22 cc 33 dd 44)
-lreplace tt 0 aaa
-grind $tt
-(aaa 11 bb 22 cc 33 dd 44)
-lreplace tt zz aa
-grind $tt
-(aaa 11 bb 22 cc 33 dd 44 zz aa)
-\end{alltt}
+<SCREEN>
+  tt=(aa 11 bb 22 cc 33 dd 44)
+  lreplace tt aa zz
+  grind $tt
+  (zz 11 bb 22 cc 33 dd 44)
+  lreplace tt 0 aaa
+  grind $tt
+  (aaa 11 bb 22 cc 33 dd 44)
+  lreplace tt zz aa
+  grind $tt
+  (aaa 11 bb 22 cc 33 dd 44 zz aa)
+</SCREEN>
 
-This function has been created to manage problems associated
-at the use of ``{\em setf}'', which in current implementation
-causes $O(n^{2})$ kind memory consumption by creating a new
-temporary copy of the target list into the heap for all invocations
-of ``{\em setf}''.  Result being that for a large list the system
-will quickly use massive amounts of heap.
-
-</PARA></LISTITEM></VARLISTENTRY>
+</LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
 </SECT2>
@@ -3144,39 +3141,6 @@ none
 
 
 </SECT2>
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<!--
-<SECT2><TITLE>setf</TITLE>
-
-
-{\em THIS FUNCTION IS NO LONGER AVAILABLE! }
-
-<VARIABLELIST>
-<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt setf variable-reference [new-value]}
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
-
-Pointer to original variable reference.
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
-
-none  
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
-
-Replaces variable reference within a {\tt varcell}.
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
-
-</SECT2>
- -->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>shift</TITLE>
 

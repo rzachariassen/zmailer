@@ -1380,13 +1380,15 @@ const char *buf, *cp;
     if (SS->sizeoptval < 0)
 	SS->sizeoptval = 0;
 
-    /* SS->sizeoptsum += SS->sizeoptval; */
-    SS->sizeoptsum = SS->sizeoptval;
+    if (sum_sizeoption_value)
+      SS->sizeoptsum += SS->sizeoptval;
+    else
+      SS->sizeoptsum = SS->sizeoptval;
 
     if (ferror(SS->mfp)) {
 	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
-    } else if (maxsize > 0 && SS->sizeoptsum > maxsize) {
+    } else if (maxsize > 0 && SS->sizeoptval > maxsize) {
 	smtp_tarpit(SS);
 	type(SS, 552, m534, "Message size exceeds fixed maximum size of %ld chars for acceptable email", maxsize);
     } else if (SS->sizeoptsum > availspace) {

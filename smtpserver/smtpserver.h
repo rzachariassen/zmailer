@@ -216,6 +216,8 @@ typedef struct {
     char whoson_data[128];
 #endif
 
+    int unknown_cmd_count;
+
 } SmtpState;
 
 #define STYLE(i,c)	(strchr(((i)==NULL ? style : (i)->flags), (c)) != NULL)
@@ -275,6 +277,8 @@ extern int rcptlimitcnt;
 extern int enable_router;
 extern int use_tcpwrapper;
 extern int configuration_ok;
+extern int unknown_cmd_limit;
+extern int sum_sizeoption_value;
 
 extern int bindaddr_set, bindport_set;
 extern u_short   bindport;

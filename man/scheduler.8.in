@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "3 Jan 2000"
+.TH SCHEDULER 8 "29 Feb 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -798,8 +798,8 @@ Implements 'mailq -QQ'.
 Implements 'mailq -Q'.
 .IP SHOW\ THREAD\ channel\ host
 Unimplemented.
-.IP ETRN etrn_string
-Unimplemented.
+.IP ETRN\ etrn\_string
+Supports ETRN-cluster subsystem at smtpserver.
 .IP KILL\ MSG\ spoolid
 Unimplemented.
 .IP KILL\ THREAD\ channel\ host

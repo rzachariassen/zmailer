@@ -122,6 +122,8 @@ int strict_protocol = 0;
 int mustexit = 0;
 int configuration_ok = 0;
 int gotalarm;
+int unknown_cmd_limit = 10;
+int sum_sizeoption_value = 0;
 
 char logtag[16];
 
@@ -1771,6 +1773,14 @@ int insecure;
 	if (SS->carp->verb == NULL) {
 
 	unknown_command:
+
+	    ++SS->unknown_cmd_count;
+
+	    if (SS->unknown_cmd_count >= unknown_cmd_limit) {
+	      type(SS, 550, m552, "One too many unknown command '%s'", buf);
+	      typeflush(SS);
+	      break;
+	    }
 
 	    smtp_tarpit(SS);
 

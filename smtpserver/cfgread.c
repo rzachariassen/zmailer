@@ -160,6 +160,10 @@ static void cfparam(str)
       allow_source_route = 1;
     } else if (cistrcmp(name, "max-error-recipients") == 0 && param1) {
 	sscanf(param1, "%d", &MaxErrorRecipients);
+    } else if (cistrcmp(name, "max-unknown-commands") == 0 && param1) {
+	sscanf(param1, "%d", &unknown_cmd_limit);
+    } else if (cistrcmp(name, "sum-sizeoption-value") == 0) {
+      sum_sizeoption_value = 1;
     }
 
     else if (cistrcmp(name, "use-tcp-wrapper") == 0) {
