@@ -568,6 +568,7 @@ char **argv;
 	}
 
 	pid = getpid();
+	settrusteduser();	/* dig out the trusted user ID */
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
 #ifdef HAVE_WHOSON_H
