@@ -107,7 +107,8 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	int rc = -2;
 
 	if (verbose)
-	  fprintf(stderr,"Storing key='%s' data='%s'\n", t, s);
+	  fprintf(stderr, "Storing key='%s' data='%s'\n",
+		  (const char*)t, (const char *)s);
 
 #ifdef HAVE_NDBM_H
 	if (typ == 1) {
@@ -393,7 +394,7 @@ const int typ;
 			for (;tlen > 0; --tlen,++t) {
 				unsigned char c = *t;
 				if (c < ' ' || c > 126 || c == '\\')
-					fprintf(stderr, "\0%03o", c);
+					fprintf(stderr, "\\0%03o", c);
 				else
 					fprintf(stderr, "%c", c);
 			}
