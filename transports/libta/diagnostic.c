@@ -439,12 +439,21 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 		  statmsg, message);
 	  fflush(stdout);
 
-	  if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
-			rp->lockoffset, _CFTAG_LOCK, mark,
-			(char*)rp->desc->msgfile, rp->addr->host, getpid())) {
-	    /* something went wrong in unlocking it, concurrency problem? */
+	  switch(rp->status) {
+	  case EX_IOERR:
+	  case EX_TEMPFAIL:
+	    if (rp->notifyflgs & _DSN__TEMPFAIL_NO_UNLOCK)
+	      break;
+	  default:
+	    if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
+			  rp->lockoffset, _CFTAG_LOCK, mark,
+			  (char*)rp->desc->msgfile, rp->addr->host,
+			  getpid())) {
+	      /* FIXME: something went wrong in unlocking it,
+		 FIXME: concurrency problem? */
+	    }
+	    rp->lockoffset = 0;	/* mark this recipient unlocked */
 	  }
-	  rp->lockoffset = 0;	/* mark this recipient unlocked */
 
 	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
 	}

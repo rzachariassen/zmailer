@@ -1,3 +1,16 @@
+2000-03-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/libta/diagnostic.c, include/ta.h,
+	  transports/smtp/smtp.c:
+	    Some diagnostics related rework due to absolutely
+	    insanely behaving SMTP reception.     Diagnostic
+	    output in EX_TEMPFAIL or EX_IOERR are not per default
+	    (actually never) stored directly to the file by the TA
+	    program, and anyway doing diagnostics in such case is
+	    marginally usefull -- retries may happen, for example!
+	    Now things should allow recipient address to be retries
+	    properly even with mode locking working ok.
+
 2000-03-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c:

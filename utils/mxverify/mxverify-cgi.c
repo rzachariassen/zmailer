@@ -311,7 +311,7 @@ struct mxdata {
 
 typedef union {
 	HEADER qb1;
-	char qb2[PACKETSZ];
+	char qb2[1024];
 } querybuf;
 
 int

@@ -789,6 +789,11 @@ process(SS, dp, smtpstatus, host, noMX)
 	  *SS->remotemsg = 0;
 
 	  for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
+
+	    /* Set this special flag so that we can retry EX_IOERR and
+	       EX_TEMPFAIL status cases more easily.. */
+	    rp->notifyflgs |= _DSN__TEMPFAIL_NO_UNLOCK;
+
 	    if (rp->next == NULL
 		|| rp->addr->link   != rp->next->addr->link
 		|| rp->newmsgheader != rp->next->newmsgheader) {
@@ -846,6 +851,10 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		  if (rphead->lockoffset) {
+		    /* Clear this special flag so that we can now diagnose
+		       them.. */
+		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
+
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
 		    diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
 		  }
@@ -860,6 +869,10 @@ process(SS, dp, smtpstatus, host, noMX)
 		     from the remote server */
 		  /* NOTARY: address / action / status / diagnostic */
 		  if (rphead->lockoffset) {
+		    /* Clear this special flag so that we can now diagnose
+		       them.. */
+		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
+
 		    notaryreport(rp->addr->user,FAILED,
 				 "5.0.0 (Target status indeterminable)",
 				 NULL);
@@ -1131,7 +1144,7 @@ deliver(SS, dp, startrp, endrp)
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
 	    if (rp->lockoffset) {
-	      notaryreport(rp->addr->user, FAILED,
+		notaryreport(rp->addr->user, FAILED,
 			   "5.5.0 (Undetermined protocol error)",NULL);
 	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
@@ -1143,6 +1156,11 @@ deliver(SS, dp, startrp, endrp)
 	rcpt_cnt = 0;
 	SS->rcptstates = 0;
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
+
+	  /* Set this special flag so that we can retry EX_IOERR and
+	     EX_TEMPFAIL status cases more easily.. */
+	  rp->notifyflgs |= _DSN__TEMPFAIL_NO_UNLOCK;
+
 	  if (++rcpt_cnt >= SS->rcpt_limit) {
 	    more_rp = rp->next;
 	    rp->next = NULL;

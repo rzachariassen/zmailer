@@ -34,7 +34,8 @@ struct taddress {
 #define _DSN_NOTIFY_DELAY	0x004
 #define _DSN_NOTIFY_NEVER	0x008
 
-#define _DSN__DIAGDELAYMODE	0x800 /* Internal magic */
+#define _DSN__DIAGDELAYMODE	 0x800 /* Internal magic for MAILBOX/SIEVE */
+#define _DSN__TEMPFAIL_NO_UNLOCK 0x400 /* Internal magic for SMTP */
 
 /* `convertmode' controls the behaviour of the message conversion:
      _CONVERT_NONE (0): send as is
