@@ -125,10 +125,9 @@ struct ctldesc {
 	long		format;		/* _CF_FORMAT_xxx */
 	char		***msgheaders;	/* pointer to all msg headers */
 	char		***msgheaderscvt; /* converted headers */
-#ifdef	HAVE_MMAP
 	const char	*let_buffer;	/* MMAP()ed memory area containing */
 	const char	*let_end;	/* the mail -- and its end..	   */
-#endif
+	int		let_buffer_size; /* != 0 If it is 'malloc()ed! */
 };
 
 
@@ -159,6 +158,7 @@ struct mimestate {
 
 
 /* ctlopen.c: */
+extern int	       ta_use_mmap;
 extern void            ctlfree __((struct ctldesc *dp, void *anyp));
 extern void           *ctlrealloc __((struct ctldesc *dp, void *anyp, size_t size));
 extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam));

@@ -169,9 +169,7 @@ extern int noalarmjmp;		/* Don't long-jmp on alarm! */
 extern jmp_buf alarmjmp;
 extern jmp_buf procabortjmp;
 extern int procabortset;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 extern int readalready;		/* does buffer contain valid message data? */
-#endif
 extern int wantreserved;	/* open connection on secure (reserved) port */
 extern int statusreport;	/* put status reports on the command line */
 extern int force_8bit;		/* Claim to the remote to be 8-bit system, even

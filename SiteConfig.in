@@ -182,6 +182,12 @@ SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
 # -- Use a mapping via /etc/passwd, this is most generic..
 NOBODY=nobody
 
+# TA_USE_MMAP - existence of this definition mmap()s control-,
+# and message body files into transport agent process memories.
+# This may, or may not give performance boost.
+#TA_USE_MMAP=1
+
+# TALOCKMODE=[TFW] -- don't use!
 
 # LOGLEVEL may be set to restrict the log output of the router to entries
 # whose tags are found in the specified string value.  The currently known

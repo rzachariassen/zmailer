@@ -290,10 +290,7 @@ const char *channel;
 const char *logfile;
 FILE *logfp = NULL;
 FILE *verboselog = NULL;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 int   readalready = 0;		/* does buffer contain valid message data? */
-char  let_buffer[8*BUFSIZ];
-#endif
 uid_t currenteuid;		/* the current euid */
 extern int nobody;		/* safe uid for file/program delivery */
 int  dobiff = 1;		/* enable biff notification */
@@ -818,9 +815,7 @@ process(dp)
 	 * and strip the quotes from around a name.
 	 */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	readalready = 0; /* ignore any previous message data cache */
-#endif
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 
@@ -3084,25 +3079,20 @@ appendlet(dp, rp, WS, file, ismime)
      int ismime;
      const char *file;
 {
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
+      if (ta_use_mmap <= 0) {
+
 	register int i;
 	register int bufferfull;
 	Sfio_t *mfp;
 	int mfd = dp->msgfd;
 	char sfio_buf[16*1024];
-#else
-	char *s;
-#endif
-
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 
 	if (ismime) {
 	  /* can we use cache of message body data ? */
 	  /* Split it to lines.. */
 	  if (readalready > 0) {
 	    int linelen, readidx = 0;
-	    const char *s0 = let_buffer, *s;
+	    const char *s0 = dp->let_buffer, *s;
 	    while (readidx < readalready) {
 	      s = s0;
 	      linelen = 0;
@@ -3137,14 +3127,14 @@ appendlet(dp, rp, WS, file, ismime)
 	  /* We really can't use the 'let_buffer' cache here */
 	  readalready = 0;
 	  i = 0;
-	  while ((i = csfgets(let_buffer, sizeof(let_buffer), mfp)) != EOF) {
+	  while ((i = csfgets(dp->let_buffer, dp->let_buffer_size, mfp)) != EOF) {
 	    /* It MAY be malformed -- if it has a BUFSIZ length
 	       line in it, IT CAN'T BE MIME  :-/		*/
-	    if (i == sizeof(let_buffer) &&
-		let_buffer[sizeof(let_buffer)-1] != '\n')
+	    if (i == dp->let_buffer_size &&
+		dp->let_buffer[dp->let_buffer_size-1] != '\n')
 	      ismime = 0;
 	    /* Ok, write the line */
-	    if (writemimeline(WS, let_buffer, i) != i) {
+	    if (writemimeline(WS, dp->let_buffer, i) != i) {
 #if 0
 	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(2); %s",
 			  file, strerror(WS->lasterrno));
@@ -3165,7 +3155,7 @@ appendlet(dp, rp, WS, file, ismime)
 
 	  /* can we use cache of message body data ? */
 	  if (readalready != 0) {
-	    if (writebuf(WS, let_buffer, readalready) != readalready) {
+	    if (writebuf(WS, dp->let_buffer, readalready) != readalready) {
 #if 0
 	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(3); %s",
 			  file, strerror(WS->lasterrno));
@@ -3181,7 +3171,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	  bufferfull = 0;
 	  while (1) {
-	    i = read(mfd, let_buffer, sizeof(let_buffer));
+	    i = read(mfd, dp->let_buffer, dp->let_buffer_size);
 	    if (i == 0)
 	      break;
 	    if (i < 0) {
@@ -3190,7 +3180,7 @@ appendlet(dp, rp, WS, file, ismime)
 	      readalready = 0;
 	      return -256;
 	    }
-	    if (writebuf(WS, let_buffer, i) != i) {
+	    if (writebuf(WS, dp->let_buffer, i) != i) {
 #if 0
 	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(4); %s",
 			  file, strerror(WS->lasterrno));
@@ -3205,7 +3195,12 @@ appendlet(dp, rp, WS, file, ismime)
 	  if (bufferfull > 1)	/* not all in memory, need to reread */
 	    readalready = 0;
 	}
-#else /* HAVE_MMAP  --  get the input from  mmap():ed memory area.. */
+
+      } else {
+	/* HAVE_MMAP  --  get the input from  mmap():ed memory area.. */
+
+	char *s;
+
 	s = dp->let_buffer + dp->msgbodyoffset;
 	if (ismime) {
 	  int i;
@@ -3233,7 +3228,7 @@ appendlet(dp, rp, WS, file, ismime)
 	      return -256;
 	  }
 	}
-#endif
+	}
 	return WS->lastch;
 }
 

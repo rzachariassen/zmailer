@@ -13,10 +13,6 @@
  * appendlet - append letter to file pointed at by fd
  */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-static char let_buffer[ZBUFSIZ*8];
-#endif
-
 int
 appendlet(SS, dp, convertmode, CT)
 	SmtpState *SS;
@@ -36,11 +32,9 @@ appendlet(SS, dp, convertmode, CT)
 	int lastwasnl = 0;
 	int ct_boundary_len = 999999;
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	volatile int bufferfull = 0;
 	char iobuf[ZBUFSIZ];
 	Sfio_t *mfp = NULL;
-#endif
 
 	if (CT && CT->boundary)
 	  ct_boundary_len = strlen(CT->boundary);
@@ -58,14 +52,10 @@ appendlet(SS, dp, convertmode, CT)
 	gotalarm = 0;
 
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 #define MFPCLOSE	if (mfp != NULL) {				\
 			  zsfsetfd(mfp,-1);	/* keep the fd      */	\
 			  sfclose(mfp);		/* close the stream */	\
 			}
-#else
-#define MFPCLOSE
-#endif
 
 	if (statusreport)
 	  report(SS,"DATA %d/%d (%d%%)",
@@ -79,37 +69,135 @@ appendlet(SS, dp, convertmode, CT)
 	}
 #endif
 
-	/* Makeing sure we are properly positioned
-	   at the begin of the message body */
 
-	if (lseek(dp->msgfd, (off_t)dp->msgbodyoffset, SEEK_SET) < 0L)
-	  warning("Cannot seek to message body! (%m)", (char *)NULL);
+	if (ta_use_mmap <= 0) {
+	  /* Using MALLOC()ed memory block */
 
-	lastwasnl = 1;	/* we are guaranteed to have a \n after the header */
-	if (convertmode == _CONVERT_NONE) {
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  const char *let_buffer = dp->let_buffer + dp->msgbodyoffset;
-	  i = dp->let_end - dp->let_buffer - dp->msgbodyoffset;
-#else /* !HAVE_MMAP */
-	  while (1) {
-	    /* Optimization:  If the buffer has stuff in it due to
-	       earlier read in some of the check algorithms, we use
-	       it straight away: */
-	    if (readalready == 0)
-	      i = read(dp->msgfd, let_buffer, sizeof(let_buffer));
-	    else
-	      i = readalready;
+	  /* Makeing sure we are properly positioned
+	     at the begin of the message body */
 
-	    if (i == 0)
-	      break;
-	    if (i < 0) {
-	      strcpy(SS->remotemsg,
-		     "smtp; 500 (Read error from message file!?)");
+	  if (lseek(dp->msgfd, (off_t)dp->msgbodyoffset, SEEK_SET) < 0L)
+	    warning("Cannot seek to message body! (%m)", (char *)NULL);
+
+	  lastwasnl = 1;	/* we are guaranteed to have a \n after
+				   the header */
+
+	  if (convertmode == _CONVERT_NONE) {
+	    bufferfull = 0;
+	    for (;;) {
+	      /* Optimization:  If the buffer has stuff in it due to
+		 earlier read in some of the check algorithms, we use
+		 it straight away: */
+	      if (readalready == 0)
+		i = read(dp->msgfd, (void*)(dp->let_buffer), dp->let_buffer_size);
+	      else
+		i = readalready;
+	      if (i == 0)
+		break;
+	      if (i < 0) {
+		if (errno == EINTR || errno == EAGAIN)
+		  continue; /* Restart in good POSIX style.. */
+		strcpy(SS->remotemsg,
+		       "smtp; 500 (Read error from message file!?)");
+		return EX_IOERR;
+	      }
+	      ++bufferfull;
+
+	      lastwasnl = (dp->let_buffer[i-1] == '\n');
+	      rc = writebuf(SS, dp->let_buffer, i);
+	      if (statusreport)
+		report(SS,"DATA %d/%d (%d%%)",
+		       SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+	      /* We NEVER get timeouts here.. We get anything else.. */
+	      if (rc != i) {
+		if (gotalarm) {
+		  sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
+			  SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+		  return EX_IOERR;
+		}
+		sprintf(SS->remotemsg,
+			"smtp; 500 (msgbuffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
+			strerror(errno),
+			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+		return EX_IOERR;
+	      }
+	    } /* .. end for() */
+
+	    if (bufferfull > 1)
+	      readalready = 0;  /* More than one bufferfull read.. */
+
+	    /* End of "NO CONVERSIONS" mode, then ... */
+
+	  } else {
+
+	    /* ... various esoteric conversion modes:
+	       We are better to feed writemimeline() with
+	       LINES instead of blocks of data.. */
+
+	    /* Classical way to read in things, one line at the time! */
+
+	    mfp = sfnew(NULL, iobuf, sizeof(iobuf), dp->msgfd, SF_READ);
+	    readalready = 0;
+
+	    /* we are assuming to be positioned properly
+	       at the start of the message body */
+	    lastwasnl = 0;
+	    for (;;) {
+
+	      i = csfgets((void*)(dp->let_buffer), dp->let_buffer_size, mfp);
+	      if (i <= 0)
+		break; /* EOF, or such.. */
+
+	      /* It MAY be malformed -- if it has a ZBUFSIZ*8 length
+	       line in it, IT CAN'T BE STANDARD CONFORMANT MIME  :-/	*/
+
+	      lastwasnl = (dp->let_buffer[i-1] == '\n');
+
+	      /* XX: Detect multiparts !! */
+	      if (CT && CT->boundary /* defined at all! */ &&
+		  dp->let_buffer[0] == '-' &&
+		  dp->let_buffer[1] == '-' &&
+		  i > ct_boundary_len &&
+		  memcmp(dp->let_buffer+2, CT->boundary, ct_boundary_len)==0){
+		/* Begin/intermediate/end boundary line of something */
+		
+		/* XXX: Multipart part-switching line detected ? */
+
+	      }
+
+	      /* Ok, write the line -- decoding QP can alter
+		 the "lastwasnl" */
+
+	      rc = writemimeline(SS, dp->let_buffer, i, convertmode);
+
+	      /* We NEVER get timeouts here.. We get anything else.. */
+	      if (rc != i) {
+		sprintf(SS->remotemsg,
+			"500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
+			strerror(errno),
+			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+		MFPCLOSE;
+		return EX_IOERR;
+	      }
+	    } /* End of line loop */
+
+	    if (i == EOF && !sfeof(mfp)) {
+	      strcpy(SS->remotemsg, "500 (Read error from message file!?)");
+	      MFPCLOSE;
 	      return EX_IOERR;
 	    }
-#endif /* !HAVE_MMAP */
-	    lastwasnl = (let_buffer[i-1] == '\n');
-	    rc = writebuf(SS, let_buffer, i);
+	    MFPCLOSE;
+
+	  } /* ... end of conversion modes */
+
+	} else { /* WITH MMAP()ED MEMORY BLOCK */
+
+	  if (convertmode == _CONVERT_NONE) {
+	    const char *p = dp->let_buffer + dp->msgbodyoffset;
+	    i = dp->let_end - dp->let_buffer - dp->msgbodyoffset;
+
+	    lastwasnl = (p[i-1] == '\n');
+	    rc = writebuf(SS, p, i);
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",
 		     SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
@@ -126,87 +214,59 @@ appendlet(SS, dp, convertmode, CT)
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      return EX_IOERR;
 	    }
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    if (readalready > 0)
-	      break;
-	  }
-#endif
-	  /* End of "NO CONVERSIONS" mode, then ... */
+	    /* End of "NO CONVERSIONS" mode, then ... */
 
-	} else {
+	  } else {
 
-	  /* ... various esoteric conversion modes:
-	     We are better to feed writemimeline() with
-	     LINES instead of blocks of data.. */
+	    /* ... various esoteric conversion modes:
+	       We are better to feed writemimeline() with
+	       LINES instead of blocks of data.. */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  /* Classical way to read in things */
+	    const char *s = dp->let_buffer + dp->msgbodyoffset;
 
-	  mfp = sfnew(NULL, iobuf, sizeof(iobuf), dp->msgfd, SF_READ);
-	  bufferfull = 0;
-#else /* HAVE_MMAP */
-	  const char *s = dp->let_buffer + dp->msgbodyoffset;
-#endif
+	    /* we are assuming to be positioned properly
+	       at the start of the message body */
+	    lastwasnl = 0;
+	    for (;;) {
 
-	  /* we are assuming to be positioned properly
-	     at the start of the message body */
-	  lastwasnl = 0;
-	  for (;;) {
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    i = csfgets(let_buffer, sizeof(let_buffer), mfp);
-	    if (i < 0)
-	      break;
-	    /* It MAY be malformed -- if it has a ZBUFSIZ*8 length
-	       line in it, IT CAN'T BE STANDARD CONFORMANT MIME  :-/	*/
-	    lastwasnl = (let_buffer[i-1] == '\n');
-#else /* HAVE_MMAP */
-	    const char *let_buffer = s, *s2 = s;
-	    if (s >= dp->let_end) break; /* EOF */
-	    i = 0;
-	    while (s2 < dp->let_end && *s2 != '\n')
-	      ++s2, ++i;
-	    if ((lastwasnl = (*s2 == '\n')))
-	      ++s2, ++i;
-	    s = s2;
-#endif
-	    /* XX: Detect multiparts !! */
-	    if (CT && CT->boundary /* defined at all! */ &&
-		let_buffer[0] == '-' &&
-		let_buffer[1] == '-' &&
-		i > ct_boundary_len &&
-		memcmp(let_buffer+2, CT->boundary, ct_boundary_len)==0) {
-	      /* Begin/intermediate/end boundary line of something */
+	      const char *p = s, *s2 = s;
+	      if (s >= dp->let_end) break; /* EOF */
+	      i = 0;
+	      while (s2 < dp->let_end && *s2 != '\n')
+		++s2, ++i;
+	      if ((lastwasnl = (*s2 == '\n')))
+		++s2, ++i;
+	      s = s2;
+	      
+	      /* XX: Detect multiparts !! */
+	      if (CT && CT->boundary /* defined at all! */ &&
+		  p[0] == '-' &&
+		  p[1] == '-' &&
+		  i > ct_boundary_len &&
+		  memcmp(p+2, CT->boundary, ct_boundary_len)==0) {
+		/* Begin/intermediate/end boundary line of something */
+		
+		/* XXX: Multipart part-switching line detected ? */
 
-	      /* XXX: Multipart part-switching line detected ? */
+	      }
 
-	    }
+	      /* Ok, write the line -- decoding QP can alter the "lastwasnl" */
+	      rc = writemimeline(SS, p, i, convertmode);
 
-	    /* Ok, write the line -- decoding QP can alter the "lastwasnl" */
-	    rc = writemimeline(SS, let_buffer, i, convertmode);
-
-	    /* We NEVER get timeouts here.. We get anything else.. */
-	    if (rc != i) {
-	      sprintf(SS->remotemsg,
-		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
-		      strerror(errno),
-		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      MFPCLOSE
-	      return EX_IOERR;
-	    }
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    s = s2; /* Advance one linefull.. */
-#endif
-	  } /* End of line loop */
-
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  if (i == EOF && !sfeof(mfp)) {
-	    strcpy(SS->remotemsg, "500 (Read error from message file!?)");
-	    MFPCLOSE
-	    return EX_IOERR;
-	  }
-	  MFPCLOSE
-#endif
-	} /* ... end of conversion modes */
+	      /* We NEVER get timeouts here.. We get anything else.. */
+	      if (rc != i) {
+		sprintf(SS->remotemsg,
+			"500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
+			strerror(errno),
+			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+		return EX_IOERR;
+	      }
+	      s = s2; /* Advance one linefull.. */
+	    
+	    } /* End of line loop */
+	    
+	  } /* ... end of conversion modes */
+	}
 
 	/* we must make sure the last thing we transmit is a CRLF sequence */
 	if (!lastwasnl || SS->lastch != '\n') {
@@ -220,17 +280,13 @@ appendlet(SS, dp, convertmode, CT)
 		    "500 (msgbuffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
 		    strerror(errno),
 		    SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	    if (bufferfull > 1) readalready = 0;
-#endif
 	    return EX_IOERR;
 	  }
 	}
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	if (bufferfull > 1)	/* not all in memory, need to reread */
 	  readalready = 0;
-#endif
 #if 0
 	if (sfsync(SS->smtpfp) != 0) {
 	  return EX_IOERR;
@@ -533,8 +589,10 @@ int
 check_7bit_cleanness(dp)
 struct ctldesc *dp;
 {
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	/* With MMAP()ed spool file it is sweet and simple.. */
+      if (ta_use_mmap > 0) {
+
+	/* With MMAP()ed spool file this is sweet and simple.. */
+
 	const register char *s = dp->let_buffer + dp->msgbodyoffset;
 	while (s < dp->let_end)
 	  if (128 & *s)
@@ -542,7 +600,9 @@ struct ctldesc *dp;
 	  else
 	    ++s;
 	return 1;
-#else /* !HAVE_MMAP */
+
+      } else {
+
 
 	register int i;
 	register int bufferfull;
@@ -553,7 +613,7 @@ struct ctldesc *dp;
 	/* can we use cache of message body data ? */
 	if (readalready != 0) {
 	  for (i=0; i<readalready; ++i)
-	    if (128 & (let_buffer[i]))
+	    if (128 & (dp->let_buffer[i]))
 	      return 0;		/* Not clean ! */
 	}
 
@@ -564,7 +624,7 @@ struct ctldesc *dp;
 	mfd_pos = lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
 	
 	while (1) {
-	  i = read(mfd, let_buffer, sizeof let_buffer);
+	  i = read(mfd, (void*)(dp->let_buffer), dp->let_buffer_size);
 	  if (i == 0)
 	    break;
 	  if (i < 0) {
@@ -574,11 +634,11 @@ struct ctldesc *dp;
 	    readalready = 0;
 	    return 0;
 	  }
-	  lastwasnl = (let_buffer[i-1] == '\n');
+	  lastwasnl = (dp->let_buffer[i-1] == '\n');
 	  readalready = i;
 	  bufferfull++;
 	  for (i = 0; i < readalready; ++i)
-	    if (128 & (let_buffer[i])) {
+	    if (128 & (dp->let_buffer[i])) {
 	      lseek(mfd, mfd_pos, SEEK_SET);
 	      readalready = 0;
 	      return 0;		/* Not clean ! */
@@ -591,5 +651,5 @@ struct ctldesc *dp;
 
 	/* Set indication! */
 	return 1;
-#endif /* !HAVE_MMAP */
+      }
 }

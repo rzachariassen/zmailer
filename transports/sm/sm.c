@@ -1,7 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1994-2000,2002-2003 by Matti Aarnio -- MIME processings, etc.
+ *	Copyright 1994-2000,2002-2003 by Matti Aarnio -- MIME processings,
+ *	etc.
  */
 
 #define DefCharset "ISO-8859-1"
@@ -62,9 +63,7 @@ extern int wait();
 char uucpname[MAXHOSTNAMELEN+1];
 
 const char	*progname;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 int	readalready = 0;	/* does buffer contain valid message data? */
-#endif
 int	mimeqpnarrow = 0;	/* Can't send TAB thru without MIME-QP */
 FILE	*logfp   = NULL;
 int	maxwidth = 0;
@@ -415,9 +414,7 @@ process(dp, mp, verboselog)
 {
 	struct rcpt *rp, *rphead;
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	readalready = 0; /* ignore any previous message data cache */
-#endif
 
 	if (mp->flags & MO_MANYUSERS) {
 	  for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
@@ -1020,10 +1017,6 @@ deliver(dp, mp, startrp, endrp, verboselog)
  * appendlet - append letter to file pointed at by fd
  */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-static char let_buffer[BUFSIZ*8];
-#endif
-
 int
 appendlet(dp, mp, fp, verboselog, convertmode)
 	struct ctldesc *dp;
@@ -1032,125 +1025,156 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	FILE *verboselog;
 	int convertmode;
 {
-	/* `convertmode' controls the behaviour of the message conversion:
-	     _CONVERT_NONE (0): send as is
-	     _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-	     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-	     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
-	 */
+      /* `convertmode' controls the behaviour of the message conversion:
+	 _CONVERT_NONE (0): send as is
+	 _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
+	 _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
+	 _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
+      */
 
-	register int i;
-	int lastch;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	register int bufferfull;
-	int mfd = dp->msgfd;
-#endif
+      register int i;
+      int lastch, rc;
+      register int bufferfull;
+      int mfd = dp->msgfd;
 
-	writebuf(mp, fp, (char *)NULL, 0);  /* magic initialization */
+      writebuf(mp, fp, (char *)NULL, 0);  /* magic initialization */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
+      if (ta_use_mmap <= 0) {
 	/* can we use cache of message body data */
 	if (convertmode == _CONVERT_NONE && readalready != 0) {
-	  lastch = let_buffer[readalready-1];
-	  if (writebuf(mp, fp, let_buffer, readalready) != readalready)
+	  lastch = dp->let_buffer[readalready-1];
+	  if (writebuf(mp, fp, dp->let_buffer, readalready) != readalready)
 	    return EX_IOERR;
 	  if (lastch != '\n')
 	    if (writebuf(mp, fp, "\n", 1) != 1)
 	      return EX_IOERR;
 	  return EX_OK;
 	}
-#endif
+      }
 
-	lastch = -1;
-	if (convertmode == _CONVERT_NONE) {
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
+      lastch = -1;
+      if (convertmode == _CONVERT_NONE) {
+
+	if (ta_use_mmap <= 0) {
 	  bufferfull = 0;
 	  readalready = 0;
+	  lastch = -256;
 	  lseek(mfd, dp->msgbodyoffset, SEEK_SET);
-	  while ((i = read(mfd, let_buffer, sizeof let_buffer)) != 0) {
-#else
-	    const char *let_buffer = dp->let_buffer + dp->msgbodyoffset;
-	    i = dp->let_end - (dp->let_buffer + dp->msgbodyoffset);
-#endif
+	  for (;;) {
+	    i = read(mfd, (void*)(dp->let_buffer), dp->let_buffer_size);
+	    if (i == 0) break; /* EOF */
+	    if (i < 0 && (errno == EINTR || errno == EAGAIN))
+	      continue;
 	    if (i < 0)
 	      return EX_IOERR;
-	    lastch = let_buffer[i-1];
-	    if (writebuf(mp, fp, let_buffer, i) != i)
+	    lastch = dp->let_buffer[i-1];
+	    if (writebuf(mp, fp, dp->let_buffer, i) != i)
 	      return EX_IOERR;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	    readalready = i;
 	    bufferfull++;
 	  }
+	  if (lastch != '\n')
+	    if (writebuf(mp, fp, "\n", 1) != 1)
+	      return EX_IOERR;
 	  if (bufferfull > 1)	/* not all in memory, need to reread */
 	    readalready = 0;
-#endif
 
-	} else {
-	  /* convertmode something else, than _CONVERT_NONE */
-	  /* Various esoteric conversion modes..
-	     We are better to feed writemimeline() with LINES
-	     instead of blocks of data.. */
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  char sfio_buf[32*1024];
-	  Sfio_t *mfp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), mfd, SF_READ);
+	} else { /* mmap()ed message buffer */
+
+	  const char *p = dp->let_buffer + dp->msgbodyoffset;
+	  i = dp->let_end - p;
+	  if (i < 0)
+	    return EX_IOERR;
+	  lastch = dp->let_end[-1];
+	  if (writebuf(mp, fp, p, i) != i)
+	    return EX_IOERR;
+	  if (lastch != '\n')
+	    if (writebuf(mp, fp, "\n", 1) != 1)
+	      return EX_IOERR;
+	}
+
+	rc = EX_OK;
+
+      } else {
+
+	/* convertmode something else, than _CONVERT_NONE */
+	/* Various esoteric conversion modes..
+	   We are better to feed writemimeline() with LINES
+	   instead of blocks of data.. */
+
+	writemimeline(mp, fp, (char *)NULL, 0, 0); /* reset */
+
+	/*
+	  if(verboselog) fprintf(verboselog,
+	  "sm: Convert mode: %d, fd=%d, fdoffset=%d, bodyoffset=%d\n",
+	  convertmode, mfd, (int)lseek(mfd, (off_t)0, SEEK_CUR),
+	  dp->msgbodyoffset);
+	*/
+	
+	/* we are assuming to be positioned properly
+	   at the start of the message body */
+	lastch = -1;
+	i = 0;
+
+	if (ta_use_mmap <= 0) {
+	  /* Locally read, line by line */
+
+	  char sfio_buf[16*1024];
+	  Sfio_t *mfp = NULL;
+
+	  mfp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), mfd, SF_READ);
 	  sfseek(mfp, dp->msgbodyoffset, SEEK_SET);
-
-#define MFPCLOSE zsfsetfd(mfp, -1); sfclose(mfp);
-
 	  readalready = 0;
-#else
-#define MFPCLOSE
-	  const char *s = dp->let_buffer + dp->msgbodyoffset;
-#endif
-	  writemimeline(mp, fp, (char *)NULL, 0, 0);
-
-	  /*
-	     if(verboselog) fprintf(verboselog,
-	     "sm: Convert mode: %d, fd=%d, fdoffset=%d, bodyoffset=%d\n",
-	     convertmode, mfd, (int)lseek(mfd, (off_t)0, SEEK_CUR),
-	     dp->msgbodyoffset);
-	   */
-
-	  /* we are assuming to be positioned properly
-	     at the start of the message body */
-	  lastch = -1;
-	  i = 0;
 
 	  for (;;) {
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	    if ((i = csfgets(let_buffer, sizeof(let_buffer), mfp)) == EOF)
+	    i = csfgets((void*)(dp->let_buffer), dp->let_buffer_size, mfp);
+	    if (i == EOF)
 	      break;
-#else
-	    const char *let_buffer = s, *s2 = s;
+	    lastch = dp->let_buffer[i-1];
+	    /* It MAY be malformed -- if it has a BUFSIZ length
+	       line in it, IT CAN'T BE MIME  :-/		*/
+	    /* Ok, write the line */
+	    if (writemimeline(mp, fp, dp->let_buffer, i, convertmode) != i)
+	      return EX_IOERR;
+	  }
+	  if (mfp) {
+	    if (i == EOF && !sfeof(mfp) && !sferror(mfp)) {
+	      rc = EX_IOERR;
+	    }
+	    zsfsetfd(mfp, -1);
+	    sfclose(mfp);
+	  }
+	  rc = EX_OK;
+
+	} else {
+	  /* MMAP()ED buffer */
+	  const char *s = dp->let_buffer + dp->msgbodyoffset;
+
+	  for (;;) {
+	    const char *s2 = s;
 	    i = 0;
 	    if (s >= dp->let_end) break;	/* "EOF" */
 	    while (s2 < dp->let_end && *s2 != '\n')
 	      ++s2, ++i;
 	    if ((lastch = *s2) == '\n')
 	      ++s2, ++i;
-	    s = s2;
-#endif
-	    /* It MAY be malformed -- if it has a BUFSIZ length
-	       line in it, IT CAN'T BE MIME  :-/		*/
 	    /* Ok, write the line */
-	    if (writemimeline(mp, fp, let_buffer, i, convertmode) != i) {
+	    if (writemimeline(mp, fp, s, i, convertmode) != i)
 	      return EX_IOERR;
-	    }
+	    s = s2;
 	  }
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  if (i == EOF && !sfeof(mfp) && !sferror(mfp)) {
-	    MFPCLOSE
-	    return EX_IOERR;
-	  }
-	  MFPCLOSE
-#endif
 	}
-
-	/* we must make sure the last thing we transmit is a CRLF sequence */
-	if (lastch != '\n')
-	  writebuf(mp, fp, "\n", 1);
-
-	return EX_OK;
+	rc = EX_OK;
+      }
+     
+      /* we must make sure the last thing we transmit is a CRLF sequence */
+      if (lastch != '\n')
+	writebuf(mp, fp, "\n", 1);
+      
+      /* Failure in that last CRLF writing does not
+	 affect our return code -- should it ?? */
+      
+      return rc;
 }
 
 /*
@@ -1527,8 +1551,10 @@ int
 check_7bit_cleanness(dp)
 struct ctldesc *dp;
 {
-#if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
+      if (ta_use_mmap > 0) {
+
 	/* With MMAP()ed spool file it is sweet and simple.. */
+
 	register const char *s = dp->let_buffer + dp->msgbodyoffset;
 	while (s < dp->let_end)
 	  if (128 & *s) {
@@ -1541,8 +1567,11 @@ struct ctldesc *dp;
 	    return 0; /* Not clean ! */
 	  }
 	  else ++s;
-	return 1;
-#else
+
+      } else {
+
+	/* Without MMAP() we work... */
+
 	register int i;
 	register int bufferfull;
 	int lastwasnl;
@@ -1551,27 +1580,29 @@ struct ctldesc *dp;
 /* can we use cache of message body data */
 	if (readalready != 0) {
 	  for (i=0; i<readalready; ++i)
-	    if (128 & (let_buffer[i]))
+	    if (128 & (dp->let_buffer[i]))
 	      return 0;		/* Not clean ! */
 	}
 
 	/* we are assumed to be positioned properly at start of message body */
 	bufferfull = 0;
 
-	while ((i = read(mfd, let_buffer, sizeof let_buffer)) != 0) {
+	for (;;) {
+	  i = read(mfd, (void*)(dp->let_buffer), dp->let_buffer_size);
+	  if (i == 0) break; /* EOF */
 	  if (i < 0) {
 	    /* ERROR ?!?!? */
-	    if (errno == EINTR)
+	    if (errno == EINTR || errno == EAGAIN)
 	      continue;
 	    readalready = 0;
 	    lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	    return 0;
 	  }
-	  lastwasnl = (let_buffer[i-1] == '\n');
+	  lastwasnl = (dp->let_buffer[i-1] == '\n');
 	  readalready = i;
 	  bufferfull++;
 	  for (i=0; i < readalready; ++i)
-	    if (128 & (let_buffer[i])) {
+	    if (128 & (dp->let_buffer[i])) {
 	      lseek(mfd, dp->msgbodyoffset, SEEK_SET);
 	      /* We probably have not read everything of the file! */
 	      readalready = 0;
@@ -1584,6 +1615,6 @@ struct ctldesc *dp;
 	if (bufferfull > 1)	/* not all in memory, need to reread */
 	  readalready = 0;
 
-	return 1;
-#endif
+      }
+      return 1;
 }

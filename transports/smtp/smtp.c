@@ -41,9 +41,7 @@ int getout  = 0;		/* signal handler turns this on when we are wanted to abort! *
 int gotalarm = 0;		/* indicate that alarm happened! */
 jmp_buf procabortjmp;
 int procabortset = 0;
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 int readalready = 0;		/* does buffer contain valid message data? */
-#endif
 int wantreserved = 0;		/* open connection on secure (reserved) port */
 int statusreport = 0;		/* put status reports on the command line */
 int force_8bit = 0;		/* Claim to the remote to be 8-bit system, even
@@ -795,9 +793,7 @@ main(argc, argv)
 
 	  ++task_count; /* Just a debug tool */
 
-#if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  readalready = 0; /* internal body read buffer 'flush' */
-#endif
 	  idle = 0; skip_host = 0;
 	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */

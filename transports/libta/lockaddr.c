@@ -45,8 +45,9 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 
 	if (!ta_lockmode) {
 	  ta_lockmode = getzenv("TALOCKMODE");
-#if defined(TA_USE_MMAP) && defined(HAVE_MMAP)
-	  if (!ta_lockmode) ta_lockmode = "M"; /* MMAP */
+#if defined(HAVE_MMAP)
+	  if (!ta_lockmode && ta_use_mmap > 0)
+	    ta_lockmode = "M"; /* MMAP */
 #else
 #ifdef HAVE_FCNTL
 	  if (!ta_lockmode) ta_lockmode = "F"; /* FCNTL */

@@ -42,8 +42,9 @@
 #include "mail.h"
 #include "zmalloc.h"
 #include "libz.h"
+#include "libc.h"
 
-#if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
+#if defined(HAVE_MMAP)
 #include <sys/mman.h>
 #endif
 
@@ -56,6 +57,8 @@ extern char *strrchr();
 #endif
 
 static struct taddress *ctladdr __((struct ctldesc *d, char *cp));
+
+int ta_use_mmap;
 
 
 #ifndef	MAXPATHLEN
@@ -118,14 +121,23 @@ ctlclose(dp)
 	    continue;
 	  diagnostic(NULL, rp, EX_TEMPFAIL, 0, "address was left locked!!");
 	}
-#if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
-	if (dp->let_buffer != NULL)
-	  munmap((void*)dp->let_buffer, dp->let_end - dp->let_buffer);
-	dp->let_buffer = NULL;
-	if (dp->ctlmap != NULL)
-	  munmap((void*)dp->ctlmap, dp->contentsize);
-	dp->ctlmap = NULL;
+#ifdef HAVE_MMAP
+	if (ta_use_mmap > 0) {
+	  if (dp->let_buffer != NULL)
+	    munmap((void*)dp->let_buffer, dp->let_end - dp->let_buffer);
+	  dp->let_buffer = dp->let_end = NULL;
+	  if (dp->ctlmap != NULL)
+	    munmap((void*)dp->ctlmap, dp->contentsize);
+	  dp->ctlmap = NULL;
+	} else
 #endif
+	  {
+	    if (dp->let_buffer_size)
+	      free((void*)(dp->let_buffer));
+	    dp->let_buffer = dp->let_end = NULL;
+	  }
+	dp->let_buffer_size = 0;
+
 	if (dp->ctlfd >= 0)
 	  close(dp->ctlfd);
 	if (dp->msgfd >= 0)
@@ -345,20 +357,29 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 
 	fcntl(d->ctlfd, F_SETFD, 1); /* Close-on-exec */
 
-#if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
+#if defined(HAVE_MMAP)
+	if (!ta_use_mmap) {
+	  if (getzenv("TA_USE_MMAP"))
+	    ta_use_mmap = 1;
+	  else
+	    ta_use_mmap = -1;
+	}
+	if (ta_use_mmap > 0) {
 #ifndef MAP_VARIABLE
 # define MAP_VARIABLE 0
 #endif
 #ifndef MAP_FILE
 # define MAP_FILE 0
 #endif
-	/* We do recipient locking via MMAP_SHARED RD/WR ! Less syscalls.. */
-	d->ctlmap = (char *)mmap(NULL, stbuf.st_size,
-				PROT_READ|PROT_WRITE,
-				MAP_FILE|MAP_SHARED|MAP_VARIABLE,
-				d->ctlfd, 0);
-	if ((int)d->ctlmap == -1)
-	  d->ctlmap = NULL; /* Failed ?? */
+	  /* We do recipient locking via MMAP_SHARED RD/WR !
+	     Less syscalls.. */
+	  d->ctlmap = (char *)mmap(NULL, stbuf.st_size,
+				   PROT_READ|PROT_WRITE,
+				   MAP_FILE|MAP_SHARED|MAP_VARIABLE,
+				   d->ctlfd, 0);
+	  if ((int)d->ctlmap == -1)
+	    d->ctlmap = NULL; /* Failed ?? */
+	}
 #else
 	d->ctlmap = NULL;
 #endif
@@ -772,21 +793,29 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 
 	fcntl(d->msgfd, F_SETFD, 1); /* Close-on-exec */
 
-#if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
-	d->let_buffer = (char *)mmap(NULL, stbuf.st_size, PROT_READ,
-				    MAP_FILE|MAP_SHARED|MAP_VARIABLE,
-				    d->msgfd, 0);
-	if ((long)d->let_buffer == -1L) {
-	  warning("Out of MMAP() memory! Tried to map in (r/o) %d bytes (%m)",
-		  stbuf.st_size);
+#if defined(HAVE_MMAP)
+	if (ta_use_mmap) {
+	  d->let_buffer = (char *)mmap(NULL, stbuf.st_size, PROT_READ,
+				       MAP_FILE|MAP_SHARED|MAP_VARIABLE,
+				       d->msgfd, 0);
+	  if ((long)d->let_buffer == -1L) {
+	    warning("Out of MMAP() memory! Tried to map in (r/o) %d bytes (%m)",
+		    stbuf.st_size);
 #ifndef USE_ALLOCA
-	  free(mfpath);
+	    free(mfpath);
 #endif
-	  ctlclose(d);
-	  return NULL;
-	}
-	d->let_end    = d->let_buffer + stbuf.st_size;
+	    ctlclose(d);
+	    return NULL;
+	  }
+	  d->let_end    = d->let_buffer + stbuf.st_size;
+	  d->let_buffer_size = 0;
+	} else
 #endif
+	  {
+	    d->let_buffer_size = 63*1024;
+	    d->let_buffer      = malloc(d->let_buffer_size + 8);
+	    d->let_end         = d->let_buffer + d->let_buffer_size;
+	  }
 
 #ifndef USE_ALLOCA
 	free(mfpath);

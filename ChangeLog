@@ -8,6 +8,15 @@
 	    even looking into router controlling flags.  If router
 	    is not enabled, it is not complained about.
 
+	* SiteConfig.in,  include/ta.h, transports/libta/ctlopen.c,
+	  transports/libta/lockaddr.c, transports/mailbox/mailbox.c,
+	  transports/sm/sm.c, transports/smtp/smtp.h,
+	  transports/smtp/smtp.c, transports/smtp/appendlet.c:
+	    Changed compile time configured  TA_USE_MMAP  feature
+	    to runtime configured  ZENV variable  TA_USE_MMAP,
+	    whose existence uses the thing, and nonexistence
+	    does read message into limited size internal buffer...
+	
 2003-08-25  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c, utils/policy-builder.sh.in:
