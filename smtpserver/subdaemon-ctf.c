@@ -15,11 +15,42 @@
  * of ancilliary data (the fd.)
  */
 
+/*
+ *  contentpolicy.c -- module for ZMailer's smtpserver
+ *  By Matti Aarnio <mea@nic.funet.fi> 1998, 2000, 2002-2003
+ *
+ *  This is the ugly one, we run SENSOR program on each
+ *  accepted message -- if the sensor decrees the program
+ *  unacceptable, we return policy-analysis result per
+ *  analyzed file to the caller of this program.
+ *
+ *  The protocol in between the smtpserver, and the content
+ *  policy analysis program is a simple one:
+ *   0) Caller starts the policy program
+ *   1) When the policy program is ready to answer to questions,
+ *      it writes "#hungry\n" to its STDOUT.
+ *   2) This caller wrapper detects the state, and feeds it
+ *      a job-spec:   relfilepath \n
+ *   3) The policy-program will then respond with a line
+ *      matching format:
+ *           %i %i.%i.%i comment text \n
+ *   4) the interface collects that, and presents onwards.
+ *  Loop restart from phase 1), UNLESS the policy program
+ *  has yielded e.g. EOF, in which case the loop terminates.
+ *
+ *  If no answer is received (merely two consequtive #hungry
+ *  states, or non-conformant answers), an "ok" is returned,
+ *  and the situation is logged.
+ *
+ */
+
 
 #include "smtpserver.h"
 
+static const char *Hungry = "#hungry\n";
+
 static int subdaemon_handler_ctf_init  __((void**));
-static int subdaemon_handler_ctf_input __((void *, struct peerdata *));
+static int subdaemon_handler_ctf_input __((void *, struct peerdata*));
 static int subdaemon_handler_ctf_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_ctf_postselect __((void*, fd_set *, fd_set *));
 static int subdaemon_handler_ctf_shutdown   __((void*));
@@ -29,115 +60,224 @@ struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_input,
 	subdaemon_handler_ctf_preselect,
 	subdaemon_handler_ctf_postselect,
-	subdaemon_handler_ctf_shutdown,
+	subdaemon_handler_ctf_shutdown
 };
+
+typedef struct state_ctf {
+	struct peerdata *replypeer;
+	int   contentfilterpid;
+	FILE *tofp;
+	int   fromfd;
+	char *buf;
+	int   bufsize;
+	int   sawhungry;
+} Ctfstate;
+
+
+static void subdaemon_killctf __(( Ctfstate * CTF ));
+
+static void
+subdaemon_killctf(CTF)
+     Ctfstate *CTF;
+{
+	if (CTF->contentfilterpid > 1) {
+	  if (CTF->tofp == NULL)
+	    fclose(CTF->tofp);
+	  CTF->tofp   = NULL;
+	  if (CTF->fromfd >= 0)
+            close(CTF->fromfd);
+	  CTF->fromfd = -1;
+	  kill(CTF->contentfilterpid, SIGKILL);
+	  CTF->contentfilterpid = 0;
+	}
+}
 
 
 /* ============================================================ */
 
-struct ctf_state {
-  char responsebuf[8192];
-  FILE *cpol_tofp;
-  FILE *cpol_fromfp;
-  int phase;
-  int pid;
-};
 
+#ifndef HAVE_PUTENV
+static const char *newenviron[] =
+  { "SMTPSERVER=y", NULL };
+#endif
 
-static int
-ctf_pickresponse(buf, bufsize, fp)
-     char *buf;
-     int bufsize;
-     FILE *fp;
+static int subdaemon_callr __((Ctfstate * CTF));
+static int subdaemon_callr (CTF)
+     Ctfstate *CTF;
 {
-    int c, i;
+	int rpid = 0, to[2], from[2], rc;
 
-    c = i = 0;
-    --bufsize;
+	if (pipe(to) < 0 || pipe(from) < 0)
+	  return -1;
 
-    if (feof(fp) || ferror(fp)) return -1;
-  
-    for (;;) {
-      if (ferror(fp) || feof(fp)) break;
+	if (contentfilter == NULL) {
+	  return -1;
+	}
 
-      c = fgetc(fp);
-      if (c == EOF)  break;
-      if (c == '\n') break;
+	fcntl(to[1],   F_SETFD, FD_CLOEXEC);
+	fcntl(from[0], F_SETFD, FD_CLOEXEC);
 
-      if (i < bufsize)
-	buf[i++] = c;
-    }
-    buf[i] = 0;
+	rpid = fork();
+	if (rpid == 0) {	/* child */
+	  rpid = getpid();
+	  if (to[0] != 0)
+	    dup2(to[0], 0);
+	  if (from[1] != 1)
+	    dup2(from[1], 1);
+	  dup2(1, 2);
+	  if (to[0] > 2)   close(to[0]);
+	  if (from[1] > 2) close(from[1]);
 
-    while (c != '\n') {
-      if (ferror(fp) || feof(fp)) break;
-      c = fgetc(fp);
-    }
+	  runasrootuser();	/* XXX: security alert! */
+#ifdef HAVE_PUTENV
+	  putenv("SMTPSERVER=y");
+#else
+	  environ = (char **) newenviron;
+#endif
+	  execl(contentfilter, contentfilter, NULL);
 
-    return i;
-}
+#define	BADEXEC	"#BADEXEC\n\n"
+	  write(1, BADEXEC, sizeof(BADEXEC)-1);
+	  _exit(1);
 
+	} else if (rpid < 0)
+	  return -1;
 
-static int
-subdaemon_handler_ctf_init ( statep )
-     void **statep;
-{
-	struct ctf_state *state = *statep;
+	CTF->contentfilterpid = rpid;
 
-	if (*statep == NULL) {
+	close(to[0]);
+	close(from[1]);
 
-	  int piperd[2], pipewr[2]; /* per parent */
+	CTF->tofp   = fdopen(to[1], "w");
+	fd_blockingmode(to[1]);
+	if (! CTF->tofp ) return -1; /* BAD BAD! */
 
-	  *statep = state = calloc(1,sizeof(*state));
-
-	  pipe(piperd);
-	  pipe(pipewr);
-
-	  state->pid = fork();
-
-	  if (state->pid == 0) { /* CHILD */
-	    close(piperd[0]);
-	    close(pipewr[1]);
-
-	    dup2(piperd[1], 1);
-	    dup2(piperd[1], 2);
-	    dup2(pipewr[0], 0);
-
-	    close(piperd[1]);
-	    close(pipewr[0]);
-
-	    execl(contentfilter, contentfilter, NULL);
-	    _exit(255); /* EXEC failure! */
+	CTF->fromfd = from[0];
+	fd_blockingmode(CTF->fromfd);
+	
+	for (;;) {
+	  CTF->bufsize = 0;
+	  rc = fdgets( & CTF->buf, & CTF->bufsize, CTF->fromfd, 10);
+	  if ( rc < 1 || ! CTF->buf ) {
+	    /* FIXME: ERROR PROCESSING ! */
+	    if (rc == 0) {
+	      /* EOF! */
+	      subdaemon_killctf(CTF);
+	    }
+	    return -1;
 	  }
-
-	  if (state->pid < 0) {
-	    /* ERROR! :-( */
-	    MIBMtaEntry->ss.ContentPolicyForkFailures ++;
-	    type(NULL,0,NULL, "ContentPolicy not run; failed to start ?!");
+	  if (strncmp( CTF->buf, BADEXEC, sizeof(BADEXEC) - 3) == 0) {
+	    subdaemon_killctf(CTF);
 	    return -1;
 	  }
 
-	  /* Parent */
+	  if (strcmp( CTF->buf, Hungry ) == 0) {
+	    CTF->sawhungry = 1;
+	    break;
+	  }
+	}
+	fd_nonblockingmode(CTF->fromfd);
 
-	  state->cpol_tofp   = fdopen(pipewr[1], "w");
-	  state->cpol_fromfp = fdopen(piperd[0], "r");
+	return rpid;
+}
 
-	  close(pipewr[0]);
-	  close(piperd[1]);
+
+/* ------------------------------------------------------------ */
+
+
+static int
+subdaemon_handler_ctf_init (statep)
+     void **statep;
+{
+	struct state_ctf *state = calloc(1, sizeof(struct state_ctf));
+	*statep = state;
+
+	if (state) {
+	  state->contentfilterpid = 0;
+	  state->fromfd = -1;
 	}
 
+#if 0
+	{
+	  extern int logstyle;
+	  extern char *logfile;
+	  extern void openlogfp __((SmtpState * SS, int insecure));
+
+	  logstyle = 0;
+	  if (logfp) fclose(logfp); logfp = NULL;
+	  logfile = "smtpserver-ctf-subdaemons.log";
+	  openlogfp(NULL, 1);
+	  setlinebuf(logfp);
+	}
+#endif
 	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
 
 	return 0;
 }
 
+/*
+ * subdaemon_handler_xx_input()
+ *   ret > 0:  XOFF... busy right now!
+ *   ret == 0: XON... give me more work!
+ */
+static int
+subdaemon_handler_ctf_input (state, peerdata)
+     void *state;
+     struct peerdata *peerdata;
+{
+	Ctfstate *CTF = state;
+	int rc = 0;
+
+	if (CTF->contentfilterpid <= 1) {
+	  rc = subdaemon_callr(CTF);
+	  if (rc < 2) {
+	    /* FIXME: error processing! */
+	    struct timeval tv;
+	    tv.tv_sec = 1;
+	    tv.tv_usec = 0;
+	    select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
+	    return EAGAIN;
+	  }
+
+	  /* Now   CTF->fromfd   is in NON-BLOCKING MODE!
+	     However  CTF->tofp  is definitely in blocking! */
+	}
+
+	if (!CTF->sawhungry)
+	  return EAGAIN; /* Do come again! */
+
+	CTF->replypeer = peerdata;
+
+	fwrite(peerdata->inpbuf, peerdata->inlen, 1, CTF->tofp);
+	fflush(CTF->tofp);
+
+	CTF->bufsize    = 0;
+	CTF->sawhungry  = 0;
+	peerdata->inlen = 0;
+
+	return EAGAIN;
+}
+
 
 static int
-subdaemon_handler_ctf_preselect (state, rdset, wrset, topfd)
+subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
      void *state;
      fd_set *rdset, *wrset;
-     int *topfd;
+     int *topfdp;
 {
+	Ctfstate *CTF = state;
+
+	if (! CTF) return 0; /* No state to monitor */
+
+	/* If we have contentfilter underneath us,
+	   check if it has something to say! */
+ 
+	if (CTF->fromfd >= 0) {
+	  _Z_FD_SETp(CTF->fromfd, rdset);
+	  if (*topfdp < CTF->fromfd)
+	    *topfdp = CTF->fromfd;
+	}
+
 	return -1;
 }
 
@@ -146,112 +286,40 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
      void *state;
      fd_set *rdset, *wrset;
 {
-	return -1;
+	Ctfstate *CTF = state;
+	int rc = 0;
+
+	if (! CTF) return -1; /* No state to monitor */
+	if (CTF->fromfd < 0) return -1; /* No contentfilter there.. */
+
+	if ( _Z_FD_ISSETp(CTF->fromfd, rdset) ) {
+	  /* We have something to read ! */
+
+	  rc = fdgets( & CTF->buf, & CTF->bufsize, CTF->fromfd, -1);
+
+	  if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
+	  if (rc == 0) { /* EOF */
+	    subdaemon_killctf(CTF);
+	  }
+
+	  if (rc > 0) {
+	    if (CTF->buf[rc-1] == '\n') {
+	      /* Whole line accumulated, send it out! */
+
+	      subdaemon_send_to_peer(CTF->replypeer, CTF->buf, rc);
+	      CTF->bufsize = 0; /* Zap it.. */
+	    }
+
+	    if (strcmp( CTF->buf, Hungry ) == 0) {
+	      CTF->sawhungry = 1;
+	      CTF->replypeer = NULL;
+	    }
+	  }
+	}
+
+	return CTF->sawhungry;
 }
 
-
-static int
-subdaemon_handler_ctf_input (statep, peerdata)
-     void *statep;
-     struct peerdata *peerdata;
-{
-	int i, val, neg, rc;
-	int seenhungry = 0;
-	struct ctf_state *state = statep;
-
-
-	peerdata->inpbuf[peerdata->inlen -1] = 0;
-
-	if (debug_content_filter)
-	  type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'",
-	       state->pid, peerdata->inpbuf);
-
- pick_reply:;
-
-	
-	rc = ctf_pickresponse(state->responsebuf, sizeof(state->responsebuf),
-			     state->cpol_fromfp);
-	if (debug_content_filter)
-	  type(NULL,0,NULL, "policyprogram said: rc=%d  '%s'",
-	       i, state->responsebuf);
-
-	if (i <= 0) return 0; /* Urgh.. */
-
-	if (strcmp(state->responsebuf, "#hungry") == 0) {
-	  ++seenhungry;
-	  if (seenhungry == 1 && state->cpol_tofp) {
-	    fwrite(peerdata->inpbuf, peerdata->inlen -1, 1, state->cpol_tofp);
-	    fputc('\n',state->cpol_tofp);
-
-
-	    fflush(state->cpol_tofp);
-	    goto pick_reply;
-	  }
-	  /* Seen SECOND #hungry !!!
-	     Abort the connection by closing the command socket..
-	     Collect all replies, and log them.  */
-	  
-	  if (state->cpol_tofp) fclose(state->cpol_tofp);
-	  state->cpol_tofp = NULL;
-	  sleep(1);
-	  if (state->pid > 1) kill(SIGKILL, state->pid);
-	  
-	  for (;;) {
-	    i = ctf_pickresponse(state->responsebuf, sizeof(state->responsebuf),
-				 state->cpol_fromfp);
-	    if (i <= 0) break;
-	    if (debug_content_filter)
-	      type(NULL,0,NULL, "policyprogram said: %s", state->responsebuf);
-	  }
-	  /* Finally yield zero.. */
-	  return 0;
-	}
-	
-	if (state->responsebuf[0] == '#' ||
-	    state->responsebuf[0] == '\n') /* debug stuff ?? */
-	  /* Debug-stuff... */
-	  goto pick_reply;
-
-
-
-	i = 0;
-	val = neg = 0;
-	if (state->responsebuf[i] == '-') {
-	  ++i;
-	  neg = 1;
-	}
-	while ('0' <= state->responsebuf[i] && state->responsebuf[i] <= '9') {
-	  val *= 10;
-	  val += (state->responsebuf[i] - '0');
-	  ++i;
-	}
-	if (neg) val = -val;
-	
-	if (!(i >= neg) || state->responsebuf[i] != ' ') {
-	  
-	  if (!seenhungry) goto pick_reply;
-	  
-	  return -1; /* Bad result -> tool borken.. */
-	}
-	
-	/* on non-void return, do set  state->message 
-	   on free()able storage ! */
-
-	
-	if (!state->cpol_tofp) {
-	  fclose(state->cpol_fromfp);
-	  state->cpol_fromfp = NULL;
-	  if (state->pid > 1)
-	    kill(SIGKILL, state->pid);
-	  state->pid = -1;
-	}
-
-	peerdata->outlen = rc + 1;
-	memcpy( peerdata->outbuf, state->responsebuf, rc );
-	peerdata->outbuf[rc] = '\n';
-	
-	return 0; /* all fine */
-}
 
 
 static int
@@ -259,4 +327,208 @@ subdaemon_handler_ctf_shutdown (state)
      void *state;
 {
 	return -1;
+}
+
+
+/* --------------------------------------------------------------- */
+/*  client caller interface                                        */
+/* --------------------------------------------------------------- */
+
+/* extern int  contentfilter_rdz_fd; */
+
+struct ctf_state {
+	int fd_io;
+	FILE *outfp;
+	int buflen;
+	char *buf;
+	char *pbuf;
+	int sawhungry; /* remote may yield  N  lines of output, 
+			  until  Hungry  */
+};
+
+
+static void smtpcontentfilter_kill __((struct ctf_state *));
+static void
+smtpcontentfilter_kill ( state )
+     struct ctf_state * state;
+{
+	if (state->outfp) fclose(state->outfp);
+	state->outfp = NULL;
+
+	if (state->fd_io >= 0) {
+	  close(state->fd_io);
+	  state->fd_io = -1;
+	}
+	if (state->buf)  free(state->buf);
+	state->buf = NULL;
+}
+
+
+static int smtpcontentfilter_init __((struct ctf_state **));
+
+static int
+smtpcontentfilter_init ( statep )
+     struct ctf_state **statep;
+{
+	struct ctf_state *state = *statep;
+	int toserver[2];
+	int rc;
+
+	if (!state)
+	  state = *statep = malloc(sizeof(*state));
+	if (!state) return -1;
+
+	memset( state, 0, sizeof(*state) );
+	state->fd_io = -1;
+
+	/* Abusing the thing, to be exact, but... */
+	rc = socketpair(PF_UNIX, SOCK_STREAM, 0, toserver);
+	if (rc != 0) return -2; /* create fail */
+
+	state->fd_io = toserver[1];
+	rc = fdpass_sendfd(contentfilter_rdz_fd, toserver[0]);
+
+	if (debug)
+	  type(NULL,0,NULL,"smtpcontentfilter_init: fdpass_sendfd(%d,%d) rc=%d, errno=%s",
+	       contentfilter_rdz_fd, toserver[0], rc, strerror(errno));
+
+	if (rc != 0) {
+	  /* did error somehow */
+	  close(toserver[0]);
+	  close(toserver[1]);
+	  return -3;
+	}
+	close(toserver[0]); /* Sent or not, close the remote end
+			       from our side. */
+
+	if (debug)
+	  type(NULL,0,NULL,"smtpcontentfilter_init; 9");
+
+	fd_blockingmode(state->fd_io);
+
+	state->outfp = fdopen(state->fd_io, "w");
+
+	if (debug)
+	  type(NULL,0,NULL,"smtpcontentfilter_init; 10");
+	errno = 0;
+
+	if (state->buf) state->buf[0] = 0;
+	state->buflen = 0;
+	if (fdgets( & state->buf, & state->buflen, state->fd_io, 10 ) < 0) {
+	  /* something failed! -- timeout in 10 secs ?? */
+	  if (debug)
+	    type(NULL,0,NULL,"smtpcontentfilter_init; FAILURE 10-B");
+	  smtpcontentfilter_kill( state );
+	  return -4;
+	}
+
+	if (debug)
+	  type(NULL,0,NULL,"smtpcontentfilter_init; 11; errno=%s",
+	       strerror(errno));
+
+	if ( !state->buf  || (strcmp(state->buf, Hungry) != 0) )
+	  return -5; /* Miserable failure.. Not getting proper protocol! */
+
+	if (debug)
+	  type(NULL,0,NULL,"smtpcontentfilter_init; 12");
+
+	state->sawhungry = 1;
+
+	return 0;
+
+}
+
+
+char *
+contentfilter_proc(ctfstatep, fname)
+     struct ctf_state **ctfstatep;
+     const char *fname;
+{
+	int rc;
+	unsigned char *p;
+	struct ctf_state *ctfstate =  * ctfstatep;
+
+
+	if (! ctfstate || !ctfstate->outfp) {
+	  smtpcontentfilter_init( &ctfstate );
+	  if (! ctfstate || !ctfstate->outfp || !ctfstate->sawhungry) {
+	    type(NULL, 0, NULL, "Failed to init interactive contentfilter subsystem");
+	    if ( ctfstate )
+	      smtpcontentfilter_kill( ctfstate );
+	    return NULL;
+	  }
+	}
+
+	*ctfstatep = ctfstate;
+
+	if (! ctfstate->sawhungry ) {
+	  /* Wrong initial state at this point in call! */
+	  smtpcontentfilter_kill( ctfstate );
+	  type(NULL, 0, NULL, "Interactive contentfilter subsystem lost internal sync ??");
+	  return NULL;
+	}
+
+	/* We have seen  "#hungry\n",  now we go and send our little thingie
+	   down the pipe... */
+
+	fprintf(ctfstate->outfp, "%s\n", fname);
+	fflush(ctfstate->outfp);
+	if (ferror(ctfstate->outfp)) {
+	  fclose(ctfstate->outfp);
+	  ctfstate->outfp = NULL;
+	  return NULL;
+	}
+
+	/* Now we collect replies, until we see "#hungry" again.. */
+	/* .. we do strip the trailing newline first.. */
+	ctfstate->sawhungry = 0;
+
+	while ( ! ctfstate->sawhungry ) {
+
+	  /* The reply is better to reach us within 60 seconds.. */
+
+	  if (ctfstate->buf) ctfstate->buf[0] = 0;
+	  ctfstate->buflen = 0;
+	  rc = fdgets( & ctfstate->buf, & ctfstate->buflen, ctfstate->fd_io, 120 );
+
+	  if (ctfstate->buf && (rc > 0))
+	    if (ctfstate->buf[rc-1] == '\n')
+	      ctfstate->buf[--rc] = 0;
+
+	  if (debug)
+	    type(NULL,0,NULL, "fdgets()->%p rc=%d buf=\"%s\"",
+		 ctfstate->buf, rc, (ctfstate->buf ? ctfstate->buf : "<NULL>"));
+
+	  if (rc <= 0) {
+	    /* TIMED OUT !  BRR... */
+	    smtpcontentfilter_kill( ctfstate );
+	    type(NULL, 0, NULL, "Interactive contentfilter %s!",
+		 (rc < 0) ? "timed out" : "EOFed" );
+	    return NULL;
+	  }
+
+	  if ( strcmp(ctfstate->buf, "#hungry") == 0 ) {
+	    ctfstate->sawhungry = 1;
+	    /* Got "#hungry",  bail out, and yield pbuf .. */
+	    if (debug)
+	      type(NULL,0,NULL," GOT #hungry !");
+
+	    return ctfstate->pbuf;
+	  }
+
+	  /* We have a reply line here.. */
+	  {
+	    int i;
+	    rc = sscanf(ctfstate->buf, "%i %i %i", &i, &i, &i);
+	  }
+	  if (rc < 3) {
+	    /* BAD! */
+	    continue;
+	  }
+	  if (ctfstate->pbuf) free(ctfstate->pbuf);
+	  ctfstate->pbuf = strdup(ctfstate->buf);
+
+	}
+
+	
 }

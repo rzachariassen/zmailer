@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Apr-16"
+.TH SMTPSERVER 8zm "2004-Apr-19"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -1013,10 +1013,11 @@ Possible configuration file is:
 # ---- /usr/lib/sasl2/smtpserver.conf ----
 \fCpwcheck_method: saslauthd
 .fi
+.RE
 .PP
 File paths, etc. for this are highly dependent of said library
 setup.
-.RE
+.PP
 .SH TLS MODE
 .PP
 .B "TO BE WRITTEN;"
@@ -1148,23 +1149,53 @@ absolutely trust.  Additionally you may give
 for this key entry:
 .PP
 .RS
-fulltrustnet +
+.nf
+\fCfulltrustnet +
 trustrecipient +
+maxinsize 30000000
+filtering +/-
+ratelimitmsgs 300
+.fi
 .RE
 .PP
-First pair will accept any source address,
+The 1st pair will accept any source address,
 and any recipient addresses that are fed to
-the server;  the second will verify the source
-address, but after that it will accept any
-recipient addresses.
+the server.
+.PP
+The 2nd will verify the source IP-address,
+but after that it will accept any recipient
+addresses.
+.PP
+The 3rd pair sets EHLO-reported "SIZE nn"
+parameter to be limited to 30 million bytes.
+(Or to global definition, if that is in range
+of 1 thru 'nn'.)
+.PP
+The 4th pair sets explicite content-filtering
+activation/disabling ('+'/'-') for IP address
+masks given in these files.
+See the comments in the "smtp-policy.src" about this!
+It might make sense to place this 4th pair
+into boilerplate "_full_rights" definition.
+.PP
+The 5th pair sets limit on how many messages
+are accepted in an 1.0-1.15 hour period.
+Excess messages (MAIL FROMs actually) are
+treated with cold shoulder ("450" code).
+If the numeric parameter value is NEGATIVE,
+then the rejection is instant and permanent
+with "550" code.
+It might make sense to place this 5th pair
+into boilerplate "_full_rights" definition.
 .PP
 You may also enter domains which are looked
 up for the hostname of reversed IP address,
 but it is not very wise; IP-reversal is not
-trustworthy data.  It may also cause double-
-entry/level descendance problems when two
-domain-suffixes have same ending suffix (or
-are the same)..  (Name/keyspace problem)
+trustworthy data.
+It may also cause double-entry/level descendance
+problems when two domain-suffixes have same ending
+suffix (or are the same)..
+(Name/keyspace problem)
 .PP
 We can set the internal "always_accept" flag at
 the source IP test, and never after.
@@ -1173,7 +1204,7 @@ the source IP test, and never after.
 .IP smtp\-policy.mx
 .IP smtp\-policy.mx.manual
 .RS
-Who really are our MX clients.
+Domains, who really are our MX clients.
 .PP
 Use this when you really know them, and don't
 want just to trust that if recipient has MX
@@ -1185,7 +1216,7 @@ the generic boilerplate.
 List here
 .I domain names.
 .PP
-You CAN also list here all POSTMASTER addresses
+You \fBcan\fR also list here all \fBpostmaster\fR addresses
 you accept email routed to:
 .PP
 .RS
@@ -1195,6 +1226,8 @@ postmaster@client.domain
 .PP
 these are magic addresses that email is accepted
 to, even when everything else is blocked.
+(well, not exactly, if MAIL is rejected, or connection
+at all...)
 .PP
 .RE
 .IP smtp\-policy.spam
@@ -1347,8 +1380,8 @@ specific one, the document is fairly direct copy, too..
 .PP
 .RS 2em
 .nf
-PARAM tls-cert-file  /etc/postfix/server.pem
-PARAM tls-key-file   /etc/postfix/server.pem
+PARAM tls\-cert\-file  /etc/postfix/server.pem
+PARAM tls\-key\-file   /etc/postfix/server.pem
 .fi
 .RE
 .PP
@@ -1360,7 +1393,7 @@ PARAM tls-key-file   /etc/postfix/server.pem
 .PP
 .RS 2em
 .nf
-PARAM tls-CAfile /etc/postfix/CAcert.pem
+PARAM tls\-CAfile /etc/postfix/CAcert.pem
 .fi
 .RE
 .PP
@@ -1375,7 +1408,7 @@ PARAM tls-CAfile /etc/postfix/CAcert.pem
 .PP
 .RS 2em
 .nf
-PARAM tls-CApath /etc/postfix/certs
+PARAM tls\-CApath /etc/postfix/certs
 .fi
 .RE
 .PP
@@ -1399,7 +1432,7 @@ Printout startup and certificate information
 .PP
 .RS 2em
 .nf
-PARAM tls-loglevel 0
+PARAM tls\-loglevel 0
 .fi
 .RE
 .PP
@@ -1408,7 +1441,7 @@ PARAM tls-loglevel 0
 .PP
 .RS 2em
 .nf
-PARAM use-tls
+PARAM use\-tls
 .fi
 .RE
 .PP
@@ -1424,8 +1457,108 @@ PARAM use-tls
 .PP
 .RS 2em
 .nf
-PARAM tls-random-source /var/run/prngd-socket
+PARAM tls\-random\-source /var/run/prngd\-socket
 .fi
+.RE
+.PP
+.SH IMPLEMENTED SMTP VERBS AND EXTENSIONS
+.PP
+.B "TO BE COMPLETED"
+.PP
+.IP "HELO"
+.IP "EHLO"
+.RS
+See RFC 2821.
+.RE
+.IP "MAIL"
+.RS
+See RFC 2821.
+.RE
+.IP "RCPT"
+.RS
+See RFC 2821.
+.RE
+.IP "DATA"
+.RS
+See RFC 2821.
+.RE
+.IP "BDAT"
+.RS
+See RFC 3030.
+.RE
+.IP "QUIT"
+.RS
+See RFC 2821.
+.RE
+.IP "EXPN"
+.RS
+See RFC 2821.
+.RE
+.IP "VRFY"
+.RS
+See RFC 2821.
+.RE
+.IP "HELP"
+.RS
+See RFC 2821.
+.RE
+.IP "RSET"
+.RS
+See RFC 2821.
+.RE
+.IP "ETRN"
+.RS
+See RFC 1985.
+.RE
+.IP "AUTH"
+.RS
+Mainly "AUTH LOGIN", see RFC 2554+Netscape...
+(= plaintext login)
+.RE
+.IP "STARTTLS"
+.RS
+If enabled and configured, starts TLS enryption.
+See RFC 3207.
+.RE
+.IP "Z\-REPORT"
+.RS
+Special interactive authenticated and ACL controlled command
+for querying
+.IR smtpserver "'s"
+internal resource trackers for given IP address.
+.RE
+.IP "Z\-IDENT"
+.RS
+Tool to see, what "ident" query results for
+the received SMTP session.
+.RE
+.IP "Z\-DEBUG"
+.RS
+.B "If enabled!"
+.PP
+Turns on "debug" flag within the session, and produces
+lots of murky output into the datastream.
+May, or may not break SMTP protocol.
+May, or may not work in tandem with TLS-cipher mode.
+For manual debuggers ONLY.
+.PP
+Security note:
+Will not let users to enter anything that they would not
+otherwise be able to enter, although will allow users
+to see things that normally are not shown.
+.RE
+.PP
+.IP TURN
+.RS
+RFC 821, not supported due to security problems in it.
+.PP
+RFC 1985: ETRN supercedes this.
+.RE
+.IP "ONEX, SEND, SOML, TICK, EMAL, ESND, ESOM, ESAM, EVFY, VERB"
+.RS
+Various proprietary
+.I sendmail
+things, and or other semi-well-known extensions.
 .RE
 .PP
 .SH ENVIRONMENT VARIABLES USED BY THE SMTPSERVER
@@ -1460,6 +1593,8 @@ Possible specification formats are:
   [IPv6.0::0]
   iface:eth0:1
 .fi
+The last one is somewhat troublesome at least when the system has
+IPv6 in it.
 .PP
 .IP INPUTDIRS
 See
@@ -1536,7 +1671,7 @@ RFC 1893/3463	 Enhanced Mail System Status Codes
 RFC 1985	 ESMTP ETRN
 RFC 2033	 LMTP server mode (for testing)
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
-.\" RFC 2476	 SUBMIT protocol (port 587)
+RFC 2476	 SUBMIT protocol (port 587)
 RFC 2487/3207	 ESMTP STARTTLS
 RFC 2222	 SASL mechanism base definition
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN

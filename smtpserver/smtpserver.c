@@ -77,8 +77,8 @@ struct command command_list[] =
     {"ESAM", Send2},
     {"EVFY", Verify2},
 			/* To fool loosers.. */
-    {"IDENT", DebugIdent},
-    {"DEBUG", DebugMode},
+    {"Z-IDENT", DebugIdent},
+    {"Z-DEBUG", DebugMode},
 			/* End of the list */
 #ifdef HAVE_OPENSSL
     {"STARTTLS", StartTLS}, /* RFC 2487 */

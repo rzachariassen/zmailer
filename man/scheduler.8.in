@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8zm "2003-Nov-20"
+.TH SCHEDULER 8zm "2004-Apr-19"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -1228,6 +1228,8 @@ thru the MAILQv2 port.
 #       TT      "SHOW QUEUE THREADS", "SHOW THREAD channel host"
 #       ETRN    "ETRN etrn_string"
 #       KILL    "KILL THREAD channel host", "KILL MSG spoolid"
+#
+#       SMTPIP  Smtp-server's  "Z-REPORT" ACL.
 #
 # \-\- "nobody" via loopback gets different treatment from
 #    "nobody" from anywhere else.

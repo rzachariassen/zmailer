@@ -29,6 +29,7 @@ struct policystate {		/* Part of SmtpState structure */
     int  did_query_rate; /* When set, will need to INCR at DATA/BDAT. */
     char ratelabelbuf[40]; /* HEX encoded IPv6 address... */
     void *rate_state;
+    void *ctf_state;
 
     /* This variable contains bitmapped flags of attributes to be checked. */
     /* For example: P_A_REJECTSOURCE ( == 3)

@@ -71,6 +71,7 @@ struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
 	int mails;
+	time_t alloc_time;
 	int countset[SLOTCOUNT];
 };
 
@@ -166,6 +167,7 @@ static struct ipv4_regs * alloc_ipv4_reg( state, ipv4addr )
 
 	spl = sp_install( ipv4addr, r, 0, state->spt4 );
 	r->spl = spl;
+	r->alloc_time = time(NULL);
 
 	return r;
 }
@@ -349,8 +351,6 @@ slot_ages(state, outbuf)
 	int i, j, tr[SLOTCOUNT];
 	char *s = outbuf;
 
-	time(&now);
-
 	for (i = 0, j = state->slotindex; i < SLOTCOUNT; ++i) {
 	  tr[i] = j;
 	  --j; if (j < 0) j = SLOTCOUNT-1;
@@ -366,7 +366,6 @@ slot_ages(state, outbuf)
 	  s += strlen(s);
 	}
 	strcat(s, "\n");
-
 }
 
 static void
@@ -404,7 +403,8 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	  sprintf(s, " %d", reg->countset[tr[j]]);
 	  s += strlen(s);
 	}
-	sprintf(s, "  MAILs: %d\n", reg->mails);
+	sprintf(s, "  MAILs: %d", reg->mails);
+	sprintf(s, " ALLOC: %d\n", (int)(now - reg->alloc_time));
 }
 
 
@@ -833,6 +833,9 @@ smtp_report_ip(SS, ip)
 	  type(SS, rc1, NULL, "%s", buf1+4);
 	if (rc2)
 	  type(SS, rc2, NULL, "%s", buf2+4);
+
+	if (!rc1 && !rc2)
+	  type(SS, 450, NULL, "No reply from tracking subsystem");
 
 	discard_subdaemon_trk( statep );
 

@@ -365,7 +365,6 @@ typedef struct SmtpState {
 #endif
 
     void *irouter_state;
-    void *content_state;
 } SmtpState;
 
 

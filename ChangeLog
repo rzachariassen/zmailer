@@ -1,5 +1,27 @@
 2004-04-19  Matti Aarnio  <mea@zmailer.org>
 
+	* man/scheduler.8.in, man/smtpserver.8.in:
+	    Document editing; Z-REPORT ACL explanation,
+	    although not result explanation...
+	    Smtpserver's document updates.
+
+	* smtpserver/contentpolicy.c, smtpserver/policytest.h,
+	  smtpsever/smtpserver.h, smtpserver/subdaemon-ctf.c:
+	    Rearranged things so that content-policy happens
+	    under the centralized management daemon of its own.
+	    Presently only one ContentFilter instance can be
+	    running there, which might be a wee bit too little..
+
+	* smtpserver/subdaemon-trk.c:
+	    Report tracking slot allocation age in addition to
+	    the total number of MAILs ("RATE"s) queried at it.
+	    (If the tracking never yields all slots zero, then
+	    the entry may get rather old, and the MAILs count
+	    very high...)
+
+	* smtpserver/smtpserver.c:
+	    Renamed "IDENT" to "Z-IDENT", and "DEBUG" to "Z-DEBUG".
+
 	* smtpserver/smtpserver.c:
 	    Code rearrange; K&R doesn't like some C99 things..
 

@@ -43,14 +43,6 @@ int debug_content_filter;
 
 static FILE *cpol_tofp;
 static FILE *cpol_fromfp;
-static int contentphase;
-
-/* Phases:
-   0: started, expecting "#hungry"
-   1: seen "#hungry", ready for a job!
-   2: sent a task, expecting answer
-*/
-
 
 static int init_content_policy_prog()
 {
@@ -63,7 +55,6 @@ static int init_content_policy_prog()
   if (cpol_fromfp) fclose(cpol_fromfp);
 
   cpol_tofp = cpol_fromfp = NULL;
-  contentphase = 0;
 
   contentpolicypid = fork();
 
@@ -139,40 +130,6 @@ static int init_content_policy()
     return init_content_policy_sock();
 }
 
-static int
-pickresponse(buf, bufsize, fp)
-     char *buf;
-     int bufsize;
-     FILE *fp;
-{
-    int c, i;
-
-    c = i = 0;
-    --bufsize;
-
-    if (feof(fp) || ferror(fp)) return -1;
-  
-    for (;;) {
-      if (ferror(fp) || feof(fp)) break;
-
-      c = fgetc(fp);
-      if (c == EOF)  break;
-      if (c == '\n') break;
-
-      if (i < bufsize)
-	buf[i++] = c;
-    }
-    buf[i] = 0;
-
-    while (c != '\n') {
-      if (ferror(fp) || feof(fp)) break;
-      c = fgetc(fp);
-    }
-
-    return i;
-}
-
-
 
 int
 contentpolicy(rel, state, fname)
@@ -180,9 +137,9 @@ struct policytest *rel;
 struct policystate *state;
 const char *fname;
 {
-  char responsebuf[8192];
   int i, rc, neg, val;
   int seenhungry = 0;
+  char *s;
   
   if (state->always_reject) {
     if (debug_content_filter)
@@ -227,74 +184,27 @@ const char *fname;
     return 0; /* Until we have implementation */
   }
 
-  if (contentpolicypid < 0)
-    if (!init_content_policy()) {
-      type(NULL,0,NULL, "ContentPolicy not run; failed to start ?!");
-      return 0; /* DUH! */
-    }
-
   /* Ok, we seem to have content-filter program configured... */
 
-  if (debug_content_filter)
-    type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'",
-	 contentpolicypid, fname);
-
- pick_reply:;
-
-
-  i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
-  if (debug_content_filter)
-    type(NULL,0,NULL, "policyprogram said: rc=%d  '%s'", i, responsebuf);
-  if (i <= 0) return 0; /* Urgh.. */
-
-  if (strcmp(responsebuf, "#hungry") == 0) {
-    ++seenhungry;
-    if (seenhungry == 1 && cpol_tofp) {
-      fprintf(cpol_tofp, "%s\n", fname);
-      fflush(cpol_tofp);
-      goto pick_reply;
-    }
-    /* Seen SECOND #hungry !!!
-       Abort the connection by closing the command socket..
-       Collect all replies, and log them.  */
-
-    if (cpol_tofp) fclose(cpol_tofp);
-    cpol_tofp = NULL;
-    sleep(1);
-    if (contentpolicypid > 1) kill(SIGKILL, contentpolicypid);
-
-    for (;;) {
-      i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
-      if (i <= 0) break;
-      if (debug_content_filter)
-	type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
-    }
-    /* Finally yield zero.. */
-    return 0;
+  s = contentfilter_proc( & state->ctf_state, fname );
+  if (!s) {
+    return 0; /* FAILED to do any analysis! */
   }
-
-  if (*responsebuf == '#' || *responsebuf == '\n') /* debug stuff ?? */
-    /* Debug-stuff... */
-    goto pick_reply;
-
-
 
   i = 0;
   val = neg = 0;
-  if (responsebuf[i] == '-') {
+  if (s[i] == '-') {
     ++i;
     neg = 1;
   }
-  while ('0' <= responsebuf[i] && responsebuf[i] <= '9') {
+  while ('0' <= s[i] && s[i] <= '9') {
     val *= 10;
-    val += (responsebuf[i] - '0');
+    val += (s[i] - '0');
     ++i;
   }
   if (neg) val = -val;
 
-  if (!(i >= neg) || responsebuf[i] != ' ') {
-
-    if (!seenhungry) goto pick_reply;
+  if (!(i >= neg) || s[i] != ' ') {
 
     return 0; /* Bad result -> tool borken.. */
   }
@@ -306,22 +216,14 @@ const char *fname;
   /* Pick at first the heading numeric value. */
 
   /* Scan until first space - or EOL */
-  for (; i < sizeof(responsebuf) && responsebuf[i] != 0; ++i) {
-    if (responsebuf[i] == ' ') break;
+  for (; s[i] != 0; ++i) {
+    if (s[i] == ' ') break;
   }
+
   /* Scan over spaces */
-  while (i < sizeof(responsebuf) && responsebuf[i] == ' ') ++i;
+  while (s[i] == ' ') ++i;
 
-
-  if (!cpol_tofp) {
-    fclose(cpol_fromfp);
-    cpol_fromfp = NULL;
-    if (contentpolicypid > 1)
-      kill(SIGKILL, contentpolicypid);
-    contentpolicypid = -1;
-  }
-
-  state->message = strdup(responsebuf + i);
+  state->message = strdup(s + i);
 
   return rc;
 }
