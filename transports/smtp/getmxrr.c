@@ -428,6 +428,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	for (i = 0; i < nmx; ++i) {
 
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog, "  mx[%d] mxtype=%s%s(%d) host='%s'\n",
+		    i, (mxtype[i]&1)?"4":"-", (mxtype[i]&2)?"6":"-",
+		    mxtype[i], mx[i].host);
+
 #if defined(AF_INET6) && defined(INET6)
 	  /* If not IPv6 speaker, and already have A, skip it. */
 	  if (!use_ipv6 && (mxtype[i] & 1))
