@@ -76,6 +76,9 @@ typedef struct {
   DB         *db;
 
   time_t      mtime;
+  long	      inonum;
+  int	      nlink;
+
   int         roflag;
 
   int	      readonly;

@@ -1,5 +1,14 @@
 2004-03-31  Matti Aarnio  <mea@zmailer.org>
 
+	* include/sleepycatdb.h, lib/sleepycatdb.c, man/smtpserver.8.in,
+	  smtpserver/policytest.h, smtpserver/policytest.c:
+	    Dot in some notes about SleepyCat DB RPC mechanisms..
+	    More is yet in "TO DO" list...
+	
+	* router/libdb/bsdbtree.c, router/libdb/bsdhash.c:
+	    Do a bit more elaborate comparison set on database alteration
+	    from underneath ourself.
+
 	* utils/perl/Makefile.in,  configure.in:
 	    More hoops to get perl setup parameter feed in,
 	    and to make installation into non-root DESTDIR=

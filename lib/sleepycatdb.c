@@ -3,7 +3,7 @@
  *
  * Common routines for SleepyCat DB interfacing in ZMailer
  *
- * by Matti Aarnio <mea@nic.funet.fi> 2002
+ * by Matti Aarnio <mea@nic.funet.fi> 2002,2004
  *
  */
 
@@ -108,6 +108,24 @@ static int readsleepycfg(prv)
 	      if (CISTREQ(param, "rpc")) {
 		ZSE.envflags |= DB_RPCCLIENT;
 		zseset = 1;
+/*
+  SleepyCat db integration:
+     - Support RPC client mode!
+     - Observe new error modes to creep up everywhere!
+     - Documentation speaks of 'CLIENT*' structure, which
+       is  <rpc/clnt.h>
+*/
+	/* FIXME:FIXME:FIXME:
+	   Treat supplied  rel->dbpath  as host into for
+	   SleepyDB rpc server. Need also to have db name in there ??
+	   Or more parameters by listing them in separate file that
+	   is named in rel->dbpath  and parsed ?? 
+	    - RPChost
+	    - server timeout
+	    - client timeout
+	    - homedir in server
+	    - database (file)name
+	*/
 
 		param = p;
 		continue;
@@ -301,9 +319,9 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 	    if (err) return err; /* Uhh.. */
 
 	    err = prv->ZSE->env->open(prv->ZSE->env,
-				 prv->ZSE->envhome,
-				 prv->ZSE->envflags,
-				 prv->ZSE->envmode);
+				      prv->ZSE->envhome,
+				      prv->ZSE->envflags,
+				      prv->ZSE->envmode);
 	    if (err) prv->ZSE->env->err(prv->ZSE->env, err, "envhome <%s> open failed", prv->ZSE->envhome ? prv->ZSE->envhome : "NULL");
 
 	    if (err) return err; /* Uhh.. */

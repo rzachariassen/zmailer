@@ -1,7 +1,7 @@
 /*
  *      A component of ZMailer
  *
- *	Copyright 1996-2003 Matti Aarnio
+ *	Copyright 1996-2004 Matti Aarnio
  */
 
 /* LINTLIBRARY */
@@ -154,9 +154,9 @@ open_btree(sip, roflag, comment)
 		return NULL;
 	    }
 #endif
-
-	    (*prvp)->mtime = stbuf.st_mtime;
-
+	    (*prvp)->mtime  = stbuf.st_mtime;
+	    (*prvp)->inonum = stbuf.st_ino;
+	    (*prvp)->nlink  = stbuf.st_nlink;
 	}
 
 	return *prvp;
@@ -510,9 +510,14 @@ modp_btree(sip)
 	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
 					     Of course it changes.. */
 
-	rval = (stbuf.st_mtime != prv->mtime || stbuf.st_nlink != 1);
+	rval = ( (stbuf.st_mtime != prv->mtime)  ||
+		 (stbuf.st_ino   != prv->inonum) ||
+		 (stbuf.st_nlink != prv->nlink)  ||
+		 (stbuf.st_nlink != 1) );
 
-	prv->mtime = stbuf.st_mtime;
+	prv->mtime  = stbuf.st_mtime;
+	prv->inonum = stbuf.st_ino;
+	prv->nlink  = stbuf.st_nlink;
 
 
 	return rval;

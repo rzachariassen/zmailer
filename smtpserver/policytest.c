@@ -225,7 +225,7 @@ const char *dbtype, *dbpath;
     memset(rel, 0, sizeof(*rel));
     rel->dbtype = strdup(dbtype);
     rel->dbpath = strdup(dbpath);
-    rel->dbt = _dbt_none;
+    rel->dbt    = _dbt_none;
 }
 
 /* Do the actual query - return pointer to the result record */
@@ -287,9 +287,36 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#ifdef HAVE_DB
-    case _dbt_btree:
 
+#ifdef HAVE_DB
+#ifdef DB_RPCCLIENT
+    case _dbt_sleepyrpc:
+
+	memset(&Bkey,    0, sizeof(Bkey));
+	memset(&Bresult, 0, sizeof(Bresult));
+
+	Bkey.data = (void *) qptr;
+	Bkey.size = qlen;
+
+#ifdef DB_INIT_TXN
+	rc = (rel->sleepyrpc->get) (rel->sleepyrpc, NULL, &Bkey, &Bresult, 0);
+#else
+	rc = (rel->sleepyrpc->get) (rel->sleepyrpc, &Bkey, &Bresult, 0);
+#endif
+	if (rc != 0)
+	    return NULL;
+
+	buffer = (char *) emalloc(Bresult.size);
+	memcpy(buffer, Bresult.data, Bresult.size);
+
+	*rlenp = Bresult.size;
+	return buffer;
+
+	break; /* some compilers complain, some produce bad code
+		  without this... */
+#endif
+
+    case _dbt_btree:
 
 	memset(&Bkey,    0, sizeof(Bkey));
 	memset(&Bresult, 0, sizeof(Bresult));
@@ -657,6 +684,10 @@ int whosonrc;
 	rel->dbt = _dbt_btree;
     if (cistrcmp(rel->dbtype, "bhash") == 0)
 	rel->dbt = _dbt_bhash;
+#if defined(DB_RPCCLIENT)
+    if (cistrcmp(rel->dbtype, "sleepyrpc") == 0)
+	rel->dbt = _dbt_sleepyrpc;
+#endif
 #endif
     if (rel->dbt == _dbt_none) {
 	/* XX: ERROR! Unknown/unsupported dbtype! */
@@ -689,6 +720,53 @@ int whosonrc;
 	break;
 #endif
 #ifdef HAVE_DB
+#if defined(DB_RPCCLIENT)
+    case _dbt_sleepyrpc:
+      {
+	DB_ENV *env;
+
+	/* FIXME:FIXME:FIXME:
+	   Treat supplied  rel->dbpath  as host into for
+	   SleepyDB rpc server. Need also to have db name in there ??
+	   Or more parameters by listing them in separate file that
+	   is named in rel->dbpath  and parsed ?? 
+	    - RPChost
+	    - server timeout
+	    - client timeout
+	    - homedir in server
+	    - database (file)name
+	*/
+	
+        openok = db_env_create(& env, DB_RPCCLIENT);
+	/* XX: 0 == ok */
+	rel->db_._db_env = env;
+
+	openok = env->set_rpc_server( env, NULL, rel->dbpath,
+				      0 /* cl_timeout */, 0 /* sv_timeout */,
+				      0 );
+	/* XX: 0 == ok */
+
+	openok = env->open(env, rel->dbpath, DB_JOINENV, 0); /* FIXME!FIXME! */
+	/* XX: 0 == ok */
+
+	openok = db_create(& rel->sleepyrpc, env, 0);
+	/* XX: 0 == ok */
+
+
+	/* Append '.db' to the name */
+	sprintf(dbname, "%s.db", rel->dbpath);
+
+	openok = rel->sleepyrpc->open(rel->sleepyrpc,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+				      NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+				      dbname, NULL,  DB_BTREE,
+				      DB_RDONLY, 0);
+
+	break;
+      }
+#endif
+
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2003-Nov-21"
+.TH SMTPSERVER 8zm "2004-Mar-31"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -502,6 +502,9 @@ file.
 An error here will be reported with obscureish code;
 "1" = "DBTYPE parameter unknown/unsupported",
 "2" = "can't open the database".
+.PP
+This supports also 'sleepyrpc' database type.
+For more info, see: \fBFIXME:FIXME:FIXME\fR
 .RE
 .IP "PARAM contentfilter $MAILBIN/smtp-contentfilter"
 .RS

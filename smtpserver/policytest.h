@@ -72,7 +72,7 @@ typedef union {
 #ifdef _POLICYTEST_INTERNAL_
 
 typedef enum {
-    _dbt_none, _dbt_btree, _dbt_bhash, _dbt_ndbm, _dbt_gdbm
+    _dbt_none, _dbt_btree, _dbt_bhash, _dbt_ndbm, _dbt_gdbm, _dbt_sleepyrpc
 } dbtypes;
 
 
@@ -80,7 +80,7 @@ struct policytest {
     char *dbtype;
     char *dbpath;
     dbtypes dbt;
-    union {
+    struct {
 #ifdef HAVE_NDBM
 	DBM *_ndbm;
 #endif
@@ -89,12 +89,16 @@ struct policytest {
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	DB *_db;
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
+        DB_ENV *_db_env;
+#endif
 #endif
     } db_;
-#define btree db_._db
-#define bhash db_._db
-#define gdbm  db_._gdbm
-#define ndbm  db_._ndbm
+#define btree     db_._db
+#define bhash     db_._db
+#define sleepyrpc db_._db
+#define gdbm      db_._gdbm
+#define ndbm      db_._ndbm
 };
 
 #else				/* This is the external interface -- doesn't tell a thing ;-) */
