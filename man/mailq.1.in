@@ -2,15 +2,16 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "2003-May-13"
+.TH MAILQ 1 "2003-May-23"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
 .IP \fBmailq\fR 6em
-.\" 46c:dE:h:iK:p:Qr:sStu:U:vV
+.\" 46c:dE:h:iK:Mp:Qr:sStu:U:vV
 [\fB\-4\fR|\fB\-6\fR]
 [\fB\-d\fR]
 [\fB\-i\fR]
+[\fB\-M\fR]
 [\fB\-p\fR\ \fIport_or_socket_path\fR]
 [\fB\-s\fR[\fBs\fR]]
 [\fB\-t\fR]
@@ -74,18 +75,43 @@ stating why a retry that should have happened was delayed.
 A lack of annotations indicates a delivery attempt is in progress.
 .SH OPTIONS
 The normal action is to print the transport queue.
-.IP \-v[v]
+.IP "\-c \fIchannel\fR \-h \fIhost\fR"
 .RS
-will produce verbose transport queue output in that message id's,
-and sender and recipient addresses, will be listed in addition to the normal
-status line.
+in MAILQv2 mode (see
+.IR scheduler (8))
+query details about only those messages destined at given channel and host.
 .PP
-Doubling this option asks for extra verbose output, presently
-this adds the message size in bytes after the message id.
-This option is only useful if
-.I mailq
-can read the message control files in the postoffice.
-Most users can only see the data for their own messages.
+The default for \fIchannel\fR is "\fIsmtp\fR".
+.RE
+.IP \-d
+This prints the information received from the scheduler as is.
+This will override the verbose option.
+This is
+.I debugging
+mode.
+.IP \-i
+.RS
+prints a verbose transport queue output (see the \-v flag) for your own
+messages only.
+.RE
+.IP \-M
+.RS
+Attached to an MTA instance wide shared memory segment, and
+dumpts its content (various counters and gauges).
+.PP
+.I "This works only local in the system, unlike MAILQ-v2 queries!"
+.RE
+.IP \-p\ \fIport\fR
+.RS
+specifies an alternate TCP/IP port to connect to a
+.IR scheduler (8)
+at.
+.RE
+.IP \-Q[Q[Q]]
+.RS
+Two Q:s produces an abbreviated summary, while one Q gives full
+report of all threads.
+Three Q:s produces only "SNMP variables" report.
 .RE
 .IP \-s
 .RS
@@ -112,9 +138,6 @@ total- and mean-size of those files.
 disables any previous verbose flags to produce the normal
 .I terse
 output.
-.IP \-i
-prints a verbose transport queue output (see the \-v flag) for your own
-messages only.
 .IP \-u\ \fIuser\fR
 .RS
 selects messages sent by the specified user id.
@@ -128,30 +151,24 @@ the default "nobody"/"nobody" is not proper.
 .PP
 Do note: The "/" separates fields!
 .RE
-.IP \-d
-This prints the information received from the scheduler as is.
-This will override the verbose option.
-This is
-.I debugging
-mode.
-.IP \-p\ \fIport\fR
-specifies an alternate TCP/IP port to connect to a
-.IR scheduler (8)
-at.
-.IP "\-c \fIchannel\fR \-h \fIhost\fR"
+.IP \-v[v]
 .RS
-in MAILQv2 mode (see
-.IR scheduler (8))
-query details about only those messages destined at given channel and host.
+will produce verbose transport queue output in that message id's,
+and sender and recipient addresses, will be listed in addition to the normal
+status line.
 .PP
-The default for \fIchannel\fR is "\fIsmtp\fR".
+Doubling this option asks for extra verbose output, presently
+this adds the message size in bytes after the message id.
+This option is only useful if
+.I mailq
+can read the message control files in the postoffice.
+Most users can only see the data for their own messages.
 .RE
-.IP \-Q[Q[Q]]
-Two Q:s produces an abbreviated summary, while one Q gives full
-report of all threads.
-Three Q:s produces only "SNMP variables" report.
 .IP "\-Z\ \fIzenvfile\fR"
+:RS
 passes on explicite non-compiled-in-default located ZCONFIG environment file.
+.RE
+.PP
 .SH mailq -Q output codes
 Examples of ``mailq -Q'' output:
 .PP

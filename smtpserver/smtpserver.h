@@ -111,6 +111,8 @@ extern int wait();
 #include "libc.h"
 #include "libz.h"
 
+#include "shmmib.h"
+
 #ifndef	SIGCHLD
 #define	SIGCHLD	SIGCLD
 #endif				/* SIGCHLD */

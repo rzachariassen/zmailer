@@ -1,5 +1,24 @@
 2003-05-23  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/zshmmibattach.c, include/libz.h, include/shmmib.h,
+	  scheduler/scheduler.c, router/daemonsub.c, scheduler/update.c,
+	  scheduler/threads.c, lib/Makefile.in, SiteConfig.in,
+	  scheduler/mailq.c, man/mailq.1.in, router/router.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpchild.c,
+	  smtpserver/smtpserver.c:
+	    - Added new library function -- attach global
+	      MTA-instance specific shared memory mapped file
+	      to some particular running process.
+	    - Added new counters and gauges, far in excess of
+	      official RFC listed gauges..  SNMP shall coalesc
+	      subsystem counters and gauges.
+	    - Using this global shared segment for the time-server, too.
+
+	* utils/perl/Makefile.in:
+	    Doing "make clean" shall not crash even if previous
+	    "make" hasn't been run in a subdirectory, where things
+	    are done with 'Makefile.PL' way...
+
 	* transports/smtp/smtp.c:
 	    Additional "once" counter that breaks the loop, if
 	    other ways don't stop it -- when doing "more recipients"

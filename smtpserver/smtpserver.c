@@ -1047,6 +1047,12 @@ char **argv;
 		       to die away... */
 	  killprevious(0, pidfile);	/* deposit pid */
 	}
+
+
+	Z_SHM_MIB_Attach (1); /* Attach in R/W mode */
+
+	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses = 1; /* myself at first */
+
 #if 1
 	pid = getpid();
 	openlogfp(&SS, daemon_flg);
@@ -1110,6 +1116,14 @@ char **argv;
 
 	  raddrlen = sizeof(SS.raddr);
 	  msgfd = accept(n, (struct sockaddr *) &SS.raddr, &raddrlen);
+	  if (msgfd >= 0) {
+	    if (n == s25)
+	      MIBMtaEntry->m.mtaIncomingSMTPconnects += 1;
+	    if (n == ssmtp)
+	      MIBMtaEntry->m.mtaIncomingSMTPSconnects += 1;
+	    if (n == submitfd)
+	      MIBMtaEntry->m.mtaIncomingSUBMITconnects += 1;
+	  }
 	  if (msgfd < 0) {
 	    int err = errno;
 	    switch (err) {
@@ -1178,6 +1192,7 @@ char **argv;
 	    continue;
 	  } else if (childpid > 0) {	/* Parent! */
 	    childregister(childpid, &SS.raddr);
+	    MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses += 1;
 	    SIGNAL_RELEASE(SIGCHLD);
 	    reaper(0);
 	    close(msgfd);

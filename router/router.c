@@ -48,9 +48,6 @@ extern conscell *s_value;
 
 #include "shmmib.h"
 
-struct MIB_MtaEntry MIBMtaEntryLcl;
-struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLcl;
-
 int	mustexit = 0;
 int	canexit = 0;
 int	router_id = 0;

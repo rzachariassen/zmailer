@@ -45,7 +45,7 @@ mailq/Makefile:
 FRC:
 
 clean:	FRC
-	if [ -d mailq ] ; then \
+	if [ -d mailq -a -r mailq/Makefile ] ; then \
 		cd mailq && $(MAKE) $(MFLAGS) clean && rm -f Makefile.old ; \
 	fi
 

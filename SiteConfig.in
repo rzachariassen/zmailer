@@ -306,3 +306,11 @@ ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 #    iface:eth0:1
 #BINDADDR=iface:eth0:1
 BINDADDR=@BINDADDR@
+
+# SNMP-like global system instance monitoring datablock path:
+# This _file_ has absolute path (bo substitutions are allowed),
+# it is shared in between all principal subsystem components
+# in mmap(MAP_SHARED, MAP_READ|MAP_WRITE) mode. Counters in
+# this file are NEVER reset.  Gauges are managed as shadows
+# of subsystem internal state.
+SNMPSHAREDFILE=@POSTOFFICE@/.zmailer.SNMP.block

@@ -1727,20 +1727,20 @@ void thread_report(fp,mqmode)
 	    sfprintf(fp, "%s\n",timebuf);
 
 	  sfprintf(fp, "Msgs in %lu out %lu stored %ld ",
-		   (u_long)MIBMtaEntry->mtaReceivedMessagesSc,
-		   (u_long)MIBMtaEntry->mtaTransmittedMessagesSc,
-		   (long)MIBMtaEntry->mtaStoredMessages);
+		   (u_long)MIBMtaEntry->m.mtaReceivedMessagesSc,
+		   (u_long)MIBMtaEntry->m.mtaTransmittedMessagesSc,
+		   (long)MIBMtaEntry->m.mtaStoredMessagesSc);
 
 	  files = thread_count_files();
-	  if ((long)MIBMtaEntry->mtaStoredMessages != files)
+	  if ((long)MIBMtaEntry->m.mtaStoredMessagesSc != files)
 	    sfprintf(fp, "(%ld) ", files);
 
 	  sfprintf(fp, "Rcpnts in %lu out %lu stored %ld",
-		   (u_long)MIBMtaEntry->mtaReceivedRecipientsSc,
-		   (u_long)MIBMtaEntry->mtaTransmittedRecipientsSc,
-		   (long)MIBMtaEntry->mtaStoredRecipients);
+		   (u_long)MIBMtaEntry->m.mtaReceivedRecipientsSc,
+		   (u_long)MIBMtaEntry->m.mtaTransmittedRecipientsSc,
+		   (long)MIBMtaEntry->m.mtaStoredRecipientsSc);
 
-	  if (rcptsum != MIBMtaEntry->mtaStoredRecipients)
+	  if (rcptsum != MIBMtaEntry->m.mtaStoredRecipientsSc)
 	    sfprintf(fp, " (%d)", rcptsum);
 
 	  sfprintf(fp, "\n");

@@ -164,11 +164,6 @@ static RETSIGTYPE sig_readcf __((int sig));
 
 extern char *strerror __((int err));
 
-static struct MIB_MtaEntry MIBMtaEntryLocal = {0,};
-struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLocal;
-
-
-static int    timeserver_pid = 0;
 extern time_t mytime          __((time_t *));
 static void   init_timeserver __((void));
 
@@ -327,8 +322,8 @@ struct ctlfile *cfp;
 	     WILL become trashed at the end of the loop. */
 	  nvp = vp->next[L_CTLFILE];
 
-	  MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
-	  MIBMtaEntry->mtaReceivedRecipientsSc -= vp->ngroup;
+	  MIBMtaEntry->m.mtaStoredRecipientsSc   -= vp->ngroup;
+	  MIBMtaEntry->m.mtaReceivedRecipientsSc -= vp->ngroup;
 	  vp->ngroup = 0;
 	  unvertex(vp,1,1); /* Don't unlink()! Just free()! */
 	}
@@ -382,7 +377,7 @@ struct ctlfile *cfp;
 	free((char *)cfp);
 
 	--global_wrkcnt;
-	--MIBMtaEntry->mtaStoredMessages;
+	--MIBMtaEntry->m.mtaStoredMessagesSc;
 }
 
 
@@ -771,6 +766,18 @@ main(argc, argv)
 	  /* NOTREACHED */
 	}
 
+	Z_SHM_MIB_Attach (1);
+
+	/* Zero the gauges at our startup.. */
+	MIBMtaEntry->m.mtaStoredMessagesSc	= 0;
+	MIBMtaEntry->m.mtaStoredRecipientsSc	= 0;
+	MIBMtaEntry->m.mtaStoredVolumeSc		= 0;
+	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc	= 0;
+	MIBMtaEntry->m.mtaTransportAgentsIdleSc	= 0;
+
+
+
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
 
@@ -1118,7 +1125,7 @@ dq_insert(DQ, ino, file, delay)
 	  dq->wrkcount2 += 1;
 	  dq->wrksum    += 1;
 	}
-	++MIBMtaEntry->mtaReceivedMessagesSc;
+	++MIBMtaEntry->m.mtaReceivedMessagesSc;
 	return 0;
 }
 
@@ -1466,7 +1473,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	      for (j = i+1; j < ovp->ngroup; ++j)
 		ovp->index[j-1] = ovp->index[j];
 	      ovp->ngroup -= 1;
-	      MIBMtaEntry->mtaStoredRecipients -= 1;
+	      MIBMtaEntry->m.mtaStoredRecipientsSc -= 1;
 	    next_i:;
 	    }
 	    if (ovp->ngroup <= 0)
@@ -1504,7 +1511,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	    while (ovp && ovp != vp) {
 	      novp = ovp->next[L_CTLFILE];
 
-	      MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	      MIBMtaEntry->m.mtaStoredRecipientsSc -= vp->ngroup;
 	      ovp->ngroup = 0;
 	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 
@@ -1528,7 +1535,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	while (ovp) {
 	  novp = ovp->next[L_CTLFILE];
 
-	  MIBMtaEntry->mtaStoredRecipients -= ovp->ngroup;
+	  MIBMtaEntry->m.mtaStoredRecipientsSc -= ovp->ngroup;
 	  ovp->ngroup = 0;
 	  unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 	  /* Leaves CFP unharmed */
@@ -1901,7 +1908,7 @@ slurp(fd, ino)
 
 	  /* INC there in every case! */
 	  ++global_wrkcnt;
-	  ++MIBMtaEntry->mtaStoredMessages;
+	  ++MIBMtaEntry->m.mtaStoredMessagesSc;
 
 	} else {
 	  /* realloc() failed.. */
@@ -2091,16 +2098,16 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    if (*cp == _CFTAG_NOTOK) {
 #if 0
 	      ++cfp->rcpnts_failed;
-	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
-	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
+	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc,
+	      ++MIBMtaEntry->m.mtaTransmittedRecipientsSc;
 #endif
 	      prevrcpt = -1;
 	    } else if (*cp != _CFTAG_OK) {
 	      ++cfp->rcpnts_work;
 	    } else { /* _CFTAG_OK */
 #if 0
-	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
-	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
+	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc,
+	      ++MIBMtaEntry->m.mtaTransmittedRecipientsSc;
 #endif
 	    }
 	  }
@@ -2180,8 +2187,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      ++opcnt;
 
 	      /* Account for all yet to be delivered recipients */
-	      ++MIBMtaEntry->mtaStoredRecipients;
-	      ++MIBMtaEntry->mtaReceivedRecipientsSc;
+	      ++MIBMtaEntry->m.mtaStoredRecipientsSc;
+	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc;
 
 	      break;
 	    case _CF_RCPTNOTARY:
@@ -2917,65 +2924,77 @@ int sig;
 	alarm(1);
 }
 
+static int    timeserver_pid = 0;
+
+static void timer_health_check __((void))
+{
+  /* XXX: TODO! TIMER HEALTH CHECK */
+  if (timeserver_pid > 0) {
+  }
+  if (running_on_alarm) {
+  }
+}
+
 
 #if defined(HAVE_MMAP)
-struct timeserver {
-	int	pid;
-#ifdef HAVE_SELECT
-	struct timeval tv;
-#else
-	time_t	time_sec;
-#endif
-#define MAPSIZE 16*1024 /* Should work at all systems ? */
-};
+
 struct timeserver *timeserver_segment = NULL;
 static void init_timeserver()
 {
 	int ppid;
 
+	if ( Z_SHM_MIB_is_attached() ) {
+
+	  timeserver_segment = & MIBMtaEntry->ts;
+
+	} else { /* SHARED MIB MEMORY BLOCK IS NOT ATTACHED */
+
 #if !defined(MAP_ANONYMOUS) || defined(__linux__)
-	/* must have a file ? (SunOS 4.1, et.al.) */
-	int fd = -1;
-	char blk[1024];
-	int i;
-	Sfio_t *fp = sftmp(0); /* Create the backing file fairly reliably. */
+	  /* must have a file ? (SunOS 4.1, et.al.) */
+	  int fd = -1;
+	  char blk[1024];
+	  int i;
+	  Sfio_t *fp = sftmp(0); /* Create the backing file fairly reliably. */
 
-	if (fp)
-	  fd = sffileno(fp);
-	if (fd < 0) {
-	  perror("init_timeserver() didn't create tempfile ??");
-	  return; /* Brr! */ 
-	}
-
-	memset(blk,0,sizeof(blk));
-	for (i=0; i < MAPSIZE; i += sizeof(blk))
-	  sfwrite(fp, blk, sizeof(blk));
-	sfsync(fp);
-	sfseek(fp, 0, 0);
+	  if (fp)
+	    fd = sffileno(fp);
+	  if (fd < 0) {
+	    perror("init_timeserver() didn't create tempfile ??");
+	    return; /* Brr! */ 
+	  }
+	  
+	  memset(blk,0,sizeof(blk));
+	  for (i=0; i < MAPSIZE; i += sizeof(blk))
+	    sfwrite(fp, blk, sizeof(blk));
+	  sfsync(fp);
+	  sfseek(fp, 0, 0);
 
 #ifndef MAP_FILE
 # define MAP_FILE 0 /* SunOS 4.1 does not have this */
 #endif
-	timeserver_segment = (void*)mmap(NULL, MAPSIZE, PROT_READ|PROT_WRITE,
-					 MAP_FILE|MAP_SHARED, fd, 0);
-	sfclose(fp);
+	  timeserver_segment = (void*)mmap(NULL, MAPSIZE, PROT_READ|PROT_WRITE,
+					   MAP_FILE|MAP_SHARED, fd, 0);
+	  sfclose(fp);
 	
-#else
+#else /* MAP_ANONYMOUS and not Linux */
+
 #ifndef MAP_VARIABLE
 # define MAP_VARIABLE 0 /* Some system have MAP_ANONYMOUS, but
 			   no MAP_VARIABLE.. */
 #endif
-	/* This MAP_ANONYMOUS does work at DEC OSF/1 ... */
-	timeserver_segment = (void*)mmap(NULL, MAPSIZE, PROT_READ|PROT_WRITE,
-					 MAP_VARIABLE|MAP_ANONYMOUS|MAP_SHARED,
-					 -1, 0);
+	  /* This MAP_ANONYMOUS does work at DEC OSF/1 ... */
+	  timeserver_segment = (void*)mmap(NULL, MAPSIZE, PROT_READ|PROT_WRITE,
+					   MAP_VARIABLE|MAP_ANONYMOUS|MAP_SHARED,
+					   -1, 0);
 #endif
-	if (-1L == (long)timeserver_segment
-	    || timeserver_segment == NULL) {
-	  perror("mmap() of timeserver segment gave");
-	  timeserver_segment = NULL;
-	  return; /* Brr.. */
-	}
+	  if (-1L == (long)timeserver_segment
+	      || timeserver_segment == NULL) {
+	    perror("mmap() of timeserver segment gave");
+	    timeserver_segment = NULL;
+	    return; /* Brr.. */
+	  }
+
+	} /* Have global shared server segment, or not ... */
 
 	ppid = fork();
 	if (ppid > 0) {
@@ -3002,6 +3021,7 @@ static void init_timeserver()
 
 	  return;
 	}
+
 	if (ppid < 0) return; /* Error ?? brr.. */
 
 #ifdef HAVE_SETPROCTITLE
@@ -3053,6 +3073,12 @@ static void init_timeserver()
 time_t mytime(timep)
 time_t *timep;
 {
+	static int healthcheck = 10000;
+
+	if (--healthcheck <= 0) {
+	  healthcheck = 10000;
+	  timer_health_check();
+	}
 #if defined(HAVE_MMAP)
 	if (timeserver_pid) {
 	  time_t t;

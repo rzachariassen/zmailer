@@ -213,3 +213,13 @@ extern const char *Version;
 extern const char *VersionNumb;
 extern const char *CC_user;
 extern const char *CC_pwd;
+
+/* zshmmibattach.c */
+extern void Z_SHM_MIB_Attach      __((int rw));
+extern int  Z_SHM_MIB_is_attached __((void)); /* True if we do have the segment */
+extern void Z_SHM_MIB_Detach      __((void)); /* automatic atexit() handling */
+
+extern struct MIB_MtaEntry *MIBMtaEntry; /* public MIB block pointer, either
+					    private data before attach call,
+					    or possibly shared data after the
+					    call... */

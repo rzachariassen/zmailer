@@ -958,7 +958,7 @@ dq_insert(DQ, ino, file, dir)
 	dq->wrksum   += 1;
 	dq->sorted    = 0;
 
-	++MIBMtaEntry->mtaReceivedMessagesRt;
+	++MIBMtaEntry->m.mtaReceivedMessagesRt;
 
 	return 0;
 }
@@ -1445,9 +1445,17 @@ run_daemon(argc, argv)
 
 	time_t nextdirscan = 0;
 
+
+	Z_SHM_MIB_Attach (1); /* Read/write attach (attempt) */
+
+	/* Zero the gauges at our startup.. */
+	MIBMtaEntry->m.mtaStoredMessagesRt	= 0; /* in input queue */
+	MIBMtaEntry->m.mtaStoredRecipientsRt	= 0; /* can count at all ? */
+	MIBMtaEntry->m.mtaStoredVolumeRt	= 0; /* in input queue */
+	MIBMtaEntry->m.mtaRouterProcesses       = 1; /* myself = 1 */
+
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;
-
 
 	memset(routerchilds, 0, sizeof(routerchilds));
 

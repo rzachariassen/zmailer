@@ -148,6 +148,9 @@ int cpid;
 	for (i = 0; i < child_top; ++i)
 	  if (childs[i].pid == cpid) {
 	    memset(&childs[i], 0, sizeof(childs[i]));
+
+	    MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses -= 1;
+
 	    break;
 	  }
 }
