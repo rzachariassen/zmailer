@@ -1,3 +1,9 @@
+2003-11-24  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtpauth.c:
+	    Suspend logging on '-l' file as well as verbose-log,
+	    while writing the secret on outgoing SMTP stream.
+
 2003-11-23  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtpauth.c, TODO:

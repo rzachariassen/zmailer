@@ -175,6 +175,7 @@ smtpauth(SS)
 	int rc;
 	char remoteuser[256];
 	char remotesecret[256];
+	FILE *verboselog, *log;
 
 	if (SS->verboselog)
 	  fprintf(SS->verboselog, "smtpauth(ch='%s' remhost='%s')\n",
@@ -215,8 +216,31 @@ smtpauth(SS)
 
 	/* PRESUMING HERE!  "334 Uc2VjcmV0" (as Cyrus does) */
 
+	/* Suspend log printing */
+	verboselog = SS->verboselog;
+	SS->verboselog = NULL;
+	if (verboselog)
+	  fprintf(verboselog,"***secret***\n");
+	if (logfp)
+	  fprintf(logfp, "%sw\t%s\n", logtag(), "***secret***\n");
+	log = logfp;
+	logfp = NULL;
+
+	/* Do the thing where the suspension is needed.. */
 	SS->rcptstates = 0;
-	rc = smtpwrite(SS, 0, remotesecret, 0, NULL);
+	rc = smtpwrite(SS, 0, remotesecret, 1, NULL);
+
+	/* Resume log printing */
+	SS->verboselog = verboselog;
+	logfp = log;
+
+	rc = smtp_sync(SS, rc, 0);
+
+	if (rc != EX_OK) {
+	  /* ??? how to do aborts ? Not do ? */
+	  return rc;
+	}
+
 	if (rc != EX_OK) {
 	  /* ??? how to do aborts ? Not do ? */
 	  return rc;
