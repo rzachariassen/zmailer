@@ -98,6 +98,9 @@ fqdn_neighbour (domain, address, A) {
 	plustail=""
 
 	tsift "$lcaddress" in
+	@(.*):(.+)@(.+)
+		return 1   # Source route
+		;;
 	(.+)@(.+)
 		user="\1"
 		athost="@\2"
