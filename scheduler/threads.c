@@ -400,8 +400,8 @@ delete_thread(thr, ok)
 	struct threadgroup *thg = thr->thgrp;
 
 	if (thr->thrkids > 0)
-	  sfprintf(sfstderr,"delete_thread(thr=%p) thrkids=%d\n",
-		   thr, thr->thrkids);
+	  sfprintf(sfstderr,"delete_thread(thr=%p) thrkids=%d proc=%p\n",
+		   thr, thr->thrkids, thr->proc);
 
 	if (verbose)
 	  sfprintf(sfstderr,"delete_thread(%p:%s/%s) (thg=%p) jobs=%d\n",
