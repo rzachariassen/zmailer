@@ -162,17 +162,6 @@ rrouter (address, origaddr, A, plustail, domain) {
 		address="\1$plustail@\2\3"
 		plustail=""
 
-		#
-		#  If you want to have the SMARTHOST to pick the routing
-		#  for all non-local stuff, enable following test case..
-		#
-
-		# if [ "$SMARTHOST" ]; then
-		#	return $(rrouter "$SMARTHOST!$(uucproute "$address")$plustail" "$origaddr" $A "" "$domain")
-		# else
-		#	return ((($UNRESOLVABLEACTION "$address" $A)))
-		# fi
-
 
 		#if [ x$seenbitnet = xtrue ]; then
 		#	address="\1@\2.bitnet"
@@ -201,11 +190,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		#fi
 
 
-		if [ "$SMARTHOST" ]; then
-			return $(rrouter "$SMARTHOST!$(uucproute "$address")" "$origaddr" $A "" "$domain")
-		else
-			return ((($UNRESOLVABLEACTION "$address" $A)))
-		fi
+		return ((($UNRESOLVABLEACTION "$address" $A)))
 		;;
 	tfist
 

@@ -110,13 +110,10 @@ ROUTEROPTIONS= @ROUTEROPTIONS@
 # no such address exists, is punted to.
 #PUNTHOST=	relay.cs
 
-# FORCEPUNT is for cases when the local machine under no circumstances
-# is to store any email locally, but send all such to this given address
-#FORCEPUNT=	mailhost
-
 # SMARTHOST is where mail that cannot be resolved or routed is punted to.
-#SMARTHOST=	relay.cs
-
+# There used to be a variable for this, now a better way is to use 'routes'
+# database at which you put line:   .  smtp!smart.host.name
+# (That is: dot, white-space(s), "smtp!smart.host.name" )
 
 # NOBODY is the unprivileged UID value.
 # This is absolutely necessary if setuid() will fail on your "nobody" account
