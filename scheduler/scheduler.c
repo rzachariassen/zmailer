@@ -1373,11 +1373,11 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
 
-	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
-	  if (!reread)
+	/* if (!reread) */
+	  for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	    /* Put into the schedules */
 	    vtxdo(vp, cehead, file);
-	}
+	  }
 
 	/* Now we have no more need for the contents in core */
 	if (cfp->contents != NULL) {
@@ -1995,17 +1995,19 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 					  (i - svn - 1) * sizeof (int));
 	      vp = (struct vertex *)emalloc(alloc_size);
 	      memset((char*)vp, 0, alloc_size);
-	      vp->cfp          = cfp;
+	      vp->cfp             = cfp;
 	      vp->next[L_CTLFILE] = NULL;
 	      vp->prev[L_CTLFILE] = pvp;
 #if 0
-	      vp->message      = NULL;
-	      vp->retryindex   = 0;
-	      vp->nextitem     = NULL;
-	      vp->previtem     = NULL;
-	      vp->proc         = NULL;
-	      vp->attempts     = 0;
-	      vp->notary       = NULL;
+	      vp->thread          = NULL;
+	      vp->web[L_CTLFILE]  = NULL;
+	      vp->message         = NULL;
+	      vp->retryindex      = 0;
+	      vp->nextitem        = NULL;
+	      vp->previtem        = NULL;
+	      vp->proc            = NULL;
+	      vp->attempts        = 0;
+	      vp->notary          = NULL;
 #endif
 	      vp->ngroup       = i - svn;
 	      /* vp->sender       = strsave(offarr[svn].sender); */

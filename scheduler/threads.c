@@ -365,12 +365,12 @@ int ok;
 	    idle_child(proc);
 	    ++idleprocs;
 	    if (verbose)
-	      sfprintf(sfstderr, "delete_thread(2) thr->proc=%p pid=%d ",
+	      sfprintf(sfstderr, "delete_thread(2) thr->proc=%p pid=%d\n",
 		       proc, (int)proc->pid);
 	    /* Find a free thread - or stay in idle.. */
 	    pick_next_thread(thg, thr, proc);
 	    if (verbose)
-	      sfprintf(sfstderr,"proc->thr=%p\n",proc->thread);
+	      sfprintf(sfstderr,"   proc->thr=%p\n",proc->thread);
 
 	  } else if (thr->proc != NULL &&
 		     thr->proc->pid <= 0) {
