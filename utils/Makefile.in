@@ -21,7 +21,7 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(ROUTER_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 #
-LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
 
 BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\

@@ -224,7 +224,7 @@ main(argc, argv)
 	    usage();
 	  pw = getpwuid(getuid());
 	  if (!pw) {
-	    fprintf(stderr, "vacation: no such user uid %u.\n", getuid());
+	    fprintf(stderr, "vacation: no such user uid %ld.\n", (long)getuid());
 	    exit(EX_NOUSER);
 	  }
 	} else if (!(pw = getpwnam(*argv))) {
