@@ -49,6 +49,44 @@ int	I_mode = IMODE_NONE;
 
 struct itimerval profiler_itimer_at_start;
 
+
+#if	defined(SA_NOCLDSTOP)||defined(SA_ONSTACK)||defined(SA_RESTART)
+	/* ================ POSIX.1 STUFF ================ */
+
+void sigact_segv(sig, info, data)
+     int sig;
+     siginfo_t *info;
+     ucontext_t *data;
+{
+  printf("SEGV: signo=%d errno=%d code=%d pid=%d uid=%d status=%x utime=%ld stime=%ld value=%p (int=%d ptr=%p) addr=%p band=%ld fd=%d\n",
+	 info->si_signo, info->si_errno, info->si_code,
+	 info->si_pid,   info->si_uid,   info->si_status,
+	 info->si_utime, info->si_stime, info->si_value.sival_ptr,
+	 info->si_int,   info->si_ptr,   info->si_addr,
+	 info->si_band,  info->si_fd);
+  fflush(stdout);
+  exit(SIGSEGV);
+}
+
+
+void sigact_bus(sig, info, data)
+     int sig;
+     siginfo_t *info;
+     ucontext_t *data;
+{
+  printf("BUS: signo=%d errno=%d code=%d pid=%d uid=%d status=%x utime=%ld stime=%ld value=%p (int=%d ptr=%p) addr=%p band=%ld fd=%d\n",
+	 info->si_signo, info->si_errno, info->si_code,
+	 info->si_pid,   info->si_uid,   info->si_status,
+	 info->si_utime, info->si_stime, info->si_value.sival_ptr,
+	 info->si_int,   info->si_ptr,   info->si_addr,
+	 info->si_band,  info->si_fd);
+  fflush(stdout);
+  exit(SIGBUS);
+}
+
+#endif
+
+
 int
 main(argc, argv)
 	int	    argc;
@@ -298,6 +336,8 @@ main(argc, argv)
 
 	/* We (and our children) run with SIGPIPE ignored.. */
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+	SIGNAL_ACTION(SIGSEGV, sigact_segv);
+	SIGNAL_ACTION(SIGBUS,  sigact_bus);
 
 
 	initialize(config, argc - c, &argv[c]);
