@@ -1,5 +1,11 @@
 2001-05-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* README.UPGRADING:
+	    Semi-forgotten note about the results of 2001-05-15's
+	    libta/dianostic.c + scheduler/update.c + smtp TA/scheduler
+	    interaction protocol detail.  You can have NEWER scheduler,
+	    than smtp-ta, because this is backwards channel detail.
+
 	* lib/cfgets.c:
 	    Darryl Miles <darryl@netbauds.net>  found strange looking
 	    problem with certain kind of "malformed" input for scheduler
@@ -8,6 +14,10 @@
 	    the line buffer never gets zero-terminated causing possibly
 	    strange side-effects when thus revealed previous content of
 	    the buffer may reappear.
+
+	    Additional coding to always zero-terminate the allocated buffer.
+	    The code is being used both as classical  fgets(),  but also
+	    by returning exact number of characters collected.
 
 2001-05-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 

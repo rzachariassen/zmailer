@@ -4,7 +4,7 @@
  *  Count how many chars are stored into the buffer, EOF if
  *  failed...
  *
- *  By Matti Aarnio <mea@utu.fi> on 26-Sep-94
+ *  By Matti Aarnio <mea@utu.fi> on 26-Sep-94, 2001
  */
 
 #include "mailer.h"
@@ -25,23 +25,37 @@ int csfgets(s, n, stream)
 	Sfio_t *stream;
 {
 	register int cnt = 0;
+	char *eob = s + n-1;
+	register int c = EOF;
 
+	--n; /* Pre-shrink by one, thus will always have space
+		for zero-termination at the EOB */
 	while (n > 0) {
-	  register int c = sfgetc(stream);
+	  c = sfgetc(stream);
 	  if (c != EOF) {
-	    *s++ = c;
+	    if (s < eob)
+	      *s = c;
+	    ++s;
 	    ++cnt;
 	    --n;
-	    if (c == '\n') {
-	      if (n > 0) *s = 0;
+	    if (c == '\n')
 	      break;
-	    }
 	  } else {
-	    if (cnt == 0)
+	    if (cnt == 0) {
+	      *s = 0;
 	      return EOF;
-	    if (n > 0) *s = 0; /* Zero terminate it! */
+	    }
 	    break;
 	  }
 	}
+
+	/* If EOF/'\n' not reached, but buffer is full,
+	   should we collect input until either if reached ? */
+
+	if (s > eob)
+	  *eob = 0;
+	else
+	  *s = 0;
+
 	return cnt;
 }

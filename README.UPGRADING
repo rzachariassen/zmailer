@@ -12,6 +12,13 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.55-patch1 (just after release cut):
+		A change in TA-scheduler communication channel protocols
+		means that scheduler and TAs MUST be of same revision level!
+		(Actually the scheduler can be newer than SMTP-TA, because
+		 the is backwards-channel detail change.  Preferrably use
+		 same generation of scheduler and transport-agents!)
+
 	ZMailer-2.99.55:
 		The way how DEFAULT value for  zmailer.conf  location
 		is formed has been changed.  Formerly that, and  mail.conf
