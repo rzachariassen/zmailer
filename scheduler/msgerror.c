@@ -689,7 +689,7 @@ reporterrs(cfpi, delayreports)
 		if (*d) *d++ = 0;
 		continue;
 	      }
-	      /* Report conditional testing in the latter phases */
+	      /* Report conditional testing in the later phases */
 	    }
 	    while (*cp == ' ' || *cp == '\t') ++cp;
 	    notaries[notarycnt].message = cp;

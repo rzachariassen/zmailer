@@ -206,7 +206,7 @@ int mq2_wflush(mq)
     } else {
       /* Error ??? */
       if (errno == EAGAIN || errno == EINTR)
-	break; /* Back latter .. */
+	break; /* Back later .. */
       /* Err... what ?? */
 
       if (verbose)
@@ -345,7 +345,7 @@ static void mq2_read(mq)
     mq->inbufsize += i;
   } else {
     if (errno == EINTR || errno == EAGAIN) {
-      /* Ok, come back latter */
+      /* Ok, come back later */
     } else {
       mq2_discard(mq); /* ZAP! */
     }

@@ -40,7 +40,7 @@ DEBUGDEFS=-DDEBUG -DTRACE -DPROFILESIZES
 # FASTDEFS are used when the 'libmalloc' target is made.
 #
 # -DTRACE and -DPROFILESIZES shouldn't introduce very much overhead since the
-# former is turned off (one 'if'), and the latter is one 'if' + increment.
+# former is turned off (one 'if'), and the later is one 'if' + increment.
 # So you can keep them even in the fast production version. 
 # You may want to define -DSVID_MALLOC_0 if you want malloc(0) to
 # return NULL, per the SVID.  Otherwise, I return a block that

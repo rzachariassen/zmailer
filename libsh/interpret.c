@@ -696,7 +696,7 @@ runcommand(c, pc, retcodep, cmdname)
 		 * and b is the current (non-builtin) command, because multiple
 		 * calls to readstring() just append to the buffer.
 		 * If any of b or d are builtins, the output will be
-		 * that of the latter builtin.
+		 * that of the later builtin.
 		 */
 
 		/* XX: is this necessary*/

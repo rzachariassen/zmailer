@@ -243,7 +243,7 @@ main(argc, argv)
 	  exit(EX_USAGE);
 	}
 
-	/* We need this latter on .. */
+	/* We need this later on .. */
 	zopenlog("reroute", LOG_PID, LOG_MAIL);
 
 	while (!getout) {

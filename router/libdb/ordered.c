@@ -98,7 +98,7 @@ search_bin(sip)
 	}
 #endif
 	fm->pos = 0;	/* We have it mmap()ed incore, collect line
-			   start offsets into an array for latter use
+			   start offsets into an array for later use
 			   on searches..				*/
 	if (fm->size > 0 && fm->lines == 0 && fm->offsets == NULL) {
 	  int linecnt = 0;

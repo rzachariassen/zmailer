@@ -291,7 +291,7 @@ main(argc, argv)
 	}
 	mailer = argv[optind];
 
-	/* We need this latter on .. */
+	/* We need this later on .. */
 	zopenlog("sm", LOG_PID, LOG_MAIL);
 
 	defcharset = getzenv("DEFCHARSET");
@@ -767,7 +767,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  } while (hdrs);
 	}
 
-	/* Snub stuff that we add latter below.. */
+	/* Snub stuff that we add later below.. */
 
 	if (mp->flags & MO_XENVELOPES) {
 	  char **hdrs;

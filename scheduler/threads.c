@@ -1083,7 +1083,7 @@ int
 thread_expire2(thr, timelimit, killall, msgstr)
      struct thread *thr;
      time_t timelimit;
-     int killall;	  /* latter uses in mind.. now dummy parameter */
+     int killall;	  /* later uses in mind.. now dummy parameter */
      const char *msgstr;  /* ... likewise. */
 {
 	int killcount = 0;
@@ -1121,7 +1121,7 @@ thread_expire2(thr, timelimit, killall, msgstr)
 
 /*
  * The  thread_reschedule()  updates threads time-chain to match the
- * new value of wakeup for the  doagenda()  to latter use.
+ * new value of wakeup for the  doagenda()  to later use.
  * Return 0 for DESTROYED thread, 1 for EXISTING thread.
  */
 

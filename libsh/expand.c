@@ -674,7 +674,7 @@ expand(d, variant)
 		       The second case is when the input string contains
 		       possibly several white space separated substrings:
 		       "aa bb cc", and this is second white-space part, or
-		       latter.. */
+		       later.. */
 		    if (cp0 == d->string) {
 		      /* Variant first.. */
 		      int s0len = d->slen;

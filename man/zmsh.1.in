@@ -20,11 +20,12 @@ It contains extensions that allow structured data
 (in the form of lists) to be manipulated.
 .PP
 The shell supports three basic kinds of functions:
-Unix commands, user-defined functions, and builtin commands.  The latter
-comes in two variations: normal functions which take string arguments and
-return a status code (much as an embedded Unix command would work), and
-list-manipulation functions which understand list arguments and can return
-list arguments.  The defined functions can take any form of argument and
+Unix commands, user-defined functions, and builtin commands.
+The later comes in two variations: normal functions which take
+string arguments and return a status code (much as an embedded
+Unix command would work), and list-manipulation functions which
+understand list arguments and can return list arguments.
+The defined functions can take any form of argument and
 return any form of value (a status code, a string, or a list).
 .PP
 Shell operations (pipes, backquote evaluation and substitution)
@@ -152,7 +153,7 @@ base shell:
 .PP
 The Korn shell backquote mechanism is supported.  This means that
 \fB`foo bar`\fR is equivalent to \fB$(foo bar)\fR in all contexts, although
-the latter form is preferred for clarity.
+the later form is preferred for clarity.
 .PP
 If you are used to an old Bourne shell, the following are the unusual
 builtin functions in this shell:

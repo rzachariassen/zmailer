@@ -18,7 +18,7 @@
 
 
 	The new scheduler has also a mechanism to keep transporter
-	processes around for latter re-activation, when previous
+	processes around for later re-activation, when previous
 	jobs have been finished, and new ones haven't yet arrived.
 	The thread idle-pool can contain all of the processes that
 	a thread-ring (even w/o threads!) can have.

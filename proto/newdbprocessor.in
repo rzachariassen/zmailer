@@ -102,7 +102,7 @@ $DBTYPE = $ZENV{'DBTYPE'};
 open(INFN, "< ".$infn) || die "Can't open file '$infn' for reading";
 
 #
-# Collect all relation names, and lines with them for latter processing
+# Collect all relation names, and lines with them for later processing
 #
 while (<INFN>) {
 

@@ -49,7 +49,7 @@ All message delivery is actually performed by Transport Agents, which
 are declared in a configuration file for the \fIscheduler\fR.
 Each transport agent is executed with the same current directory as
 the \fIscheduler\fR.
-The \fIscheduler\-transporter\fR interaction protocol is described latter
+The \fIscheduler\-transporter\fR interaction protocol is described later
 in this man-page.
 .PP
 The standard output of each transport agent are destination address

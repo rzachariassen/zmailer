@@ -257,7 +257,7 @@ sh_lappend(avl, il)
 	stickymem = omem;
 	return NULL; /* Be quiet, don't force the caller
 			to store the result into heap just
-		        for latter discard... */
+		        for later discard... */
 }
 
 /*
@@ -375,7 +375,7 @@ sh_lreplace(avl, il)
 	if (d) {
 	  cdr(data) = cdr(d);
 	  cdr(d) = NULL;	/* Disconnect and discard old data */
-	  /* s_free_tree(d); -- GC cleans it out latter .. */
+	  /* s_free_tree(d); -- GC cleans it out later .. */
 	}
 
 	UNGCPRO4;
@@ -383,7 +383,7 @@ sh_lreplace(avl, il)
 	stickymem = omem;
 	return NULL; /* Be quiet, don't force the caller
 			to store the result into heap just
-		        for latter discard... */
+		        for later discard... */
 }
 
 

@@ -574,7 +574,7 @@ the preprocessor symbol MALLOC_TRACE (for example, with -DMALLOC_TRACE
 on the cc command line when compiling the program) and then include
 the header file "malloc.h" in the program. When MALLOC_TRACE is
 defined, this header redefines malloc() and friends to macros, which
-invoke _malloc() etc; the latter are routines which take the filename
+invoke _malloc() etc; the later are routines which take the filename
 and linenumber at which they are called. Calling
 
 	void

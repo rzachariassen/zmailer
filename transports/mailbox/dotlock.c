@@ -1,4 +1,4 @@
-/* Merged into Zmailer by Edwin Allum -- and a bit latter with some
+/* Merged into Zmailer by Edwin Allum -- and a bit later with some
    modifications -- to make the compile optional -- by Matti Aarnio */
 
 /*

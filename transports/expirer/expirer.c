@@ -192,7 +192,7 @@ main(argc, argv)
 	  }
 	}
 
-	/* We need this latter on .. */
+	/* We need this later on .. */
 	zopenlog("expirer", LOG_PID, LOG_MAIL);
 
 	getnobody();

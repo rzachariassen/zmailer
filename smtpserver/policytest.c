@@ -924,7 +924,7 @@ int sourceaddr;
       if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
       if (debug)
 	printf("000-  rc=%d\n", rc);
-      return 0; /* We report error LATTER */
+      return 0; /* We report error LATER */
     }
     return 0;
 }

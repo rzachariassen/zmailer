@@ -700,7 +700,7 @@ main(argc, argv)
 	if (!defcharset)
 	  defcharset = DefCharset;
 
-	/* We need this latter on .. */
+	/* We need this later on .. */
 	zopenlog("smtp", LOG_PID, LOG_MAIL);
 	notary_settaid("smtp",getpid());
 
@@ -1289,7 +1289,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	SS->msize = size;
 
 	SS->do_rset = 1; /* Unless completed successfully,
-			    we must do RSET latter... */
+			    we must do RSET later... */
 
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
@@ -1598,7 +1598,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    nrcpt       += 1;
 	    SS->rcptcnt += 1;
 	    /* Actually we DO NOT KNOW under PIPELINING,
-	       we will need to sync this latter on.. */
+	       we will need to sync this later on.. */
 	    rp->status = EX_OK;
 	  }
 
@@ -1982,7 +1982,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 #endif
 			   );
 	      /* If remote closed socket, don't diagnose here, diagnose
-		 latter.. (might also retry via other server!) */
+		 later.. (might also retry via other server!) */
 	      if (rp->status == EX_OK) rp->status = r;
 	      if (r != EX_TEMPFAIL) {
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -2710,7 +2710,7 @@ smtpconn(SS, host, noMX)
 
 	      if ( r == EAI_AGAIN ) {
 
-		sprintf(SS->remotemsg,"smtp; 566 (getaddrinfo<%.200s>: try latter)",host);
+		sprintf(SS->remotemsg,"smtp; 566 (getaddrinfo<%.200s>: try later)",host);
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
 		notaryreport(NULL,FAILED,"5.4.3 (dns lookup 'try again')", SS->remotemsg);
@@ -2781,7 +2781,7 @@ smtpconn(SS, host, noMX)
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,"%s\n",SS->remotemsg+6);
 	      /* it was: EX_UNAVAILABLE, but such blocks retrying, thus
-		 current EX_TEMPFAIL, which will cause timeout latter on.. */
+		 current EX_TEMPFAIL, which will cause timeout later on.. */
 	      if (ai != NULL)
 		freeaddrinfo(ai);
 

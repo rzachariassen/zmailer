@@ -1150,7 +1150,7 @@ run_listexpand(avl, il)
 		errors_to = olderrors;
 		return NULL;
 	}
-	fd2 = dup(0);	/* Copy the file handle for latter returning
+	fd2 = dup(0);	/* Copy the file handle for later returning
 			   AFTER an fclose() has closed the primary
 			   copy.. */
 
@@ -1631,7 +1631,7 @@ run_listaddresses(argc, argv)
 		errors_to = old_errorsto;
 		return 1;
 	}
-	fd2 = dup(0);	/* Copy the file handle for latter returning
+	fd2 = dup(0);	/* Copy the file handle for later returning
 			   AFTER an fclose() has closed the primary
 			   copy.. */
 

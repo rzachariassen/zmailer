@@ -188,7 +188,7 @@ flush_child(proc)
 	    proc->feedtime = now;
 	  } else
 	    break; /* Zero or negative.. let the writing
-		      proceed latter... */
+		      proceed later... */
 	  proc->cmdlen -= rc;
 	}
 	if (proc->cmdlen) return 1; /* Incomplete write */
@@ -419,7 +419,7 @@ ta_hungry(proc)
 
 	    }
 	    /* As long as we have things to feed (or have fed anything!),
-	       we stay in the STUFFING state.  This was if we latter get
+	       we stay in the STUFFING state.  This was if we later get
 	       new workitems,  thread_linkin() can simply put them into
 	       the 'nextfeed' pointer, and we feed them right away. */
 	    return;

@@ -261,7 +261,7 @@ in the headers, and recipient has not declared 8-bit SMTP capability,
 mail contents are treated with old 7-bit stripping method.
 .SH SECURE SOCKET LAYER SUPPORT
 If you are using a version which has been made to use OpenSSL 0.9.4, or
-latter version, you are able to encrypt the SMTP protocol session in case
+later version, you are able to encrypt the SMTP protocol session in case
 the remote end supports RFC 2487 defined
 .I STARTTLS
 facility.

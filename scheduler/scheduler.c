@@ -1598,7 +1598,7 @@ void resync_file(proc, file)
 	}
 
 	oldcfp = (struct ctlfile *)(spl->data);
-	oldcfp->id = 0; /* Don't scramble spt_mesh[] latter below */
+	oldcfp->id = 0; /* Don't scramble spt_mesh[] later below */
 
 	if (spl != NULL)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);

@@ -64,7 +64,7 @@ extern int open proto((const char */*path*/, int /*flags*/, ...));
 # ifdef _SC_PAGE_SIZE	/* HP, IBM */
 #  define getpagesize()	sysconf(_SC_PAGE_SIZE)
 # else /* ! _SC_PAGE_SIZE */
-#  if	!defined(getpagesize)&&!defined(_BSD_SOURCE) /* The latter is for Linux */
+#  if	!defined(getpagesize)&&!defined(_BSD_SOURCE) /* The later is for Linux */
     extern int getpagesize proto((void));
 #  endif /* getpagesize */
 # endif /* _SC_PAGE_SIZE */

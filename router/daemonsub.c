@@ -425,7 +425,7 @@ static int _parent_reader(rc)
     if (c == EOF) {
       /* Because the socket/pipe is in NON-BLOCKING mode, we
 	 may drop here with an ERROR indication, which can be
-	 cleared and thing resume latter.. */
+	 cleared and thing resume later.. */
       if (errno)
 	break;
 

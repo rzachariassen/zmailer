@@ -576,7 +576,7 @@ main(argc, argv)
 	  }
 	}
 
-	/* We need this latter on .. */
+	/* We need this later on .. */
 	zopenlog("mailbox", LOG_PID, LOG_MAIL);
 
 	getnobody();
@@ -2074,7 +2074,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	       Also notable details being that this moves
 	       the read/write cursor into SEEK_SET/start=0
-	       location, which did latter cause some trouble..
+	       location, which did later cause some trouble..
 
 	     */
 #endif /* HAVE_FTRUNCATE */
@@ -2216,7 +2216,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	if (fp) {
 	  /* Discard and close */
 	  zsfclose(fp);
-	  /* The pointer is needed latter! */
+	  /* The pointer is needed later! */
 	}
 
 	return fp; /* Dummy marker! */
