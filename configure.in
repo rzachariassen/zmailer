@@ -1119,7 +1119,7 @@ fi
 
 AC_CHECK_FUNCS(mkdir mktime mkstemp rename rmdir strcpy strdup strstr \
 		strchr strrchr setvbuf strerror strsignal setreuid \
-		setregid sigprocmask sigpending sigsuspend)
+		setregid sigprocmask sigpending sigsuspend gethostid)
 # If the system does not have the following (library) calls,
 # we use emulations (replacements):
 AC_REPLACE_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \

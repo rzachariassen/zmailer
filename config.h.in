@@ -352,6 +352,9 @@
 /* Define if you have the getgroups function.  */
 #undef HAVE_GETGROUPS
 
+/* Define if you have the gethostid function.  */
+#undef HAVE_GETHOSTID
+
 /* Define if you have the getmntinfo function.  */
 #undef HAVE_GETMNTINFO
 

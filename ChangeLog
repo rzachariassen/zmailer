@@ -1,3 +1,10 @@
+2000-03-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, transports/mailbox/dotlock.c:
+	    Autosense 'HAVE_GETHOSTID', and if it isn't, try to
+	    create it in couple different ways (For earlier Solaris,
+	    and HPUX systems, very least.)
+
 2000-03-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* INSTALL, configure.in, Makefile.in, sfio/Makefile.in,

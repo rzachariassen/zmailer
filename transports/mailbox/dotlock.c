@@ -25,6 +25,7 @@
 #define MAXFAIL		5	/* max # checks before we give up */
 
 
+#ifndef HAVE_GETHOSTID
 /*
  * Solaris 2.x equivalent of gethostid().
  * This should be configured in differently, but for
@@ -42,9 +43,11 @@ static int gethostid()
 	return atoi(buf);
 }
 #endif
+#endif
 
 #if defined(HAVE_DOTLOCK) /* Well, we DO use DOTLOCK scheme! */
 
+#ifndef HAVE_GETHOSTID
 #ifdef __hpux
 /*
  * From: dd@mv.us.adobe.com (David DiGiacomo)
@@ -64,6 +67,7 @@ static long gethostid()
         return atoi(uts.idnumber);
 }
 #endif /* __hpux */
+#endif
 
 int dotlock __((const char *file));
 int
