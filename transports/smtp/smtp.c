@@ -427,6 +427,7 @@ main(argc, argv)
 	    use_ipv6 = 0; /* No go :-(  Can't create IPv6 socket */
 	}
 #endif
+	
 
 	progname = PROGNAME;
 	errflg = 0;
@@ -655,6 +656,14 @@ main(argc, argv)
 
 #ifdef	BIND
 	res_init();
+#ifdef RES_USE_INET6
+#if defined(AF_INET6) && defined(INET6)
+	if (!use_ipv6)
+	  _res.options &= ~RES_USE_INET6;
+#else
+	_res.options &= ~RES_USE_INET6;
+#endif
+#endif
 #endif
 
 	while (!getout && !zmalloc_failure) {

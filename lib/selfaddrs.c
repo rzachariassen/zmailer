@@ -664,10 +664,12 @@ int
 matchmyaddresses(ai)
 	struct addrinfo *ai;
 {
+	int i;
 	for ( ; ai ; ai = ai->ai_next ) {
-	  int i = matchmyaddress(ai->ai_addr);
-	  if (i != 0)
-	      return i;
+	  i = 0;
+	  if (ai->ai_addr)
+	    i = matchmyaddress(ai->ai_addr);
+	  if (i) return i;
 	}
 	return 0;
 }

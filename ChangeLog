@@ -1,5 +1,9 @@
 2001-01-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* lib/selfaddrs.c, transports/smtp/smtp.c:
+	    If resolver support option flag  RES_USE_INET6, but
+	    system doesn't support IPv6 socket, clear that flag.
+
 	* libresolv/gethnamaddr.c, libresolv/netdb.h:
 	    When using   --with-bundled-libresolv  silense things a bit
 	    as one particular #define may be set before calling this.
