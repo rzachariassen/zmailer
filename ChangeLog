@@ -1,3 +1,12 @@
+2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/libta/lockaddr.c:
+	    Be carefull as *not* to overwrite part of diagnostic
+	    data with spaces.  This has never been a bug, except
+	    that trying to understand some aspects of the system
+	    while updating documents revealed that we do unnecessary
+	    scrubbing there.
+
 2000-07-29  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/Makefile.in, transports/smtp/smtp.h,

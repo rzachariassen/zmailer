@@ -39,7 +39,7 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	const char *file, *host;
 	const int mypid;
 {
-	char	lockbuf[16];
+	char	lockbuf[16]; /* FIXME: MAGIC SIZE KNOWLEDGE! */
 	int	newlock = 0;
 
 	if (!ta_lockmode) {
@@ -129,7 +129,11 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 #endif
 	    } else {
 	      /* Clear the lock location */
-	      sprintf(lockbuf+1, "%*s", _CFTAG_RCPTPIDSIZE, "");
+	      if (!(was == _CFTAG_NORMAL && new == _CFTAG_OK))
+		/* ... but not when the scheduler calls this to mark off
+		   the diagnostics lines. */
+		sprintf(lockbuf+1, "%*s", _CFTAG_RCPTPIDSIZE, "");
+
 	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);
 	      else if (write(fd,lockbuf,
