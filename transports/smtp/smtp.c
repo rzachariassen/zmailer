@@ -1364,8 +1364,12 @@ deliver(SS, dp, startrp, endrp)
 
 	} else if (SS->hsize >= 0) {
 
-	  sfprintf(SS->smtpfp, "\r\n");
+	  if (!sferror(SS->smtpfp))
+	    sfprintf(SS->smtpfp, "\r\n");
+
+	  /* if (!sferror(SS->smtpfp)) */
 	  /* sfsync(SS->smtpfp); */
+
 	  if (sferror(SS->smtpfp))
 	    SS->hsize = -1;
 
@@ -3519,7 +3523,10 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    if (SS->verboselog)
 	      fwrite(buf, 1, len, SS->verboselog);
 
-	    r = sfwrite(SS->smtpfp, buf, len);
+	    if (!sferror(SS->smtpfp))
+	      r = sfwrite(SS->smtpfp, buf, len);
+	    else
+	      r = -1;
 	    err = (r != len) || sferror(SS->smtpfp);
 
 	    if (SS->smtp_outcount > SS->smtp_bufsize) {
@@ -3537,12 +3544,15 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    if (SS->verboselog)
 	      fwrite(buf, 1, len, SS->verboselog);
 
-	    r = sfwrite(SS->smtpfp, buf, len);
-	    err = (r != len) || sferror(SS->smtpfp);
-	    if (sfsync(SS->smtpfp))
+	    if (!sferror(SS->smtpfp))
+	      r = sfwrite(SS->smtpfp, buf, len);
+	    else
+	      r = -1;
+	    err = (r != len);
+	    if (sferror(SS->smtpfp) || sfsync(SS->smtpfp))
 	      err = 1;
 	  }
-	  
+  
 	  if (err) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");

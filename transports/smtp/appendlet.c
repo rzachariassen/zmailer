@@ -236,8 +236,8 @@ ssputc(SS, ch, fp)
      Sfio_t *fp;
 {
   if (SS->chunkbuf == NULL) {
-    sfputc(fp, ch);
     if (sferror(fp)) return EOF;
+    sfputc(fp, ch);
     return 0;
   }
   if (SS->chunksize >= CHUNK_MAX_SIZE) {
