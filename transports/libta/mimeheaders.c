@@ -751,7 +751,12 @@ parse_content_type(ct_line)
 	  char *paramname;
 	  char *parval;
 
+static const char *debugptrs[20];
+
+
 	  s = skip_822linearcomments(s);
+	  debugptrs[0] = s;
+
 	  if (!*s) break;
 	  if (*s == ';') ++s;
 	  else {
@@ -759,12 +764,16 @@ parse_content_type(ct_line)
 	       Now shall we scan towards the end, and HOPE for the best,
 	       or what shall we do ? */
 	  }
+	  debugptrs[1] = s;
 	  p = skip_822linearcomments(s);
+	  debugptrs[2] = p;
 	  if (!p || !*p) break;
 	  s = skip_mimetoken(p);
+	  debugptrs[3] = s;
 	  if (p == s && *s == 0) break; /* Nothing anymore */
 
 	  paramname = foldmalloccopy(p, s);
+	  debugptrs[4] = paramname;
 
 	  /* Picked up a param name, now scan the value */
 
@@ -773,19 +782,24 @@ parse_content_type(ct_line)
 	     That is, it had whitespaces around the "=" sign. */
 
 	  s = skip_822linearcomments(s);
+	  debugptrs[5] = s;
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++s;
 	  }
+	  debugptrs[6] = s;
 	  p = skip_822linearcomments(s);
+	  debugptrs[7] = p;
 
 	  if (*p == '"') {
 	    s = skip_822quotedstring(p);
 	  } else {
 	    s = skip_mimetoken(p);
 	  }
+	  debugptrs[8] = s;
 
 	  parval = foldmalloccopy(p, s);
+	  debugptrs[9] = parval;
 
 	  if (CISTREQ("charset",paramname)) {
 	    /* Parameter:  charset="..." */
