@@ -1,3 +1,15 @@
+2004-10-24  Matti Aarnio  <mea@zmailer.org>
+
+	* libsh/listmalloc.c:
+	    Profiling claimed to show, that 70% of router's time
+	    is spent in running garbage collection!  EErrgh.. Uh..
+	    It was being called by every 8000 newcell() calls, and
+	    the count of those calls per address appears to be in
+	    order of 2000-2500 per address.  Also grew the conscell
+	    slab size by a factor of 16, as the trace counters have
+	    shown, that heavily used system can use around 80k
+	    conscells at max.
+
 2004-10-23  Matti Aarnio  <mea@zmailer.org>
 
 	* router/router.c, router/daemonsub.c, scheduler/scheduler.c:

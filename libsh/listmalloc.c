@@ -80,9 +80,9 @@ void functionprot (funcaddress)
 /*
  * Some book-keeping variables, and one of GC-trigger counters
  */
-int consblock_cellcount = 8000;	/* Optimizable for different systems.
-				   Alphas have 8kB pages, and most others
-				   have 4kB pages.. */
+int consblock_cellcount = 8000*16; /* Optimizable for different systems.
+				      Alphas have 8kB pages, and most others
+				      have 4kB pages.. */
 int newcell_gc_interval = 8000;	/* Number of newcell() calls before GC */
 int newcell_gc_callcount = 0;	/* ... trigger-count of those calls ... */
 int newcell_callcount = 0;	/* ... cumulative count of those calls ... */
@@ -256,7 +256,7 @@ static void cons_DSW __((conscell *source));
 int deepest_dsw = 0;
 
 static void _cons_DSW(source, depth)
-volatile conscell *source;
+     /* volatile */ conscell *source;
 int depth;
 {
 	/* Use stack to descend CAR, scan thru CDR.
@@ -265,11 +265,11 @@ int depth;
 	   in fact if there are!), but CDR can be long. */
 
 	conscell *current = (conscell*)source;
-	volatile int cdrcnt = 0; /* These volatilities are for
-				    debugging uses to forbid gcc
-				    from removing the variable
-				    as unnecessary during its
-				    lifetime.. */
+	/* volatile int cdrcnt = 0; */ /* These volatilities are for
+					  debugging uses to forbid gcc
+					  from removing the variable
+					  as unnecessary during its
+					  lifetime.. */
 
 	if (depth > deepest_dsw)
 		deepest_dsw = depth;
@@ -279,7 +279,7 @@ int depth;
 		if (!STRING(current))
 			_cons_DSW(car(current),depth+1);
 		current = cdr(current);
-		++cdrcnt;
+		/* ++cdrcnt; */
 	}
 }
 
@@ -445,13 +445,17 @@ conscell *
 
     ++newcell_callcount;
 
+#if 0
     if (newcell_gc_interval < consblock_cellcount)
       if (++newcell_gc_callcount >= newcell_gc_interval) {
 	cons_garbage_collect();
 	newcell_gc_callcount = 0;
       }
+#endif
 
     if (conscell_freechain == NULL) {
+
+      /* Free Conscell pool has emptied.. */
 
       cons_garbage_collect();
       /* if (++newcell_gc_callcount >= newcell_gc_interval)
