@@ -372,11 +372,11 @@ main(argc, argv)
 	      setreply();
 	      sendmessage(msgfile,myname);
 
-zsyslog((LOG_NOTICE, "%s: vacation: sent message from '%s' to '%s'",
+zsyslog((LOG_DEBUG, "%s: vacation: sent message from '%s' to '%s'",
 	 msgspoolid, myname, from));
 	    } else {
 
-zsyslog((LOG_NOTICE, "%s: vacation: from '%s' to '%s' is too recent.",
+zsyslog((LOG_DEBUG, "%s: vacation: from '%s' to '%s' is too recent.",
 	 msgspoolid, from, myname));
  
 	    }
@@ -427,7 +427,8 @@ sendmessage(msgf, myname)
 	fprintf(mf, "from %s\n",myname);
 	fprintf(mf, "to %s\n", from);
 	fprintf(mf, "env-end\n");
-	fprintf(mf,"To: %s\n", from);
+	fprintf(mf, "From: %s\n", myname);
+	fprintf(mf, "To: %s\n", from);
 	while (!feof(f) && !ferror(f)) {
 	  if (fgets(linebuf,sizeof(linebuf),f) == NULL) break;
 	  if ((s = strchr(linebuf,'$')) != NULL) {
@@ -551,7 +552,7 @@ readheaders(myname)
 		has_from = 1;
 		if (junkmail()) {
 			purge_input(myname);
-zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
+zsyslog((LOG_DEBUG, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
 
 			exit(EX_OK);
 		}
@@ -572,7 +573,7 @@ zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from 
 					*p = '\0';
 				if (junkmail()) {
 					purge_input(myname);
-zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
+zsyslog((LOG_DEBUG, "%s: vacation: considering this message to '%s' to be from JUNK source", msgspoolid, myname));
 					exit(EX_OK);
 				}
 			}
@@ -590,7 +591,7 @@ zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be from 
 			if (!strncasecmp(p, "junk", 4) ||
 			    !strncasecmp(p, "bulk", 4)) {
 				purge_input(myname);
-zsyslog((LOG_NOTICE, "%s: vacation: this message to '%s' has Precedence: '%s'", msgspoolid, myname, p));
+zsyslog((LOG_DEBUG, "%s: vacation: this message to '%s' has Precedence: '%s'", msgspoolid, myname, p));
 				exit(EX_OK);
 			}
 			break;
@@ -620,14 +621,14 @@ zsyslog((LOG_NOTICE, "%s: vacation: this message to '%s' has Precedence: '%s'", 
 findme:			for (cur = names; !tome && cur; cur = cur->next)
 				tome += nsearch(cur->name, buf);
 		} /* switch() */
-	if (!tome) {
-		purge_input(myname);
-		zsyslog((LOG_NOTICE, "%s: vacation: not found to be for me (%s)", msgspoolid, myname));
-		exit(EX_OK);
-	}
 	if (!*from) {
 	  zsyslog((LOG_NOTICE, "%s: vacation: no initial \"From\" line.", msgspoolid));
 	  exit(EX_USAGE+105);
+	}
+	if (!tome) {
+		purge_input(myname);
+		zsyslog((LOG_DEBUG, "%s: vacation: not found to be for me (%s)", msgspoolid, myname));
+		exit(EX_OK);
 	}
 }
 
