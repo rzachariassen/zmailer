@@ -550,7 +550,7 @@ main(argc, argv)
 	    force_7bit = 0;
 	    break;
 	  case '7':
-	    force_7bit = 1;
+	    ++force_7bit;
 	    force_8bit = 0;
 	    break;
 	  case 'Z':  /* Dummy option to carry HUGE parameter string for
@@ -1788,7 +1788,7 @@ smtpopen(SS, host, noMX)
 	  SS->prevcmdstate = 99;
 	  SS->cmdstate     = SMTPSTATE_MAILFROM; /* well, reusing this key */
 
-	  if (SS->esmtp_on_banner) {
+	  if (SS->esmtp_on_banner && force_7bit < 2) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
 	    if (SS->myhostname)

@@ -65,6 +65,11 @@ Prefer IPv6 type socket and addresses, if available.
 .IP \-7
 forces SMTP channel to be 7-bit, and thus forcing all 8-bit texts to be
 MIME-QP-encoded for the transport.
+
+Issueing this option
+.B twice
+turns off all ESMTP extensions even if the remote site claims such
+by replying to EHLO greeting.
 .IP \-8
 forces SMTP channel to be 8-bit-clean, and as such, to decode the message
 while transporting it (is it is MIME QP encoded).
