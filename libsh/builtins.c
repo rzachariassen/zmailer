@@ -52,7 +52,6 @@ extern int errno;
 
 #define CSARGS2 __((conscell *, conscell *))
 
-extern conscell *sh_car		CSARGS2;
 static conscell *sh_cdr		CSARGS2;
 static conscell *sh_list	CSARGS2;
 static conscell *sh_grind	CSARGS2;
@@ -63,7 +62,6 @@ static conscell *sh_last	CSARGS2;
 static conscell *sh_lappend     CSARGS2;
 static conscell *sh_lreplace    CSARGS2;
 static conscell *sh_ifssplit    CSARGS2;
-extern conscell *sh_glob	CSARGS2; /* expand.c */
 
 #define CSARGV2 __((int argc, const char *argv[]))
 

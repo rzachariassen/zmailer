@@ -21,7 +21,6 @@ static int run_isinteractive ARGCV;
 static int run_erraddrlog  ARGCV;
 
 static conscell *run_dblookup __((conscell *avl, conscell *il));
-extern conscell *sh_car       __((conscell *avl, conscell *il));
 static conscell *run_cadr     __((conscell *avl, conscell *il));
 static conscell *run_caddr    __((conscell *avl, conscell *il));
 static conscell *run_cadddr   __((conscell *avl, conscell *il));
@@ -29,10 +28,6 @@ static conscell *run_listexpand   __((conscell *avl, conscell *il));
 #if 0
 static conscell *run_newattribute __((conscell *avl, conscell *il));
 #endif
-
-extern int run_doit      ARGCV;
-extern int run_stability ARGCV;
-extern int run_process   ARGCV;
 
 static int run_grpmems   ARGCV;
 #if 0 /* dead code */
@@ -59,15 +54,6 @@ static int run_syslog    ARGCV;
 #if	defined(XMEM) && defined(CSRIMALLOC)
 static int run_malcontents ARGCV;
 #endif	/* CSRIMALLOC */
-
-extern const char *traps[];
-extern int nobody;
-extern time_t time __((time_t *));
-extern int routerdirloops;
-
-#ifndef strchr
-extern char *strchr(), *strrchr();
-#endif
 
 struct shCmd fnctns[] = {
 {	"relation",	run_relation,	NULL,	NULL,	0	},
@@ -227,7 +213,6 @@ run_gensym(argc, argv)
 	return 0;
 }
 
-extern void free_gensym __((void));
 void
 free_gensym()
 {

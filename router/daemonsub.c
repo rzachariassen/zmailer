@@ -75,17 +75,6 @@
 #define	_IOFBF	0
 #endif	/* !_IOFBF */
 
-
-extern const char *traps[];
-extern time_t time __((time_t *));
-extern int routerdirloops;
-
-#ifndef strchr
-extern char *strchr(), *strrchr();
-#endif
-
-extern void free_gensym __((void));
-
 static int gothup = 0;
 
 static RETSIGTYPE sig_exit __((int));
@@ -165,9 +154,6 @@ struct router_child {
 };
 
 struct router_child routerchilds[MAXROUTERCHILDS];
-
-extern int nrouters;
-extern const char *logfn;
 
 static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));

@@ -21,8 +21,6 @@
 #include "libdb/search.h"
 #include "sleepycatdb.h"
 
-extern struct sptree *spt_databases; /* At conf.c */
-
 /*
  * The following tables describes the kinds of lookups we support.
  */
@@ -161,7 +159,6 @@ static conscell	*find_nodot_domain __((conscell *DBFUNC(lookupfn), search_info *
 static conscell *find_longest_match __((conscell *DBFUNC(lookupfn), search_info *sip));
 /* others.. */
 static void      cacheflush __((struct db_info *dbip));
-extern conscell	*readchunk  __((const char *file, long offset));
 static int	 iclistdbs  __((struct spblk *spl));
 
 

@@ -1,5 +1,11 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* router/daemonsub.c, router/functions.c, router/prototypes.h:
+	  router/router.c, include/libsh.h, libsh/builtins.c, router/db.c,
+	    Couple additional fixes on memory allocation/free strategies.
+	    Improved memory recycling, freeing objects no longer needed.
+	    (Also cleaning up a bit of extern declarations..)
+
 	* smtpserver/policytest.h, smtpserver/subdaemon-trk.c:
 	    Oops..  Reserved too small buffer for IPv6 address
 	    hex storage. (Used in rate-tracking.)

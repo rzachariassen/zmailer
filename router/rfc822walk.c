@@ -2,7 +2,7 @@
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *      Copyright Matti Aarnio <mea@nic.funet.fi> 1992-2000
+ *      Copyright Matti Aarnio <mea@nic.funet.fi> 1992-2000,2004
  */
 
 /* DO NOT USE  #include "router.h" */
@@ -10,7 +10,6 @@
 #include "mailer.h"
 #include "libz.h"
 #include "prototypes.h"
-
 
 #undef STATIC
 #define STATIC	static

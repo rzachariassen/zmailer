@@ -711,6 +711,7 @@ Imode_smtpserver __((void))
 
 	oval = stickymem;
 	stickymem = MEM_TEMP;	/* per-message space */
+	char *sh_memlevel = getlevel(MEM_SHCMD);
 
 	setlinebuf(stdin);
 
@@ -739,6 +740,10 @@ Imode_smtpserver __((void))
 	  key  = strtok(linebuf, "\t");
 	  data = strtok(NULL, "\n");
 
+	  deferit = 0;
+	  v_set(DEFER, "");
+
+	  gensym = 1;
 
 	  av[0] = "server";
 	  av[1] = key;
@@ -746,6 +751,9 @@ Imode_smtpserver __((void))
 	  av[4] = NULL;
 
 	  s_apply(3, &av[0]); /* "server" key argument */
+
+	  free_gensym();
+	  setlevel(MEM_SHCMD,sh_memlevel);
 	  
 	  fflush(stdout);
 	}

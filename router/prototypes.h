@@ -81,10 +81,17 @@ extern int	D_regnarrate;
 
 extern int run_trace __((int argc, const char *argv[]));
 extern char *erraddrlog;
-extern RETSIGTYPE sig_hup __((int));
-extern int	run_daemon __((int argc, const char *argv[]));
 extern int	gensym;
 extern void	optsave __((int type, struct envelope *e));
+extern void free_gensym __((void));
+
+/* File: daemonsub.c */
+extern int run_doit      __((int argc, const char *argv[]));
+extern int run_stability __((int argc, const char *argv[]));
+extern int run_process   __((int argc, const char *argv[]));
+extern RETSIGTYPE sig_hup __((int));
+extern int	run_daemon __((int argc, const char *argv[]));
+
 
 /* File: rfc822.c */
 extern char	*errors_to;
@@ -136,7 +143,6 @@ extern void	hdr_errprint __((struct envelope *e, struct header *h, FILE *fp, con
 extern struct address	*revaddress __((struct address *ap));
 extern union misc	 parse822 __((HeaderSemantics entry, token822 **tlistp, struct tm *ltm, FILE *tfp));
 
-
 /* File: router.c */
 extern int deferuid;
 extern const char *progname;
@@ -152,6 +158,8 @@ extern int   savefile;
 extern int   do_hdr_warning;
 extern int   I_mode;
 extern int   isInteractive;
+extern int   nrouters;
+extern const char *logfn;
 
 /* File: rtsyslog.c */
 extern void rtsyslog __(( const char *spoolid, const time_t msgmtime, const char *from, const char *smtprelay, const int size, const int nrcpts, const char *msgid, const time_t starttime ));
@@ -172,7 +180,15 @@ extern conscell *router __((struct address *a, int uid, const char *type, const 
 extern conscell *crossbar __((conscell *from, conscell *to));
 extern char *newattribute_2 __((const char *, const char *, const char *));
 
-extern int nobody;
 
-extern void prversion __((const char *));
-extern void setfreefd __((void));
+/* dross from all over the place.. */
+extern int nobody;
+extern const char *traps[];
+extern time_t time __((time_t *));
+
+#ifndef strchr
+extern char *strchr(), *strrchr();
+#endif
+
+/* libdb/unordered.c */
+extern conscell	*readchunk  __((const char *file, long offset));

@@ -1,6 +1,8 @@
 /* libsh/ -prototypes */
 
 /* libsh/builtin.c */
+extern conscell *sh_car	    __((conscell *, conscell *));
+extern conscell *sh_glob    __((conscell *, conscell *));
 extern int       sh_builtin __((int argc, const char *argv[]));
 extern int       sh_include __((int argc, const char *argv[]));
 extern conscell *sh_return  __((conscell *, conscell *, int *));
