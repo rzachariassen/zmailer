@@ -323,6 +323,10 @@ int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   counter..  See RFC 2060 for IMAP4. */
 int edquot_is_fatal = 0;
 
+static const char *s_delivered = "delivered";
+static const char *s_delayed   = "delayed";
+static const char *s_failed    = "failed";
+
 extern int fmtmbox __((char *, int, const char *, const char *, \
 			const struct Zpasswd *));
 
@@ -670,6 +674,7 @@ main(argc, argv)
 	  SETEUID(0);
 	  currenteuid = 0;
 
+	  notaryflush();
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
@@ -921,7 +926,7 @@ int iuid;
 
 	if (*(rp->addr->user) == TO_FILE) {
 	  if (pw == NULL) {
-	    notaryreport(file,"failed",
+	    notaryreport(file, notaryacct(EX_NOPERM, NULL),
 			 "5.2.1 (Target file has no known owner)",
 			 "x-local; 510 (Target file has no known owner)");
 	    DIAGNOSTIC(rp, file, EX_NOPERM,
@@ -952,7 +957,7 @@ int iuid;
 	  cp = NULL;
 	  break;
 	case L_MAXTRYS:
-	  notaryreport(file,"failed",
+	  notaryreport(file, s_failed,
 		       "5.4.5 (Mailbox unlocking fails)",
 		       "x-local; 550 (Mailbox unlocking fails)");
 	  DIAGNOSTIC(rp, file, EX_TEMPFAIL,
@@ -995,7 +1000,7 @@ int iuid;
 	  char mbuf[256];
 	  int rc, err = errno;
 	  sprintf(mbuf, "\"%s\": %s", file, strerror(err));
-	  notaryreport(file,"failed",
+	  notaryreport(file, s_failed,
 		       "5.4.5 (File locking with dotlock failed)",
 		       "x-local; 550 (File locking with dotlock failed)");
 	  rc = EX_UNAVAILABLE;
@@ -1025,7 +1030,7 @@ const char *file;
 #ifdef	USE_NFSMBOX
 	if (nfslock(file, LOCK_EX) != 0) {
 	  alarm(0);
-	  notaryreport(file,"failed",
+	  notaryreport(file, s_failed,
 		       "5.4.5 (File locking with NFS lock failed)",
 		       "x-local; 550 (File locking with NFS lock failed)");
 	  DIAGNOSTIC(rp, file, EX_TEMPFAIL,
@@ -1049,7 +1054,7 @@ const char *file;
 	if (lseek(fdmail, (off_t)0, SEEK_SET) < 0 ||
 	    lockf(fdmail, F_LOCK, 0) < 0) {
 	  alarm(0);
-	  notaryreport(file,"failed",
+	  notaryreport(file, s_failed,
 		       "5.4.5 (File locking with  lockf  failed)",
 		       "x-local; 550 (File locking with  lockf  failed)");
 	  DIAGNOSTIC(rp, file, EX_TEMPFAIL,
@@ -1071,7 +1076,7 @@ const char *file;
 #ifdef	HAVE_FLOCK
 	if (flock(fdmail, LOCK_EX) < 0) {
 	  alarm(0);
-	  notaryreport(file,"failed",
+	  notaryreport(file, s_failed,
 		       "5.4.5 (File locking with  flock  failed)",
 		       "x-local; 550 (File locking with  flock  failed)");
 	  DIAGNOSTIC(rp, file, EX_TEMPFAIL,
@@ -1139,7 +1144,7 @@ deliver(dp, rp, usernam, timestring)
 	    fprintf(verboselog,"mailbox: User recipient address privilege code invalid (non-numeric!): '%s'\n",rp->addr->misc);
 	  }
 	  sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [non-numeric!]: '%.200s')", rp->addr->misc);
-	  notaryreport(NULL,"failed",
+	  notaryreport(NULL, s_failed,
 		       "5.3.0 (User address recipient privilege code invalid)",
 		       buf);
 	  DIAGNOSTIC(rp, usernam, EX_SOFTWARE,
@@ -1157,7 +1162,7 @@ deliver(dp, rp, usernam, timestring)
 	      fprintf(verboselog,
 		      "   the recipient address privilege == NOBODY!\n");
 
-	    notaryreport("?program?", "failed",
+	    notaryreport("?program?", s_failed,
 			 "5.2.1 (Mail to program disallowed w/o proper privileges)",
 			 "x-local; 550 (Mail to program disallowed w/o proper privileges)");
 	    DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1176,7 +1181,7 @@ deliver(dp, rp, usernam, timestring)
 	     to the actual device.. So lets just use that magic
 	     name and create a FAST "write" to  /dev/null..  */
 	  if (strcmp(usernam,"/dev/null") == 0) {
-	    notaryreport(rp->addr->user,"delivered",
+	    notaryreport(rp->addr->user, s_delivered,
 			 "2.2.0 (delivered successfully)",
 			 "x-local; 250 (Delivered successfully)");
 	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1190,7 +1195,8 @@ deliver(dp, rp, usernam, timestring)
 		fprintf(verboselog,
 			"   This smells of misdirected X.400 message? Rejected due to priviledge == NOBODY\n");
 
-	      notaryreport(rp->addr->user,"failed",
+	      notaryreport(rp->addr->user,
+			   s_failed,
 			   "5.1.4 (this feels like a misplaced X.400 address -- no support for them)",
 			   "x-local; 550 (this feels like a misplaced X.400 address -- no support for them)");
 	      DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1201,7 +1207,8 @@ deliver(dp, rp, usernam, timestring)
 		fprintf(verboselog,
 			"   Mail to file rejected due to priviledge == NOBODY\n");
 
-	      notaryreport(rp->addr->user,"failed",
+	      notaryreport(rp->addr->user,
+			   s_failed,
 			   "5.2.1 (Mail to file disallowed w/o proper privileges)",
 			   "x-local; 550 (mail to file disallowed w/o proper privileges)");
 	      DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1282,7 +1289,8 @@ deliver(dp, rp, usernam, timestring)
 		  fprintf(verboselog,
 			"   zgetpwnam(\"%s\") failed (%d)\n", usernam, errno);
 
-		notaryreport(rp->addr->user,"failed",
+		notaryreport(rp->addr->user,
+			     s_failed,
 			     "5.3.0 (Error getting user identity)",
 			     "x-local; 550 (Error getting user identity)");
 		DIAGNOSTIC3(rp, usernam, EX_TEMPFAIL,
@@ -1296,7 +1304,8 @@ deliver(dp, rp, usernam, timestring)
 			  "   User '%s' unknown, feels like misplaced X.400 address?\n",
 			  usernam);
 
-		notaryreport(rp->addr->user,"failed",
+		notaryreport(rp->addr->user,
+			     s_failed,
 			     "5.1.4 (this feels like a misplaced X.400 address -- no support for them)",
 			     "x-local; 550 (this feels like a misplaced X.400 address -- no support for them)");
 		DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1306,7 +1315,8 @@ deliver(dp, rp, usernam, timestring)
 		if (verboselog)
 		  fprintf(verboselog, "   User '%s' unknown\n", usernam);
 
-		notaryreport(rp->addr->user,"failed",
+		notaryreport(rp->addr->user,
+			     s_failed,
 			     "5.1.1 (User does not exist)",
 			     "x-local; 550 (User does not exist)");
 		DIAGNOSTIC(rp, usernam, EX_NOUSER,
@@ -1343,7 +1353,8 @@ deliver(dp, rp, usernam, timestring)
 	  if (!hasdir) {	/* No directory ?? */
 
 	    const char *mailbox = getzenv("MAILBOX");
-	    notaryreport(rp->addr->user,"failed",
+	    notaryreport(rp->addr->user,
+			 s_failed,
 			 "5.3.5 (System mailbox configuration is wrong, we are in deep trouble..)",
 			 "x-local; 566 (System mailbox configuration is wrong!  No such directory!  Aargh!)");
 	    DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
@@ -1392,7 +1403,7 @@ deliver(dp, rp, usernam, timestring)
 	   to the actual device.. So lets just use that magic
 	   name and create a FAST "write" to  /dev/null..  */
 	if (strcmp(file,"/dev/null") == 0) {
-	  notaryreport(rp->addr->user,"delivered",
+	  notaryreport(rp->addr->user, s_delivered,
 		       "2.2.0 (delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1403,7 +1414,8 @@ deliver(dp, rp, usernam, timestring)
 	/* we only deliver to singly-linked, regular file */
 
 	if (exstat(rp, file, &st, lstat) < 0) {
-	  notaryreport(rp->addr->user,"failed",
+	  notaryreport(rp->addr->user,
+		       s_failed,
 		       "5.2.0 (User's mailbox disappeared, will retry)",
 		       "x-local; 566 (User's mailbox disappeared, will retry)");
 	  DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
@@ -1414,7 +1426,8 @@ deliver(dp, rp, usernam, timestring)
 
 	if (!S_ISREG(st.st_mode)) {
 	  /* XX: may want to deliver to named pipes */
-	  notaryreport(rp->addr->user,"failed",
+	  notaryreport(rp->addr->user,
+		       s_failed,
 		       "5.2.1 (Attempting to deliver into non-regular file)",
 		       "x-local; 500 (Attempting to deliver into non-regular file)");
 	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1442,7 +1455,8 @@ deliver(dp, rp, usernam, timestring)
 
 	  if (checkmbsize(usernam, rp->addr->host, rp->addr->user,
 			  st.st_size, pw)) {
-	    notaryreport(usernam, "failed",
+	    notaryreport(usernam, 
+			 s_failed,
 			 "4.2.2 (Destination mailbox full)",
 			 "x-local; 500 (Attempting to deliver to full mailbox)");
 	    DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1455,7 +1469,8 @@ deliver(dp, rp, usernam, timestring)
 #endif
 	
 	if (st.st_nlink > 1) {
-	  notaryreport(rp->addr->user,"failed",
+	  notaryreport(rp->addr->user,
+		       s_failed,
 		       "5.2.1 (Destination file ambiguous)",
 		       "x-local; 500 (Destination file has more than one name..)");
 	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
@@ -1545,7 +1560,7 @@ deliver(dp, rp, usernam, timestring)
 			  starttime, timestring );
 	  } else {
 	    /* This happens only ONCE per recipient, if ever */
-	    notaryreport(rp->addr->user,"delivered",
+	    notaryreport(rp->addr->user, s_delivered,
 			 "2.2.0 (Discarded successfully)",
 			 "x-local; 250 (Discarded successfully)");
 	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1630,7 +1645,8 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	    rp->status = EX_NOPERM;
 	  else
 	    rp->status = EX_UNAVAILABLE;
-	  notaryreport(file,"failed",
+	  notaryreport(file,
+		       s_failed,
 		       "5.2.1 (File open for append failed)",
 		       "x-local; 500 (File open for append failed)");
 	  DIAGNOSTIC(rp, usernam, rp->status, fmtbuf, file);
@@ -1653,7 +1669,8 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	}
 	if (st->st_ino != s2.st_ino || st->st_dev != s2.st_dev ||
 	    s2.st_nlink != 1) {
-	    notaryreport(file,"failed",
+	    notaryreport(file,
+			 s_failed,
 			 "5.4.5 (Lost race for mailbox file)",
 			 "x-local; 550 (Lost race for mailbox file)");
 	    DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
@@ -1832,7 +1849,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	close(fdmail);
 	if (fp != NULL) { /* Dummy marker! */
 	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(rp->addr->user,"delivered",
+	  notaryreport(rp->addr->user, s_delivered,
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
@@ -1933,7 +1950,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	fp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), fdmail, SF_READ|SF_WRITE|SF_APPENDWR);
 	if (fp == NULL) {
-	  notaryreport(NULL,NULL,NULL,NULL);
+	  notaryreport(file, s_delayed ,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
 		      fdmail,fdopmode);
 	  return NULL;
@@ -2116,10 +2133,17 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    err = WS.lasterrno;
 
 	    rc = EX_IOERR;
-	    if (err == EDQUOT && edquot_is_fatal)
+	    if (err == EDQUOT && edquot_is_fatal) {
 	      rc = EX_UNAVAILABLE; /* Quota-exceeded is instant permanent reject ? */
 
-	    notaryreport(NULL,NULL,NULL,NULL);
+	      notaryreport(file, notaryacct(rc, s_delivered),
+			   "5.2.2 Mailbox Quota Exceeded",
+			   "x-local; 550 (Mailbox Quota Exceeded)");
+	    } else {
+	      notaryreport(file, notaryacct(rc, s_delivered),
+			   "4.2.0 mailbox write failure",
+			   "x-local; 450 (Mailbox write failure)");
+	    }
 	    DIAGNOSTIC4(rp, file, rc,
 			"message write[%s] to \"%s\" failed: %s",
 			mw, file, strerror(err));
@@ -2352,7 +2376,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	      fprintf(verboselog,"mailbox: User recipient address privilege code invalid (no user with this uid?): '%s'\n", rp->addr->misc);
 	    }
 	    sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [no user with this uid?]: '%.200s')", rp->addr->misc);
-	    notaryreport(NULL,"failed",
+	    notaryreport(NULL,
+			 s_failed,
 			 "5.3.0 (User address recipient privilege code invalid)",
 			 buf);
 	    DIAGNOSTIC(rp, cmdbuf, EX_SOFTWARE,
@@ -2492,7 +2517,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	/* now we can fork off and run the command... */
 	if (pipe(in) < 0) {
-	  notaryreport(NULL,"failed",
+	  notaryreport(NULL,
+		       s_failed,
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR,
@@ -2500,7 +2526,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  return EX_OSERR;
 	}
 	if (pipe(out) < 0) {
-	  notaryreport(NULL,"failed",
+	  notaryreport(NULL,
+		       s_failed,
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR,
@@ -2600,7 +2627,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	} else if (pid < 0) {	/* fork failed */
 
-	  notaryreport(NULL,"failed",
+	  notaryreport(NULL,
+		       s_failed,
 		       "5.3.0 (fork failure)",
 		       "x-local; 500 (fork failure)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR, "cannot fork", 0);
@@ -2668,13 +2696,14 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	time(&endtime);
 	notary_setxdelay((int)(endtime-starttime));
 	if (rc == EX_OK) {
-	  notaryreport(NULL,"delivered",
+	  notaryreport(NULL, s_delivered,
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	} else {
 	  char buf2[sizeof(buf)+10];
 	  sprintf(buf2,"x-local; 500 (%s)", buf);
-	  notaryreport(NULL,"failed",
+	  notaryreport(NULL,
+		       s_failed,
 		       "5.3.0 (subprogram non-zero termination code)",
 		       buf2);
 	}
@@ -2766,7 +2795,8 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	    if (fmtmbox(*filep,2048,*maild,uname,pw)) {
 	      (*filep)[70]='\0';
 	      strcat(*filep,"...");
-	      notaryreport(rp->addr->user, "failed",
+	      notaryreport(rp->addr->user,
+			   s_failed,
 		       "5.3.1 (too long path for user spool mailbox file)",
 		       "x-local; 566 (too long path for user spool mailbox file)");
 	      DIAGNOSTIC(rp, *filep, EX_CANTCREAT, "Too long path \"%s\"", *filep);
@@ -2821,7 +2851,8 @@ creatembox(rp, uname, filep, uid, gid, pw)
 
 	/* assert *filep != NULL */
 	if (fd == -1) {
-	  notaryreport(rp->addr->user, "failed",
+	  notaryreport(rp->addr->user,
+		       s_failed,
 		       "5.3.1 (can't create user spool mailbox file)",
 		       "x-local; 566 (can't create user spool mailbox file)");
 	  DIAGNOSTIC(rp, *filep, EX_CANTCREAT, "can't create \"%s\"", *filep);
@@ -2867,7 +2898,8 @@ createfile(rp, file, iuid, ismbox)
 	      sprintf(msg,"x-local; 566 (*INVOCATION BUG* Can't create user spool mailbox file: \"%s\", Directory stat() error: %s)",
 		      file,strerror(errno));
 	      *cp = 0;
-	      notaryreport(rp->addr->user, "failed",
+	      notaryreport(rp->addr->user,
+			   s_failed,
 			   "5.3.5 (Something wrong, bad config ?)", msg);
 	      DIAGNOSTIC(rp, file, i, "stat failed on %s", file);
 	      return -2;
@@ -2875,7 +2907,8 @@ createfile(rp, file, iuid, ismbox)
 	    *cp = '/';
 	    if (ismbox && st.st_mode & 020) { /* group writable? */
 	      if (!setupuidgid(rp, uid, st.st_gid)) {
-		notaryreport(rp->addr->user, "failed",
+		notaryreport(rp->addr->user,
+			     s_failed,
 			     "5.3.5 (The mailbox configuration is faulty)",
 			     "x-local; 566 (*INVOCATION BUG* The mailbox directory is group writable, but can't change my gid to it)");
 		DIAGNOSTIC(rp, file, i,
@@ -2921,7 +2954,8 @@ createfile(rp, file, iuid, ismbox)
 	  i = EX_CANTCREAT;
 	/* convoluted to maintain 4 arguments to DIAGNOSTIC */
 	sprintf(msg, "x-local; 566 (error [%s] creating \"%%s\")", strerror(saverrno));
-	notaryreport(rp->addr->user, "failed",
+	notaryreport(rp->addr->user,
+		     s_failed,
 		     "5.3.0 (Other mailsystem error)",
 		     msg);
 	sprintf(msg, "error (%s) creating \"%%s\"", strerror(saverrno));

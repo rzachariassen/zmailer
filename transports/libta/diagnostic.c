@@ -139,12 +139,20 @@ int xdly;
 	xdelay = xdly;
 }
 
+
+/*
+  a1: address:     host/file/something
+  a2: action:      notary-keyword
+  a3: statis:      extended status code
+  a4: diagnostics: ordinary smtp-like status code
+*/
+static char *A1, *A2, *A3, *A4;
+
 void
 notaryreport(arg1,arg2,arg3,arg4)
      const char *arg1, *arg2, *arg3, *arg4;
 {
 	int len;
-	static char *A1, *A2, *A3, *A4;
 
 	if (arg1) {
 	  if (A1) free(A1);
@@ -189,6 +197,21 @@ notaryreport(arg1,arg2,arg3,arg4)
 	  sprintf(notarybuf + strlen(notarybuf), "\001%s[%d]",
 		  wtttaid, wtttaidpid);
 	}
+}
+
+
+void
+notaryflush __((void))
+{
+  if (A1) free(A1);
+  if (A2) free(A2);
+  if (A3) free(A3);
+  if (A4) free(A4);
+
+  A1 = NULL;
+  A2 = NULL;
+  A3 = NULL;
+  A4 = NULL;
 }
 
 
@@ -275,6 +298,15 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	}
 	*s = '\0';
 	va_end(ap);
+
+
+	/* This MUST be non-void value! */
+	if (A2 == NULL) {
+	  notaryreport( NULL,
+		        notaryacct(rp->status, "delivered"),
+		        NULL, NULL );
+	}
+
 
 	/* If we had ZMALLOC_FAILURE -> ABORT!  */
 	if (zmalloc_failure && !(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {

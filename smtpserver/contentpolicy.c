@@ -171,7 +171,7 @@ const char *fname;
 
   /* Ok, we seem to have content-filter program configured... */
 
-  type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'\n",
+  type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'",
        contentpolicypid, fname);
 
  pick_reply:;

@@ -1,3 +1,16 @@
+2003-08-21  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/contentpolicy.c:
+	    One extra newline in comment logging into a file.
+
+	* transports/mailbox/mailbox.c:
+	    Didn't always yield diagnostics for the outgoing
+	    messages.  My bad..  (EDQUOT processing in particular.)
+
+	* transports/libta/diagnostic.c, include/ta.h:
+	    Make sure we always have NOTARY 'action' value
+	    set for something!
+
 2003-08-20  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/Makefile.in, libresolv/Makefile.in, man/Makefile.in,
