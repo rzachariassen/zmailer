@@ -1,8 +1,15 @@
+2003-09-05  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Patch from Jerzy Sobczyk about outgoing SMTP not
+	    always honouring '-h' option set local hostname
+	    in outbound EHLO/HELO greetings.
+
 2003-09-03  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c:
-	    Patch from Eugene Crosser to run be able to run content-filter
-	    as an AF_UNIX socket server.
+	    Patch from Eugene Crosser to run be able to run
+	    content-filter as an AF_UNIX socket server.
 
 2003-09-02  Matti Aarnio  <mea@zmailer.org>
 

@@ -2313,7 +2313,7 @@ smtpopen(SS, host, noMX)
 	  if (lmtp_mode || (SS->esmtp_on_banner > -2 && force_7bit < 2)) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
-	    if (SS->myhostname)
+	    if (SS->myhostname && !myhostnameopt)
 	      sprintf(SMTPbuf, "EHLO %.200s", SS->myhostname);
 	    else
 	      sprintf(SMTPbuf, "EHLO %.200s", myhostname);
@@ -2507,7 +2507,7 @@ smtpopen(SS, host, noMX)
 		      (int)SS->ehlo_capabilities, (int)SS->rcpt_limit,
 		      (long)SS->ehlo_sizeval);
 	  } else if (!lmtp_mode) {
-	    if (SS->myhostname)
+	    if (SS->myhostname && !myhostnameopt)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);
 	    else
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
@@ -3025,6 +3025,11 @@ deducemyifname(SS)
 	if (laddr.v4.sin_family == AF_INET)
 	  hp = gethostbyaddr((char*)&laddr.v4.sin_addr,   4, AF_INET);
 #if defined(AF_INET6) && defined(INET6)
+	/* No need to check for IPv4-MAPPED addresses here.
+	   Presumption is: If connection is made with IPv4 socket,
+	   laddr is of IPv4 type. If connection is made with IPv6,
+	   the destination is presumably also of IPv6, and thus
+	   a mapped address here is most unlikely..  */
 	else if (laddr.v6.sin6_family == AF_INET6)
 	  hp = gethostbyaddr((char*)&laddr.v6.sin6_addr, 16, AF_INET6);
 #endif
