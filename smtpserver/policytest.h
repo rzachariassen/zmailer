@@ -111,8 +111,8 @@ extern struct policytest *policydb;
 extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
 
 #ifdef _POLICYTEST_INTERNAL_
-extern int mx_client_verify  __((int, char *, int));
-extern int sender_dns_verify __((int, char *, int));
-extern int client_dns_verify __((int, char *, int));
+extern int mx_client_verify  __((int, const char *, int));
+extern int sender_dns_verify __((int, const char *, int));
+extern int client_dns_verify __((int, const char *, int));
 extern int rbl_dns_test __((u_char *, char **));
 #endif

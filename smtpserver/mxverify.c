@@ -363,7 +363,7 @@ perhaps_address_record:
 
 int mx_client_verify(retmode, domain, alen)
      int retmode, alen;
-     char *domain;
+     const char *domain;
 {
 	char hbuf[2000];
 	int rc;
@@ -397,7 +397,7 @@ int mx_client_verify(retmode, domain, alen)
 
 int sender_dns_verify(retmode, domain, alen)
      int retmode, alen;
-     char *domain;
+     const char *domain;
 {
 	char hbuf[2000];
 	int rc;
@@ -431,7 +431,7 @@ int sender_dns_verify(retmode, domain, alen)
 
 int client_dns_verify(retmode, domain, alen)
      int retmode, alen;
-     char *domain;
+     const char *domain;
 {
 	return sender_dns_verify(retmode, domain, alen);
 }
