@@ -208,22 +208,40 @@ whathost(file)
 	static MNTTYPE	rmnt;
 	struct stat	filestat, dirstat;
 	char *s;
+	const char *errstr = NULL;
+	int retries = 0;
+	int rc, e;
+
+ retry:
+	e = errno;
+
+	++retries;
+	if (retries > 1) sleep(1);
+	if (retries > 8) {
+	  errno = e;
+	  perror(errstr ? errstr : "<unknown>");
+	  return NULL;
+	}
 
 	if (stat(file, &filestat) < 0) {
-		perror(file);
-		return(NULL);
+	  errstr = file;
+	  goto retry;
 	}
 	mnt = &rmnt;
 	if ((mntp = fopen(MNTTAB, "r")) == NULL) {
-		perror(MNTTAB);
-		return(NULL);
+	  errstr = MNTTAB;
+	  goto retry;
 	}
 	*hostname = 0;
 	while (getmntent(mntp, mnt) == 0) {
 	  if (strcmp(mnt->mnt_fstype, MNTTYPE_SWAP) == 0)
 	    continue;
-	  if ((stat(mnt->mnt_mountp, &dirstat) >= 0) &&
-	      (filestat.st_dev == dirstat.st_dev)) {
+	  rc = stat(mnt->mnt_mountp, &dirstat);
+	  if (rc < 0) {
+	    errstr = mnt->mnt_mountp;
+	    goto retry;
+	  }
+	  if ((rc >= 0) && (filestat.st_dev == dirstat.st_dev)) {
 	    /* So ok, filestat matches, but it may be an automount/autofs
 	       mountpoint, try to recognize it too */
 	    s = strchr(mnt->mnt_special,':');

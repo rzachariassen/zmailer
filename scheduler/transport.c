@@ -434,7 +434,7 @@ ta_hungry(proc)
 
 	  thr0->thrkids -= 1;
 
-	  if (thr0 && thr0->proc == proc) /* Thread Process Chain Leader */
+	  if (thr0->proc == proc) /* Thread Process Chain Leader */
 	      thr0->proc = proc->pnext;
 
 	  /* Disconnect from process chain */
