@@ -14,6 +14,8 @@
 	* smtpserver/smtpcmds.c:
 	    Noticed that in unused code there is potential for
 	    serious trouble with router call.  '#if 0' wrappers in..
+	    Also, modify SIZE= value parameter parser to accept
+	    strictly valid value in range 1 thru 1 000 000 000.
 
 	* proto/db/smtp-policy.relay:
 	    Add a comment covering user-specific destination addresses.
