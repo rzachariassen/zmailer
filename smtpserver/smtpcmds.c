@@ -209,6 +209,30 @@ const char *buf, *cp;
 	    type(SS, 501, NULL, "Sorry, access denied.");
 	return;
     }
+
+    /* Router interacting policy analysis functions */
+    /* Note, these are orthogonal to those of smtp-server
+       internal policy functions! */
+    if (STYLE(cfinfo, 'h')) {
+      char argbuf[MAXHOSTNAMELEN+30];
+      sprintf(argbuf,"%s %s", rhostname,
+	      ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
+	       ? SS->ihostaddr : "[0.0.0.0]"));
+      if ((s = router(RKEY_HELLO, 1, argbuf)) == NULL)
+	/* the error was printed in router() */
+	return;
+      if (atoi(s) / 100 != 2) {
+	/* verification failed */
+	type(atoi(s), s+4, "Failed", "Failed");
+	free(s);
+	return;
+      }
+      else {
+	type(-atoi(s), s+4, "Ok", "Ok");
+	free(s);
+      }
+    }
+
     /* Check `cp' corresponds to the reverse address */
     if (skeptical && SS->ihostaddr[0] != '\0'
 	&& SS->rhostname[0] != '\0' && SS->rhostname[0] != '['

@@ -241,7 +241,7 @@ const int holdlast, len;
 	prevb = bufp;
     }
 
-    if (!holdlast) {
+    if (!holdlast && prevb != NULL) {
 	/* -------- Print the last line too -------- */
 	if (strlen(prevb) > 4 &&
 	    isdigit(prevb[0]) && isdigit(prevb[1]) && isdigit(prevb[2])

@@ -17,11 +17,12 @@
 
 #define	ROUTER_SERVER	"server"	/* name of portal function */
 
-#define	RKEY_INIT	"init"	/* initialize state of server */
-#define	RKEY_FROM	"from"	/* mail from address verification */
-#define	RKEY_TO		"to"	/* recipient to address verification */
-#define	RKEY_VERIFY	"verify"	/* verify this address */
-#define	RKEY_EXPAND	"expand"	/* expand this address */
+#define	RKEY_INIT	"init"		/* initialize state of server	*/
+#define	RKEY_FROM	"from"		/* mail from address verification */
+#define	RKEY_TO		"to"		/* recipient to address verification */
+#define	RKEY_VERIFY	"verify"	/* verify this address		*/
+#define	RKEY_EXPAND	"expand"	/* expand this address		*/
+#define RKEY_HELLO	"hello"		/* connection from a client	*/
 
 #define SMTPLINESIZE	8192
 
