@@ -2,6 +2,28 @@
 <TITLE><COMMAND>Scheduler</> Administration</TITLE>
 
 <PARA>
+The <COMMAND>scheduler</> is the part of the ZMailer that manages
+message processing outbound from the MTA proper.
+</PARA>
+
+<PARA>
+The <XREF LINKEND=fig.zadmsch.zmprocs> repeats earlier picture
+showing central components of the system, and where the <COMMAND>scheduler</>
+is in relation to them all.
+</PARA>
+
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsch.zmprocs>
+  <TITLE ID=figtit.zadmsch.zmprocs>ZMailer's processes; Scheduler</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs-scheduler.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+
+<PARA>
 <SCREEN>
 TODO!FIXME!
 
@@ -28,16 +50,95 @@ TODO!FIXME!
 </PARA>
 
 <PARA>
-The <COMMAND>scheduler</> is the part of the ZMailer that manages
-message processing outbound from the MTA proper.
-</PARA>
-
-<PARA>
 The major action of the <COMMAND>scheduler</> is to periodically
 start up <EMPHASIS>Transport Agents</> and tell them what to do.
 This is controlled by a table in a configuration file that is read by the
 <COMMAND>scheduler</> when it starts.  
 </PARA>
+
+<PARA>
+The <COMMAND>scheduler</> receives the messages from the <COMMAND>router</>
+in <EMPHASIS>two</> files: Original message file in
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/queue/</>, and
+<COMMAND>router</> written transport-specifications in 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>.
+</PARA>
+
+<PARA>
+Because usually (UNIX) systems don't like of having very large amounts of
+files in directories, as lookups for them become intolerably slow, the
+<COMMAND>scheduler</> has a subdirectory hashing mechanism.  Both
+<FILENAME CLASS=DIRECTORY>queue/</> and <FILENAME CLASS=DIRECTORY>transport/</>
+<EMPHASIS ROLE=BOLD>can</> be split to subdirectories at one or two levels
+with names of ``<LITERAL>A</>'' thru ``<LITERAL>Z</>''.
+See for the ``<OPTION>-H</>'' option of the <COMMAND>scheduler</> below.
+</PARA>
+
+<PARA>
+The idea with the sub-directory hashes is to split the workset into as even
+subsets as possible, usually busy systems are run with ``<OPTION>-HH</>'' to
+have 26*26 sub-sub-directories into which the sets gets divided.
+</PARA>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-threads>
+<TITLE>Principiles of scheduling: Threads</TITLE>
+
+<PARA>
+The <COMMAND>router</> produces recipients ``address quads'' which
+consists of four components:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>Channel</PARA></LISTITEM>
+<LISTITEM><PARA>Host</PARA></LISTITEM>
+<LISTITEM><PARA>User</PARA></LISTITEM>
+<LISTITEM><PARA>Privilege</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+Of these, <EMPHASIS>Channel</>, and <EMPHASIS>Host</> parts are used
+by the <COMMAND>scheduler</> to classify message recipients and to
+choose on what <EMPHASIS>Transport Agents</> to use.
+</PARA>
+
+<PARA>
+To control how messages are sent out, the <COMMAND>scheduler</> uses
+catenation of: <EMPHASIS>Channel/Host</> to group recipients.
+All recipients with <EMPHASIS>same</> values there are groupped
+together in what is called <EMPHASIS>thread</>.
+</PARA>
+
+<PARA>
+Another related thing is so called <EMPHASIS>thread group</>, which
+is the collection of all threads within same <EMPHASIS>scheduler</>
+<EMPHASIS>Selector Clause</>.
+See <XREF LINKEND=zadm-scheduler-scheduler.conf>.
+</PARA>
+
+<PARA>
+In normal case the scheduling is done by running <EMPHASIS>single</>
+transport agent for the <EMPHASIS>thread</>, which delivers messages
+one at the time.
+This means that a single destination with thousands of messages does
+not load the system significantly more than some other destination with
+a single message.
+</PARA>
+
+<PARA>
+Also in normal cases, when messages in given thread are all delivered,
+or otherwise determined that nothing can be done, the transport agent
+can be switched to another thread within the same <EMPHASIS>thread group</>.
+</PARA>
+
+</SECT1>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-scheduler.conf>
+<TITLE>The <FILENAME>scheduler.conf</> file</TITLE>
 
 <PARA>
 Any line starting with a ``<LITERAL>#</>'' character is assumed to be
@@ -369,5 +470,65 @@ files that indicate SMTP delivery to a particular host.
 The actual host is picked at random from the current choices, to avoid
 systematic errors leading to a deadlock of any queue.
 </PARA>
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-resource-control>
+<TITLE><COMMAND>Scheduler</> Resource Control</TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-mailq-interface>
+<TITLE><COMMAND>Scheduler</>'s <COMMAND>Mailq</></TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-scheduler.auth>
+<TITLE><COMMAND>Scheduler</>'s <FILENAME>scheduler.auth</> control file</TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-manual-expirer>
+<TITLE><COMMAND>manual-expirer</></TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+</SECT1>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-diagnostics>
+<TITLE><COMMAND>Scheduler</>'s Diagnostics Reporting</TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT2 ID=zadm-scheduler-forms-files>
+<TITLE><COMMAND>Scheduler</>'s Diagnostics Reporting, Forms Files</TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+</SECT2>
+
+</SECT1>
+
+
 
 </CHAPTER>

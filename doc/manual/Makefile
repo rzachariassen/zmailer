@@ -17,6 +17,11 @@
 #  At least:
 #     save_size = 30000       % for saving values outside current group
 #  and:
+#     % Max number of characters in all strings, including all error messages,
+#     % help texts, font names, control sequences.  These values apply to TeX and MP.
+#     pool_size.context = 750000
+#     pool_size.jadetex = 750000
+#     pool_size = 750000
 #     % Minimum pool space after TeX/MP's own strings; must be at least
 #     % 25000 less than pool_size, but doesn't need to be nearly that large.
 #     string_vacancies.context = 55000
@@ -45,7 +50,8 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zmanual.dsl
 
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
-		zmdirs.fig zmprocs.fig
+		zmdirs.fig zmprocs.fig zmprocs-smtps.fig \
+		zmprocs-router.fig zmprocs-scheduler.fig
 
 .SUFFIXES: .eps .pdf .ps .gif .fig .gif-green .png
 

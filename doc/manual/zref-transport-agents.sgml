@@ -855,14 +855,37 @@ are ignored, and all others are assumed to follow format shown in figure
 <FIGURE ID="fig.ref.sample-sm-conf" PGWIDE="1" FLOAT="1">
 <TITLE>Sample <FILENAME>sm.conf</> file</TITLE>
 <SCREEN>
-#mailer flags program        argument list
-#====== ====- ============== ================================
-local   mS    sm/localm      localm -r $g $u
-prog    -     /bin/sh        sh -c $u
-tty     rs    /usr/local/to  to $u
-uucp    U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
-usenet  m     sm/usenet      usenet $u
-test    n     sm/test        test $u
+#
+# M          F =     P =                             A =
+# the following entries are in active use at this site:
+uucp        U   /usr/bin/uux          uux - -r -a$g -gC $h!rmail ($u)
+usenet      m   ${MAILBIN}/ta/usenet  usenet $u
+#
+bitbucket   -  @MAILBIN@/ta/bitbucket  bitbucket
+#
+#
+# bitnet stuff F=hu not set?
+#
+bsmtp3      snmSX /usr/local/funetnje/bmail bmail -b $h $g $u
+bsmtp3rfc   snmSX /usr/local/funetnje/bmail bmail -b $h $g $u
+bsmtp3nd    snmSX /usr/local/funetnje/bmail bmail -nd $h $g $u
+bsmtp3ndrfc snmSX /usr/local/funetnje/bmail bmail -nd $h $g $u
+defrt1      snS   /usr/local/funetnje/bmail bmail $g $u
+bitnet2     snS   /usr/local/funetnje/bmail bmail $g $u
+#
+# the following entries are included to illustrate other possibilities
+#
+#local  mS  /usr/lib/mail/localm            localm -r $g $u
+cyrus   Pn  /usr/cyrus/bin/deliver          deliver -e -m $h -- $u
+#           # CYRUS example from: Tom Samplonius &lt;tom@sdf.com>
+procm sSPfn @PROCMAIL@      procmail -a $h -d $u
+#           # Procmail example from: Ken Pizzini &lt;ken@spry.com>
+#
+#prog  -    /bin/sh                         sh -c $u
+#tty   rs   /usr/local/to                   to $u
+#ean   mn   /local/lib/ean/mailer           mailer -d $u
+#test  n    /local/lib/mail/bin/test        test $u
+#
 </SCREEN>
 </FIGURE>
 

@@ -32,7 +32,7 @@ their related auxiliary programs, etc:
 <VARLISTENTRY><TERM><COMMAND>smtpserver</COMMAND></TERM>
 <LISTITEM><PARA>
 Administration of the <COMMAND>smtpserver</> is described at
-<XREF LINKEND=zadm-smtpserver-config>, and detailed Reference
+<XREF LINKEND=zadm-smtpserver>, and detailed Reference
 is at <XREF LINKEND=zref-smtpserver>.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -53,24 +53,32 @@ Administration of the <COMMAND>router</> is at
 Auxiliary programs used to support the <COMMAND>router</> include:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM><COMMAND>newdbprocessor</COMMAND></TERM>
+<VARLISTENTRY><TERM><COMMAND>zmailer newdb</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+This script has two behaviours,
+if <FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file can be found,
+utility script <COMMAND>newdbprocessor</> is run.  If not, a set of
+pre-determined individual database regeneration actions is done.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>newdb</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+A <APPLICATION>perl</> wrapper for actual internal <COMMAND>makedb</>
+utility taking care of things like correct sequence of file movements
+after successfull generation of new binary database file(s).
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>newaliases</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Classical <FILENAME>aliases</> database regenerator, subset of
+<COMMAND>zmailer newdb</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>newfqdnaliases</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Behaves like the <COMMAND>newaliases</>, but processes
+different database: <FILENAME>fqdnaliases</>.
+Subset of <COMMAND>zmailer newdb</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST> <!-- end of 'router' related programs -->
@@ -90,37 +98,42 @@ Auxiliary programs used to support the <COMMAND>scheduler</> include:
 <VARIABLELIST>
 <VARLISTENTRY><TERM><COMMAND>mailq</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Utility for querying <COMMAND>scheduler</>'s view of the universe.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>mailbox</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Program driven by the <COMMAND>scheduler</> to do (usually) delivery
+to local mailboxes, running pipes, and writing to files.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>smtp</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Program to do delivery to external systems via SMTP protocol
+(with many supported extensions).
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>hold</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Handler of ``<LITERAL>hold</>''-channel deliveries.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>sm</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+There are lots of programs intended to be run under <APPLICATION>sendmail</>'s
+<LITERAL>M</>-entry (<EMPHASIS>Mailer-entry</>) lines. This program supplies
+that interface layer to an extent which is meaningfull in ZMailer sense.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>errormail</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+Handler of ``<LITERAL>error</>''-channel deliveries.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>expirer</COMMAND></TERM>
 <LISTITEM><PARA>
-WRITEME!
+This is actually driven by the administrator via <COMMAND>manual-expirer</>
+wrapper script.
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST> <!-- end of 'scheduler' related programs -->

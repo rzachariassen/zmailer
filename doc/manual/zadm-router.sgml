@@ -2,9 +2,41 @@
 <TITLE><COMMAND>Router</> Administration</TITLE>
 
 <PARA>
+The <COMMAND>router</> is the part of the ZMailer that uses algorithms,
+and control databases to determine what latter stages, like
+<COMMAND>scheduler</> should do to the message.
+</PARA>
+
+<PARA>
+The <XREF LINKEND=fig.zadmrtr.zmprocs> repeats earlier picture
+showing central components of the system, and where the <COMMAND>router</>
+is in relation to to all.
+</PARA>
+
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmrtr.zmprocs>
+  <TITLE ID=figtit.zadmrtr.zmprocs>ZMailer's processes; Router</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs-router.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+<PARA>
+In following our intention is to cover topics of:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>What input data router uses</PARA></LISTITEM>
+<LISTITEM><PARA>What output it produces</PARA></LISTITEM>
+<LISTITEM><PARA>How the router is configured, including of
+what is 'dbases.conf'  file.</PARA></LISTITEM>
+<LISTITEM><PARA>How it can be tuned</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
 <SCREEN>
 FIXME:
-  - Process picture again ?
   - Intro to what the router does to the message
   - How the configuration scripts are loaded
   - How the standard scripts are tunable by means of databases,
@@ -13,6 +45,8 @@ FIXME:
   - What to do if one wants to tune ?
 </SCREEN>
 </PARA>
+
+
 
 <PARA>
 The names (determined at compile-time) and interface specifications for the

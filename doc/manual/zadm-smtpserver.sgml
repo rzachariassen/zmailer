@@ -4,7 +4,11 @@
 <PARA><SCREEN>
 Things to place here 
  - administrative stuff
- - 
+ - runtime command-line parameters (most important of them)
+ - smtpserver.conf
+   - PARAM entries (most common/important ones)
+   - SMTP policy-control
+   - content-policy interface
 </SCREEN></PARA>
 
 <PARA>
@@ -13,20 +17,42 @@ email via SMTP protocol.  Be it thru TCP channel, or thru Batch-SMTP.
 </PARA>
 
 <PARA>
-The <COMMAND>smtpserver</> program actually has several operational modes.
-It can operate as a stand-alone internet service socket listener, which
-forks off childs that do the actual SMTP-protocol service.
+The <XREF LINKEND=fig.zadmsmtps.zmprocs> repeats earlier picture
+showing central components of the system, and where the <COMMAND>smtpserver</>
+is in relation to them all.
 </PARA>
 
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsmtps.zmprocs>
+  <TITLE ID=figtit.zadmsmtps.zmprocs>ZMailer's processes; Smtpserver</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs-smtps.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+
+
 <PARA>
+The <COMMAND>smtpserver</> program actually has several operational modes.
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+It can operate as a stand-alone internet service socket listener, which
+forks off childs that do the actual SMTP-protocol service.
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
 It can be started from under the control of the <COMMAND>inetd</>(8) server,
 and it can there fulfill most of the the same roles as it does in
 the stand-alone mode.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 It can even be used to accept Batch-SMTP from incoming files (UUCP,
 and BITNET uses, for example).
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 </PARA>
 
 <PARA>
@@ -281,8 +307,8 @@ type specific suffixes to the path prefix.  For example NDBM
 database appends ".pag" and ".dir", while BSD-Btree appends only
 ".db".  (And the latter has only one file, while the first has two.)
 </PARA><PARA>
-For an operative overview, see <XREF LINKEND=zadm-smtpserver-policy-filtering>,
-and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-filtering>.
+For an operative overview, see <XREF LINKEND=zadm-smtpserver-policy-relaying>,
+and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-relaying>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -361,10 +387,10 @@ properly; WinCE1.0 does: ``<EMPHASIS ROLE=STRONG>MAIL FROM:user@domain</>'' :-(
 </SECT1>
 
 
-<SECT1 ID="zadm-smtpserver-policy-filtering">
-<TITLE>Policy Based Filtering</TITLE>
-<INDEXTERM ID=zadm-smtps-policy-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input policy filters</></>
-<INDEXTERM ID=zadm-smtps-policy-filtering2><PRIMARY>SMTP input</><SECONDARY>policy filtering, admin</></>
+<SECT1 ID="zadm-smtpserver-policy-relaying">
+<TITLE>Policy Based Relaying Control</TITLE>
+<INDEXTERM ID=zadm-smtps-policy-relaying1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>relay policy filters</></>
+<INDEXTERM ID=zadm-smtps-policy-relaying2><PRIMARY>SMTP input</><SECONDARY>relay policy, admin</></>
 
 <PARA>
 The policy database that <COMMAND>smtpserver</> uses is built with
@@ -630,7 +656,7 @@ _rbl1 # Nothing at late phase
 </FIGURE>
 </SECT1>
 
-<SECT1 ID="zadm-smtpserver-content-filtering">
+<SECT1 ID="zadm-smtpserver-content-filter">
 <TITLE>Content Based Filtering</TITLE>
 <INDEXTERM ID=zadm-smtps-content-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters</></>
 <INDEXTERM ID=zadm-smtps-content-filtering2><PRIMARY>SMTP input</><SECONDARY>content filtering, admin</></>
@@ -654,7 +680,7 @@ The program becomes active if PARAM entry ``contentfilter''  is set:
 </PARA>
 
 <PARA>
-More details are at the Reference part: <XREF LINKEND=zref-smtpserver-content-filtering>.
+More details are at the Reference part: <XREF LINKEND=zref-smtpserver-content-filter>.
 </PARA>
 
 </SECT1>

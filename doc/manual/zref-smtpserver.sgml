@@ -645,8 +645,8 @@ The ``{\tt policy-builder.sh}'' builds this file from external sources.
 </SCREEN>
 </SECT1>
 
-<SECT1 ID="zref-smtpserver-policy-filtering">
-<TITLE>Policy Filtering Language</TITLE>
+<SECT1 ID=zref-smtpserver-policy-relaying>
+<TITLE>Relaying Control Policy Language</TITLE>
 <!-- \index{smtp!policy filtering, reference} -->
 
 <SCREEN>
@@ -919,7 +919,7 @@ with `_tag' and restart the search.
 </SECT1>
 
 
-<SECT1 ID="zref-smtpserver-content-filtering">
+<SECT1 ID="zref-smtpserver-content-filter">
 <TITLE>Content Based Filtering</TITLE>
 <INDEXTERM ID=zref-smtps-content-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters, reference</></>
 <INDEXTERM ID=zref-smtps-content-filtering2><PRIMARY>SMTP input</><SECONDARY>content filtering, reference</></>
