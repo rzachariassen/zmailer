@@ -945,7 +945,7 @@ char **argv;
 
 	} else {			/* Not from under the inetd -- standalone server */
 
-	  int s, j, once;
+	  int j, once;
 	  int childpid, sameipcount, childcnt;
 	  int  listensocks_count = 0;
 	  int *listensocks       = malloc( 3 * sizeof(int) );
@@ -1013,7 +1013,7 @@ char **argv;
 	     If we are not explicitely told to use IPv6 only, we will try
 	     here to use IPv6, and if successfull, register it!  */
 	  if (!use_ipv6 && !force_ipv4) {
-	    s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	    int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
 	    if (s >= 0) {
 	      use_ipv6 = 1;	/* We can do it! */
 	      close(s);
@@ -1021,7 +1021,7 @@ char **argv;
 	  }
 	  
 	  if (use_ipv6) {
-	    s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	    int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
 	    if (s < 0) {	/* Fallback to the IPv4 mode .. */
 	      s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 	      use_ipv6 = 0;

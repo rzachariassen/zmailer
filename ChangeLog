@@ -1,3 +1,9 @@
+2003-08-19  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Moving variable 'int s' into places where
+	    it is actually used.
+
 2003-08-15  Matti Aarnio  <mea@zmailer.org>
 
 	* sfio2002/*
@@ -709,11 +715,11 @@
 	    service failing to failure, and producing 'deferred'
 	    messages...
 
-	* lib/sleepycatdb.c, smtpserver/policytest.c, utils/makedb/dblook.c,
-	  utils/makedb/makedb.c:
+	* lib/sleepycatdb.c, smtpserver/policytest.c,
+	  utils/makedb/dblook.c, utils/makedb/makedb.c:
 	    Support compiling against SleepyCat DB 4.1
-	    (the C-API has again been changed;  db->open()  got additional
-	     parameters...)
+	    (the C-API has again been changed;  db->open()  got
+	     additional parameters...)
 
 2003-05-08  Matti Aarnio  <mea@zmailer.org>
 
@@ -932,12 +938,13 @@
 	    overscribling that dropped those cores at mysterious
 	    places, but as this was the only altered place...)
 
-	* man/zmailer.1, proto/zmailer.sh.in, router/router.c, man/router.8,
-	  scheduler/scheduler.c, man/scheduler.8, smtpserver/smtpserver.c,
-	  man/smtpserver.8, transports/sm/sm.c, transports/smtp/smtp.c,
-	  transports/errormail/errormail.c, transports/hold/hold.c,
-	  transports/mailbox/mailbox.c, transports/reroute/reroute.c,
-	  proto/newdb.in, proto/newdbprocessor.in:
+	* man/zmailer.1, proto/zmailer.sh.in, router/router.c,
+	  man/router.8, scheduler/scheduler.c, man/scheduler.8,
+	  smtpserver/smtpserver.c, man/smtpserver.8, transports/sm/sm.c,
+	  transports/smtp/smtp.c, transports/errormail/errormail.c,
+	  transports/hold/hold.c, transports/mailbox/mailbox.c,
+	  transports/reroute/reroute.c, proto/newdb.in,
+	  proto/newdbprocessor.in:
 	    - Zmailer, Router, Scheduler, Smtpserver: explicite options
 	      to define non-compiled-in path to  ZCONFIG  ZENV file.
 	    - Transport Agents: if  ZCONFIG _environment_  variable is set,
@@ -946,8 +953,9 @@
 	      read ZCONFIG from that file.  Inherits that from zmailer(1).
 
 	* scheduler/scheduler.c scheduler/agenda.c, scheduler/mq2.c,
-	  scheduler/msgerror.c, scheduler/prototypes.h, proto/zmailer.sh.in,
-	  scheduler/transport.c, scheduler/update.c:
+	  scheduler/msgerror.c, scheduler/prototypes.h,
+	  proto/zmailer.sh.in,  scheduler/transport.c,
+	  scheduler/update.c:
 	    Automated (within 30 seconds of previous) log-file re-opening
 
 	* man/manual-rerouter.8, man/reroute.8, man/Makefile.in:
@@ -958,8 +966,8 @@
 
 	* transports/reroute/reroute.c, transports/reroute/Makefile.in,
 	  transports/reroute/manual-rerouter.in:
-	    Experimental version of reroute -- e.g. command some channel/host
-	    target queue back to the router.
+	    Experimental version of reroute -- e.g. command some
+	    channel/host target queue back to the router.
 
 	* transports/libta/mimeheader.c:
 	    When outputting ORCPT value into "for clause", do
