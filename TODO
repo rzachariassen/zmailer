@@ -1,6 +1,13 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
 router:
+	Input header:
+		Cc: "\"\\"\\\"\\\\"\\\\\"'\\\\\\"Prof. dr J. Wil Foppen\\\\\\" <wfoppen@rsm.nl>' \\\\\"
+		   <\\\\\"Prof. dr J. Wil Foppen\\\\\"\\\\"\\\"\\"\"" <wfoppen@rsm.nl>
+	--> SEGV
+
+
+router:
 	Have separate queueing processor feeding actual routers
 	to take care of the problem related to message priorities.
 	Could implement:  high/normal/bulk/junk priorities which

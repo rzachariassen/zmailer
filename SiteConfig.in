@@ -110,6 +110,13 @@ ROUTEROPTIONS= @ROUTEROPTIONS@
 # no such address exists, is punted to.
 #PUNTHOST=	relay.cs
 
+# FORCEPUNT is for cases when the local machine under no circumstances
+# is to store any email locally, but send all such to this given address
+# (local host is a member on a "cluster" whose message store is at some
+#  other cluster server, and said node handles "local" delivery for all
+#  cluster members... *including* running pipes..)
+#FORCEPUNT=    mailhost
+
 # SMARTHOST is where mail that cannot be resolved or routed is punted to.
 # There used to be a variable for this, now a better way is to use 'routes'
 # database at which you put line:   .  smtp!smart.host.name
