@@ -125,11 +125,11 @@ struct procinfo *proc;
 	  proc->cmdbuf[0] = '\n';
 	  len = 1;
 	} else {
-	  strcpy(proc->cmdbuf,"#idle\n");
-	  len = strlen(proc->cmdbuf);
+	  memcpy(proc->cmdbuf,"#idle\n", 6);
+	  len = 5;
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
-	  proc->overfed += 1;
+	  proc->overfed = 2;
 	}
 	rc = write(proc->tofd, proc->cmdbuf, len);
 	if (rc < 0 &&
