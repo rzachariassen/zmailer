@@ -23,7 +23,7 @@
 #include "ta.h"
 #include "libz.h"
 
-static char linebuf[8000];	/* Should be aplenty..		*/
+static char lbuf[8000];	/* Should be aplenty..		*/
 
 void
 rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid)
@@ -58,8 +58,8 @@ int size, nrcpts;
      ctladdr=`getpwuid(rp->addr->misc)`
      mailer='rp->addr->channel' */
 
-  sprintf(linebuf, "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
+  sprintf(lbuf, "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
 	  spoolid, from, smtprelay, size, nrcpts, msgid);
 
-  zsyslog((LOG_INFO, "%s", linebuf));
+  zsyslog((LOG_INFO, "%s", lbuf));
 }
