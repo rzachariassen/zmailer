@@ -108,14 +108,14 @@ sub dirprealloc {
     open(OFP, "> $DIR/filename.0");
     close(OFP);
 
-    @st = stat("."); # Can't fail ( -- eh ? )
+    @st = stat("${DIR}/."); # Can't fail ( -- eh ? )
     local($SIZE) = $st[7];
 
     while ($SIZE < $DSIZE) {
 	# Link as long as you can -- or size is desired..
 	link("$DIR/filename.0","$DIR/$NAME.$NUM") || last;
 
-	@st = stat("."); # Can't fail ( -- eh ? )
+	@st = stat("${DIR}/."); # Can't fail ( -- eh ? )
 	local($SIZE) = $st[7];
 
 	$NUM += 1;
