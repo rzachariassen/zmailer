@@ -592,6 +592,8 @@ void wantout(sig)
 int sig;
 {
   getout = 1;
+  SIGNAL_HANDLE(sig,wantout);
+  SIGNAL_RELEASE(sig);
   if (!dotmode && procabortset) /* Not within protected phase ? */
     longjmp(procabortjmp,1);
 }
@@ -3120,6 +3122,7 @@ int sig;
 	  abort();
 	}
 	SIGNAL_HANDLE(SIGPIPE, sig_pipe);
+	SIGNAL_RELEASE(SIGPIPE);
 }
 
 RETSIGTYPE
