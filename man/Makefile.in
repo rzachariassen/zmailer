@@ -27,7 +27,8 @@ MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.
 FRC:
 	@echo "make install MANDIR=/your/choice"
 	@echo "   default for MANDIR=${MANDIR}"
-	@echo "make groff"
+	@echo "make groff  (or: ps)"
+	@echo "make pdf"
 	@echo "make html"
 	@echo "make clean"
 
@@ -40,13 +41,11 @@ distclean:
 
 depend:
 
-groff: $(patsubst %, %.ps, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
-html:  $(patsubst %, %.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
+ps groff: $(patsubst %, %.ps, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
+pdf:	  $(patsubst %, %.pdf, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
+html:	  $(patsubst %, %.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
 	-rm -f index.html
-	(echo "<HTML><HEAD><TITLE>ZMailer man-pages</TITLE></HEAD>";	 \
-	 echo "<BODY>";							 \
-	 for x in *.html; do echo "<P><A HREF="'"'$$x'"'">$$x</A></P>";done; \
-	 echo "</BODY></HTML>") > man-index.html
+	sh man-index.sh
 
 install:
 	if [ ! -d ${MANDIR}/man1 ] ; then mkdir -p ${MANDIR}/man1 ; fi
@@ -137,8 +136,8 @@ mboxpath.1.ps: $(srcdir)/mboxpath.1
 
 
 
-#aliases.5.html: $(srcdir)/aliases.5
-#	groff -t -man -Thtml $< > $@
+aliases.5.html: $(srcdir)/aliases.5
+	groff -t -man -Thtml $< > $@
 authuser.3.html: $(srcdir)/authuser.3
 	groff -t -man -Thtml $< > $@
 mailq.1.html: $(srcdir)/mailq.1
@@ -187,3 +186,52 @@ mboxpath.1.html: $(srcdir)/mboxpath.1
 	groff -t -man -Thtml $< > $@
 
 
+
+aliases.5.pdf: aliases.5.ps
+	ps2pdf $<
+authuser.3.pdf: authuser.3.ps
+	ps2pdf $<
+mailq.1.pdf: mailq.1.ps
+	ps2pdf $<
+mailrm.1.pdf: mailrm.1.ps
+	ps2pdf $<
+newaliases.1.pdf: newaliases.1.ps
+	ps2pdf $<
+rmail.1.pdf: rmail.1.ps
+	ps2pdf $<
+ssl.1.pdf: ssl.1.ps
+	ps2pdf $<
+vacation.1.pdf: vacation.1.ps
+	ps2pdf $<
+zmailer.1.pdf: zmailer.1.ps
+	ps2pdf $<
+zmsh.1.pdf: zmsh.1.ps
+	ps2pdf $<
+zmailer.3.pdf: zmailer.3.ps
+	ps2pdf $<
+errormail.8.pdf: errormail.8.ps
+	ps2pdf $<
+hold.8.pdf: hold.8.ps
+	ps2pdf $<
+router.8.pdf: router.8.ps
+	ps2pdf $<
+scheduler.8.pdf: scheduler.8.ps
+	ps2pdf $<
+sendmail.8.pdf: sendmail.8.ps
+	ps2pdf $<
+sm.8.pdf: sm.8.ps
+	ps2pdf $<
+smtp.8.pdf: smtp.8.ps
+	ps2pdf $<
+smtpserver.8.pdf: smtpserver.8.ps
+	ps2pdf $<
+manual-expirer.8.pdf: manual-expirer.8.ps
+	ps2pdf $<
+expirer.8.pdf: expirer.8.ps
+	ps2pdf $<
+mprobe.8.pdf: mprobe.8.ps
+	ps2pdf $<
+mailbox.8.pdf: mailbox.8.ps
+	ps2pdf $<
+mboxpath.1.pdf: mboxpath.1.ps
+	ps2pdf $<

@@ -455,7 +455,7 @@ Microsoft does it again...
 If TLS is set at Outlook, and server port is not 25, it bloody well
 seems to expect that the server starts in TLS handshake mode.
 
-This implements a 2 second startup detail in case the port is some
+This implements a 2 second startup delay in case the port is some
 other than 25, and if some byte is received from client during that
 time, and it happens to be 0x80, then this server will initiate TLS
 negotiation.  If nothing happens (well-behaving client), normal
