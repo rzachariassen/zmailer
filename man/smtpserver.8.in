@@ -176,7 +176,7 @@ e	check EXPN command argument
 R	require addresses to be of syntax:
 	local@remote (strict 821)
 S	allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
-	"MAIL FROM:user@domain"
+	   "MAIL FROM:user@domain"
 	:\-(
 .TE
 The flags are concatenated to form the argument to the \-s option.  The
@@ -697,10 +697,14 @@ This subsystem of
 .I smtpserver
 does control acceptability of recipient envelope addresses per several
 criteria:
-.IP "contactee IP address"
-.IP SMTP\ "MAIL\ FROM:<..>"\ address
-.IP SMTP\ "RCPT\ TO:<..>"\ addresses
-.IP "various control files"
+.IP -
+"contactee IP address"
+.IP -
+SMTP\ "MAIL\ FROM:<..>"\ address
+.IP -
+SMTP\ "RCPT\ TO:<..>"\ addresses
+.IP -
+"various control files"
 .PP
 Specifically the
 .I $MAILBIN/policy-builder.sh
@@ -741,26 +745,31 @@ grant outgoing relay capability.
 
 .IP smtp\-policy.relay
 .IP smtp\-policy.relay.manual
+.RS
 Who can use us as outbound relay.
-
+.PP
 Use here
-.nf
-   [ip.number]/maskwidth
-.fi
+.PP
+.RS
+[ip.number]/maskwidth
+.RE
+.PP
 for listing those senders (networks) we
 absolutely trust.  Additionally you may give
 (at the same line) some attributes as parameters
 for this key entry:
-.nf
-   fulltrustnet +
-   trustrecipient +
-.fi
+.PP
+.RS
+fulltrustnet +
+trustrecipient +
+.RE
+.PP
 First pair will accept any source address,
 and any recipient addresses that are fed to
 the server;  the second will verify the source
 address, but after that it will accept any
 recipient addresses.
-
+.PP
 You may also enter domains which are looked
 up for the hostname of reversed IP address,
 but it is not very wise; IP-reversal is not
@@ -768,55 +777,62 @@ trustworthy data.  It may also cause double-
 entry/level descendance problems when two
 domain-suffixes have same ending suffix (or
 are the same)..  (Name/keyspace problem)
-
+.PP
 We can set the internal "always_accept" flag at
 the source IP test, and never after.
-
+.PP
+.RE
 .IP smtp\-policy.mx
 .IP smtp\-policy.mx.manual
+.RS
 Who really are our MX clients.
-
+.PP
 Use this when you really know them, and don't
 want just to trust that if recipient has MX
 to you, it would be ok...
 You can substitute this knowledge with a fuzzy
 feeling by using 'acceptifmx +' attribute at
 the generic boilerplate.
-
+.PP
 List here
 .I domain names.
-
+.PP
 You CAN also list here all POSTMASTER addresses
 you accept email routed to:
-
-.nf
-  postmaster@local.domain
-  postmaster@client.domain
-.fi
-
+.PP
+.RS
+postmaster@local.domain
+postmaster@client.domain
+.RE
+.PP
 these are magic addresses that email is accepted
 to, even when everything else is blocked.
-
+.PP
+.RE
 .IP smtp\-policy.spam
 .IP smtp\-policy.spam.manual
+.RS
 Those users & domains that are absolutely no-no
 for the senders, or the recipients, no matter what
 earlier analysis has shown.
 (Except for those that we absolutely trust..)
 .PP
+.RE
 Short usage instructions:
-.nf
-- Fill in/modify related files
-- execute \fIMAILBIN/policy-builder.sh\fR script
-.fi
+.PP
+.IP -
+Fill in/modify related files
+.IP -
+Execute \fIMAILBIN/policy-builder.sh\fR script
+.RE
 .SH SMTP\-POLICY TESTING
 You can run the smtpserver in a mode where you can
 claim to be from any address in the outside world
 you wish:
 .PP
-.nf
-  $MAILBIN/smtpserver \-i \-d 1 \-T '[1.2.3.4]'
-.fi
+.RS
+$MAILBIN/smtpserver \-i \-d 1 \-T '[1.2.3.4]'
+.RE
 .PP
 The mode must be interactive (\-i), and supplying
 debug mode (\-d 1) to it is good help.
