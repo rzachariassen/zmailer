@@ -1,3 +1,19 @@
+1998-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makedb/makedb.c:
+	    Missed  'l' and 'u' from  getopt() parameters; Oops..
+	    (Andrew Tridgell <tridge@samba.anu.edu.au> reported)
+
+	* scheduler/msgerror.c:
+	    Had one fseek() lying around from another branch
+	    of flow control -- but the "fp" parameter pointed
+	    to NULL :-/  (Andrew Tridgell reported)
+
+	* transports/smtp/smtp.c:
+	    Two instances of  zsyslog()  with  LOG_ALERT  changed
+	    to  LOG_ERR -- the detected errors are not ALERT level
+	    stuff. (Andrew Tridgell reported)
+
 1998-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* utils/makedb/makedb.c:
