@@ -1,5 +1,8 @@
 2003-05-06  Matti Aarnio  <mea@zmailer.org>
 
+	* INSTALL:
+	    Small updates, more is needed...
+
 	* Makefile.in, compat/rmail/Makefile.in, compat/sendmail/Makefile.in,
 	  libc/Makefile.in, man/Makefile.in, packaging/solaris/Makefile.in,
 	  proto/Makefile.in, router/Makefile.in, scheduler/Makefile.in,
