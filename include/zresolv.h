@@ -180,8 +180,6 @@ typedef uint16_t u_int16_t;
 # else
 typedef unsigned short u_int16_t;
 # endif
-#else
-typedef unsigned short u_int16_t;
 #endif
 
 #if !HAVE_U_INT32_T
@@ -190,8 +188,6 @@ typedef uint32_t u_int32_t;
 # else
 typedef unsigned int u_int32_t;
 # endif
-#else
-typedef unsigned int u_int32_t;
 #endif
 
 #ifndef NS_GET16
