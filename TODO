@@ -3,7 +3,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - General:
 	Learn to use CVS
 
-
 - scheduler:
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
