@@ -708,10 +708,10 @@ Imode_smtpserver __((void))
 	const char *av[4];
 	char *linebuf = malloc(20000);
 	int linespc = 19500;
+	char *sh_memlevel = getlevel(MEM_SHCMD);
 
 	oval = stickymem;
 	stickymem = MEM_TEMP;	/* per-message space */
-	char *sh_memlevel = getlevel(MEM_SHCMD);
 
 	setlinebuf(stdin);
 
