@@ -26,7 +26,7 @@ $(PZCONFIG):
 # Ensure all necessary directories exist
 
 dirs:	$(PZCONFIG)
-	-@. $(PZCONFIG) ; \
+	-@(. $(PZCONFIG) ; \
 	umask 022 ; \
 	if [ -n "$(prefix)" ] ; then \
 		$(MKDIR) -m 755 $(prefix) ; \
@@ -138,28 +138,28 @@ dirs:	$(PZCONFIG)
 		echo $(MKDIR) $(prefix)$$LOGDIR && \
 		$(MKDIR) $(prefix)$$LOGDIR ; \
 		chmod 755 $(prefix)$$LOGDIR ; \
-	fi
+	fi )
 
 clientdirs:	$(PZCONFIG)
-	-@. $(PZCONFIG) ; \
+	-@(. $(PZCONFIG) ; \
 	if [ ! -d $(prefix)$$MAILBIN ]; then \
 		echo $(MKDIR) $(prefix)$$MAILBIN && \
 			$(MKDIR) $(prefix)$$MAILBIN ; \
-	fi
+	fi )
 
 
 # This is only good for testing "make dirs"
 cleandirs: FRC $(PZCONFIG)
-	-@. $(PZCONFIG) ; \
+	-@( . $(PZCONFIG) ; \
 	echo tar -cf /tmp/zmstuff.tar $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
 	tar -cf /tmp/zmstuff.tar $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
 	echo rm -rf $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE && \
-	rm -rf $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE
-	-rm -f +dirs
+	rm -rf $(prefix)$$MAILBIN $(prefix)$$MAILSHARE $(prefix)$$POSTOFFICE ; \
+	rm -f +dirs )
 
 
 mailbin: $(PZCONFIG) $(PMAILBIN)
-	-@. $(PZCONFIG) ; \
+	-@(. $(PZCONFIG) ; \
 	if [ ! -d $(prefix)$$MAILBIN/bak ]; then $(MKDIR) $(prefix)$$MAILBIN/bak ; fi ; \
 	for file in $(PMAILBIN) ; \
 	do \
@@ -175,10 +175,10 @@ mailbin: $(PZCONFIG) $(PMAILBIN)
 		  echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 		  $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 		fi ; \
-	done
+	done )
 
 mailshare:	$(PZCONFIG) $(PMAILSHARE)
-	-@. $(PZCONFIG) ; pwd=`pwd` ; \
+	-@(. $(PZCONFIG) ; pwd=`pwd` ; \
 	MAILSHARE=$(prefix)$$MAILSHARE ; \
 	if [ ! -d $$MAILSHARE/bak ]; then $(MKDIR) $$MAILSHARE/bak ; fi ; \
 	for file in $(PMAILSHARE) ; \
@@ -188,11 +188,11 @@ mailshare:	$(PZCONFIG) $(PMAILSHARE)
 		echo $(INSTALL) -m 644 $$file $$MAILSHARE/proto/$$file ; \
 		$(INSTALL) -m 644 ms.$$$$ $$MAILSHARE/proto/$$file ; \
 		rm -f ms.$$$$ ; \
-	done
+	done )
 
 
 forms:	FRC
-	@. $(PZCONFIG) ; \
+	@( . $(PZCONFIG) ; \
 	FORMSDIR="$(prefix)$$MAILSHARE/forms" ; \
 	if [ ! -d "$$FORMSDIR/bak" ]; then \
 		$(MKDIR) "$$FORMSDIR/bak" ; \
@@ -209,11 +209,11 @@ forms:	FRC
 		fi ;				\
 		echo $(INSTALL) -m 644 $$file $$FORMSDIR/proto/$$name ; \
 		$(INSTALL) -m 644 $$file $$FORMSDIR/proto/$$name ; \
-	done
+	done )
 
 
 db:	FRC
-	-@. $(PZCONFIG) ; \
+	-@( . $(PZCONFIG) ; \
 	MAILVAR=$(prefix)$$MAILVAR ; \
 	echo "Don't forget to set up MAILVAR/db by hand -- if there is nothing, we seed it now" ; \
 	$(INSTALL) -m 644 $(srcdir)/db/aliases $$MAILVAR/db/proto/aliases ; \
@@ -222,9 +222,10 @@ db:	FRC
 	$(INSTALL) -m 644 $(srcdir)/db/localnames $$MAILVAR/db/proto/localnames ; \
 	$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.src $$MAILVAR/db/proto/smtp-policy.src ; \
 	$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.relay $$MAILVAR/db/proto/smtp-policy.relay ; \
+	)
 
 cf:	FRC
-	-@. $(PZCONFIG) ; \
+	-@(. $(PZCONFIG) ; \
 	MAILSHARE=$(prefix)$$MAILSHARE; \
 	if [ ! -d $$MAILSHARE/cf ]; then \
 		$(MKDIR) $$MAILSHARE/proto ; \
@@ -241,7 +242,7 @@ cf:	FRC
 		cp -p $(srcdir)/cf/SMTP.cf $$MAILSHARE/proto/router.cf ; \
 	else \
 		echo "*** No overwrite of $$MAILSHARE/proto/router.cf file, old exists; VERIFY!"; \
-	fi
+	fi )
 
 clean:	FRC
 	rm -f ./+* *~

@@ -137,7 +137,7 @@ static char *_KA[] = {
 	"fulltrustnet",
 	"trustrecipients",
 	"trust-whoson",
-	"rcpt-dns-rbl"
+	"rcpt-dns-rbl",
 	"test-rcpt-dns-rbl"
 };
 #define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[(x) & 0xFF]:"??")

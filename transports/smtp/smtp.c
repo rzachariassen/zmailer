@@ -899,6 +899,8 @@ main(argc, argv)
 		}
 		strncpy(SS.remotehost, host, sizeof(SS.remotehost));
 		SS.remotehost[sizeof(SS.remotehost)-1] = 0;
+		if (statusreport)
+		  report(&SS, "NewDomain: %s", host);
 	      }
 	    }
 	    if (host) free(host);
@@ -2267,7 +2269,8 @@ smtpopen(SS, host, noMX)
 	    if (i == EX_TEMPFAIL) {
 	      /* There are systems, which hang up on us, when we
 		 greet them with an "EHLO".. Do here a normal "HELO".. */
-	      if ((i = smtpconn(SS, host, noMX)) != EX_OK)
+	      i = smtpconn(SS, host, noMX);
+	      if (i != EX_OK)
 		return i;
 	      i = EX_TEMPFAIL;
 	    }
@@ -2292,7 +2295,8 @@ smtpopen(SS, host, noMX)
 	    }
 	    if (i == EX_TEMPFAIL) {
 	      /* Ok, sometimes EHLO+HELO cause crash, open and do HELO only */
-	      if ((i = smtpconn(SS, host, noMX)) != EX_OK)
+	      i = smtpconn(SS, host, noMX);
+	      if (i != EX_OK)
 		return i;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	      if (i == EX_TEMPFAIL && SS->smtpfp) {
@@ -2381,8 +2385,9 @@ smtpconn(SS, host, noMX)
 	    rc = getaddrinfo(buf+5, "smtp", &req, &ai);
 #else
 	    rc = _getaddrinfo_(buf+5, "smtp", &req, &ai, SS->verboselog);
-if (SS->verboselog)
-  fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf+5,rc,ai);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,
+		      "getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf+5,rc,ai);
 #endif
 	  } else
 #endif
@@ -2392,8 +2397,9 @@ if (SS->verboselog)
 	      rc = getaddrinfo(buf, "smtp", &req, &ai);
 #else
 	      rc = _getaddrinfo_(buf, "smtp", &req, &ai, SS->verboselog);
-if (SS->verboselog)
-  fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf,rc,ai);
+	      if (SS->verboselog)
+		fprintf(SS->verboselog,
+			"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf,rc,ai);
 #endif
 	    }
 	  {
@@ -2436,6 +2442,9 @@ if (SS->verboselog)
 		ourselves thru MX pointed identity we didn't
 		realize being ours!				*/
 	    stashmyaddresses(myhostname);
+
+	    if (statusreport)
+	      report(SS,"MX-lookup: %s", host);
 
 	    SS->mxcount = 0;
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
@@ -4609,6 +4618,10 @@ rightmx(spec_host, addr_host, cbparam)
 	SS->mxh[0].host = NULL;
 	SS->mxcount = 0;
 	SS->firstmx = 0;
+
+	if (statusreport)
+	  report(SS,"MX-lookup: %s", addr_host);
+
 	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0)) {
 	case EX_OK:
 	  if (SS->mxh[0].host == NULL)

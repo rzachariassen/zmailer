@@ -103,6 +103,7 @@ AC_SUBST(PROGS)dnl
 AC_PATH_PROG(LN, ln, ln)dnl
 AC_PATH_PROG(MV, mv, mv)dnl
 AC_PATH_PROG(RM, rm, rm)dnl
+AC_PATH_PROG(TRUE, true, true)dnl
 AC_PATH_PROG(PERL, perl, perl)dnl
 AC_SUBST(LIBPROGS)dnl
 
