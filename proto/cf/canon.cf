@@ -107,6 +107,12 @@ canonical (host) {
 #	hostname CNAME mappings.  (Which IMO isn't all that bad [mea])
 #
 
+	ssift "$host" in
+	\[.*\]
+		return "$host"
+		;;
+	tfiss
+
 	tmp="$(deliver "$host")" && return "$tmp"
 
 	# Not locally known, is it multi-component domain with

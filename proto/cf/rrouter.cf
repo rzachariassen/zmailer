@@ -58,6 +58,13 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	address=$(canonicalize "$address")
 
+	ssift "$address" in
+	<@\[([A-Za-z0-9]+)\]>:(.+)@(.+)
+		# VERY MAGICAL:  @[channelname]:user@domain
+		return ((("\1" "\3" "\2$plustail@\3" $A)))
+		;;
+	tfiss
+
 	tsift "$address" in
 #	<in%>(.*)
 #		return (((error vms-in-pros "in%\1" $A))) ;;

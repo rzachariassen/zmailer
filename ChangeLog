@@ -1,3 +1,12 @@
+2000-10-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/cf/rrouter.cf, proto/cf/canon.cf:
+	    Support magic trick:
+		@[CHANNELNAME]:user@domain
+	    in such a manner as to produce
+		(((CHANNELNAME domain user@domain ATTRIBUTES)))
+	    routing result
+
 2000-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c, utils/mxerify/mxverify-cgi.c:
