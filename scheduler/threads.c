@@ -23,7 +23,7 @@
 */
 
 
-#define MAX_HUNGER_AGE 3600 /* Sign of an error ... */
+#define MAX_HUNGER_AGE 600 /* Sign of an error ... */
 
 
 struct thread      *thread_head = NULL;
@@ -1450,6 +1450,8 @@ idle_cleanup()
 		if (verbose)
 		  printf("idle_cleanup() killing TA on tofd=%d pid=%d\n",
 			 p->tofd, (int)p->pid);
+
+		thr->wakeup = now-1; /* reschedule immediately! */
 
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
