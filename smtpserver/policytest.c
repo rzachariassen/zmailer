@@ -660,6 +660,9 @@ int whosonrc;
 	sprintf(dbname, "%s.db", rel->dbpath);
 #ifdef HAVE_DB_OPEN2
 	rel->btree = NULL;
+#ifndef DB_RDONLY
+# define DB_RDONLY O_RDONLY
+#endif
 	db_open(dbname, DB_BTREE, DB_RDONLY, 0644, NULL, NULL, &rel->btree);
 #else
 	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
@@ -672,6 +675,9 @@ int whosonrc;
 	sprintf(dbname, "%s.dbh", rel->dbpath);
 #ifdef HAVE_DB_OPEN2
 	rel->bhash = NULL;
+#ifndef DB_RDONLY
+# define DB_RDONLY O_RDONLY
+#endif
 	db_open(dbname, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &rel->bhash);
 #else
 	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
