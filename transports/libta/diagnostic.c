@@ -174,6 +174,8 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	int report_notary = 1;
 	int logreport = 0;
 
+	if (!rp->lockoffset) return; /* Don't re-report... */
+
 	rp->status = rc;
 
 #ifdef HAVE_STDARG_H
@@ -351,14 +353,15 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
 
 	  int fd = FILENO(stdout);
-	  int len;
-	  char *buf;
 
 	  /* This should always be in blocking mode, but... */
 	  fd_blockingmode(fd);
-
+#if 0
+	  int len;
+	  char *buf;
 	  len = (9+9+4+strlen(notarybuf ? notarybuf : "") +
 		 strlen(statmsg) + strlen(message));
+#endif
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
 		  (notarybuf && report_notary) ? notarybuf : "",

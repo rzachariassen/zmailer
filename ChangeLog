@@ -1,3 +1,40 @@
+1999-12-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/threads.c:
+	    Spotted the final lurking thread-auto-switch bug -- "ho"
+	    and "ch" pointers at proc object were not updated at the
+	    rewritten  pick_next_thread()  function.
+
+	* transports/smtp/smtp.c:
+	    Spotted aplenty of suboptimal diagnostic() calls, and
+	    guarded them with   if (rp->lockoffset)  tests.  After
+	    a diagnostic is done, that variable is zero.
+
+	* transports/smtp/smtp.c:
+	    Consider DNS originating NONAME/NODATA errors to be fatal.
+	    (until we again spot something which tells me otherwise..)
+
+	* smtpserver/policytest.c, smtpserver/mxverify.c:
+	    If at MAIL FROM or RCPT TO the address domain is not found
+	    from the DNS, and code is  EAI_NONAME or EAI_NODATA, we yield
+	    500-series result.
+
+	* include/netdb6.h, libc/getaddrinfo.c:
+	    Synced  getaddrinfo() API constants with that of Linux
+	    glibc 2.1 proper.
+
+1999-12-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/prototypes.h, scheduler/threads.c, scheduler/transport.c,
+	  scheduler/update.c:
+	    Reworked vertex processing some more -- the child feed function
+	    (and *only* that) will call  pick_next_vertex().
+
+1999-12-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/scheduler.c:
+	    In sync_cfps() vertex index limits one-off :-(
+	
 1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/update.c,
