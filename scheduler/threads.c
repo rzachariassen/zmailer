@@ -1228,8 +1228,10 @@ time_t retrytime;
 	/* In every case the rescheduling means we move this thread
 	   to the end of the thread_head chain.. */
 
-	_thread_timechain_unlink(thr);
-	_thread_timechain_append(thr);
+	if (thr != NULL) {
+	  _thread_timechain_unlink(thr);
+	  _thread_timechain_append(thr);
+	}
 }
 
 

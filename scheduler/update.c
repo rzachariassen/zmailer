@@ -956,7 +956,9 @@ static int u_retryat(vp, index, inum, offset, notary, message)
 	  /* Pick next, but don't feed it (yet)! */
 	  pick_next_vertex(vp->proc, 0, 0);
 #endif
-	thread_reschedule(vp->thread, retrytime, index);
+
+	if (vp->thread != NULL)
+	  thread_reschedule(vp->thread, retrytime, index);
 
 	return 1;
 }

@@ -1,5 +1,5 @@
 /*
- *	Copyright 1994-1996 Matti Aarnio, all rights reserved.
+ *	Copyright 1994-1998 Matti Aarnio, all rights reserved.
  *	This module is a part of Zmailer, and subject to its
  *	distribution rules.
  */
@@ -9,8 +9,12 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#ifdef HAVE_SETRLIMIT
-/* ================================================================ */
+#if defined(HAVE_SETRLIMIT) && !defined(_AIX)
+/* AIX 4.2.1 has "funny" RLIMIT_NOFILE return value: RLIM_INFINITY ..
+   Earlier AIXes don't have RLIMIT_NOFILE resource, thus lets not let
+   AIX to use  setrlimit()  even when it exists.. */
+
+/* ================================================================== */
 
 #include <unistd.h>
 #include <sys/time.h>

@@ -1086,6 +1086,67 @@ static int syncweb(dq)
 	return wrkcnt;
 }
 
+
+static int sync_cfps __((struct ctlfile *, struct ctlfile *));
+static int sync_cfps(oldcfp, newcfp)
+     struct ctlfile *oldcfp, *newcfp;
+{
+	struct vertex *ovp, *nvp;
+	struct vertex *novp, *vp;
+
+	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
+	   If oldcfp has things that newcfp does not have, remove those from
+	   oldcfp chains.
+
+	   Chains start at  *cfp->head  pointer.
+
+	   Comparisons can be done in linear order with respective
+	   vp->orig[L_CHANNEL] and vp->orig[L_HOST] pointers to struct web..
+
+	   We presume the  newcfp  will not contain objects that oldcfp does
+	   not have -- while theorethically possible, it is not supported
+	   skenario..
+	*/
+
+	ovp = oldcfp->head;
+	nvp = newcfp->head;
+
+	while (ovp != NULL) {
+	  /* Always prepare for removal of the ovp object..
+	     Pick the next-ovp pointer now */
+	  novp = ovp->next[L_CTLFILE];
+
+	  /* Does this exist also on NVP chain ? */
+
+#define VTXMATCH(ovp,nvp) (((ovp)->orig[L_CHANNEL] == (nvp)->orig[L_CHANNEL]) && ((ovp)->orig[L_HOST] == (nvp)->orig[L_HOST]))
+
+	  if (!VTXMATCH(ovp,nvp)) {
+
+	    /* Uugh... Does not match :-( */
+
+	    vp = ovp;
+
+	    while (vp && !VTXMATCH(vp,nvp)) {
+	      vp = vp->next[L_CTLFILE];
+	    }
+	    if (vp == NULL) {
+	      /* New not in old at all ??? */
+	      return -1;
+	    }
+	    /* XX: All OVP instances before matching NVP
+	       are to be removed from OVP chains */
+	    /* XX: Adjust NOVP variable too */
+	  }
+	  if (VTXMATCH(ovp, nvp)) {
+	    /* XX: Verify that OVP and NVP have same amount
+	       of address indexes in them, adjust OVP if not. */
+	  }
+	  ovp = novp;
+	}
+	return 0;
+}
+
+
 void resync_file(proc, file)
 	struct procinfo *proc;
 	const char *file;
@@ -1147,15 +1208,44 @@ void resync_file(proc, file)
 
 	newcfp = schedule(fd, file, ino, 1);
 
+#if 0 /* XX: not usable before  sync_cfps()  works! */
+
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
+
+	  sync_cfps(oldcfp, newcfp);
+	  newcfp->id = 0; /* Don't scramble spt_mesh[] below */
+
+	  spl = sp_lookup((u_long)ino, spt_mesh[L_CTLFILE]);
+	  if (spl)
+	    sp_delete(spl, spt_mesh[L_CTLFILE]);
+	  oldcfp->id = ino;
+	  sp_install(oldcfp->id, (void *)oldcfp, 0, spt_mesh[L_CTLFILE]);
+
 	  printf(" .. resynced!\n");
 	} else {
 	  printf(" .. NOT resynced!\n");
+	  /* Sigh.. Throw everything away :-( */
+	  oldcfp->id = ino;
+	  cfp_free(oldcfp, NULL);
 	}
 
 	/* Delete it from memory */
+	if (newcfp != NULL)
+	  cfp_free0(newcfp);
+
+#else
+
+	if (newcfp != NULL) {
+	  printf(" .. resynced!\n");
+	} else {
+	  printf(" .. NOT resynced!\n");
+	  /* Sigh.. Throw everything away :-( */
+	  oldcfp->id = ino;
+	}
+	
 	cfp_free0(oldcfp);
+#endif
 }
 
 
@@ -1785,6 +1875,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 #endif
 	    {
 	      ehost = skip821address(host);
+	      strlower(host);
 	      if (ehost == NULL || ehost == host) /* error! */
 		continue;
 	    }
