@@ -81,12 +81,10 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  return -EX_NOHOST;
 
 	if (debug) {
-	  if (qtype == T_TXT)
-	    printf("000- TXT-lookup for domain: '%s'\n", host);
-	  else if (mxmode)
-	    printf("000- MX-Verify: Look MX for host '%s'\n", host);
-	  else
-	    printf("000- DNS-Verify: Look MX, or Addr for host '%s'\n", host);
+	  printf("000- dnsmxlookup('%s', depth=%d mxmode=%d qtype=%s)\n",
+		 host, depth, mxmode,
+		 ((qtype == T_TXT) ? "T_TXT" :
+		  ((qtype == T_MX) ? "T_MX" : "other")));
 	}
 
 	qlen = res_mkquery(QUERY, host, C_IN, qtype, NULL, 0, NULL,
@@ -217,6 +215,14 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  /* Sigh, waste of time :-( */
 	  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
 	  return -EX_SOFTWARE;
+	}
+
+
+	if (qtype == T_MX && !mxmode && had_mx_record) {
+	  /* Accept if found ANYTHING! */
+	  if (debug) printf("000-  ... accepted!\n");
+	  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	  return 1;
 	}
 
 
@@ -358,7 +364,6 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  cp += n;
 	  --arcount;
 	} /* Additional data collected! */
-
 
 	/* Now scan thru all MXes, if there are cases WITHOUT A or AAAA
 	   records, look them up here. */
