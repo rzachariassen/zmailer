@@ -2044,7 +2044,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	char buf[8192], *cp, *cpe;
 	int status;
 	struct passwd *pw;
-	FILE *errfp;
+	Sfio_t *errfp;
 	Sfio_t *fp;
 	time_t starttime, endtime;
 
@@ -2259,7 +2259,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	close(out[0]);
 	close(in[1]);
-	errfp = fdopen(in[0], "r");
+	errfp = sfnew(NULL, NULL, 16*1024, in[0], SF_READ|SF_LINE);
 	/* write the message */
 	mmdf_mode += 2;
 	eofindex = -1; /* NOT truncatable! */
@@ -2268,21 +2268,21 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	if (fp == NULL) {
 	  pid = wait(&status);
 	  close(out[1]);
-	  fclose(errfp);
+	  sfclose(errfp);
 	  close(in[0]);
 	  return status;
 	}
-	fclose(fp);
+	sfclose(fp);
 	/* read any messages from its stdout/err on in[0] */
 	/* ... having forked and set up the pipe, we quickly continue */
 	buf[sizeof(buf)-100] = 0; /* Chop it just to make sure */
-	if (fgets(buf, (sizeof buf) - 100, errfp) == NULL)
+	if (cfgets(buf, (sizeof buf) - 100, errfp) < 0)
 		buf[0] = '\0';
 	else if ((cp = strchr(buf, '\n')) != NULL)
 		*cp = '\0';
 	pid = wait(&status);
 	close(out[1]);
-	fclose(errfp);
+	sfclose(errfp);
 	close(in[0]);
 	cp = buf + strlen(buf);
 
