@@ -1,5 +1,26 @@
 1998-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Smarter processing for PIPELINING error reports;
+	    if PIPELINING mode yields error on MAIL FROM, use
+	    that report at all RCPT TO lines.
+	    Also support multiline reports from remote servers
+	    (up to a few kilobytes long..)
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/Makefile.in, smtpserver/policytest.h,
+	  smtpserver/smtpdata.c, smtpserver/contentpolicy.h:
+	    - Modified several multi-line policy report messages
+	      into a narrower form with same text folded on
+	      shorter lines
+	    - Added hooks for  contentpolicy()  function that
+	      will be able to analyze file content for possible
+	      acceptable content issues ("SPAM"...)
+
+	* libc/mail.c: mail_fname(FILE * mfp)
+	    A new function returning filename of currently open
+	    mail related FILE *.
+
 	* Makefile.in:
 	    Version 2.99.49p10-s10
 
