@@ -24,7 +24,7 @@ vacation \- reply to mail automatically
 ]
 .I [user]
 .SH DESCRIPTION
-.IX vacation "" "\fLvacation\fR \(em automatic mail replies"
+.IX vacation "" "\fIvacation\fR \(em automatic mail replies"
 .I vacation
 automatically replies to incoming mail.  The canned reply is
 contained in the file
@@ -66,7 +66,7 @@ message you want to send people who send you mail, and a
 .I \&.forward
 file in your home directory containing a line of the form:
 .IP
-\fL\fI"\\name\fL", "|@MAILBIN@/vacation \fIname\fL"\fR
+"\fI\\name\fR", "|@MAILBIN@/vacation \fIname\fR"
 .LP
 where 
 .I name

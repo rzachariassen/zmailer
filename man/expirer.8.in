@@ -1,56 +1,54 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8 "18 Aug 1996"
+.TH EXPIRER 8 "13 Feb 1998"
 .SH NAME
-errormail \- zmailer error message transport agent
+expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
-.B errormail
+.B expirer
 [
 .B \-c
 .I channel
 ]
 [
-.B \-V
+.B \-h
+.I hostname
+]
+[
+.B \-m
+.I "message string"
+]
+[
+.B \-l
+.I logfile
+]
+[
+.B \-Vs
 ]
 .SH DESCRIPTION
-.I errormail
-is a ZMailer transport agent which is usually only run by the
-.IR scheduler (8)
-program to produce error messages from canned forms.  The
-.I errormail
-program must be invoked with the same
+.I expirer
+is a ZMailer transport agent which is used to expire selected recipients
+from the queue before their normal expiration time with (possibly)
+a customized message.
+The
+.I expirer
+program must be run with root privileges and invoked with the same
 current directory as the
 .IR scheduler ,
 namely \fIPOSTOFFICE\fB/transport\fR.
-.PP
-The program will interpret the host part of an address destined for its channel
-as a file name in the \fIMAILSHARE\fB/forms\fR directory.  It will submit a
-new mail message consisting of the concatenation of:
-.IP
-\- a To: header containing the sender address (original error return address),
-.IP
-\- the file contents of the specified form,
-.IP
-\- the user name of each recipient address with some descriptive text indicating
-the specific error, and
-.IP
-\- the message file being processed.
-.PP
-This program is used to report errors on behalf of the ZMailer
-.IR router (8)
-and
-.IR scheduler (8)
-programs, and by implication also report delivery failures for the
-various transport agents.  The primary exception is syntax errors during
-message parsing in the
-.IR router .
 .SH OPTIONS
 .IP \-c\ \fIchannel\fR
-specifies which channel name should be keyed on.  The
-default is
-.BR error .
+Message recipient selector "channel" (optional)
+.IP \-h\ \fI"hostname"\fR
+Message recipient selector "host" (optional)
+.IP \-m\ \fI"message\ string"\fR
+An alternate report string.
+.IP \-s
+Silent mode. Message expiration occurs without any report to anywhere.
 .IP \-V
 prints a version message and exits.
+.IP \-l\ \fIlogfile\fR
+specifies a logfile.
+
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
@@ -90,15 +88,13 @@ log.
 .PP
 The exit status is a code from
 .BR <sysexits.h> .
+
 .SH FILES
 .I /etc/zmailer.conf
 .br
 .I /var/spool/postoffice (POSTOFFICE)
-.br
-.I /local/share/mail/forms (MAILSHARE/forms)
 .SH SEE ALSO
-scheduler(8), router(8)
+scheduler(8), manual-expirer(8)
 .SH AUTHOR
-This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
+This script is authored and copyright by:
+Matti Aarnio <mea@nic.funet.fi>

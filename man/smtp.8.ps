@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.10
-%%CreationDate: Wed Dec 25 02:39:39 1996
+%%CreationDate: Fri Feb 13 16:31:32 1998
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -318,54 +318,58 @@ sage transaction \(after sending the "." CRLF sequence\).)4.618 F(The)
 .691 -.15(ve S)-.2 H .392(MTP in its WKS-bits,).15 F(email deli)144
 223.2 Q -.15(ve)-.25 G
 (ry to such address is aborted with an error message.).15 E/F3 9
-/Times-Bold@0 SF(INTERF)72 240 Q -.495(AC)-.81 G(E).495 E F0 .61
-(As all transport agents, the program reads relati)108 252 R .909 -.15
-(ve p)-.25 H .609
-(athnames of message control \214les from standard input).15 F .25
-(\(terminated with tw)108 264 R 2.75(ol)-.1 G .251
-(inefeeds\), and produces diagnostic output on the standard output.)
--2.75 F .251(Normal diagnostic)5.251 F(output is of the form:)108 276 Q
-F1(id)144 300 Q F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1
-(notify-data)A F0(<T)A(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0
-(where)108 324 Q F1(id)3.666 E F0 1.166
-(is the inode number of the message \214le,)3.666 F F1(of)3.666 E(fset)
--.18 E F0 1.165(is a byte of)3.665 F 1.165
+/Times-Bold@0 SF(INTERF)72 240 Q -.495(AC)-.81 G(E).495 E F0 1.525
+(This program reads in processable \214le names relati)108 252 R 1.825
+-.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.524
+(orking directory of the scheduler)-.1 F(\(namely:)108 264 Q F1
+($POSTIOFFICE/tr)2.932 E(ansport/)-.15 E F0 2.932(\). Optionally)B .433
+(on the same line the scheduler may tell which host is to)2.933 F
+(be look)108 276 Q(ed for from the recipients of the message.)-.1 E F1
+-.37(re)144 300 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5 G
+(B>).93 E F1(hostname)2.5 E F0(])2.5 E
+(This program produces diagnostic output on the standard output.)108
+316.8 Q(Normal diagnostic output is of the form:)5 E F1(id)144 340.8 Q
+F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1(notify-data)A F0(<T)A
+(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 364.8 Q F1(id)
+3.666 E F0 1.166(is the inode number of the message \214le,)3.666 F F1
+(of)3.666 E(fset)-.18 E F0 1.165(is a byte of)3.665 F 1.165
 (fset within its control \214le where the)-.25 F .915
-(address being reported on is k)108 336 R(ept,)-.1 E F1(status)3.415 E
+(address being reported on is k)108 376.8 R(ept,)-.1 E F1(status)3.415 E
 F0 .915(is one of)3.415 F F2(ok)3.415 E F0(,)A F2(err)3.415 E(or)-.18 E
 F0 3.415(,o)C(r)-3.415 E F2(deferr)3.415 E(ed)-.18 E F0 3.415(,a)C .915
 (nd the)-3.415 F F1(messa)3.415 E -.1(ge)-.1 G F0 .915(is descripti)
-3.515 F -.15(ve)-.25 G(te)108 348 Q .85(xt associated with the report.)
--.15 F .85(The te)5.85 F .85(xt is terminated by a linefeed.)-.15 F(An)
-5.85 E 3.35(yo)-.15 G .85(ther format \(as might be pro-)-3.35 F(duced \
-by subprocesses\) is passed to standard output for logging in the)108
-360 Q F2(scheduler)2.5 E F0(log.)2.5 E(The e)108 376.8 Q
-(xit status is a code from)-.15 E F2(<sysexits.h>)2.5 E F0(.)A F3
-(EXTENDED SMTP)72 393.6 Q F0 1.339(When user sends out 8-bit mail with \
-proper headers, this module can send it out to conforming serv)108 405.6
-R(ers)-.15 E 2.887(either in 8-bit transparent manner)108 417.6 R 5.387
-(,o)-.4 G 5.387(rd)-5.387 G -.25(ow)-5.387 G(n-con).25 E -.15(ve)-.4 G
-(rting).15 E F1(Content-T)5.387 E -.15(ra)-.55 G(nsfer).15 E 2.887
-(-Encoding: 8BIT)-.2 F F0(to)5.387 E F1(Content-)5.387 E -1.55 -.55
-(Tr a)108 429.6 T(nsfer).55 E .505(-Encoding: 7BIT)-.2 F F0(or)3.005 E
-F1(Content-T)3.005 E -.15(ra)-.55 G(nsfer).15 E .505(-Encoding: Q)-.2 F
-(UO)-.1 E(TED-PRINT)-.4 E(ABLE)-.5 E F0 .506(depending on what is the)
-3.006 F(mail contents.)108 441.6 Q F2(This w)108 453.6 Q(orks only with)
--.1 E F1(Content-T)2.5 E(ype: te)-.74 E(xt/plain)-.2 E F2
-(thus no fancy multipart/alter)2.5 E(nate et.al. schemes..)-.15 E F0
-(When)108 465.6 Q F1(Content-T)3.963 E -.15(ra)-.55 G(nsfer).15 E
-(-Encoding:)-.2 E F0 1.462(\255header is not present in the headers, an\
-d recipient has not declared)3.963 F(8-bit SMTP capability)108 477.6 Q
-2.5(,m)-.65 G(ail contents are treated with old 7-bit stripping method.)
--2.5 E F3(FILES)72 494.4 Q F1(/etc/zmailer)108 506.4 Q(.conf)-1.11 E
-(/var/spool/postof)108 518.4 Q(\214ce \(POST)-.18 E(OFFICE\))-.18 E F3
-(SEE ALSO)72 535.2 Q F0(scheduler\(8\))108 547.2 Q
-(RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1653, RFC1428)108 559.2
-Q F3 -.45(AU)72 576 S(THOR).45 E F0(This program authored and cop)108
-588 Q(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 600
-Q(MIME do)108 612 Q(wncon)-.25 E -.15(ve)-.4 G
-(rting feature \(RFC1428\) by:).15 E(Matti Aarnio <mea@utu.\214>)108 624
-Q(25 Dec 1996)280.45 768 Q(2)203.45 E EP
+3.515 F -.15(ve)-.25 G(te)108 388.8 Q .85
+(xt associated with the report.)-.15 F .85(The te)5.85 F .85
+(xt is terminated by a linefeed.)-.15 F(An)5.85 E 3.35(yo)-.15 G .85
+(ther format \(as might be pro-)-3.35 F(duced by subprocesses\) is pass\
+ed to standard output for logging in the)108 400.8 Q F2(scheduler)2.5 E
+F0(log.)2.5 E(The e)108 417.6 Q(xit status is a code from)-.15 E F2
+(<sysexits.h>)2.5 E F0(.)A F3(EXTENDED SMTP)72 434.4 Q F0 1.339(When us\
+er sends out 8-bit mail with proper headers, this module can send it ou\
+t to conforming serv)108 446.4 R(ers)-.15 E 2.887
+(either in 8-bit transparent manner)108 458.4 R 5.387(,o)-.4 G 5.387(rd)
+-5.387 G -.25(ow)-5.387 G(n-con).25 E -.15(ve)-.4 G(rting).15 E F1
+(Content-T)5.387 E -.15(ra)-.55 G(nsfer).15 E 2.887(-Encoding: 8BIT)-.2
+F F0(to)5.387 E F1(Content-)5.387 E -1.55 -.55(Tr a)108 470.4 T(nsfer)
+.55 E .505(-Encoding: 7BIT)-.2 F F0(or)3.005 E F1(Content-T)3.005 E -.15
+(ra)-.55 G(nsfer).15 E .505(-Encoding: Q)-.2 F(UO)-.1 E(TED-PRINT)-.4 E
+(ABLE)-.5 E F0 .506(depending on what is the)3.006 F(mail contents.)108
+482.4 Q F2(This w)108 494.4 Q(orks only with)-.1 E F1(Content-T)2.5 E
+(ype: te)-.74 E(xt/plain)-.2 E F2(thus no fancy multipart/alter)2.5 E
+(nate et.al. schemes..)-.15 E F0(When)108 506.4 Q F1(Content-T)3.963 E
+-.15(ra)-.55 G(nsfer).15 E(-Encoding:)-.2 E F0 1.462(\255header is not \
+present in the headers, and recipient has not declared)3.963 F
+(8-bit SMTP capability)108 518.4 Q 2.5(,m)-.65 G
+(ail contents are treated with old 7-bit stripping method.)-2.5 E F3
+(FILES)72 535.2 Q F1(/etc/zmailer)108 547.2 Q(.conf)-1.11 E
+(/var/spool/postof)108 559.2 Q(\214ce \(POST)-.18 E(OFFICE\))-.18 E F3
+(SEE ALSO)72 576 Q F0(scheduler\(8\))108 588 Q
+(RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1653, RFC1428)108 600 Q
+F3 -.45(AU)72 616.8 S(THOR).45 E F0(This program authored and cop)108
+628.8 Q(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108
+640.8 Q(MIME do)108 652.8 Q(wncon)-.25 E -.15(ve)-.4 G
+(rting feature \(RFC1428\) by:).15 E(Matti Aarnio <mea@utu.\214>)108
+664.8 Q(25 Dec 1996)280.45 768 Q(2)203.45 E EP
 %%Trailer
 end
 %%EOF

@@ -68,10 +68,17 @@ specifies which channel name should be keyed on.  The default is
 .IP \-V
 prints a version message and exits.
 .SH INTERFACE
-As all transport agents, the program reads relative pathnames of message
-control files from standard input (terminated with two linefeeds), and
-produces diagnostic output on the standard output.  Normal diagnostic output
-is of the form:
+This program reads in processable file names relative to the current
+working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
+Optionally on the same line the scheduler may tell which host is to be
+looked for from the recipients of the message.
+.sp
+.nf
+	\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
+.fi
+.PP
+This program produces diagnostic output on the standard output.
+Normal diagnostic output is of the form:
 .sp
 .nf
 	\fIid\fR/\fIoffset\fR/\fIstatus\fR \fImessage\fR
