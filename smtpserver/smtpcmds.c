@@ -783,6 +783,47 @@ int insecure;
 	  fprintf(SS->mfp, " TLS-CCERT: <none>");
       }
       fprintf(SS->mfp, ")\n");
+
+      /* COMMENT SECTION GETTING IT ALL IN EVERY CASE! */
+
+      fprintf(SS->mfp, "comment %s ", SS->rhostname);
+      if (SS->ihostaddr[0] != 0)
+	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
+      rfc822commentprint(SS->mfp, SS->helobuf);
+
+#ifdef HAVE_WHOSON_H
+      if (do_whoson) {
+	fprintf(SS->mfp, " whoson: ");
+	rfc822commentprint(SS->mfp,
+			   ((SS->whoson_result == 0) ? SS->whoson_data :
+			    ((SS->whoson_result == 1) ? "-unregistered-" : 
+			     "-unavailable-")));
+      }
+#endif
+      fprintf(SS->mfp, " smtp-auth: ");
+      if (SS->authuser) {
+	rfc822commentprint(SS->mfp,SS->authuser);
+      } else {
+	fprintf(SS->mfp, "<none>");
+      }
+      if (SS->sslmode) {
+	fprintf(SS->mfp, " TLS-CIPHER: ");
+	if (SS->tls_cipher_info)
+	  rfc822commentprint(SS->mfp, SS->tls_cipher_info);
+	else
+	  fprintf(SS->mfp, "<none>");
+
+	fprintf(SS->mfp, " TLS-CCERT: ");
+	if (SS->tls_ccert_subject)
+	  rfc822commentprint(SS->mfp, SS->tls_ccert_subject);
+	else
+	  fprintf(SS->mfp, "<none>");
+      } else {
+	fprintf(SS->mfp, " TLS-CIPHER: <none>");
+	fprintf(SS->mfp, " TLS-CCERT: <none>");
+      }
+      fprintf(SS->mfp, ")\n");
+
     }
 
     if (bodytype != NULL)

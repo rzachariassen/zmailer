@@ -227,6 +227,7 @@ Usockaddr bindaddr;
 int bindaddr_set    = 0;
 u_short bindport = 0;
 int bindport_set = 0;
+int use_tcpwrapper = 0;
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -1553,7 +1554,8 @@ int insecure;
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
-    if (wantconn(SS->inputfd, "smtp-receiver") == 0) {
+    if (use_tcpwrapper &&
+	wantconn(SS->inputfd, "smtp-receiver") == 0) {
 	zsyslog((LOG_WARNING, "refusing connection from %s:%d/%s",
 		 SS->rhostname, SS->rport, SS->ident_username));
 	type(SS, 421, NULL, "%s ZMailer Server %s WILL NOT TALK TO YOU at %s",

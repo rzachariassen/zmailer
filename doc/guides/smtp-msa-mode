@@ -1,0 +1,165 @@
+	This email describes how MSA-mode can be used, and is included
+	in ZMailer sources per 2.99.52 level except that '-x' option
+	is replaced with  PARAM BindAddress  configuration parameter.
+
+	"rauth" and "pipeauth" files at in the contrib directory.
+
+			/Matti Aarnio - 1999-Aug-30
+
+Date:   Fri, 27 Aug 1999 14:34:47 +0200
+From:   Artur Urbanowicz <artur.urbanowicz@man.lublin.pl>
+Organization: Marie Curie-Sklodowska University
+To:     zmailer@nic.funet.fi
+Subject: Message submission via authenticated SMTP
+
+Thanks to the patches and the script attached to my message a
+multihomed machine can be configured as a mail exchanger and Message
+Submission Agent (RFC 2476) with client authentication for users of
+the multiple POP3/IMAP servers. Please check if the modifications can
+be incorporated into the standard distribution of the zmailer:
+
+  1. New, boolean parameter "MSA-mode" in smtpserver.conf. When
+     enabled, smtpserver *requires* the users outside of the trusted
+     network to authenticate themselves. In the MSA mode, smtpserver
+     replaces "Sender:" field in message coming from a verified user
+     with the user name (zmailer-msa-mode.patch).
+
+  2. Virtual SMTP service:
+
+     a) "-x" command-line parameter for specifying the IPv4
+        address the smtpserver binds to (zmailer-bindaddr4.patch);
+
+     b) "-I" command-line parameter for setting the PID file name
+        of the smtpserver (zmailer-pidfile.patch);
+
+     c) zmailer.sh patch for managing smtpserver instances if
+        $MAILVAR/smtpserver.conf is a directory of configuration
+        files (zmailer-multihome.patch);
+
+     d) new "-d <dbdir>" parameter in policy-builder.sh for managing
+        policy directories (zmailer-multihome.patch).
+
+     Now you can run multiple instances of the smtpserver. Just replace
+     $MAILVAR/smtpserver.conf with a directory of configuration files
+     "instance1", "instance2", "file-name-is-not-significant", and
+     so on. Because some smtpserver parameters (TCP port number, IP
+     address, log file location) can be specified in command line
+     only, you should place them in a file with the leading dot and name
+     corresponding to the appropriate configuration file: ".instance1",
+     ".instance2", ".file-name-is-not-significant":
+
+       zmailer kill smtpserver
+       mv smtpserver.conf smtpserver.conf.bak
+       mkdir smtpserver.conf
+       cd smtpserver.conf
+       mv ../smtpserver.conf.bak instance1
+       vi instance1
+       echo -a -sve -x 10.0.0.1 -l ${LOGDIR}/instance1 > .instance1
+       cp instance1 instance2
+       vi instance2
+       echo -a -sve -x 10.0.0.2 -l ${LOGDIR}/instance2 > .instance2
+       zmailer smtpserver
+
+     Patched zmailer startup script uses the appropriate dot file
+     instead of the SMTPOPTIONS variable from zmailer.conf. The PID
+     file location (-I file) is set automatically.
+
+  3. Easy and flexible authentication mechanism through an external
+     program, pointed by the PIPEAUTHPATH variable in zmailer.conf.
+     The program (or script) should read the user name from command
+     line and the password from the standard input. Exit status 0
+     means successfull authentication. The message directed to the
+     standard output or standard error is logged via syslogd
+     (facility=auth, priority=info). The authentication mechanism can
+     be dangerous when used without care (pipeauth-0.55/zpwmatch.c).
+
+  4. Script for client authenticatication against POP3/IMAP servers
+     (rauth-0.56/rauth). User name passed to the script must be combined
+     from the user identifier, "%" and his POP3/IMAP server name:
+
+       USER%HOST.DOMAIN
+
+     The password is read from the standard input. The script returns
+     exit status 0 if the USER can enter HOST.DOMAIN with "fetchmail
+     -c" and the password. Possible POP3/IMAP servers are restricted
+     to the hosts (or domains) listed in $MAILVAR/rauth.hosts.
+     To avoid autodetection, you can specify there an authentication
+     protocol to be used with particular host or domain. Use "pop3"
+     and "imap" or the secure incarnations of them: "spop3" and "simap"
+     when your fetchmail accepts "--plugin" paremeter and openssl suite
+     is available (see rauth-0.56/rauth-ssl-plugin).
+     The script can be easily extended to handle protocols other than
+     POP3/IMAP.
+
+
+The patches and sources can be applied to zmailer-2.99.51. Sorry, there
+is no Makefile yet:
+
+  # unpack the original sources
+  tar xzvf zmailer-2.99.51.tar.gz
+  cd zmailer-2.99.51
+
+  # apply the patches
+  patch -p1 < ../zmailer-msa-mode.patch
+  patch -p1 < ../zmailer-bindaddr4.patch
+  patch -p1 < ../zmailer-pidfile.patch
+  patch -p1 < ../zmailer-multihome.patch
+
+  # setup private authentication sources
+  tar xzvf ../pipeauth-0.55.tar.gz
+  mkdir smtpserver/private
+  cp pipeauth-0.55/zpwmatch.c smtpserver/private/zpwmatch.c
+
+  # make and install the program
+  ./configure --with-privateauth $YOUR_CONFIG_OPTIONS
+  make
+  make install
+
+  # install and configure remote authentication mechanism
+  tar xzvf ../rauth-0.56.tar.gz
+  chown -R root:root rauth-0.56
+  cp rauth-0.56/rauth rauth-0.56/rauth-ssl-plugin $MAILBIN/
+  cp rauth-0.56/rauth.hosts $MAILVAR/
+  vi $MAILVAR/rauth.hosts
+  echo PIPEAUTHPATH=$MAILBIN/rauth >> $ZCONFIG
+
+
+There are two facts about Netscape Communicator 4.6 and Microsoft
+Outlook Express 4.72 you should be aware of when implementing user
+authentication:
+
+  1. If Microsoft Outlook Express 4.72 was told the SMTP server
+     "requires authentication", it expects "530 Authorization
+     Required" (or similar) after submitting "MAIL FROM:" to the
+     server. The Outlook does not just authenticate a user first,
+     even if the SMTP server indicates authentication capability.
+
+  2. Netscape Communicator 4.6 refuses to submit a message when
+     SMTP server indicates authentication capability and user name
+     for the server is not configured (Edit> Preferences> Mail &
+     Newsgroups> Mail Servers> Outgoing Mail Server). The Netscape
+     *must* authenticate if SMTP server claims such capability.
+
+If you want to use the same configuration of the programs in your
+trusted network and the Internet, the strange behaviour prevents
+a single Mail Submission Agent from requiring authentication of the
+Internet users only. To keep things simple you should run a Mail
+Sumbission Agent requiring authentication from everybody (no trusted
+network at all).
+
+
+There are many servers here, in the Metropolitan Area Network of
+Lublin, with POP3-accessible accounts and poor SMTP implementation.
+The patches mentioned above applied to zmailer-2.99.51 allow our users
+to submit messages through spam-safe (and ORBS-safe), TLS- and
+SSL-aware mail server msa.lublin.pl disregarding the location: from
+local network and the Internet.
+
+Regards,
+Artur Urbanowicz
+
+P.S. Polish readers can access the additional documentation at
+     http://msa.lublin.pl. If you are interested in testing
+     msa.lublin.pl, just put a letter to my wife:
+
+        Ewa.Urbanowicz@man.lublin.pl

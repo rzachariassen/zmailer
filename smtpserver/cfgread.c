@@ -143,14 +143,20 @@ static void cfparam(str)
     } else if (cistrcmp(name, "Rcpt-Limit-Count") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
+#if 0
     } else if (cistrcmp(name, "accept-percent-kludge") == 0) {
 	percent_accept = 1;
+#endif
     } else if (cistrcmp(name, "reject-percent-kludge") == 0) {
 	percent_accept = -1;
     } else if (cistrcmp(name, "allowsourceroute") == 0) {
       allow_source_route = 1;
     } else if (cistrcmp(name, "max-error-recipients") == 0 && param1) {
 	sscanf(param1, "%d", &MaxErrorRecipients);
+    }
+
+    else if (cistrcmp(name, "use-tcp-wrapper") == 0) {
+	use_tcpwrapper = 1;
     }
 
     /* Two parameter policydb option: DBTYPE and DBPATH */
@@ -253,7 +259,9 @@ static void cfparam(str)
     } else if (cistrcmp(name, "tls-require-cert") == 0 && param1) {
       sscanf(param1,"%d", & tls_req_cert);
     }
-    /* XX: report error for unrecognized PARAM keyword ?? */
+    else {
+      /* XX: report error for unrecognized PARAM keyword ?? */
+    }
 }
 
 struct smtpconf *
