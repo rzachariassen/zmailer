@@ -313,7 +313,7 @@ search_res(sip)
 
 typedef union {
 	HEADER qb1;
-	char qb2[PACKETSZ];
+	char qb2[8000];
 } querybuf;
 
 struct mxdata {
@@ -425,6 +425,7 @@ getmxrr(host, ttlp, depth, flags)
 		cp += n;
 		type = _getshort(cp);
  		cp += 2;				/* type -- short */
+		/* class = _getshort(cp); */
  		cp += 2;				/* class -- short */
 		ttl = (time_t) _getlong(cp);
 		cp += 4;				/* ttl -- "long" */
@@ -463,7 +464,7 @@ getmxrr(host, ttlp, depth, flags)
 		    req.ai_socktype = SOCK_STREAM;
 		    req.ai_protocol = IPPROTO_TCP;
 		    req.ai_flags    = AI_CANONNAME;
-		    req.ai_family   = AF_INET; /* Both OK (IPv4/IPv6) */
+		    req.ai_family   = AF_INET;
 		    ai = NULL;
 		  
 #if !defined(GETADDRINFODEBUG)
@@ -481,7 +482,7 @@ getmxrr(host, ttlp, depth, flags)
 		    req.ai_socktype = SOCK_STREAM;
 		    req.ai_protocol = IPPROTO_TCP;
 		    req.ai_flags    = AI_CANONNAME;
-		    req.ai_family   = AF_INET6; /* Both OK (IPv4/IPv6) */
+		    req.ai_family   = AF_INET6;
 		    ai = NULL;
 		  
 #if !defined(GETADDRINFODEBUG)
@@ -494,7 +495,7 @@ getmxrr(host, ttlp, depth, flags)
 			maxpref = mx[nmx].pref;
 		    if (ai)
 		      freeaddrinfo(ai);
-#endif
+#endif /* INET6 */
 		    h_errno = herr;
 		  }
 		++nmx;

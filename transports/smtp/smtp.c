@@ -4442,7 +4442,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	/* If nscount isn't zero here, then (cp >= eom) is true ... */
 
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
-	while (arcount > 0 && cp < eom) {
+	/* BUT ONLY IF THE REPLY HAD 'AA' BIT SET! If it didn't,
+	   we must always ask A/AAAA separately.. */
+	while (hp->aa && arcount > 0 && cp < eom) {
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;

@@ -258,7 +258,12 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		 nscount, arcount, cp < eom);
 
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
-	while (nscount == 0 && arcount > 0 && cp < eom) {
+
+	/* To be sure that all ADDITIONAL SECTION data is valid, we
+	   look for the 'AA' bit.  If it isn't set, we don't use this
+	   data, but do explicite lookups below. */
+
+	while (hp->aa && nscount == 0 && arcount > 0 && cp < eom) {
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;

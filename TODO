@@ -69,6 +69,30 @@ transports/smtp:
 	Especially so if the ADDITIONAL DATA didn't cover all named servers
 	in the first round.
 
+	Discussion at the  bind-workers  list confirmed that if one gets
+	any ADDITIONAL DATA sesion records at all, those are pure bonus
+	showing what the DNS server had at its cache, and thus might not
+	contain A and AAAA for the machines.  E.g.:
+		zone1	IN MX 1 zone2
+			IN MX 2 zone3
+		zone2	IN A    1.2.3.4
+			IN AAAA 1111::3333
+		zone3	IN A    1.2.3.4
+			IN AAAA 1111::3333
+
+	If these zones are e.g. completely separate, initial cache content
+	may be of zone1 MXes, and nothing of zone2/zone3.  Then next query
+	is made for A records of zone2/zone3 by some other host.  Then IPv6
+	speaking one comes around, and get just zone2/zone3 A RRs in the
+	ADDATA part. IPv6 addresses must be queried separately.
+		2000/6/21: If given MX server does not have A or AAAA
+			   type data in ADDATA, missing ones are queried
+			   separately. (AAAA only if IPv6 mode is on.)
+		2000/6/22: Further tidbits from  bind-workers  told me
+			   that unless the AA-bit (authoritative answer)
+			   is set, the received ADDATA isn't possibly
+			   good to trust.
+
    BUGLET:
 	Right now we make eminently sensible commentary diagnostics carrying
 	individual recipient addresses, but how shall we do diagnostics when
