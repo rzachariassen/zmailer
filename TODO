@@ -11,6 +11,14 @@ libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
+libsh:
+	ssift and tsift do dequotation of input string:
+		address='"foo@bar"'
+		ssift "$address" in
+		...
+		tfiss
+	Inside the shifting: address='foo@bar'
+
 router:
 	Replace current multi-process router farm with one where queue
 	scanner runs interactive routers alike the smtpserver hooks

@@ -465,7 +465,7 @@ AC_C_CONST
 AC_HEADER_STDC
 
 # Timezones are always a pain in... everybody has their own ways :-(
-AC_CHECK_HEADER(sys/time.h)
+AC_CHECK_HEADERS(sys/time.h)
 AC_HEADER_TIME
 AC_STRUCT_TIMEZONE
 AC_STRUCT_TM
@@ -1248,7 +1248,7 @@ if test "$use_tcpwrappers" = 0 ; then
 #	fi
 #	: # "nop"	
 #-------------
-	AC_CHECK_HEADER(tcpd.h)
+	AC_CHECK_HEADERS(tcpd.h)
 	if test "$ac_cv_header_tcpd_h" = yes; then
 	    LIBWRAP="-lwrap"
 	    INCLWRAP=""
@@ -1352,7 +1352,7 @@ if test "$use_whoson" = 0 ; then
 #	fi
 #	: # "nop"	
 #-------------
-	AC_CHECK_HEADER(whoson.h)
+	AC_CHECK_HEADERS(whoson.h)
 	if test "$ac_cv_header_whoson_h" = yes; then
 	    LIBWHOSON="-lwhoson"
 	    INCLWHOSON=""
@@ -1481,14 +1481,14 @@ dnl #
 dnl #  At some systems the load-average can be gotten with these routines..
 dnl #
 dnl AC_SUBST(LIBLOADAVER)dnl
-dnl AC_CHECK_HEADER(kvm.h)
+dnl AC_CHECK_HEADERS(kvm.h)
 dnl #if test "$ac_cv_header_kvm_h" = yes; then
 dnl #  AC_DEFINE(SVR4_kvm)
 dnl #  LIBLOADAVER="-lkvm"
 dnl #  AC_MSG_RESULT([Presuming the need of -lkvm for load-average library])
 dnl #fi
 dnl 
-dnl AC_CHECK_HEADER(elf.h, [
+dnl AC_CHECK_HEADERS(elf.h, [
 dnl elf_LIBS="$LIBS"
 dnl have_nlist=0
 dnl AC_TRY_LINK([

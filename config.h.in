@@ -662,6 +662,9 @@
 /* Define if you have the <sys/statvfs.h> header file.  */
 #undef HAVE_SYS_STATVFS_H
 
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
+
 /* Define if you have the <sys/utsname.h> header file.  */
 #undef HAVE_SYS_UTSNAME_H
 
@@ -671,6 +674,9 @@
 /* Define if you have the <syslog.h> header file.  */
 #undef HAVE_SYSLOG_H
 
+/* Define if you have the <tcpd.h> header file.  */
+#undef HAVE_TCPD_H
+
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
 
@@ -679,6 +685,9 @@
 
 /* Define if you have the <varargs.h> header file.  */
 #undef HAVE_VARARGS_H
+
+/* Define if you have the <whoson.h> header file.  */
+#undef HAVE_WHOSON_H
 
 /* Define if you have the bsd library (-lbsd).  */
 #undef HAVE_LIBBSD

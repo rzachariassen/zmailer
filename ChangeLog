@@ -1,5 +1,11 @@
 1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* configure.in:
+	    Instead  AC_CHECK_HEADER() use AC_CHECK_HEADERS() macro.
+	    Former *should* work with single headers, but apparently not..
+
+1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
 	* Makefile.in:
 	    Version 2.99.51
 
