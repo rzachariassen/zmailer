@@ -863,7 +863,8 @@ mkSender(e, name, flag)
 			if (pp->p_next == NULL)
 				break;
 		}
-	} else if ((spl = sp_lookup(symbol(name), spt_fullnamemap)) != NULL) {
+	} else if ((spl = sp_lookup(symbol_db(name,spt_fullnamemap->symbols),
+				    spt_fullnamemap)) != NULL) {
 		*ppp = (struct addr *)tmalloc(sizeof (struct addr));
 		pp = *ppp;
 		ppp = &pp->p_next;
