@@ -223,10 +223,6 @@ transports/smtp:
 
 
 - scheduler:
-    BUG:
-	When scheduler does resyncing, the  mtaMessageCount & global_wrkcnt
-	will decrement below the real count.  "leak negative" so to speak.
-
     FEATURE/BUG:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
 	a diagnostic message telling of this situation!
