@@ -1303,6 +1303,7 @@ deliver(dp, rp, usernam, timestring)
 	  sv.pw       = pw;
 	  sv.uid      = uid;
 	  sv.username = usernam;
+	  sv.spoolfile = file;
 
 	  if (sieve_start(&sv) == 0) {
 	    for (;

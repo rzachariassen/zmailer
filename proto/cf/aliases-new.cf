@@ -142,13 +142,64 @@ else
        expired () { return 1 }
 fi
 
+#
+# ################################################################
+#
+# This is the main engine for expansion.  This will call
+# $(expand_$method $user $attr) for each method it's given, with a
+# guard against recursion, until it gets an answer.
+#
+# Note the difference between
+#	$(localexpand 'method1' "$user" "$host" "$attr" "$key")
+#	$(localexpand 'method2' "$user" "$host" "$attr" "$key")
+# and
+#	$(localexpand 'method1 method2' "$user" "$host" "$attr" "$key")
+#
+# In the first case, $(method2 foo) can get called recursively while
+# expanding $(method1 foo).  In the second case, $(method2 foo) will
+# not get called recursively while expanding $(method1 foo).
+# XXX Perhaps this distinction is a little too confusing; maybe
+# XXX there's a better way of doing it.
+
+localexpand (method, user, host, attr, key) {
+	local expansion success result
+
+	# This is the key used as a guard.
+	expansion="$@ * $user"
+
+	# A second instance of the same name disappears.
+	# XXX This is not quite the right place to do this.
+	# XXX And expansions should be split into two tables.
+	expansions "finished $expansion" && return ()
+
+	# A recursive instance of the same name gets rejected.
+	expansions "pending $expansion" && return 99
+
+	db add expansions "pending $expansion" 1
+	success=''
+	for method in "$@"; do
+		if result=$(expand_$method "$user" $attr "$origaddr"); then
+			success=yes
+			break
+		fi
+	done
+	db remove expansions "pending $expansion"
+
+	[ $success ] || return 99
+
+	db add expansions "finished $expansion" 1
+	return $result
+}
 
 
-# Usage: routeuser (channel host user attributes)
+#
+# ################################################################
+#
+#   Usage: routeuser (channel host user attributes)
 #
 # This is where local alias expansion is controlled.
 
-routeuser (quad, domain) {
+routeuser (quad, plustail, domain) {
 	local chan user host lcuser mxh al a l
 	local key attr pobox didexpand nattr homedir
 	local plustail plustail2 forward
@@ -233,7 +284,7 @@ routeuser (quad, domain) {
 		;;
 
 	:include:(.+)
-		a=$(expand_include "\1" "$host" "$attr" "$key") &&
+		a=$(expand_include "\1" "$host" "$attr" "$origaddr" "$key") &&
 			return $a
 		;;
 
@@ -427,55 +478,10 @@ routeuser (quad, domain) {
 	return (((error err.nosuchuser "$user$plustail$domain" $attr)))
 }
 
-# This is the main engine for expansion.  This will call
-# $(expand_$method $user $attr) for each method it's given, with a
-# guard against recursion, until it gets an answer.
+
 #
-# Note the difference between
-#	$(localexpand 'method1' "$user" "$host" "$attr" "$key")
-#	$(localexpand 'method2' "$user" "$host" "$attr" "$key")
-# and
-#	$(localexpand 'method1 method2' "$user" "$host" "$attr" "$key")
+# ################################################################
 #
-# In the first case, $(method2 foo) can get called recursively while
-# expanding $(method1 foo).  In the second case, $(method2 foo) will
-# not get called recursively while expanding $(method1 foo).
-# XXX Perhaps this distinction is a little too confusing; maybe
-# XXX there's a better way of doing it.
-
-localexpand (quad, origaddr) {	# method ...
-	local user attr expansion success result
-
-	user="$(user $quad)"
-	attr=$(attributes $quad)
-
-	# This is the key used as a guard.
-	expansion="$@ * $user"
-
-	# A second instance of the same name disappears.
-	# XXX This is not quite the right place to do this.
-	# XXX And expansions should be split into two tables.
-	expansions "finished $expansion" && return ()
-
-	# A recursive instance of the same name gets rejected.
-	expansions "pending $expansion" && return 99
-
-	db add expansions "pending $expansion" 1
-	success=''
-	for method in "$@"; do
-		if result=$(expand_$method "$user" $attr "$origaddr"); then
-			success=yes
-			break
-		fi
-	done
-	db remove expansions "pending $expansion"
-
-	[ $success ] || return 99
-
-	db add expansions "finished $expansion" 1
-	return $result
-}
-
 
 
 expand_pobox_host(user,host,attr,key) {

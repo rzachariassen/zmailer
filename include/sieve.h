@@ -10,6 +10,7 @@ struct sieve {
 	int			 uid;	 /* input */
 	const struct passwd	*pw;	 /* input */
 	const char		*username;  /* input */
+	const char		*spoolfile; /* input */
 	int			command;
 	struct ctldesc		*dp;
 	struct rcpt		*rp;
