@@ -508,38 +508,40 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	  
 	  /* The config-entry matches, we have changes to match group */
 
-	  for (thr = thg->thread, thr_once = 1;
-	       thr_once || (thr != thg->thread);
-	       thr = thr->nextthg, thr_once = 0) {
+	  if (thg->thread)
+	    for (thr = thg->thread, thr_once = 1;
+		 thr_once || (thr != thg->thread);
+		 thr = thr->nextthg, thr_once = 0) {
 
 #if 0
-	    if (!thr->vertex) abort();	/* No vertices ?? */
+	      if (!thr->vertex) abort();	/* No vertices ?? */
 
-	    /* no need ? (Channels within a group are identical..) */
-	    if (wc != thr->wchan)  abort();
+	      /* no need ? (Channels within a group are identical..) */
+	      if (wc != thr->wchan)  abort();
 #endif
-	    /* Nice! What about host ? */
-	    if (wh != thr->whost)  continue;
+	      /* Nice! What about host ? */
+	      if (wh != thr->whost)  continue;
 	    
-	    /* We have matching channel, AND matching host */
+	      /* We have matching channel, AND matching host */
 
-	    /* Link the vertex into this thread! */
+	      /* Link the vertex into this thread! */
 
-	    if (verbose)
-	      sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
-		     thg,cep->channel,thg->withhost,cep->host,
-		     wc->name,wh->name,thr->jobs+1);
+	      if (verbose)
+		sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
+			 thg,cep->channel,thg->withhost,cep->host,
+			 wc->name,wh->name,thr->jobs+1);
 
-	    _thread_linktail(thr,vp);
-	    vp->thgrp = thg;
-	    thr->jobs += 1;
-	    /* Hookay..  Try to start it, in case it isn't yet running */
-	    if (!(thg->cep->flags & CFG_QUEUEONLY)) {
+	      _thread_linktail(thr,vp);
+	      vp->thgrp = thg;
+	      thr->jobs += 1;
+	      /* Hookay..  Try to start it, in case it isn't yet running */
+	      if (!(thg->cep->flags & CFG_QUEUEONLY)) {
 		thread_start(thr);
+	      }
+
+	      return;
 	    }
 
-	    return;
-	  }
 	  /* No matching thread, however this GROUP matches (or does it?) */
 
 	  /* Add a new thread into this group */
