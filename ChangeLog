@@ -6,6 +6,7 @@
 	    'user:mailname' things didn't produce public results.
 	    Support is present for mapping  user+foo  to  user.name+foo@domain
 	    thru %-substitution.
+	    TODO: crossbar.cf visible header rewriting with 'plustail'
 
 	* transports/smtp/appendlet.c:
 	    Slipped a brain-fart into this code during the earlier
