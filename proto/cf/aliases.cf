@@ -662,7 +662,7 @@ fi
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
-		  a=$(echo -- "$a" |		q		\
+		  a=$(echo -- "$a" |				\
 		      listexpand -E "root" -e "root" -N -	\
 				-c "$user alias expansion"	\
 				$nattr "$user" "$host" "$plustail2" "$domain")
