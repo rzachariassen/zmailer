@@ -887,7 +887,10 @@ int insecure;
     }
     if (s)
 	free((void *) s);
-    SS->state = Recipient;
+
+    if (SS->mfp) /* State change only, if we still have the mfp */
+      SS->state = Recipient;
+
     SS->rcpt_count = 0;
     SS->from_box = (*cp == 0);
 }
@@ -1166,6 +1169,7 @@ const char *buf, *cp;
 	  }
       }
     }
+
     if (SS->policyresult < 0) {
 	char *ss = policymsg(policydb, &SS->policystate);
 

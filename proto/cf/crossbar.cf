@@ -306,7 +306,7 @@ internet (address, hname) {
 			address="\1@\2\3" # No hostname hiding...
 			;;
 	(.*)<(.+)>(.*)	address="\1\2\3" ;;		# defocus
-	[^@]+		
+	[^@]+
 		# This is a local part address w/o any domains!
 		address="$(condquote "$address")"
 		address="$address@$mydomain"	# add our hostname
@@ -315,4 +315,3 @@ internet (address, hname) {
 
 	return "$address"
 }	# end of internet
-
