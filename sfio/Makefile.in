@@ -1,0 +1,27 @@
+#
+#  A wrapper to compile SFIO library per that library's own machinery
+#  within ZMailer environment
+#
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+CC     = @CC@
+CFLAGS = @CFLAGS@
+
+all:
+	-mkdir -p lib include
+	DIR=`/bin/pwd`;PATH=$$DIR/$$srcdir/bin:$$PATH;export PATH; \
+		cd src/lib/sfio; $(MAKE) -f makefile  all
+	rm -f ../libs/libsfio.a ../libs/libstdio.a
+	ln lib/libsfio.a  ../libs/
+	ln lib/libstdio.a ../libs/
+	rm -f ../include/ast_common.h ../include/sfio.h
+	ln include/ast_common.h  ../include/
+	ln include/sfio.h        ../include/
+
+clean distclean:
+	cd src/lib/sfio; $(MAKE) -f makefile  clean
+	rm -f ../libs/libsfio.a ../libs/libstdio.a
+	rm -f ../include/ast_common.h ../include/sfio.h
