@@ -507,6 +507,8 @@ AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
 AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h)
 AC_CHECK_HEADERS(db2/db.h db2/db_185.h db3/db.h db3/db_185.h)
 
+dblocation=""
+
 LIBNDBM=""
 if test "$ac_cv_header_ndbm_h" = yes ; then
   t_found_at="nowhere"
@@ -636,7 +638,6 @@ fi
 LIBGDBM=""
 # Sometimes it is in libc, sometimes at separate lib...
 # Umm...
-dblocation=""
 if test "$ac_cv_header_gdbm_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_gdbm_open" = yes ; then

@@ -9,8 +9,8 @@ VPATH=          @srcdir@
 LIBRESOLVA= @LIBRESOLVA@
 LIBMALLOC=  @LIBMALLOC@
 
-ALL =		libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a \
-		libsfio.a $(LIBRESOLVA) lib@MALLOC@.a
+ALL =	libsfio.a libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a \
+	$(LIBRESOLVA) lib@MALLOC@.a
 
 
 libtag all: ${ALL}

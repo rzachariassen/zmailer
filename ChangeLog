@@ -1,3 +1,11 @@
+2000-08-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* configure.in, libs/Makefile.in:
+	    library building order correction, and autoconfiguration
+	    straightening so that lack of dbm databases is reported
+	    corrently. (The NDBM even with its faults is sort of ok,
+	    bit the DBM - its predecessor - is not...)
+
 2000-08-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* include/libz.h, scheduler/scheduler.c, scheduler/update.c,
