@@ -119,6 +119,8 @@ int type;
 {
     int len = strlen(str) + 1;	/* Terminating \000 included! */
 
+    if (len > (255-2)) return -2; /* BAD BAD!! */
+
     memcpy(pbuf->data, str, len);
     pbuf->len = len + 2;
     pbuf->type = type;
@@ -190,8 +192,11 @@ struct attribute *abuf;
 char *str1, *str2;
 {
     struct _tokenpair *ap = attributes;
+    int len = 2 + strlen(str2) + 1;
 
-    abuf->len = 2 + strlen(str2) + 1;
+    if (len > (255-2)) return -2;
+
+    abuf->len = len;
     strcpy((char *)(abuf->data), str2);
 
     while (ap->name != NULL) {

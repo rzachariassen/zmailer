@@ -1,3 +1,11 @@
+2003-11-06  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/readpolicy.c:
+	    Looked deeper into policy database compilation process.
+	    Behold; sysadmin can create attributes that are TOO LONG.
+	    Now the sysadmin can't.  Pattern compilation will fail
+	    at such.
+
 2003-11-05  Andrey Blochintsev <bag@iptelecom.net.ua>
 
 	* smtpserver/readpolicy.c:
