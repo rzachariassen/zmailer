@@ -8,9 +8,9 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
 
-INCDIR=	$(srcdir)/../../../include
+INCDIR=	../../../include
 LIBDIR=	../../../lib
-BINDIR=	../../../bin
+BINDIR=	$(srcdir)/../../../bin
 
 # Compiler and flags to use
 CXFLAGS=
@@ -56,17 +56,18 @@ SFIO_DC=Sfio_dc/sfdcdio.o Sfio_dc/sfdcdos.o Sfio_dc/sfdcfilter.o \
 	Sfio_dc/sfdcsubstream.o Sfio_dc/sfdctee.o Sfio_dc/sfdcunion.o
 
 .c.o:
-	$(CC) -c $(CCFLAGS) $*.c
+	$(CC) -c $(CCFLAGS) $<
 
 all:	install
 
 libsfio.a: ast_common.h FEATURE/sfio $(OBJS) mksfio_f mkstdio_s mksfio_dc
 	$(AR) cr libsfio.a $(OBJS) $(SFIO_F) $(STDIO_S) $(SFIO_DC)
 	-(ranlib libsfio.a; exit 0) >/dev/null 2>&1
-FEATURE/sfio: features/sfio
-	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run features/sfio
-ast_common.h: features/common
-	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run features/common > ast_common.h
+
+FEATURE/sfio: $(srcdir)/features/sfio
+	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/sfio
+ast_common.h: $(srcdir)/features/common
+	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/common > ast_common.h
 mksfio_f:
 	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
 		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
@@ -82,13 +83,13 @@ libstdio.a:
 		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
 
 install: libsfio.a libstdio.a
-	cp sfio.h ast_common.h sfio_t.h Stdio_s/stdio.h $(INCDIR)
+	cp $(srcdir)/sfio.h ast_common.h $(srcdir)/sfio_t.h $(srcdir)/Stdio_s/stdio.h $(INCDIR)
 	cp libsfio.a Stdio_b/libstdio.a $(LIBDIR)
 	-(ranlib $(LIBDIR)/libsfio.a; exit 0) >/dev/null 2>&1
 	-(ranlib $(LIBDIR)/libstdio.a; exit 0) >/dev/null 2>&1
 
 clean:
-	-(rm FEATURE/* $(OBJS) ast_common.h libsfio.a; exit 0) >/dev/null 2>&1
+	-rm -f FEATURE/* $(OBJS) ast_common.h libsfio.a
 	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL) clean
 	cd Stdio_s; $(MAKE) -f Makefile SHELL=$(SHELL) clean
 	cd Stdio_b; $(MAKE) -f Makefile SHELL=$(SHELL) clean

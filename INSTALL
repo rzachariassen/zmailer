@@ -90,6 +90,9 @@ Installation procedure:
 		mkdir myhost ; cd myhost
 		../configure ...
 		make ...
+	This approach may even be recommendable, as then you can
+	use same source tree to build several different target systems.
+
 
 	See if  SiteConfig  -file makes sense now, if not, you can tune
 	most of the values with various "--with-*=" -keywords:

@@ -1,5 +1,12 @@
 2000-03-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* INSTALL, configure.in, Makefile.in, sfio/Makefile.in,
+	  sfio/src/lib/sfio/makefile.in,
+	  sfio/src/lib/sfio/{Sfio_{dc,f},Stdio_{b,s}}:
+	    Made SFIO compilation environment to work also when running
+	    in "subdirectory" configuration (e.g. using  ../configure ...)
+	    Also cleaned up the SFIO configuration system a bit.
+
 	* doc/guides/smtp-policy:
 	    Added some words about the policy testing by using -T option.
 

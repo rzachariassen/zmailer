@@ -25,6 +25,11 @@ clean:
 	cd src/lib/sfio; $(MAKE) -f makefile  clean
 	rm -f ../libs/libsfio.a ../libs/libstdio.a
 	rm -f ../include/ast_common.h ../include/sfio.h
+	rm -f lib/*.a include/*.h
 
 distclean: clean
-	rm -f Makefile include/ast_common.h src/lib/sfio/makefile
+	rm -f Makefile src/lib/sfio/makefile
+	rm -f sfio/src/lib/sfio/Stdio_b/Makefile
+	rm -f sfio/src/lib/sfio/Stdio_s/Makefile
+	rm -f sfio/src/lib/sfio/Sfio_f/Makefile
+	rm -f sfio/src/lib/sfio/Sfio_dc/Makefile

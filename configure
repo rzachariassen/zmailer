@@ -9668,7 +9668,7 @@ fi
 
 for x in sfio sfio/src sfio/src/lib sfio/src/lib/sfio sfio/include sfio/lib
 do
-  if  ! -d $x ; then mkdir $x; fi
+  if test ! -d $x ; then mkdir $x; fi
 done
 
 trap '' 1 2 15
@@ -9783,6 +9783,10 @@ trap 'rm -fr `echo "Makefile
 	compat/Makefile			compat/rmail/Makefile		\
 	compat/sendmail/Makefile					\
 	sfio/Makefile			sfio/src/lib/sfio/makefile	\
+	sfio/src/lib/sfio/Stdio_b/Makefile				\
+	sfio/src/lib/sfio/Stdio_s/Makefile				\
+	sfio/src/lib/sfio/Sfio_f/Makefile				\
+	sfio/src/lib/sfio/Sfio_dc/Makefile				\
 	lib/Makefile			libc/Makefile			\
 	libident/Makefile		libs/Makefile			\
 	libsh/Makefile			libmalloc/Makefile		\
@@ -9968,6 +9972,10 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	compat/Makefile			compat/rmail/Makefile		\
 	compat/sendmail/Makefile					\
 	sfio/Makefile			sfio/src/lib/sfio/makefile	\
+	sfio/src/lib/sfio/Stdio_b/Makefile				\
+	sfio/src/lib/sfio/Stdio_s/Makefile				\
+	sfio/src/lib/sfio/Sfio_f/Makefile				\
+	sfio/src/lib/sfio/Sfio_dc/Makefile				\
 	lib/Makefile			libc/Makefile			\
 	libident/Makefile		libs/Makefile			\
 	libsh/Makefile			libmalloc/Makefile		\
