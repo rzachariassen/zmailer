@@ -1,7 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2002 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2003 by Matti Aarnio -- modifications,
+ *      including MIME things.
  */
 
 #include "smtp.h"
@@ -13,19 +14,21 @@ typedef union {
 } querybuf;
 
 int
-getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
+getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	SmtpState *SS;
 	const char *host;
 	struct mxdata mx[];
 	int maxmx, depth;
 	char realname[1024];
 	const int realnamesize;
+	time_t *realnamettlp;
 {
 	HEADER *hp;
 	msgdata *eom, *cp;
 	struct mxdata mxtemp;
 	int qlen, n, i, j, nmx, qdcount, ancount, nscount, arcount, maxpref;
 	int class;
+	long ttl;
 	u_short type;
 	int saw_cname = 0;
 	int had_eai_again = 0;
@@ -36,8 +39,10 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	h_errno = 0;
 
 #ifndef TEST
-	notary_setwtt  (NULL);
-	notary_setwttip(NULL);
+	if (maxmx > 2) {
+	  notary_setwtt  (NULL);
+	  notary_setwttip(NULL);
+	}
 #endif
 
 	if (depth == 0) {
@@ -111,9 +116,10 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	  fprintf(SS->verboselog, "\n");
 	}
 
-	rmsgappend(SS, 1,
-		   "\r-> DNSreply: len=%d rcode=%d qd=%d an=%d ns=%d ar=%d",
-		   n, hp->rcode, qdcount, ancount, nscount, arcount);
+	if (maxmx > 2)
+	  rmsgappend(SS, 1,
+		     "\r-> DNSreply: len=%d rcode=%d qd=%d an=%d ns=%d ar=%d",
+		     n, hp->rcode, qdcount, ancount, nscount, arcount);
 
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {
@@ -193,7 +199,8 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	  cp += 2;
 	  class = _getshort(cp);
 	  cp += 2;
-	  mx[nmx].expiry = now + _getlong(cp); /* TTL */
+	  ttl = _getlong(cp); /* TTL */
+	  mx[nmx].expiry = now + ttl;
 	  cp += 4; /* "long" -- but keep in mind that some machines
 		      have "funny" ideas about "long" -- those 64-bit
 		      ones, I mean ... */
@@ -215,6 +222,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	    --ancount;
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog, " -> CNAME: '%s'\n", realname);
+	    if (ttl < *realnamettlp) *realnamettlp = ttl;
 	    continue;
 	  } else if (type != T_MX)  {
 	    cp += n;
@@ -239,8 +247,9 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, " -> (%lds) MX[%d] pref=%d host=%s\n",
 		    (long)(mx[nmx].expiry - now), nmx, mx[nmx].pref, buf);
-	  rmsgappend(SS, 1, "\r-> %lds MX[%d] p=%d '%s'",
-		     mx[nmx].expiry - now, nmx, mx[nmx].pref, mx[nmx].host);
+	  if (maxmx > 2)
+	    rmsgappend(SS, 1, "\r-> %lds MX[%d] p=%d '%s'",
+		       mx[nmx].expiry - now, nmx, mx[nmx].pref, mx[nmx].host);
 	  mxtype[nmx] = 0;
 	  ++nmx;
 	  --ancount;
@@ -293,15 +302,16 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	    /* Yes, it is TRUNCATED reply!   Must retry with e.g.
 	       by using TCP! */
 	    /* FIXME: FIXME! FIXME! Truncated reply handling! */
-	    rmsgappend(SS, 1, "\r   TRUNCATED REPLY!");
+	    if (maxmx > 2)
+	      rmsgappend(SS, 1, "\r   TRUNCATED REPLY!");
 	  }
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"  left-over ANCOUNT=%d != 0! TC=%d\n",
 		    ancount, hp->tc);
 
-	  rmsgappend(SS, 1, "\r   AnswerCount  %d > 0!!", ancount);
-
+	  if (maxmx > 2)
+	    rmsgappend(SS, 1, "\r   AnswerCount  %d > 0!!", ancount);
 
 	  return EX_DEFERALL; /* FIXME?? FIXME?? */
 	}
@@ -309,7 +319,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	if (nmx == 0 && realname[0] != 0) {
 	  /* do it recursively for the real name */
 	  n = getmxrr(SS, (char *)realname, mx, maxmx, depth+1,
-		      realname, realnamesize);
+		      realname, realnamesize, realnamettlp);
 
 	  if (had_eai_again)
 	    return EX_DEFERALL;
@@ -349,130 +359,13 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	    --nscount;
 	}
 
+
+	/* =========================================================== */
 #if 0 /* Bloody Linux vs. FreeBSD implementation differences... (addrinfo internal handling) */
+#include "getmxrr-removed.txt"
 
-	/* If nscount isn't zero here, then (cp >= eom) is true ... */
-
-	/* Ok, can continue to pick the ADDITIONAL SECTION data */
-	/* BUT ONLY IF THE REPLY HAD 'AA' BIT SET! If it didn't,
-	   we must always ask A/AAAA separately.. */
-	while (hp->aa && arcount > 0 && cp < eom) {
-	  int ttl;
-	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
-	  if (n < 0) { cp = eom; break; }
-	  cp += n;
-	  if (cp+10 > eom) { cp = eom; break; }
-	  type  = _getshort(cp);
-	  cp += 2;
-	  class = _getshort(cp);
-	  cp += 2;
-	  ttl   = _getlong(cp);  /* TTL */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
-
-	  if (cp + n > eom) { cp = eom; break; }
-
-	  if (class != C_IN) {
-	    cp += n; --nscount;
-	    continue;
-	  }
-
-	  /* Ok, we have Type IN data in the ADDITIONAL SECTION */
-
-	  /* A and AAAA are known here! */
-
-	  if (type == T_A
-#if defined(AF_INET6) && defined(INET6)
-	      || (type == T_AAAA && use_ipv6)
-#endif
-	      ) {
-
-	    struct addrinfo *ai;
-	    Usockaddr *usa;
-	    char *canon;
-	    int   nlen = strlen((const char*)buf);
-
-	    /* Pick the address data */
-	    for (i = 0; i < nmx; ++i) {
-	      /* Is this known (wanted) name ?? */
-	      if (CISTREQ(buf, mx[i].host)) {
-		/* YES! */
-
-		/* We do have a wanted name! */
-
-		/* build addrinfo block, pick addresses */
-
-		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
-		   This assumes intimate knowledge of the system
-		   implementation of the  ``struct addrinfo'' !
-
-		   Linux and FreeBSD have DIFFERENT implementatoin!
-		   Other operating systems are likely different as well! */
-
-		if (SS->verboselog)
-		  fprintf(SS->verboselog,"  host='%s' AF=%s TTL=%d\n",
-			  buf, (type == T_A) ? "INET" : "INET6", ttl);
-
-		ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
-		if (ai == NULL) exit(EX_OSERR);
-		memset(ai, 0, sizeof(*ai) + sizeof(*usa) + nlen + 1);
-
-		usa   = (void*)((char *) ai + sizeof(*ai));
-
-		canon = ((char *)usa) + sizeof(*usa);
-		memcpy(canon, buf, nlen);
-
-		ai->ai_flags    = 0;
-		ai->ai_socktype = SOCK_STREAM;
-		ai->ai_protocol = IPPROTO_TCP;
-		ai->ai_addr     = (struct sockaddr *)usa;
-		ai->ai_addrlen  = sizeof(*usa);
-
-		/* At FreeBSD the 'ai_canonname' points to SEPARATE
-		   malloc() block, at Linux GLIBC it points inside
-		   this same... */
-		ai->ai_canonname = /* canon */ NULL;
-
-		ai->ai_next     = mx[i].ai;
-		mx[i].ai        = ai;
-
-		mxtype[i] |= (type == T_A) ? 1 : 2;
-
-		switch (type) {
-#if defined(AF_INET6) && defined(INET6)
-		case T_AAAA:
-		  ai->ai_family = PF_INET6;
-		  usa->v6.sin6_family = PF_INET6;
-		  memcpy(&usa->v6.sin6_addr, cp, 16);
-		  break;
-#endif
-		case T_A:
-		  ai->ai_family = PF_INET;
-		  usa->v4.sin_family = PF_INET;
-		  memcpy(&usa->v4.sin_addr, cp, 4);
-		  break;
-		default:
-		  break;
-		}
-	      } /* Matched name! */
-	    } /* Name matching loop */
-	  } /* type = T_A or T_AAAA */
-
-	  cp += n;
-	  --arcount;
-	} /* Additional data collected! */
-
-
-	if (SS->verboselog)
-	  for (i = 0; i < nmx; ++i) {
-	    if (mx[i].ai == NULL)
-	      fprintf(SS->verboselog, " MX lookup lacked ADDITIONAL SECTION Address for entry: MX %d %s\n",
-		      mx[i].pref, mx[i].host);
-	  }
 #endif /* Linux vs. FreeBSD implementation difference... */
+	/* =========================================================== */
 
 	/* Collect addresses for all those who don't have them from
 	   the ADDITIONAL SECTION data */
@@ -493,7 +386,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 
 	  if (mxtype[i] == 3)
 	    continue; /* Have both A and AAAA */
-#endif
+#endif /* INET6 */
 	  
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
@@ -511,19 +404,20 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	    n = getaddrinfo((const char*)mx[i].host, "0", &req, &ai);
 #else
 	    n = _getaddrinfo_((const char*)mx[i].host, "0", &req, &ai, SS->verboselog);
-#endif
+#endif /* HAVE_GETADDRINFO */
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n, gai_strerror(n), ai);
 	    if (n != 0)
-	      rmsgappend(SS, 1, "\r-> getaddrinfo(INET, '%s','0') -> r=%d (%s); ai=%p",
-			 mx[i].host, n, gai_strerror(n), ai);
+	      if (maxmx > 2)
+		rmsgappend(SS, 1, "\r-> getaddrinfo(INET, '%s','0') -> r=%d (%s); ai=%p",
+			   mx[i].host, n, gai_strerror(n), ai);
 #if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET) rc=%d",
 		       host, i, mx[i].host, n));
 	    }
-#endif
+#endif /* .. 0 */
 	    switch (n) {
 	    case 0:
 	      break;
@@ -563,20 +457,21 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 #else
 	    n2 = _getaddrinfo_((const char *)mx[i].host, "0", &req, &ai2,
 			       SS->verboselog);
-#endif
+#endif /* HAVE_GETADDRINFO */
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n2, gai_strerror(n2), ai2);
 
 	    if (n2 != 0)
-	      rmsgappend(SS, 1, "\r-> getaddrinfo(INET6,'%s') -> r=%d (%s); ai=%p",
-			 mx[i].host, n2, gai_strerror(n2), ai2);
+	      if (maxmx > 2)
+		rmsgappend(SS, 1, "\r-> getaddrinfo(INET6,'%s') -> r=%d (%s); ai=%p",
+			   mx[i].host, n2, gai_strerror(n2), ai2);
 #if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET6) rc=%d",
 		       host, i, mx[i].host, n));
 	    }
-#endif
+#endif /* .. 0 */
 	    switch (n2) {
 	    case 0:
 	      break;
@@ -606,7 +501,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	      *aip = ai2;
 	    }
 	  }
-#endif
+#endif /* INET6 */
 
 	  /* Catenate new stuff into the tail of the old ... */
 	  aip = &(mx[i].ai);
@@ -620,7 +515,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 #ifndef TEST
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"4.4.4 (DNS lookup report)",SS->remotemsg);
-#endif
+#endif /* .. TEST */
 
 	      had_eai_again = 1;
 	    }
@@ -655,7 +550,8 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 
 	for (i = 0; i < nmx; ++i) {
 	  if (mx[i].ai == NULL && mx[i].host != NULL) {
-	    rmsgappend(SS, 1, "\r-> No addresses for '%s'[%d]", mx[i].host, i);
+	    if (maxmx > 2)
+	      rmsgappend(SS, 1, "\r-> No addresses for '%s'[%d]", mx[i].host, i);
 	    free(mx[i].host);
 	    mx[i].host = NULL;
 	    continue;
@@ -665,9 +561,10 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	       CISTREQ(mx[i].ai->ai_canonname, myhostname)) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
-	    rmsgappend(SS, 1, "\r-> Selfmatch '%s'(%s)[%d]",
-		       mx[i].host, ((mx[i].ai->ai_canonname) ?
-				    mx[i].ai->ai_canonname : "-"), i);
+	    if (maxmx > 2)
+	      rmsgappend(SS, 1, "\r-> Selfmatch '%s'(%s)[%d]",
+			 mx[i].host, ((mx[i].ai->ai_canonname) ?
+				      mx[i].ai->ai_canonname : "-"), i);
 
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname ? mx[i].ai->ai_canonname : "<NIL>", myhostname);
@@ -680,8 +577,9 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 
 	if (SS->verboselog)
 	  fprintf(SS->verboselog,"  getmxrr('%s') -> nmx=%d, maxpref=%d, realname='%s'\n", host, nmx, maxpref, realname);
-	rmsgappend(SS, 1, "\r-> nmx=%d maxpref=%d realname='%s'",
-		   nmx, maxpref, realname);
+	if (maxmx > 2)
+	  rmsgappend(SS, 1, "\r-> nmx=%d maxpref=%d realname='%s'",
+		     nmx, maxpref, realname);
 
 	/* discard MX RRs with a value >= that of  myhost */
 	for (n = i = 0; n < nmx; ++n) {
@@ -740,12 +638,14 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	  return EX_DEFERALL;
 
 	if (n == 0) {/* MX's exist, but their WKS's show no TCP smtp service */
-	  rmsgappend(SS, 1, "\r=> NONE of MXes support SMTP!");
-	  time(&endtime);
+	  if (maxmx > 2) {
+	    rmsgappend(SS, 1, "\r=> NONE of MXes support SMTP!");
+	    time(&endtime);
 #ifndef TEST
-	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+	    notary_setxdelay((int)(endtime-starttime));
+	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
 #endif
+	  }
 	  return EX_UNAVAILABLE;
 	}
 
@@ -818,6 +718,8 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	return EX_OK;
 }
 
+
+/* rmsgappend() is here because of getmxrr() test facility */
 
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
@@ -928,6 +830,7 @@ int main(argc, argv)
 	SmtpState SS;
 	char *host, *s;
 	char realname[1024];
+	time_t realnamettl;
 
 	progname = argv[0];
 
@@ -956,7 +859,10 @@ int main(argc, argv)
 
 	printf("ZMAILER GETMXRR() TEST HARNESS\n");
 
-	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0, realname, sizeof(realname));
+	realname[0] = 0;
+	realnamettl = 84600;
+
+	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0, realname, sizeof(realname), &realnamettl);
 
 	switch (rc) {
 	case EX_OK:

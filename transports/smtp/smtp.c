@@ -89,6 +89,11 @@ static void tcpstream_denagle __((int fd));
 time_t starttime, endtime;
 
 
+static void add_cname_cache __((SmtpState *SS, const char *host, const char *realname, time_t realnamettl));
+static int  cname_lookup    __((SmtpState *SS, const char *host, char ** cnamep));
+
+
+
 const char *
 sysexitstr(r)
      int r;
@@ -1076,7 +1081,7 @@ deliver(SS, dp, startrp, endrp)
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
-	char *s, *se;
+	char *s, *se,  *rcpthost;
 	char SMTPbuf[2000];
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
@@ -1440,7 +1445,12 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate = SMTPSTATE_RCPTTO;
 
-	  if (SS->realname) { /* Urgh CNAME canonication ... */
+	  rcpthost = strchr(rp->addr->user, '@');
+	  if (rcpthost) ++rcpthost;
+
+	  if (rcpthost && (cname_lookup(SS, rcpthost, & rcpthost) > 0)) {
+	    /* re-using 'rcpthost' to have now CNAME version */
+
 	    const char *p = rp->addr->user;
 	    s = SMTPbuf;
 	    const char *e = s + 810;
@@ -1451,7 +1461,7 @@ deliver(SS, dp, startrp, endrp)
 
 	    if ('@' == *p) { /* Has "@-full" address, will rewrite.. */
 	      *s++ = *p++;
-	      p = SS->realname;
+	      p = rcpthost;
 	      while (*p && s < e) *s++ = *p++;
 	      *s++ = '>';
 	    }
@@ -2304,9 +2314,7 @@ smtpconn(SS, host, noMX)
 	char	hbuf[MAXHOSTNAMELEN+1];
 	char    realname[1024];
 	volatile int	rc;
-
-	if (SS->realname) free(SS->realname);
-	SS->realname = NULL;
+	time_t  realnamettl;
 
 	SS->literalport = -1;
 
@@ -2501,13 +2509,14 @@ smtpconn(SS, host, noMX)
 	    memset(SS->mxh, 0, sizeof(SS->mxh));
 
 	    realname[0] = 0;
+	    realnamettl = 86400; /* Max cache age.. */
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0,
-			 realname, sizeof(realname));
+			 realname, sizeof(realname), &realnamettl);
+	    realnamettl += now;
 
 	    if (rc == EX_OK) {
 	      mxsetsave(SS, host);
-	      if (realname[0] != 0)
-		SS->realname = strdup(realname);
+	      add_cname_cache(SS, host, *realname ? realname : NULL, realnamettl);
 	    }
 
 	    if (SS->verboselog) {
@@ -4576,7 +4585,7 @@ rightmx(spec_host, addr_host, cbparam)
 	  report(SS,"MX-lookup: %s", addr_host);
 
 	realname[0] = 0;
-	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0, realname, sizeof(realname))) {
+	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0, realname, sizeof(realname), NULL)) {
 	case EX_OK:
 	  if (SS->mxh[0].host == NULL)
 	    return CISTREQ(addr_host, SS->remotehost);
@@ -4763,4 +4772,193 @@ static void tcpstream_denagle(fd)
 	sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #endif
 #endif
+}
+
+
+/* ------------------------------------------------------------------
+ * 
+ *        CNAME caused translations; cache..
+ *
+ * ------------------------------------------------------------------ */
+
+struct cnamecache_struct {
+  int hash;
+  int next;
+  time_t ttl;
+  const char *name;
+  const char *cname;
+};
+
+#define CNAMECACHESIZE 1000
+
+static int cnamecache_head;
+static int cnamecache_free;
+static struct cnamecache_struct  *cnamecache; /* BSS NULL value */
+
+static void cnamecache_init __((FILE *verboselog));
+static void cnamecache_init(verboselog)
+     FILE *verboselog;
+{
+  int i;
+  cnamecache = malloc(sizeof(struct cnamecache_struct) * CNAMECACHESIZE);
+  if (!cnamecache) return; /* Urgh... */
+  memset(cnamecache, 0, sizeof(cnamecache));
+
+
+  for (i = 0; i < CNAMECACHESIZE; ++i) {
+    cnamecache[i].next = i+1;
+  }
+  cnamecache[CNAMECACHESIZE-1].next = -1;
+  cnamecache_free = 0;
+  cnamecache_head = -1;
+
+  /* if (verboselog) fprintf(verboselog,"CNAMEcache init() done\n"); */
+
+}
+
+static int namehash __((const char *));
+static int namehash(s)
+     const char *s;
+{
+  int hash = 0;
+  for ( ; *s ; ++s) {
+    unsigned char c = *s;
+    if ('A' <= c && c <= 'Z') c += ('a' - 'A');
+    hash += c;
+  }
+  return hash;
+}
+
+
+static int cname_lookup(SS, host, cnamep)
+     SmtpState *SS;
+     const char *host;
+     char ** cnamep;
+{
+  int hhash = namehash(host);
+  int idx, nextidx;
+
+  struct cnamecache_struct *ci, *cp;
+
+  if (!cnamecache) cnamecache_init(SS->verboselog);
+  if (!cnamecache) return -1; /* OOPS! */
+
+  if (SS->verboselog) fprintf(SS->verboselog,"cname_lookup(name='%s'[%d])\n", host, hhash);
+
+  for ( idx = cnamecache_head, cp = NULL ;
+	idx >= 0;
+	cp = ci, idx = nextidx) {
+
+    ci = & cnamecache[idx];
+    nextidx = ci->next;
+
+    if (ci->ttl < now) {
+      /* Move this entry to FREE chain */
+      if (cp) cp->next = ci->next;
+      ci->next = cnamecache_free;
+      cnamecache_free = idx;
+      if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
+      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      ci = cp; /* Keep PREV pointer.. */
+      continue;
+    }
+
+    if ((ci->hash == hhash) && ci->name && CISTREQ(ci->name, host)) {
+      *cnamep = ci->cname;
+      if (SS->verboselog) fprintf(SS->verboselog," ... found '%s'\n", ci->cname);
+
+      return 1;
+    }
+  }
+
+  /* Not in cache.. */
+
+#if 0 /* Not tonight... */
+  /* XXX: DNS LOOKUP! */
+
+  {
+    char realname[1024];
+    time_t realnamettl;
+
+    realname[0] = 0;
+    realnamettl = 86400; /* Max cache age.. */
+    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0,
+		 realname, sizeof(realname), &realnamettl);
+    realnamettl += now;
+
+  }
+#endif
+
+  if (SS->verboselog) fprintf(SS->verboselog," ... found nothing\n");
+
+  return 0;
+}
+
+static void add_cname_cache(SS, host, cname, ttl)
+     SmtpState *SS;
+     const char *host, *cname;
+     const time_t ttl;
+{
+  int hhash = namehash(host);
+  int idx, nextidx;
+  struct cnamecache_struct *ci, *cp;
+
+  if (!cnamecache) cnamecache_init(SS->verboselog);
+  if (!cnamecache) return; /* OOPS! */
+
+  /* if (SS->verboselog) fprintf(SS->verboselog,"add_cname_cache(host='%s', cname='%s', ttl= +%d)\n",host,cname?cname:"<NULL>",(int)(ttl-now)); */
+
+
+  /* See if the table is full... */
+  if (cnamecache_free < 0) {
+    /* FULL!  We must blow a hole somewhere.. */
+    /* .. anywhere! .. then main-loop finds an empty spot.  */
+    cnamecache[ (rand() >> 12) % CNAMECACHESIZE ].ttl = now -1;
+  }
+
+  /* Check active list.. */
+  for ( idx = cnamecache_head, cp = NULL ;
+	idx >= 0 ;
+	idx = nextidx) {
+
+    ci = & cnamecache[idx];
+    nextidx = ci->next;
+
+    if (ci->ttl < now) {
+      /* Move this entry to FREE chain */
+      if (cp) cp->next = ci->next;
+      ci->next = cnamecache_free;
+      cnamecache_free = idx;
+      if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
+      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      ci = cp; /* Keep PREV pointer.. */
+      continue;
+    }
+
+    if (ci->hash == hhash && ci->name && CISTREQ(ci->name, host)) {
+      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      if (cname)  ci->cname = strdup(cname);
+      /* if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
+      return;
+    }
+  } /* thru active list */
+
+
+  /* Pick first from the free chain: */
+  idx = cnamecache_free;
+  ci = & cnamecache[ idx ];
+  cnamecache_free = ci->next;
+  ci->next = cnamecache_head;
+  cnamecache_head = idx;
+
+  if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
+  if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+  if (cname)  ci->cname = strdup(cname);
+  ci->name = strdup(host);
+  ci->hash = hhash;
+  ci->ttl  = ttl;
+
+  /*  if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
+
+  return;
 }
