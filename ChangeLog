@@ -1,5 +1,13 @@
 2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.c,
+	  include/ta.h, transports/libta/ctlopen.c:
+	    Initial hooks for RFC 2852.
+
+	* transports/libta/diagnostic.c:
+	    Turn on, temporarily, O_APPEND flag on the file.
+
 	* scheduler/msgerror.c:
 	    Missed variable inits, and malformed format statement.
 

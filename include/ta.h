@@ -56,6 +56,7 @@ struct rcpt {
 	const char	*orcpt;		/*  DSN  ORCPT=  string */
 	const char	*inrcpt;	/* "DSN" INRCPT= string */
 	const char	*notify;	/*  DSN  NOTIFY= flags  */
+	const char	*deliverby;	/*  RFC 2852  DELIVERBY */
 	int		notifyflgs;
 	char		***newmsgheader; /* message header line pointer ptr
 					   that points to an address of

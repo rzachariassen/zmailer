@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1999.
+ *      Copyright 1991-2000.
  */
 
 /*
@@ -176,6 +176,13 @@ static void cfparam(str)
     else if (cistrcmp(name, "tarpit") == 0 && param2 /* 2 params */) {
 	sscanf(param1,"%d",&tarpit_initial);
 	sscanf(param2,"%d",&tarpit_exponent);
+    }
+
+    else if (cistrcmp(name, "deliverby") == 0) {
+      if (param1)
+	deliverby_ok = atol(param1);
+      else
+	deliverby_ok = 0;
     }
 
     /* Two parameter policydb option: DBTYPE and DBPATH */

@@ -221,6 +221,7 @@ int ehlo_ok = 1;
 int etrn_ok = 1;
 int starttls_ok = 0;
 int msa_mode = 0;
+int deliverby_ok = -1; /* FIXME: RFC 2852 */
 etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
 char *tls_cert_file = NULL;
 char *tls_key_file  = NULL;
@@ -508,9 +509,9 @@ char **argv;
 	    break;
 	case 'S':		/* Log-suffix style */
 	    logstyle = 0;
-	    if (cistrcmp(optarg, "remote") == 0)
+	    if (CISTREQ(optarg, "remote"))
 		logstyle = 2;
-	    else if (cistrcmp(optarg, "local") == 0)
+	    else if (CISTREQ(optarg, "local"))
 		logstyle = 1;
 	    break;
 	case 'T':
@@ -521,9 +522,9 @@ char **argv;
 	    memset(&testaddr, 0, sizeof(testaddr));
 	    testaddr_set = 1;
 #if defined(AF_INET6) && defined(INET6)
-	    if (cistrncmp(optarg,"[ipv6 ",6) == 0 ||
-		cistrncmp(optarg,"[ipv6:",6) == 0 ||
-		cistrncmp(optarg,"[ipv6.",6) == 0) {
+	    if (CISTREQN(optarg,"[ipv6 ",6) ||
+		CISTREQN(optarg,"[ipv6:",6) ||
+		CISTREQN(optarg,"[ipv6.",6)) {
 	      char *s = strchr(optarg,']');
 	      if (s) *s = 0;
 	      if (inet_pton(AF_INET6, optarg+6, &testaddr.v6.sin6_addr) < 1) {
@@ -1794,8 +1795,8 @@ int insecure;
 	    fflush(logfp);
 	}
 	if (rc >= 0 && !strict_protocol) {
-	  if (cistrncmp(buf,"HELO",4) == 0 ||
-	      cistrncmp(buf,"EHLO",4) == 0)
+	  if (CISTREQN(buf,"HELO",4) ||
+	      CISTREQN(buf,"EHLO",4))
 	    rc = -1; /* Sigh... Bloody windows users naming their
 			machines with junky names, and M$ being
 			its normal incompetent protocol cleaner... */
@@ -1813,7 +1814,7 @@ int insecure;
 	if (!strict_protocol && c != '\n' && i > 3) {
 	  /* Some bloody systems send:  "QUIT\r",
 	     and then close the socket... */
-	  if (cistrcmp(buf,"QUIT") == 0) {
+	  if (CISTREQ(buf,"QUIT") == 0) {
 	    co = '\r';
 	    c = '\n'; /* Be happy... */
 	  }

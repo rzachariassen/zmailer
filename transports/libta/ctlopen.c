@@ -513,16 +513,16 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		  if (*s) *s++ = 0;
 		  prevrp->notifyflgs = 0;
 		  while (*p) {
-		    if (cistrncmp("NEVER",p,5)==0) {
+		    if (CISTREQN("NEVER",p,5)) {
 		      p += 5;
 		      prevrp->notifyflgs |= _DSN_NOTIFY_NEVER;
-		    } else if (cistrncmp("DELAY",p,5)==0) {
+		    } else if (CISTREQN("DELAY",p,5)) {
 		      p += 5;
 		      prevrp->notifyflgs |= _DSN_NOTIFY_DELAY;
-		    } else if (cistrncmp("SUCCESS",p,7)==0) {
+		    } else if (CISTREQN("SUCCESS",p,7)) {
 		      p += 7;
 		      prevrp->notifyflgs |= _DSN_NOTIFY_SUCCESS;
-		    } else if (cistrncmp("FAILURE",p,7)==0) {
+		    } else if (CISTREQN("FAILURE",p,7)) {
 		      p += 7;
 		      prevrp->notifyflgs |= _DSN_NOTIFY_FAILURE;
 		    } else
@@ -531,14 +531,21 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		  }
 		  continue;
 		}
-		if (cistrncmp("ORCPT=",s,6)==0) {
+		if (CISTREQN("BY=",s,3)) {
+		  s += 3;
+		  prevrp->deliverby = s;
+		  while (*s && *s != ' ' && *s != '\t') ++s;
+		  if (*s) *s++ = 0;
+		  continue;
+		}
+		if (CISTREQN("ORCPT=",s,6)) {
 		  s += 6;
 		  prevrp->orcpt = s;
 		  while (*s && *s != ' ' && *s != '\t') ++s;
 		  if (*s) *s++ = 0;
 		  continue;
 		}
-		if (cistrncmp("INRCPT=",s,7)==0) {
+		if (CISTREQN("INRCPT=",s,7)) {
 		  s += 7;
 		  prevrp->inrcpt = s;
 		  while (*s && *s != ' ' && *s != '\t') ++s;

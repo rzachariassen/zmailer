@@ -182,6 +182,13 @@ typedef struct {
     Usockaddr raddr;
     Usockaddr localsock;
 
+    const char * smtpfrom;	/* MAIL FROM:<...> */
+    time_t  deliverby_time;	/* RFC 2852 */
+    int	    deliverby_flags;
+#define DELIVERBY_R  1
+#define DELIVERBY_N  2
+#define DELIVERBY_T  4
+
     int   sslmode;		/* Set, when SSL/TLS in running */
 #ifdef HAVE_OPENSSL
     SSL * ssl;
@@ -260,6 +267,7 @@ extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;
 extern int msa_mode;
+extern int deliverby_ok;
 #define MAX_ETRN_CLUSTER_IDX 40
 typedef struct {
   char *nodename; char *username; char *password;

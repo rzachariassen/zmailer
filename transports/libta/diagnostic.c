@@ -384,6 +384,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 
 	  if (sbuf) {
 	    /* Log the diagnostic string to the file */
+	    int oldflg;
 #ifndef SPRINTF_CHAR
 	    len = 
 #endif
@@ -399,8 +400,14 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 					   writing to the log! */
 
 	    ctlsize = lseek(rp->desc->ctlfd, 0, SEEK_END);
+	    oldflg = fcntl(rp->desc->ctlfd, F_GETFL, 0);
+	    fcntl(rp->desc->ctlfd, F_SETFL, oldflg | O_APPEND);
 
 	    rc2 = write(rp->desc->ctlfd, sbuf, len);
+
+	    fcntl(rp->desc->ctlfd, F_SETFL, oldflg);
+
+
 	    if (rc2 != len || rc2 < 0 || len < 0) {
 	      /* UAARGH! -- write failed, must have disk full! */
 #ifdef HAVE_FTRUNCATE

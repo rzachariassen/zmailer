@@ -307,6 +307,11 @@ const char *buf, *cp;
 	if (dsn_ok)
 	  type(SS, -250, NULL, "DSN");		/* RFC 1891 */
 
+	if (deliverby_ok == 0)
+	  type(SS, -250, NULL, "DELIVERBY");	/* RFC 2852 */
+	else if (deliverby_ok > 0)
+	  type(SS, -250, NULL, "DELIVERBY %d", deliverby_ok);
+
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 
@@ -359,6 +364,9 @@ int insecure;
     authparam_len = 0;
 
     SS->sender_ok = 0;		/* Set it, when we are sure.. */
+
+    SS->deliverby_time  = 0;		/* RFC 2852 */
+    SS->deliverby_flags = 0;
 
     /* For ESMTP SIZE-option use we need to know
        how much space we have, it is easiest by
@@ -506,7 +514,7 @@ int insecure;
       addrlen = s - cp;	/* Length */
     }
 
-    /* BODY=8BITMIME SIZE=nnnn ENVID=xxxxxx RET=xxxx */
+    /* BODY=8BITMIME SIZE=nnnn ENVID=xxxxxx RET=xxxx BY=nnnn;FF */
     SS->sizeoptval = -1;
     SS->sizeoptsum = -1;
     drpt_envid = NULL;
@@ -640,6 +648,67 @@ int insecure;
 		break;
 	    }
 	    continue;
+	}
+	if (deliverby_ok >= 0 && CISTREQN("BY=", s, 3)) {
+	    /* RFC 2852: DELIVERBY extension */
+	    int neg = 0;
+	    int val = 0;
+	    int cnt = 0;
+	    p = s + 3;
+	    if (*p == '-') neg = *p++; /* non-zero flag */
+	    while ('0' <= *p && *p <= '9') {
+	      val = val * 10 + (*p - '0');
+	      ++p; ++cnt;
+	    }
+	    if (cnt > 9) {
+	    invalid_by_data:
+	      smtp_tarpit(SS);
+	      type821err(SS, 501, m554, buf, "Invalid data at BY= parameter: '%.200s'", s);
+	      rc = 1;
+	      break;
+	    }
+	    if (neg) val = -val;
+	    if (*p != ';') goto invalid_by_data;
+	    neg = 0;
+	    while (*p && *p != ' ' && *p != '\t') {
+	      switch(*p) {
+	      case 'T': case 't':
+		if (neg & DELIVERBY_T) goto invalid_by_data;
+		neg |= DELIVERBY_T;
+		break;
+	      case 'N': case 'n':
+		if (neg & (DELIVERBY_R|DELIVERBY_N)) goto invalid_by_data;
+		/* N and R are exclusive */
+		neg |= DELIVERBY_N;
+		break;
+	      case 'R': case 'r':
+		if (neg & (DELIVERBY_R|DELIVERBY_N)) goto invalid_by_data;
+		/* R and N are exclusive */
+		neg |= DELIVERBY_R;
+		break;
+	      default:
+		goto invalid_by_data;
+		break;
+	      }
+	      ++p;
+	    }
+	    if ((neg & (DELIVERBY_N|DELIVERBY_R)) == 0)
+	      goto invalid_by_data; /* Neither N or R ?! */
+	    if ((neg & DELIVERBY_R) && val <= 0) {
+	      type(SS, 501, m554,
+		   "The strict delivery deadline is already past: BY=%d;R%s",
+		   val, (neg & DELIVERBY_T) ? "T":"");
+	      rc = 1;
+	      break;
+	    }
+	    if ((neg & DELIVERBY_R) &&
+		deliverby_ok > 0 && val < deliverby_ok) {
+	      type(SS, 553, m571, "Too small short delivery deadline value given: %d\n", val);
+	      rc = 1;
+	      break;
+	    }
+	    SS->deliverby_time  = time(NULL) + val;
+	    SS->deliverby_flags = neg;
 	}
 
 	smtp_tarpit(SS);
@@ -883,6 +952,9 @@ int insecure;
     if (ident_flag)
 	fprintf(SS->mfp, "identinfo %s\n", SS->ident_username);
 
+    if (SS->smtpfrom) free((void*)SS->smtpfrom);
+    SS->smtpfrom = strndup(cp, addrlen);
+
     if (addrlen == 0)
 	fputs("channel error\n", SS->mfp);	/* Empty  MAIL FROM:<> */
     else {
@@ -959,7 +1031,7 @@ const char *buf, *cp;
     const char *drpt_notify, *drpt_orcpt;
     const char *newcp = NULL;
     const char *srcrtestatus = "";
-    int addrlen = 0, notifylen = 0, orcptlen = 0;
+    int addrlen = 0, notifylen = 0, orcptlen = 0, notifyflgs;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
 
@@ -1137,6 +1209,7 @@ const char *buf, *cp;
 	return;
     }
     drpt_notify = NULL;
+    notifyflgs  = 0;
     drpt_orcpt = NULL;
 
     while (*s) {
@@ -1156,13 +1229,13 @@ const char *buf, *cp;
 	    s += 7;
 	    while (*s) {
 		if (CISTREQN("SUCCESS", s, 7))
-		    s += 7;
+		    s += 7, notifyflgs |= 1;
 		else if (CISTREQN("FAILURE", s, 7))
-		    s += 7;
+		    s += 7, notifyflgs |= 2;
 		else if (CISTREQN("DELAY", s, 5))
-		    s += 5;
+		    s += 5, notifyflgs |= 4;
 		else if (CISTREQN("NEVER", s, 5))
-		    s += 5;
+		    s += 5, notifyflgs |= 8;
 		if (*s != ',')
 		    break;
 		++s;
@@ -1354,6 +1427,20 @@ const char *buf, *cp;
     if (drpt_notify) {
 	fputc(' ', SS->mfp);
 	fwrite(drpt_notify, 1, notifylen, SS->mfp);
+	if (!(notifyflgs & 8) /* Not 'NEVER' */ &&
+	    !(notifyflgs & 4) /* Not 'DELAY' */ &&
+	    (SS->deliverby_flags & DELIVERBY_N) /* 'N' mode */)
+	  /* RFC 2852: 4.1.4.2: */
+	  fwrite(",DELAY", 1, 6, SS->mfp);
+    }
+    if (SS->deliverby_time) {
+      fprintf(SS->mfp, " BY=%ld;", SS->deliverby_time);
+      if (SS->deliverby_flags & DELIVERBY_R)
+	fputc('R', SS->mfp);
+      if (SS->deliverby_flags & DELIVERBY_N)
+	fputc('N', SS->mfp);
+      if (SS->deliverby_flags & DELIVERBY_T)
+	fputc('T', SS->mfp);
     }
     if (drpt_orcpt) {
 	fputc(' ', SS->mfp);
@@ -1363,6 +1450,30 @@ const char *buf, *cp;
 	const char *ep = cp + addrlen;
 	fputs(" ORCPT=rfc822;", SS->mfp);
 	while (*p && p < ep) {
+	    char c = (*p) & 0xFF;
+	    if ('!' <= c && c <= '~' && c != '+' && c != '=')
+		fputc(c, SS->mfp);
+	    else
+		fprintf(SS->mfp, "+%02X", c);
+	    ++p;
+	}
+    }
+    { /* Our received inbound RCPT value */
+	const char *p = cp;
+	const char *ep = cp + addrlen;
+	fputs(" INRCPT=rfc822;", SS->mfp);
+	while (*p && p < ep) {
+	    char c = (*p) & 0xFF;
+	    if ('!' <= c && c <= '~' && c != '+' && c != '=')
+		fputc(c, SS->mfp);
+	    else
+		fprintf(SS->mfp, "+%02X", c);
+	    ++p;
+	}
+
+	fputs(" INFROM=rfc822;", SS->mfp);
+	p = SS->smtpfrom;
+	while (*p) {
 	    char c = (*p) & 0xFF;
 	    if ('!' <= c && c <= '~' && c != '+' && c != '=')
 		fputc(c, SS->mfp);
