@@ -18,7 +18,10 @@ struct addrinfo {
 };
 
 #define AI_PASSIVE     1       /* Socket address is intended for `bind'.  */
+#endif
+#ifndef AI_CANONNAME
 #define AI_CANONNAME   2       /* Request for canonical name.  */
+#endif
 #ifndef AI_NUMERICHOST
 #define AI_NUMERICHOST 4       /* Don't use name resolution.  */
 #endif
@@ -47,6 +50,4 @@ struct addrinfo {
 #define NI_NAMEREQD	0x04
 #define NI_NOFQDN	0x08
 #define NI_DGRAM	0x10
-#endif
-
 #endif
