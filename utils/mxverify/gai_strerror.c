@@ -1,13 +1,10 @@
 /*
 	Libc fill-in for ZMailer using IPv6 API
-	by Matti Aarnio <mea@nic.funet.fi> 1997, 2000
+	by Matti Aarnio <mea@nic.funet.fi> 1997
 
 	The original Craig Metz code is deeply Linux specific,
 	this adaptation tries to be way more generic..
 */
-
-#include "config.h"
-#ifndef HAVE_GAI_STRERROR
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -29,7 +26,7 @@ you didn't get a copy, you may request one from <license@inner.net>.
 
 */
 
-const char *gai_strerror(errnum)
+char *gai_strerror(errnum)
 int errnum;
 {
   static char buffer[24];
@@ -63,5 +60,3 @@ int errnum;
       return buffer;
   }
 }
-
-#endif

@@ -172,6 +172,7 @@ struct gaih {
   int (*gaih)__((const char *name, const struct gaih_service *service,
 		 const struct addrinfo *req, struct addrinfo **pai,
 		 FILE *));
+  char *famname;
 };
 
 static struct addrinfo default_hints =
@@ -236,7 +237,7 @@ gaih_local (name, service, req, pai, vlog)
   (*pai)->ai_socktype = req->ai_socktype ? req->ai_socktype : SOCK_STREAM;
   (*pai)->ai_protocol = req->ai_protocol;
   (*pai)->ai_addrlen = sizeof (struct sockaddr_un);
-  (*pai)->ai_addr = (void *) (*pai) + sizeof (struct addrinfo);
+  (*pai)->ai_addr = (void*)((char *) (*pai) + sizeof (struct addrinfo));
 
 #if HAVE_SA_LEN
   ((struct sockaddr_un *) (*pai)->ai_addr)->sun_len =
@@ -754,7 +755,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	(*pai)->ai_socktype = st2->socktype;
 	(*pai)->ai_protocol = st2->protocol;
 	(*pai)->ai_addrlen  = socklen;
-	(*pai)->ai_addr = (void *) (*pai) + sizeof(struct addrinfo);
+	(*pai)->ai_addr = (void *)((char*) (*pai) + sizeof(struct addrinfo));
 #if HAVE_SA_LEN
 	(*pai)->ai_addr->sa_len = socklen;
 #endif /* SALEN */
@@ -780,8 +781,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  }
 
 	if (c) {
-	  (*pai)->ai_canonname = ((void *) (*pai) +
-				  sizeof (struct addrinfo) + socklen);
+	  (*pai)->ai_canonname = (void *)((char *) (*pai) +
+					  sizeof (struct addrinfo) + socklen);
 	  strcpy ((*pai)->ai_canonname, c);
 
 	} else
@@ -804,10 +805,10 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 static struct gaih gaih[] = {
 #if defined(INET6) && defined(AF_INET6)
-  { PF_INET6, gaih_inet },
+  { PF_INET6, gaih_inet, "INET6" },
 #endif
-  { PF_INET,  gaih_inet  },
-  { PF_LOCAL, gaih_local },
+  { PF_INET,  gaih_inet, "INET"  },
+  { PF_LOCAL, gaih_local, "LOCAL" },
   { PF_UNSPEC, NULL }
 };
 
@@ -876,7 +877,7 @@ _getaddrinfo_ (name, service, hints, pai, vlog)
 	pg = g;
 	i = g->gaih (name, pservice, hints, end, vlog);
 	if (vlog)
-	  fprintf(vlog," g->gaih[%d]('%s',...) rc=%d\n",g->family,name,i);
+	  fprintf(vlog," g->gaih[%s]('%s',...) rc=%d\n",g->famname,name,i);
 
 	if (i != 0) {
 	  /* EAI_NODATA is a more specific result as it says that
