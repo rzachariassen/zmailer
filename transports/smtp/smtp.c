@@ -2523,7 +2523,7 @@ if (SS->verboselog)
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. All MXes rejected [we are the best?], no address: '%.200s')", host);
 #if 1
-		  zsyslog((LOG_ALERT, "%s", SS->remotemsg));
+		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
 		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
 #endif
 		} else {
@@ -2531,7 +2531,7 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",
 			  host, strerror(errno), gai_strerror(gai_err));
 #if 1
-		  zsyslog((LOG_ALERT, "%s", SS->remotemsg));
+		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
 		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
 #endif
 		}
