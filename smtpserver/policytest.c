@@ -871,8 +871,10 @@ int sourceaddr;
 	printf("000- policytestaddr: 'rcpt-dns-rbl %s' found;\n",
 	       state->values[P_A_RcptDnsRBL]);
       rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
+#if 0
       type(NULL, 0, NULL, "rcpt-dns-rbl test yiels: rc=%d rblmsg='%s'",rc,
 	   state->rblmsg ? state->rblmsg : "<none>");
+#endif
       if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
       if (debug)
 	printf("000-  rc=%d\n", rc);
