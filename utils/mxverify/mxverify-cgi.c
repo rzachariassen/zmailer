@@ -723,6 +723,12 @@ int readsmtp(sock)
 	      else
 		/* ERROR !!?? */
 		;
+	      if (linelen > 0) {
+		fprintf(stdout, " ");
+		htmlwrite(linebuf, linelen);
+		fprintf(stdout, "\n");
+		linelen = 0;
+	      }
 	      break;
 	    }
 	    if (c == '\r') continue; /* Ignore that */
@@ -744,6 +750,7 @@ int readsmtp(sock)
 	  if (linelen > 0) {
 	    fprintf(stdout, " ");
 	    htmlwrite(linebuf, linelen);
+	    linelen = 0;
 	  }
 	}
 	if (c < 0 && no_more) c = 0;
