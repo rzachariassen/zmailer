@@ -1,5 +1,17 @@
 2000-09-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* smtpserver/cfgread.c, man/smtpserver.8:
+	    Recognize "PARAM bindaddr iface:...." syntax to define
+	    named interface on which SOME address you want to bind.
+	    (Preferred IPv6 is exists, otherwise IPv4.)
+
+	* smtpserver/smtpdata.c:
+	    During DATA and BDAT processing, if the feeder
+	    failed to send first 1024 bytes of content, our
+	    data transfer watchdog timer was not initialized.
+	    I was wondering why one Solaris machine kept
+	    collecting hanging smtpserver processes...
+
 	* libc/mailvars.c, libc/mail.c, libc/sfmail.c:
 	    - Rearranged couple of variables to separate file
 	      so that  mail.c  object won't be included when

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "8 Jun 2000"
+.TH SMTPSERVER 8 "4 Sep 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -273,6 +273,7 @@ which is mandated by the RFC 821.
 .IP PARAM\ BindPort\ \ \ 25
 .IP PARAM\ BindAddress\ [0.0.0.0]
 .IP PARAM\ BindAddress\ [IPv6.0::0]
+.IP PARAM\ BindAddress\ iface:ifacename
 Per default the server mode SMTP-server binds to port 25 and any
 locally accepted address, but occasionally people seem to want to
 have separate server instances with different configurations, and

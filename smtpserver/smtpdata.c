@@ -631,7 +631,7 @@ char *msg;
 {
     register int c, state, *sts, endstate, cnt;
     register char *idxnum;
-    int timercnt = 1024;
+    int timercnt = 0;
 
 #ifdef NO_INCOMING_HEADER_PROCESSING
     idxnum = indexnum + 1;
@@ -682,6 +682,11 @@ char *msg;
     /*        ... that only "Subject:" has 8-bit chars ...       */
     mail_priority = _MAILPRIO_NORMAL;
     for (;;) {
+	if (--timercnt <= 0) {
+	    /* Re-arm for every kilobyte */
+	    alarm(SMTP_DATA_TIME_PER_LINE);
+	    timercnt = 1024;
+	}
 	c = s_getc(SS);
 	/* An EOF in here is an error! */
 #if EOF != -1
@@ -691,11 +696,6 @@ char *msg;
 	if (c < 0)
 	    return EOF;
 #endif
-	if (--timercnt <= 0) {
-	    /* Re-arm for every kilobyte */
-	    alarm(SMTP_DATA_TIME_PER_LINE);
-	    timercnt = 1024;
-	}
 	++cnt;
 	state = sts[state + idxnum[c]];
 	if (state & ~0xff) {
@@ -1152,7 +1152,7 @@ char *msg;
 register long incount;
 {
     register int c, cnt;
-    int timercnt = 1024;
+    int timercnt = 0;
 
     cnt = 0;
 
@@ -1160,14 +1160,14 @@ register long incount;
 
     /* ================ Normal email BODY input.. ================ */
     for (; incount > 0; --incount) {
-	c = s_getc(SS);
-	if (c == EOF)
-	    break;
 	if (--timercnt <= 0) {
 	    /* Re-arm for every kilobyte */
 	    alarm(SMTP_DATA_TIME_PER_LINE);
 	    timercnt = 1024;
 	}
+	c = s_getc(SS);
+	if (c == EOF)
+	    break;
 	++cnt;
 	/* Canonize CR+LF --> LF (UNIX style) */
 	if (c == '\r') {	/* Suspend sending, this is our 'mvbstate' */

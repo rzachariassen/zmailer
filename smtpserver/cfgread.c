@@ -128,9 +128,27 @@ static void cfparam(str)
 	  }
 	  bindaddr.v4.sin_family = AF_INET;
 	} else {
-	  /* XXX: TODO: Try to see if this is an interface name, and pick
-	     IPv4 and/or IPv6 addresses for that interface. */
-	  bindaddr_set = 0;
+	  if (CISTREQN(param1,"iface:",6)) {
+#if defined(AF_INET6) && defined(INET6)
+	    bindaddr.v6.sin6_family = AF_INET6;
+	    if (zgetifaddress(AF_INET6, param1+6,
+			      (struct sockaddr *)&bindaddr.v6.sin6_addr))
+	      /* Didn't get IPv6 interface address of given name.. */
+#endif
+	      {
+		if (zgetifaddress(AF_INET, param1+6,
+				  (struct sockaddr *)&bindaddr.v4.sin_addr)) {
+		  /* No recognized interface! */
+		  bindaddr_set = 0;
+		} else
+		  /* Got IPv4 type interface address */
+		  bindaddr.v4.sin_family = AF_INET;
+	      }
+	  } else {
+	    /* XXX: TODO: Try to see if this is an interface name, and pick
+	       IPv4 and/or IPv6 addresses for that interface. */
+	    bindaddr_set = 0;
+	  }
 	}
     }
 

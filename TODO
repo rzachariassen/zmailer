@@ -222,12 +222,6 @@ transports/smtp:
 - smtpserver
 
     BUG:
-	Sometimes read timeouts on remote socket are not causing
-	EOF returns reliably..
-
-    FEATURE:
-	Bind to named interface (pick its address with SIOCG(L)IFADDR)
-    BUG:
 	Control somehow if lack of configuration and/or PolicyDB is
 	a system security offence, or not..
 
