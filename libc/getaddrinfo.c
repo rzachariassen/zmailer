@@ -401,12 +401,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  fprintf(vlog, " gaih_inet('%s') gethostbyname() h=%p  h_errno=%d\n",
 		  name, h, h_errno);
 
-	if (!h && h_errno == NETDB_INTERNAL) {
-	  /* XXX FIX!FIX! garbage collect! */
-	  free(at);
-	  if (st != &nullserv) free(st);
-	  return -EAI_SYSTEM;
-	}
 	if (!h) {
 	  switch (h_errno) {
 	  case NETDB_INTERNAL:
