@@ -581,6 +581,21 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
   fi
 fi
 
+if test -n "$LIBNDBM" ; then
+  if test -z "ac_cv_ndbm_dbm_pagfno" ; then
+    LIBS="$LIBS $LIBNDBM"
+    AC_TRY_LINK([#include <sys/types.h>
+#include <ndbm.h>],
+		[DBM *tdbm; int fd = dbm_pagfno(tdbm);],
+		ac_cv_ndbm_dbm_pagfno=yes,
+		ac_cv_ndbm_dbm_pagfno=no)
+    LIBS="$t_oldLibs"
+  fi
+  if test "$ac_cv_ndbm_dbm_pagfno" = no ; then
+	AC_MSG_RESULT([WARNING: <ndbm.h> sighted, but linkage of dbm_pagfno() function fails!])
+	AC_MSG_RESULT([WARNING: YOU WILL PROPABLY BE IN A PICKLE DUE TO THIS!])
+  fi
+fi
 
 LIBSDBM=""
 # Sometimes it is in libc, sometimes at separate lib...

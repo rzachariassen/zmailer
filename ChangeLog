@@ -1,3 +1,19 @@
+2000-11-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in:
+	    Some reworking around NDBM tests -- we *MAY* have
+	    problems when <ndbm.h> is actually from BSD DB 1.85.
+	    Specifically in OpenBSD 2.7, several other BSDs as well.
+
+	* transports/smtp/getmxrr.c, scheduler/mailq.c,
+	  libc/myhostname.c:
+	    BSD  getaddrinfo()  call returns ai_canonname member as NULL
+	    in very common cases!  Uargh :-(
+
+	* lib/Makefile.in:
+	    At  'make selfaddrs-test', do use autoconfigured @LIBRESOLV@
+	    library reference.
+
 2000-11-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* lib/selfaddrs.c, lib/zgetifaddress.c:

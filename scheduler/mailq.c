@@ -355,7 +355,8 @@ main(argc, argv)
 	    }
 	    stashmyaddresses(NULL);
 	    if (ai && matchmyaddresses(ai) == 0) {
-	      fprintf(stdout, "[%s]\n", ai->ai_canonname);
+	      /* BSD systems can yield ai_canonname member NULL! */
+	      fprintf(stdout, "[%s]\n", ai->ai_canonname ? ai->ai_canonname : host);
 	      nonlocal = 1;
 	    } else
 	      nonlocal = 0;	/* "localhost" is per default a "local" */

@@ -15,13 +15,13 @@ TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-SMTP_LIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@ $(LIBMALLOC)
-SMTP_INCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
+SMTPLIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@ $(LIBMALLOC)
+SMTPINCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
 #
 SOURCE=		smtp.c appendlet.c smtptls.c getmxrr.c
 OBJS=		smtp.o appendlet.o smtptls.o getmxrr.o
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTP_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPINCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
 #
@@ -33,7 +33,7 @@ smtp-a:	smtp mprobe getmxrr-test
 
 smtp:	$(OBJS) version.o $(LIBDEB)
 	-rm -f smtp
-	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTP_LIB)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTPLIB)
 
 smtp.3rd: smtp
 	atom -tool 3rd -o smtp.3rd smtp
@@ -43,11 +43,11 @@ getmxrr-test.o: $(srcdir)/getmxrr.c $(srcdir)/smtp.h
 	$(CC) $(CFLAGS) -DTEST -c -o $@ $(srcdir)/getmxrr.c
 
 getmxrr-test:  getmxrr-test.o
-	$(CC) $(CFLAGS) -o $@ getmxrr-test.o version.o $(LIB) $(SMTP_LIB)
+	$(CC) $(CFLAGS) -o $@ getmxrr-test.o version.o $(LIB) $(SMTPLIB)
 
 mprobe:	mprobe.o version.o $(LIBDEB)
 	-rm -f mprobe
-	$(CC) $(CFLAGS) -o $@ mprobe.o version.o $(LIB) $(SMTP_LIB)
+	$(CC) $(CFLAGS) -o $@ mprobe.o version.o $(LIB) $(SMTPLIB)
 
 version.c:	$(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@

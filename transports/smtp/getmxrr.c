@@ -608,7 +608,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    mx[i].host = NULL;
 	    continue;
 	  }
-	  if (CISTREQ(mx[i].ai->ai_canonname, myhostname) ||
+	  if ((mx[i].ai->ai_canonname &&
+	       CISTREQ(mx[i].ai->ai_canonname, myhostname)) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
 	    if (SS->verboselog)

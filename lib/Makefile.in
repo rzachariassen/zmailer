@@ -46,7 +46,7 @@ rfc822date-test: rfc822date-test.o rfc822date.o
 	$(CC) $(CFLAGS) -o rfc822date-test rfc822date-test.o rfc822date.o
 
 selfaddrs-test: $(srcdir)/selfaddrs.c
-	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lresolv -lzm @LIBSOCKET@
+	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lzm @LIBRESOLV@ @LIBSOCKET@
 
 hashtest: $(srcdir)/hashtest.c crc32.o pjwhash32.o
 	$(CC) $(CFLAGS) -o hashtest $(srcdir)/hashtest.c crc32.o pjwhash32.o

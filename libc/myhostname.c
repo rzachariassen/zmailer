@@ -62,7 +62,7 @@ getmyhostname(namebuf, len)
 	    break; /* We try it again if we fail here with EAI_AGAIN */
 	}
 	if (ai != NULL) {
-	  if (ai->ai_canonname != NULL)
+	  if (ai->ai_canonname)
 	    strncpy(namebuf, ai->ai_canonname, len);
 	  namebuf[len-1] = 0;
 	  freeaddrinfo(ai);
