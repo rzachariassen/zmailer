@@ -855,7 +855,7 @@ struct thread *thr;
 
 	  /* Its idle process, feed it! */
 
-	  proc->hungry = 1;	/* Simulate hunger.. */
+	  proc->hungry += 1;	/* Simulate hunger.. */
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->fed != 0) {
 	    /* Duh! Nothing to feed! */
@@ -885,7 +885,7 @@ struct thread *thr;
 	    if (proc->overfed >= proc->thg->ce.overfeed)
 	      break;		/* if the limit is zero, don't overfeed ever.*/
 	    /* Ok, increment the counter, and loop back.. */
-	    proc->hungry = 1;	/* Simulate hunger.. */
+	    proc->hungry += 1;	/* Simulate hunger.. */
 	    pick_next_vertex(proc, 1, 0);
 	    /* If it got next,  ``proc->fed'' is now zero.. */
 	  }

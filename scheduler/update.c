@@ -173,7 +173,7 @@ update(fd, diagnostic)
 	     where actor tells, when it needs a new
 	     job to be fed to it. */
 	  if (proc->tofd   >= 0) {
-	    proc->hungry = 1;
+	    proc->hungry += 1;
 	    mytime(&proc->hungertime);
 	    if (proc->overfed > 0) {
 	      /* It was overfed, decrement that counter first.. */
@@ -206,7 +206,7 @@ update(fd, diagnostic)
 		if (proc->overfed >= proc->thg->ce.overfeed)
 		  break;	/* if the limit is zero, don't overfeed ever.*/
 		/* Ok, increment the counter, and loop back.. */
-		proc->hungry = 1; /* Simulate hunger.. */
+		proc->hungry += 1; /* Simulate hunger.. */
 		pick_next_vertex(proc, 1, 0);
 		/* If it got next,  ``proc->fed'' is now zero.. */
 	      }

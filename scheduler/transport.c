@@ -133,7 +133,7 @@ struct procinfo *proc;
 	  memcpy(proc->cmdbuf,"#idle\n", len);
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
-	  /* proc->overfed = 1; */
+	  proc->overfed = 2;
 	}
 	proc->cmdlen = len;
 
@@ -226,6 +226,8 @@ struct procinfo *proc;
 	static char *cmdbuf = NULL;
 	static int cmdbufspc = 0;
 	int cmdlen;
+
+	flush_child(proc);
 
 	if (proc->thread == NULL) {
 	  return; /* Might be called without next process.. */
@@ -322,8 +324,8 @@ struct procinfo *proc;
 	
 	if (proc->hungry) --hungry_childs;
 	/* It was fed (to buffer), clear this flag.. */
-	proc->hungry = 0;
-	proc->fed = 1;
+	proc->hungry  -= 1;
+	proc->fed      = 1;
 	proc->overfed += 1;
 
 	if (verbose)
