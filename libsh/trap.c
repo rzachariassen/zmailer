@@ -248,8 +248,7 @@ leaux(fcfd, path, srcstbufp)
 	struct stat *srcstbufp;
 {
 	FILE *fp;
-	int status, len, checknum;
-	long checkbin;
+	int status, len;
 	void *table;
 	struct stat objstbuf;
 	char buf[200];
