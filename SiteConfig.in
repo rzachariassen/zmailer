@@ -141,6 +141,7 @@ SCHEDULERDIRHASH=2
 # The router(s) inform the scheduler of new jobs.
 SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
 
+
 # Here you can put any ZM ``environment'' variables you want to place in
 # the system-wide configuration file (/etc/zmailer.conf).  Typically this
 # would be information used by the router configuration at your site.
@@ -242,6 +243,11 @@ DEFCHARSET=ISO-8859-1
 # line-start TABs.  There is no mechanism to turn line-start SPACEs
 # to TABs with any other value stored here.
 RFC822TABS=@RFC822TABS@
+
+# Existence NORECEIVEDFORCLAUSE ZENV variable forbids the transport agents
+# from adding '(ORCPT <...> ...)' or  'for <...> ' clauses to the top-most
+# "Received:" header.
+#NORECEIVEDFORCLAUSE=1
 
 # If the following limitations are exceeded then zmailcheck
 # will sent an alert.
