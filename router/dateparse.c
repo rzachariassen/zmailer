@@ -341,6 +341,7 @@ dateParse(localtmptr, t)
 	token822 *t;
 {
 	register int	val = 0, i, could_be;
+	int	alreadyhave = 0;
 	int	century, year, month, dayinmonth, days;
 	int	*prev_could_be, j, index, zone, aval, zoneindex, expect_zone;
 #define TYPESMAX 50
@@ -605,29 +606,56 @@ again:	/* \relax */
 	century = month = dayinmonth = -1;
 	year = 0;
 	sec = 0;
+	alreadyhave = 0;
 	for (i = 0; i < index; ++i) {
 		switch (types[i]) {
-		case HHMMSS:	sec = values[i]%100;
+		case HHMMSS:
+				if (!(alreadyhave & HHMMSS))
+				  sec = values[i]%100;
+				alreadyhave |= HHMMSS;
 				values[i] /= 100;
-		case HHMM:	sec += 60 * values[i]%100;
+		case HHMM:
+				if (!(alreadyhave & HHMM))
+				  sec += 60 * values[i]%100;
+				alreadyhave |= HHMM;
 				values[i] /= 100;
-		case HH:	values[i] *= 60;
-		case MM:	values[i] *= 60;
-		case SS:	sec += values[i];
+		case HH:
+				if (!(alreadyhave & HH))
+				  values[i] *= 60;
+				alreadyhave |= HH;
+		case MM:
+				if (!(alreadyhave & MM))
+				  values[i] *= 60;
+				alreadyhave |= MM;
+		case SS:
+				if (!(alreadyhave & SS))
+				  sec += values[i];
+				alreadyhave |= SS;
 				break;
-		case MIY:	month = values[i];
+		case MIY:
+				if (!(alreadyhave & MIY))
+				  month = values[i];
+				alreadyhave |= MIY;
 				break;
-		case DD:	dayinmonth = values[i];
+		case DD:
+				if (!(alreadyhave & DD))
+				  dayinmonth = values[i];
+				alreadyhave |= DD;
 				break;
 		case YY:
 				/* 00..38 => next century */
 				/* 39 .. 99 => this one */
-				values[i] += values[i] > 38 ? 1900 : 2000;
+				if (!(alreadyhave & YY))
+				  values[i] += values[i] > 38 ? 1900 : 2000;
+				alreadyhave |= YY;
 		case YYYY:
-				if (types[i] == YYYY)
-					have_year++;	/* explicit year */
-				year += values[i]%100;
-				century = values[i]/100;
+				if (!(alreadyhave & YYYY)) {
+				  if (types[i] == YYYY)
+				    have_year++;	/* explicit year */
+				  year += values[i]%100;
+				  century = values[i]/100;
+				}
+				alreadyhave |= YYYY;
 				break;
 		}
 	}

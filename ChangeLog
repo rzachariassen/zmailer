@@ -1,3 +1,15 @@
+1999-09-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/dateparse.c:
+	    Certain pathologic inputs are able to feed extra data to
+	    the date parsing, and it turned out to run with month zero,
+	    which caused division-by-zero --> core dump...
+
+1999-09-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.52-pre3
+
 1999-09-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c:
@@ -44,9 +56,9 @@
 	    CRC32() function.
 
 	* lib/symbol.c, lib/crc32.c, lib/hashtest.c:
-	    Separated CRC-31 (?) polynome calculator into separate module
-	    outside the  symbol.c;  Entrypoints: 'long crc32(char *s);' and
-	    'long crc32n(char *s, int len);'.
+	    Moved CRC-31 (?) polynome calculator into separate module
+	    outside the  symbol.c;  Entrypoints: 'long crc32(char *s);'
+	    and 'long crc32n(char *s, int len);'.
 
 1999-09-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

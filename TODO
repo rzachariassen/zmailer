@@ -29,6 +29,11 @@ router:
 		possible errno telling that there is e.g. temporary
 		access error with backend database...
 
+
+	RFC 822 special bug(?):  '%' is a special, and/or combination
+	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
+	to react mistakenly we 'Illegal-Object:'.
+
 	Replace current multi-process router farm with one where queue
 	scanner runs interactive routers alike the smtpserver hooks
 	to routers:
