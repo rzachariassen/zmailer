@@ -957,8 +957,8 @@ int insecure;
 
     if (SS->smtpfrom) free((void*)SS->smtpfrom);
     SS->smtpfrom = malloc(addrlen+1);
-    memcpy(SS->smtpfrom, cp, addrlen);
-    SS->smtpfrom[addrlen] = 0;
+    memcpy((void*)(SS->smtpfrom), cp, addrlen);
+    *((char*)(&SS->smtpfrom[addrlen])) = 0;
 
     if (addrlen == 0)
 	fputs("channel error\n", SS->mfp);	/* Empty  MAIL FROM:<> */

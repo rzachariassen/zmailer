@@ -1,5 +1,12 @@
 2000-09-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* lib/getaddrinfo.c, lib/getzenv.c,
+	  smtpserver/mxverify.c, smtpserver/smtpcmds.c:
+	    Pointer arithmetic with (void*) !! Urgh..
+
+	* smtpserver/Makefile.in:
+	    Oops.. QC failure, wrong dependency order -> compilation failure
+
 	* Makefile.in:
 	    Version 2.99.54
 

@@ -92,7 +92,7 @@ getzenv(variable)
 	  if (len <= 0)
 	    return NULL;
 	}
-	for (state = BOL, cp = zenviron; len > 0; --len, ++cp) {
+	for (state = BOL, cp=(unsigned char*)zenviron; len > 0; --len, ++cp) {
 	  if (*cp == '\n' || *cp == '\0') {
 	    state = BOL;
 	    continue;
@@ -101,7 +101,7 @@ getzenv(variable)
 	    continue;
 	  state = !BOL;
 	  if (varlen < len && *variable == *cp
-	      && strncmp(variable, cp, varlen) == 0
+	      && strncmp(variable, (void*)cp, varlen) == 0
 	      && *(cp+varlen) == '=')
 	    break;
 	}
@@ -109,13 +109,13 @@ getzenv(variable)
 	  for (cp += varlen+1; isascii(*cp) && isspace(*cp); ++cp)
 	    if (*cp == '\n') {
 	      *cp = '\0';
-	      return cp;	/* empty value */
+	      return (char*) cp;	/* empty value */
 	    }
 	  /*
 	   * We want to return cp, but also make sure the string is
 	   * properly terminated.
 	   */
-	  for (save = cp; *cp != '\0'; ++cp)
+	  for (save = (unsigned char *)cp; *cp != '\0'; ++cp)
 	    if (*cp == '\n') {
 	      *cp = '\0';
 	      break;

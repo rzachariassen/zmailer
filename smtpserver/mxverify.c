@@ -336,12 +336,12 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		if (debug) {
 		  struct sockaddr * sa = (struct sockaddr*) &usa;
 		  if (sa->sa_family == AF_INET) {
-		    inet_ntop(AF_INET, & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
+		    inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv4:[%s]\n", mx[i], buf);
 		  }
 #if defined(AF_INET6) && defined(INET6)
 		  else if (sa->sa_family == AF_INET6) {
-		    inet_ntop(AF_INET6, & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
+		    inet_ntop(AF_INET6, (void*) & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv6:[%s]\n", mx[i], buf);
 		  }
 #endif
@@ -442,12 +442,12 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	      struct sockaddr * sa = ai2->ai_addr;
 	      char buf[60];
 	      if (sa->sa_family == AF_INET) {
-		inet_ntop(AF_INET, & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
+		inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
 		printf("000-  matching %s address IPv4:[%s]\n", mx[n], buf);
 	      }
 #if defined(AF_INET6) && defined(INET6)
 	      else if (sa->sa_family == AF_INET6) {
-		inet_ntop(AF_INET6, & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
+		inet_ntop(AF_INET6, (void*) & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
 		printf("000-  matching %s address IPv6:[%s]\n", mx[n], buf);
 	      }
 #endif
@@ -674,7 +674,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	       D'uh.. alternate dataset has A record: 127.0.0.3 */
 	    char abuf[30];
 
-	    inet_ntop(AF_INET, hp->h_addr, abuf, sizeof(abuf));
+	    inet_ntop(AF_INET, (void*) hp->h_addr, abuf, sizeof(abuf));
 
 	    type(NULL,0,NULL, "Looked up DNS A object: %s -> %s", hbuf, abuf);
 

@@ -66,7 +66,7 @@ contentpolicy.o: $(srcdir)/contentpolicy.c $(srcdir)/policytest.h # ignored: $(s
 zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
 	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c
 
-$(PROGRAM):	$(OBJS) $(LIBDEB) version.o
+$(PROGRAM):	$(LIBDEB) $(OBJS) version.o
 	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTPSERVER_LIB)
 
 version.c:	$(OBJS) $(TOPDIR)/Makefile
