@@ -68,7 +68,7 @@ subdaemon_killr(RTR)
      RtState *RTR;
 {
 	if (RTR->routerpid > 1) {
-	  if (RTR->tofp == NULL)
+	  if (RTR->tofp)
 	    fclose(RTR->tofp);
 	  RTR->tofp   = NULL;
 	  if (RTR->fromfd >= 0)
