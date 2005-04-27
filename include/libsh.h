@@ -106,7 +106,7 @@ extern int sh_test __((int argc, const char *argv[]));
 /* libsh/trap.c */
 extern int  sprung;
 extern int  interrupted;
-extern const char * traps[];
+/* extern const char * traps[]; */
 extern RETSIGTYPE (*orig_handler[]) __((int));
 extern void traphup  __((int));
 extern void trapsnap __((void));
