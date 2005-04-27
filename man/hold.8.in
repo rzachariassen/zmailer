@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH HOLD 8zm "2003-Aug-28"
+.TH HOLD 8zm "2005-Apr-27"
 .SH NAME
 hold \- zmailer deferred processing transport agent
 .SH SYNOPSIS
@@ -33,6 +33,9 @@ Resource Record type name.
 .IP \fBtimeout\fR
 succeeds when the time given by the parameter (in normal seconds-since-epoch
 format) has passed.
+.IP \fBage\fR
+succeeds when message spool file is at least of given age.
+The interval can be given in complex '1d5h7m3s' -format.
 .IP \fBio\fR
 succeeds 10% of the time, to allow retry of temporary I/O failures.
 .IP \fBscript\fR
@@ -50,6 +53,7 @@ For example:
 .nf
 NS:nic.ddn.mil/cname
 TIMEOUT:649901432
+AGE:2h
 IO:error
 SCRIPT:homedir/joe
 HOME:joe

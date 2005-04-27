@@ -3400,7 +3400,7 @@ vcsetup(SS, sa, fdp, hostname)
 	char *hostname;
 {
 	int af, port;
-	volatile int addrsiz;
+	int addrsiz;
 	int sk;
 	Usockaddr *sai = (Usockaddr *)sa;
 	Usockaddr sad;

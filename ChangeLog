@@ -1,3 +1,9 @@
+2005-04-27  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/hold/hold.c, man/hold.8.in:
+	    Support holding until message age is at least specified.
+	    A variation of "timeout", but in a more generic form.
+
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtp.8.in, transports/smtp/smtp.c, transports/smtp/smtp.h:

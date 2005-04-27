@@ -1,7 +1,7 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2003 Matti Aarnio -- MIME processing et.al.
+ *	Copyright 1992-2005 Matti Aarnio -- MIME processing et.al.
  */
 
 #include "mailer.h"
@@ -131,7 +131,7 @@ int	D_alloc = 0;
 extern char *optarg;
 extern int optind;
 extern void process __((struct ctldesc *));
-extern int  hold __((const char *, char **));
+extern int  hold __((struct ctldesc *, const char *, char **));
 extern char **environ;
 
 #ifndef strchr
@@ -325,7 +325,7 @@ process(dp)
 	sawok = 0;
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  cp = rp->addr->user;
-	  rp->status = hold(rp->addr->host, (char**)&(rp->addr->user));
+	  rp->status = hold(dp, rp->addr->host, (char**)&(rp->addr->user));
 	  if (rp->status == EX_OK) {
 	    rp->addr->user = cp;
 	    sawok = 1;
@@ -462,27 +462,30 @@ process(dp)
  * string is canonicalized and parsed hierarchically.
  */
 
-extern int hold_ns	__(( const char* ));
-extern int hold_timeout	__(( const char* ));
-extern int hold_io	__(( const char* ));
-extern int hold_script	__(( const char* ));
-extern int hold_home	__(( const char* ));
+extern int hold_ns	__(( struct ctldesc *, const char* ));
+extern int hold_timeout	__(( struct ctldesc *, const char* ));
+extern int hold_io	__(( struct ctldesc *, const char* ));
+extern int hold_script	__(( struct ctldesc *, const char* ));
+extern int hold_home	__(( struct ctldesc *, const char* ));
+extern int hold_age	__(( struct ctldesc *, const char* ));
 
 struct holds_info {
 	const char	*type;
-	int	(*f) __(( const char * ));
+	int	(*f) __(( struct ctldesc *dp, const char * ));
 } holds[] = {
 	{	"ns",		hold_ns		},
 	{	"timeout",	hold_timeout	},
 	{	"io",		hold_io		},
 	{	"script",	hold_script	},
 	{	"home",		hold_home	},
+	{	"age",		hold_age	},
 	{	NULL,		NULL		},
 };
 
 
 int
-hold(s, errmsgp)
+hold(dp, s, errmsgp)
+	struct ctldesc *dp;
 	const char *s;
 	char **errmsgp;
 {
@@ -522,7 +525,7 @@ hold(s, errmsgp)
 
 	errormsg[0] = '\0';
 
-	if ((hip->f)(colon))
+	if ((hip->f)(dp, colon))
 	  v = EX_OK;		/* resubmit the message address */
 	else
 	  v = EX_TEMPFAIL;	/* defer resubmission */
@@ -569,7 +572,8 @@ struct qtypes {
 };
 
 int
-hold_ns(s)
+hold_ns(dp, s)
+	struct ctldesc *dp;
 	const char *s;
 {
 	struct qtypes *qtp;
@@ -623,7 +627,8 @@ struct qtypes {
 };
 
 int
-hold_ns(s)
+hold_ns(dp, s)
+	struct ctldesc *dp;
 	char *s;
 {
 	struct qtypes *qtp;
@@ -668,7 +673,8 @@ hold_ns(s)
 /* return true if the seconds-since-epoch in argument has passed */
 
 int
-hold_timeout(s)
+hold_timeout(dp, s)
+	struct ctldesc *dp;
 	const char *s;
 {
 	time_t now, then;
@@ -681,7 +687,8 @@ hold_timeout(s)
 /* return true if we should retry the I/O operation causing the error */
 
 int
-hold_io(s)
+hold_io(dp, s)
+	struct ctldesc *dp;
 	const char *s;
 {
 	return ranny(9) == 0;	/* 10% of the time */
@@ -691,7 +698,8 @@ hold_io(s)
    return exit status of "$MAILBIN/bin/command $user" command */
 
 int
-hold_script(command)
+hold_script(dp, command)
+	struct ctldesc *dp;
 	const char *command;
 {
 	int i, in[2];
@@ -808,8 +816,9 @@ hold_script(command)
    null, then we "succeed", to try to redeliver the mail. */
 
 int
-hold_home(user)
-const char *user;
+hold_home(dp, user)
+	struct ctldesc *dp;
+	const char *user;
 {
 	struct Zpasswd *pw;
 	struct stat st;
@@ -825,4 +834,24 @@ const char *user;
 	if (stat(pw->pw_dir, &st) == 0 &&
 	    S_ISDIR(st.st_mode)) return 1;
 	return 0;
+}
+
+
+
+/* A timeout until given age since message spool file creation
+ */
+
+int
+hold_age(dp, age)
+	struct ctldesc *dp;
+	const char *age;
+{
+	time_t now, then;
+
+	time(&now);
+
+	then = parse_interval(age, NULL);
+	then += dp->msgmtime;
+
+	return now >= then;
 }

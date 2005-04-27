@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8zm "2004-Apr-19"
+.TH SCHEDULER 8zm "2005-May-25"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -170,8 +170,10 @@ supply that parameter.
 Default behaviour is similar to RET=FULL, while usage of this option
 is equivalent of RET=HDRS.  This option does not override originator
 supplied DSN RET parameter value.
+.RE
 .PP
 .IP "\-p \fIchannel/host\fR"
+.RS
 A debug-type option for running selectively some thread under a single
 instance of the
 .IR scheduler .
