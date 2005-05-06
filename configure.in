@@ -626,7 +626,12 @@ dblocation=""
 
 without_ndbm=0
 AC_ARG_WITH(ndbm,  [  --without-ndbm           Disable search for, and use of NDBM, even if it could be found],
-		   without_ndbm=1)
+		   if test "$withval" = no ; then
+			without_ndbm=1
+		    else
+			without_ndbm=0
+		    fi
+		    )
 LIBNDBM=""
 t_have_dbm_error=no
 if test "$ac_cv_header_ndbm_h" = yes -a $without_ndbm = 0; then
@@ -830,7 +835,12 @@ LIBGDBM=""
 # Umm...
 without_gdbm=0
 AC_ARG_WITH(gdbm,  [  --without-gdbm           Disable search for, and use of GDBM, even if it could be found],
-		   without_gdbm=1)
+		   if test "$withval" = no ; then
+			without_gdbm=1
+		    else
+			without_gdbm=0
+		    fi
+		    )
 
 if test "$ac_cv_header_gdbm_h" = yes -a $without_gdbm = 0 ; then
   t_found_at="nowhere"
@@ -1576,8 +1586,12 @@ AC_TRY_COMPILE([#include <sys/types.h>
         AC_DEFINE(HAVE_SOCKLEN_T,1,[System has  soclken_t  type]))
 
 AC_ARG_WITH(ipv6,[  --with-ipv6              Have IPv6 in system, and want to use it],
-        AC_DEFINE(INET6,1,[Want to use IPv6, in case it is supported in the system])
-        ac_with_ipv6=yes
+        if test "$withval" = yes ; then
+            AC_DEFINE(INET6,1,[Want to use IPv6, in case it is supported in the system])
+            ac_with_ipv6=yes
+        else
+            ac_with_ipv6=no
+        fi
         )
 
 if test "$ac_with_ipv6" = yes; then

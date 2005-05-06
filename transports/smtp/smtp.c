@@ -3431,7 +3431,7 @@ vcsetup(SS, sa, fdp, hostname)
 	  break;
 #endif
 	default: /* PRESUME: AF_INET */
-	  addrsiz = sizeof(*sai);
+	  addrsiz = sizeof(sai->v4);
 	  memset(&sad, 0, sizeof(sad));
 	  break;
 	}
@@ -4928,7 +4928,7 @@ rightmx(spec_host, ap, cbparam)
 	const struct taddress *ap;
 	const void	*cbparam;
 {
-	SmtpState *SS = cbparam;
+	SmtpState *SS = (void*)cbparam;
 	int	i, rc;
 	char realname[1024];
 

@@ -1,3 +1,22 @@
+2005-05-06  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in:
+	    Make '--disable-ndbm' and '--disable-gdbm' work as
+	    their name implies.  Also have '--without-ipv6'
+
+	* router/libdb/ldap.c
+	    Integrated and debugged "ldap-new" into ldap.c.
+	    Missing thing was automagic lookup retry, when
+	    it fails (after LDAP server restarts, or connection
+	    does otherwise break.)
+
+	* router/libdb/ldap-new.c:
+	    Removed as unnecessary
+
+	* transports/smtp/smtp.c:
+	    For IPv4 the connect() used wrong size 'address-size' parameter,
+	    and recently Linux systems have become lot more picky about it...
+
 2005-04-27  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/hold.c, man/hold.8.in:
