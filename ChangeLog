@@ -1,3 +1,9 @@
+2005-05-09  Alex Kiernan <alex.kiernan@gmail.com>
+
+	* sfio/src/lib/sfio/sfhdr.h:
+	    "I've been applying this as long as I can remember to make
+	     builds work on Solaris"
+
 2005-05-06  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
@@ -6,9 +12,9 @@
 
 	* router/libdb/ldap.c
 	    Integrated and debugged "ldap-new" into ldap.c.
-	    Missing thing was automagic lookup retry, when
-	    it fails (after LDAP server restarts, or connection
-	    does otherwise break.)
+	    Missing thing was automagic LDAP connection rebind,
+	    when a lookup fails (after LDAP server restarts, or
+	    connection does otherwise break.)
 
 	* router/libdb/ldap-new.c:
 	    Removed as unnecessary

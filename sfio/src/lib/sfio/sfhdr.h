@@ -176,6 +176,10 @@
 #define remove	unlink
 #endif
 
+#if defined(__sun)
+#define _FILEDEFED
+#endif
+
 #if _hdr_math
 #include	<math.h>
 #ifdef MAXFLOAT	/* on BSDI, this is defined twice in machine/values.h and math.h */
