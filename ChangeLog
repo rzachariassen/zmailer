@@ -1,3 +1,9 @@
+2005-05-19  Matti Aarnio  <mea@zmailer.org>
+
+	* router/libdb/ldap.c:
+	    Indicate failure, if ldap session definition, or bind fails
+	    in any way.
+
 2005-05-09  Alex Kiernan <alex.kiernan@gmail.com>
 
 	* sfio/src/lib/sfio/sfhdr.h:

@@ -71,7 +71,7 @@ static void
 open_lmap_ (lmap)
      LDAPMAP *lmap;
 {
-	int rc;
+	int rc = 0, ret = 0;
     
 	if (lmap->ld)
 		ldap_unbind_s(lmap->ld);
@@ -115,13 +115,16 @@ open_lmap_ (lmap)
     
 	if( rc != LDAP_SUCCESS ) {
 	  ldap_perror(lmap->ld, "ldap_initialize");
-	}
+	  ret = -1;
+	} else
+	  ret = 0;
 #endif
     
 	if( ldap_set_option( lmap->ld, LDAP_OPT_PROTOCOL_VERSION,
 			     &lmap->protocol ) != LDAP_OPT_SUCCESS ) {
 	  fprintf( stderr, "Could not set LDAP_OPT_PROTOCOL_VERSION %d\n",
 		   lmap->protocol);
+	  ret = -1;
 	}
 #ifdef HAVE_OPENSSL 
 	if (lmap->use_tls && ( ldap_start_tls_s( lmap->ld, NULL, NULL )
@@ -129,6 +132,7 @@ open_lmap_ (lmap)
 	  ldap_perror( lmap->ld, "ldap_start_tls" );		  
 	  fprintf( stderr, "Could not setup ldap_start_tls (%d): %s\n",
 		   rc, ldap_err2string(rc) );
+	  ret = -1;
 	}
 #endif
 #ifdef HAVE_SASL2
@@ -137,6 +141,7 @@ open_lmap_ (lmap)
 				(void *) lmap->sasl_secprops);
 	  if( rc != LDAP_OPT_SUCCESS ) {
             fprintf( stderr,  "Could not set LDAP_OPT_X_SASL_SECPROPS: %s\n", lmap->sasl_secprops);
+	    ret = -1;
 	  }
 	}
     
@@ -145,12 +150,14 @@ open_lmap_ (lmap)
 				 lmap->sasl_mech, &passwd,
 				 NULL, NULL, NULL ) != LDAP_SUCCESS ) {
             ldap_perror( lmap->ld, "ldap_sasl_bind_s" );    
+	    ret = -1;
 	  }
 	} else {
 #endif
 	  if ( ldap_bind_s( lmap->ld, lmap->binddn, passwd.bv_val, lmap->authmethod )
 	       != LDAP_SUCCESS) {
 	    ldap_perror( lmap->ld, "ldap_bind_s" );
+	    ret = -1;
 	  }
 #ifdef HAVE_SASL2        
 	}
@@ -163,9 +170,12 @@ open_lmap_ (lmap)
 	    fprintf(stderr, "logged in as: %s\n", ( retdata->bv_len == 0 ) ? "anonymous" : retdata->bv_val);
 	  } else {
 	    fprintf(stderr, "Error doing ldap_whoami_s: %s (%d)\n", ldap_err2string( rc ), rc );
+	    ret = -1;
 	  }
 	}
 
+	/* Mark if there are any errors... */
+	lmap->simple_bind_result = ret;
 }
 
 
@@ -184,6 +194,7 @@ open_ldap(sip, caller)
 
 	symid = symbol_db((u_char *)sip->file, spt_files->symbols);
 	spl = sp_lookup(symid, spt_files);
+
 	if (spl == NULL || (lmap = (LDAPMAP *)spl->data) == NULL) {
         
 		lmap = (LDAPMAP *) emalloc(sizeof(LDAPMAP));
@@ -197,17 +208,18 @@ open_ldap(sip, caller)
 
 		lmap->ldapport = LDAP_PORT;
 		lmap->scope = LDAP_SCOPE_SUBTREE;
-        lmap->protocol = LDAP_VERSION2;
-        lmap->authmethod = -1;
+
+		lmap->protocol = LDAP_VERSION2;
+		lmap->authmethod = -1;
 #ifdef HAVE_OPENSSL
-        lmap->use_tls = 0;
+		lmap->use_tls = 0;
 #endif
 
-        masterconf = getzenv("LDAP_MASTER_CONF");
-        if (masterconf != NULL) {
-            _read_config(masterconf, lmap, caller);
-        }
-        _read_config(sip->file, lmap, caller);
+		masterconf = getzenv("LDAP_MASTER_CONF");
+		if (masterconf != NULL) {
+		  _read_config(masterconf, lmap, caller);
+		}
+		_read_config(sip->file, lmap, caller);
 
 		open_lmap_(lmap);
 	}
@@ -265,7 +277,8 @@ search_ldap(sip)
 	  ++deferit;
 	  v_set(DEFER, DEFER_IO_ERROR);
 	  ldap_perror(lmap->ld, "lmap_search_s");
-	  //fprintf(stderr, "search_ldap: ldap_search_s error: %s\n", ldap_err2string( rc ));
+	  /* fprintf(stderr, "search_ldap: ldap_search_s error: %s\n",
+	             ldap_err2string( rc )); */
 	  goto ldap_exit;		 
 	}
 
