@@ -838,7 +838,10 @@ hold_home(dp, user)
 
 
 
-/* A timeout until given age since message spool file creation
+/*
+ * A timeout until given age since message spool file creation
+ * Return TRUE when ready to release, 
+ *
  */
 
 int
@@ -853,5 +856,5 @@ hold_age(dp, age)
 	then = parse_interval(age, NULL);
 	then += dp->msgmtime;
 
-	return now >= then;
+	return !(now >= then);
 }
