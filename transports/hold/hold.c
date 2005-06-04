@@ -881,6 +881,13 @@ hold_age(dp, age)
 	time(&now);
 
 	then = parse_interval(age, NULL);
+
+	if (verboselog) {
+	  fprintf(verboselog,
+		  " hold_age('%s') -> interval=%ld,  msgmtime=%ld, now=%ld\n",
+		  age, then, dp->msgmtime, now);
+	}
+
 	then += dp->msgmtime;
 
 	return !(now >= then);
