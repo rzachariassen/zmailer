@@ -501,6 +501,10 @@ struct holds_info {
 	{	NULL,		NULL		},
 };
 
+/* Alloc this buffer to hold the 's' string, then copy
+   data there, and mutilate it there... */
+
+static char *holdparam;
 
 int
 hold(dp, s, errmsgp)
@@ -510,17 +514,25 @@ hold(dp, s, errmsgp)
 {
 	char *cp, *colon;
 	struct holds_info *hip;
+#if 0 /* NO HOLD DATA CACHE */
 	static struct sptree *spt_hash = NULL;
 	struct spblk *spl;
-	int v;
 	spkey_t symid;
+#endif
+	int v;
+	int slen = strlen(s) + 1;
 
-	if (verboselog) {
+	holdparam = realloc(holdparam, slen+2);
+	if (!holdparam) return EX_SOFTWARE;
+
+	memcpy(holdparam, s, slen);
+	s = holdparam;
+
+	if (verboselog)
 	  fprintf(verboselog, "hold(dp, \"%s\")\n", s);
-	}
 
 	colon = NULL;
-	for (cp = (char*)s; *cp != '\0'; ++cp) {
+	for (cp = holdparam; *cp != '\0'; ++cp) {
 	  unsigned char c = *cp;
 	  if (isascii(c) && isupper(c))
 	    *cp = tolower(c);
@@ -528,9 +540,15 @@ hold(dp, s, errmsgp)
 	    colon = cp;
 	}
 
+	if (verboselog) {
+	  fprintf(verboselog, "hold(dp, \"%s\")\n", s);
+	}
+
+
 	if (colon == NULL)
 	  return EX_PROTOCOL;	/* invalid hold condition */
 
+#if 0  /* NO HOLD DATA CACHE! */
 	symid = symbol((void*)s);
 	if (spt_hash == NULL)
 	  spt_hash = sp_init();
@@ -538,6 +556,7 @@ hold(dp, s, errmsgp)
 	  *errmsgp = (char *)spl->data;
 	  return spl->mark;
 	}
+#endif
 
 	*colon++ = '\0';
 	for (hip = &holds[0]; hip->type != NULL ; ++hip)
@@ -562,7 +581,10 @@ hold(dp, s, errmsgp)
 	  strcpy(cp, errormsg);
 	} else
 	  cp = "deferred";
+#if 0 /* NO HOLD DATA CACHE! */
 	sp_install(symid, (const void *)cp, v, spt_hash);
+#endif
+
 	*errmsgp = cp;
 
 	return v;
