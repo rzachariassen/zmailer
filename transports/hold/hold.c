@@ -15,6 +15,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "zmsignal.h"
 #include "zmalloc.h"
@@ -142,7 +143,6 @@ extern char *strchr(), *strrchr();
 #undef	putc
 #define	putc	fputc
 #endif	/* lint */
-
 
 
 static void MIBcountCleanup __((void))
@@ -294,8 +294,27 @@ main(argc, argv)
 
 	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL);
 	  if (dp != NULL) {
+
+	    if (verboselog) {
+	      fclose(verboselog);
+	      verboselog = NULL;
+	    }
+	    if (dp->verbose) {
+	      verboselog = fopen(dp->verbose,"a");
+	      if (verboselog) {
+		/* Buffering, and Close-On-Exec bit! */
+		setbuf(verboselog,NULL);
+		fcntl(FILENO(verboselog), F_SETFD, 1);
+	      }
+	    }
+
 	    process(dp);
 	    ctlclose(dp);
+
+	    if (verboselog) {
+	      fclose(verboselog);
+	      verboselog = NULL;
+	    }
 	  } else {
 	    printf("#resync %s\n",filename);
 	    fflush(stdout);
@@ -496,6 +515,10 @@ hold(dp, s, errmsgp)
 	int v;
 	spkey_t symid;
 
+	if (verboselog) {
+	  fprintf(verboselog, "hold(dp, \"%s\")\n", s);
+	}
+
 	colon = NULL;
 	for (cp = (char*)s; *cp != '\0'; ++cp) {
 	  unsigned char c = *cp;
@@ -524,6 +547,10 @@ hold(dp, s, errmsgp)
 	  return EX_SOFTWARE;	/* unsupported hold condition */
 
 	errormsg[0] = '\0';
+
+	if (verboselog) {
+	  fprintf(verboselog, "Calling hold_%s('%s')\n", hip->type, colon);
+	}
 
 	if ((hip->f)(dp, colon))
 	  v = EX_OK;		/* resubmit the message address */
