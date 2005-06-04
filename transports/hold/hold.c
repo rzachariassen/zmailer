@@ -890,5 +890,5 @@ hold_age(dp, age)
 
 	then += dp->msgmtime;
 
-	return !(now >= then);
+	return (now >= then);
 }
