@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2004 by Matti Aarnio -- modifications, including
+ *	Copyright 1991-2005 by Matti Aarnio -- modifications, including
  *	MIME things...
  */
 
@@ -1410,7 +1410,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	    smtp_flush(SS); /* Flush in every case */
 
-	    timeout = timeout_cmd;
+	    timeout = 30; /* very short */
 	    r = smtpwrite(SS, 0, "RSET", 0, NULL);
 
 	    if (statusreport)
@@ -1542,6 +1542,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	time(&env_start); /* Mark the timestamp */
 
+	timeout = timeout_cmd;
 	/* MAIL FROM:<...> -- pipelineable.. */
 	r = smtpwrite(SS, 1, SMTPbuf, pipelining, NULL);
 
@@ -1735,6 +1736,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  
 	  MIBMtaEntry->tasmtp.SmtpRCPT ++;
 
+	  timeout = timeout_cmd;
 	  /* RCPT To:<...> -- pipelineable */
 	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
@@ -2449,6 +2451,7 @@ smtpopen(SS, host, noMX)
 	      MIBMtaEntry->tasmtp.SmtpSTARTTLS += 1;
 
 	      SS->rcptstates = 0;
+	      timeout = timeout_cmd;
 	      i = smtpwrite(SS, 0, "STARTTLS", 0, NULL);
 	      if (i == EX_OK) {
 		/* Wow, "STARTTLS" command started successfully! */
@@ -2624,6 +2627,7 @@ smtpopen(SS, host, noMX)
 	      if (i != EX_OK)
 		continue;;
 	      SS->rcptstates = 0;
+	      timeout = timeout_cmd;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	      if (i != EX_OK && SS->smtpfp) {
 		smtpclose(SS, 1);
@@ -3349,6 +3353,7 @@ makeconn(SS, hostname, ai, ismx)
 		SS->esmtp_on_banner = 0;
 
 	      /* Wait for the initial "220-" greeting */
+	      timeout = timeout_cmd;
 	      SS->rcptstates = 0;
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
 

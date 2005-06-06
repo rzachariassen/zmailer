@@ -1,3 +1,11 @@
+2005-06-07  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Some very odd timeout handling things -- missed the need
+	    for setting command timeout before each smtpwrite() call.
+	    Indeed I suspect that pipelining needs a bit more complex
+	    timeout level tracking...
+
 2005-06-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/hold.c:
