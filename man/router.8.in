@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8zm "2004-Apr-11"
+.TH ROUTER 8zm "2005-Jun-07"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
@@ -549,48 +549,49 @@ configuration file.
 is a boolean function that returns the value of the statement
 "executing a header rewriting function and the address is
 a recipient address in a message header".
-.IP "recase [ -u | -l | -p ] \fIstring\fR"
+.IP "recase [ \-u | \-l | \-p ] \fIstring\fR"
 is a case-mapping function that prints the parameter string in either
 all-uppercase, all-lowercase, or capitalized (pretty).
-.IP "relation -t \fIdbtype[,subtype]\fR [ -f \fIfile\fR -e\fI#\fR -s\fI#\fR -bilmnNu% -d \fIdriver\fR ] \fIname\fR"
+.IP "relation \-t \fIdbtype[,subtype]\fR [ \-f \fIfile\fR \-C \fIfile\fR \-e\fI#\fR \-s\fI#\fR \-bilmnNu% \-d \fIdriver\fR ] \fIname\fR"
 informs the
 .I router
 of the existence of a database, and how to access it.  It also creates a
 builtin function with the specified name, which is used to retrieve the value
 associated with a key in the database.  The options are:
 .RS
-.IP "\-t \fIdbtype\fR"
-is one of the known types of databases, currently:
+.IP "\-t\ \fIdbtype\fR"
 .RS
-.IP \fBincore\fR
+is one of the known types of databases, currently:
+.IP "\fBincore\fR\ \ \ \ \ \ \ \ \  "
 is a database maintained in virtual memory (using splay trees).  This type
 should not be used for any database that must periodically be flushed, since
 not all occupied memory can be freed.
-.IP \fBunordered\fR
+.IP "\fBunordered\fR"
 is a file with key-value pairs on every line, separated by whitespace.
 (See about "\fI\-m\fR"-option!)
-.IP \fBordered\fR
+.IP "\fBordered\fR"
 is a file with key-value pairs on every line, separated by whitespace,
 sorted by key.
 (See about "\fI\-m\fR"-option!)
-.IP \fBhostsfile\fR
+.IP "\fBhostsfile\fR"
 is the
 .IR hosts (5)
 file.
-.IP \fBbind\fR
+.IP "\fBbind\fR\ \ \ \ \ \ "
 is the BIND implementation of a Domain Name System resolver.  The subtype
 for this type is the name of a Resource Record type in the
 .B IN
 class.
-.IP \fBbtree\fR
+.IP "\fBbtree\fR\ \ \ \ \ \ "
 Is
 .I SleepyCat BSD DB version 2.x
 B-TREE database.
-.IP \fBbhash\fR
+.IP "\fBbhash\fR\ \ \ \ \ \ "
 Is
 .I SleepyCat BSD DB version 2.x
 HASH database.
-.IP \fBndbm\fR
+.IP "\fBndbm\fR\ \ \ \ \ \ \ \ "
+.RS
 is the new DBM library.
 The
 .I BSD4.4
@@ -599,26 +600,44 @@ has a thing called
 which is different thing, but it can be used in place of ndbm via its
 interface library.  (The BSD4.4-db does have only one database file,
 not two, like ndbm does.)
-.IP \fBgdbm\fR
+.PP
+This db has a 1024 byte size limit in that the key size plus the data size
+must be below that limit!
+.RE
+.IP "\fBgdbm\fR\ \ \ \ \ \ \ \ "
 is the GNU implementation of the new DBM library.
 .B Note: GDBM uses ONE file, which is named exactly as you parametrize it,
 .B this is unlike NDBM, which appends ".dir" and ".pag" to the supplied
 .B name!
-.IP \fBdbm\fR
+.IP "\fBdbm\fR\ \ \ \ \ \ \ \ "
+.RS
 is the old DBM library.  There can be only one DBM open at the time,
 and this system keeps them all open all the time...  Avoid if you can!
-.IP \fByp\fR
+.PP
+Depends upon systems, some early instances of DBM didn't have close call
+at all - but encountering such systes is unlikely...
+.PP
+This db has a 1024 byte size limit in that the key size plus the data size
+must be below that limit!
+.RE
+.IP "\fByp\fR\ \ \ \ \ \ \ \ "
 is the Network Information Service from Sun Microsystems Inc.
 (Latter renamed to be NIS, the still newer NIS+ is not supported)
-.IP \fBheader\fR
+.IP "\fBheader\fR\ \ \ \ \ \ \ \ "
 is an database type used to store RFC822 header semantics
 information.  It is unlikely to be used for anything else.
 See the HEADERS section below.
+.IP "\fBldap\fR\ \ \ \ \ \ \ \ "
+defines binding to LDAP database.
+More data available below in "LDAP" section.
 .RE
-.IP "\-f \fIfile\fR"
+.IP "\-f\ \fIfile\fR"
 is a file associated with the database, typically the file containing
 the data, or the basename of DBM files or something similarly relevant
 to the database access routines.
+.IP "\-C\ \fIfile\fR"
+The SleepyCat database can have an auxiliary configuration file defined
+by this options. See below for its syntax.
 .IP "\-e\fI#\fR"
 is the default time-to-live on cached information.  When the information
 has been in the cache for this many seconds, it is discarded.  The default
@@ -661,7 +680,7 @@ if the key is not found from the backend DB, place the result into the cache
 with configured TTL. (See \fI\-e\fR option.)
 .IP \-u
 map all keys to uppercase before searching.
-.IP "\-d \fIdriver\fR"
+.IP "\-d\ \fIdriver\fR"
 .RS
 specifies a search driver that allows searching for structured
 keys using special knowledge.  The argument to this option must be
@@ -844,6 +863,99 @@ Complement of the \fItrace\fR function.
 .PP
 In addition any defined relations will create a builtin function with
 the same name as the relation.
+.SS SleepyCat DB parameter file
+With SleepyCat DBs, there is an auxiliary parameter for the
+.I relation
+call, namely 
+.I \-C
+which points to file defining additional parameters to 
+.I "SleepyCat DB"
+opening, like in
+.I "Concurrent Data Store"
+application mode.
+.PP
+Config file syntax for SleepyCat DB 3.x/4.x:
+.RS
+.nf
+\fC envhome = /path/to/envhome/directory
+\fC envflags = CDB, CREATE, RO
+\fC envmode  = 0644
+\fC tempdir  = /path/to/tmp/dir
+.fi
+.RE
+.PP
+The 
+.I envflags
+set, can have any/all of:
+.RS
+.IP CDB
+The database is supposed to have full 
+.I "Concurrent Data Store"
+machinery at its disposal.
+The database may be read-only, but CDB requires internal read-write
+access to the environment for proper transaction locks to
+be maintained.
+.IP CREATE
+Create the database (or environment) if it does not exist, even
+for read-only access of it...
+.IP RO
+Access is purely read-only.
+.RE
+.SS LDAP DB parameter file
+The LDAP setup configuration file is passed to
+.I relation
+definition in 
+.I \-f
+option parameter file.
+.PP
+Empty lines, and lines with first non-whitespace
+character being a '#' are comments.
+Otherwise lines begin with a keyword (which may have unspecified amount
+of whitespace in front of it), whitespace after the keyword is skipped,
+and first non-whitespace character starts the parameter, which continues
+until end of line.
+.RS
+.nf
+base     ...
+attr     ...
+filter   ...
+uri      ...
+ldaphost ...
+ldapport ...
+protocol [ 2 | 3 ]
+scope [base | one | sub]
+binddn   ...
+debug    ...
+passwd   ...
+start_tls    [y|n] (or: n= 0|of(f)|f(alse), y=1|on|t(rue) )
+authmethod [simple | sasl ]
+sasl_secprops ...
+sasl_real     ...
+sasl_mech     ...
+sasl_authc_id ...
+sasl_authz_id ...
+.fi
+.RE
+.PP
+Example:
+.RS
+.nf
+#
+# You must at least define "base", "ldaphost", "filter" & "attr".
+#
+
+base            o=fooooo,c=fi
+ldaphost        10.11.12.13
+ldapport        389
+binddn          cn=admin,o=fooooo,c=fi
+protocol        2
+authmethod      simple
+passwd          pwpwpwpwpw
+filter          (uid=%s)
+attr            mail
+scope           one
+.fi
+.RE
 .SH GLOBAL VARIABLES
 The following shell variables are defined by the
 .IR router (8zm):
