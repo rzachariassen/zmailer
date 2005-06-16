@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2005-Mar-04"
+.TH SMTPSERVER 8zm "2005-Jun-16"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -1249,16 +1249,33 @@ And possibly also PAM-support for SMTP-Auth, see below.
 .RE
 .PP
 .SH PAM-SUPPORT FOR SMTP-AUTH
-If the system has <security/pam_appl.h> file, following file will also
-be needed for the system:
+If the system has <security/pam_appl.h> file, and admin
+has chosen to compile system using PAM support.
+For
+.I Linux
+the following file would also be needed:
 .PP
 .nf
 ------- /etc/pam.d/smtpauth-login -----------
 \fC
 #%PAM-1.0
-auth     required  /lib/security/pam_pwdb.so shadow
-auth     required  /lib/security/pam_nologin.so
-account  required  /lib/security/pam_pwdb.so
+auth     required  pam_pwdb.so shadow
+auth     required  pam_nologin.so
+account  required  pam_pwdb.so
+.fi
+.PP
+For
+.I Solaris
+the setup needs editing
+.I /etc/pam.conf
+file:
+.PP
+.nf
+------- /etc/pam.conf ---------
+ ....
+smtpauth-login  auth required   pam_unix_auth.so.1
+smtpauth-login  auth required   pam_authtok_get.so.1
+ ....
 .fi
 .SH SMTP-POLICY CONFIGURATION
 This subsystem of
@@ -1375,6 +1392,9 @@ masks given in these files.
 See the comments in the "smtp-policy.src" about this!
 It might make sense to place this 4th pair
 into boilerplate "_full_rights" definition.
+This functions without regard to "fulltrustnet +"
+overriding all other tests e.g. those of
+SMTP protocol MAIL FROM and RCPT TO addresses.
 .PP
 The 5th pair sets limit on how many messages
 are accepted in an 1.0-1.15 hour period.
@@ -1509,18 +1529,14 @@ use RBL-type blocking lists.
 There are two ways how to take them into use: 
 .PP
 .IP 1. 3em
-.RS 4em
 You can start rejecting at the connection setup and then at
 MAIL FROM (and RCPT TO). 
-.PP
+
 However many (especially M$ environment) SMTP clients won't
 react on that properly, and will just keep repeating the delivery
 attempts. 
-.RE
 .IP 2.  3em
-.RS 4em
 You can delay the rejections until RCPT addresses are given. 
-.RE
 .PP
 .SH SMTP-POLICY; IMMEDIATE REJECTION BY RBL
 .PP
