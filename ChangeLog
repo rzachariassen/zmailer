@@ -1,3 +1,8 @@
+2005-06-16  Matti Aarnio  <mea@zmailer.org>
+
+	* man/smtpserver.8.in:
+	    A bit more words about various aspects of the policy code.
+
 2005-06-07  Matti Aarnio  <mea@zmailer.org>
 
 	* man/router.8.in:
