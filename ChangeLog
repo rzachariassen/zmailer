@@ -1,3 +1,9 @@
+2005-06-17  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpcmds.c:
+	    Log smtp-auth data into envelope meta-data so that external
+	    hook programs can look into it.
+
 2005-06-16  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8.in:

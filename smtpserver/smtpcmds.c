@@ -900,6 +900,14 @@ int insecure;
     if (insecure)
 	fprintf(SS->mfp, "external\n");
 
+    /* If we have smtp-auth data, do store it into meta-information
+       in every case so that external hooks can look into it. */
+    if (SS->authuser) {
+      fprintf(SS->mfp, "comment smtp-auth: ");
+      rfc822commentprint(SS->mfp,SS->authuser);
+      fprintf(SS->mfp,"\n");
+    }
+
     if (SS->netconnected_flg) {
 
       /* Produce the 'rcvdfrom' header only when connected
