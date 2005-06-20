@@ -161,6 +161,8 @@ pipeauth(cmd, msg, msgsize, uname, password)
             fgets( msg, msgsize, rfp );
         }
     }
+    if (wfp) fclose(wfp);
+    if (rfp) fclose(rfp);
 
     return pipeauthchild_status;
 }

@@ -1,3 +1,9 @@
+2005-06-20  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/zpwmatch-pipe.c
+	    Do socket (pipe) cleanup after calls to external authentication
+	    program.
+
 2005-06-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
