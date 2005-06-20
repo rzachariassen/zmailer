@@ -1,5 +1,8 @@
 2005-06-20  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpauth.c:
+	    Add  smtp_tarpit()  calls on auth-failures...
+
 	* smtpserver/zpwmatch-pipe.c
 	    Do socket (pipe) cleanup after calls to external authentication
 	    program.

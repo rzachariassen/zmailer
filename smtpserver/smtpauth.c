@@ -221,26 +221,30 @@ void smtp_auth(SS,buf,cp)
 	rc = policytest(&SS->policystate, POLICY_AUTHFAIL,
 			uname, 0, SS->authuser);
 	if (rc < 0) {
+	  smtp_tarpit(SS);
 	  type(SS, 503, m551, "Hi %s, Too many authentication failures from your IP this hour..", SS->rhostaddr);
 	  return;
 	}
 
 	if (SS->state == Hello) {
-	  type(SS, 503, m551, "Hi %s, EHLO first, then - perhaps - AUTH!", SS->rhostaddr);
 	  policytest(&SS->policystate, POLICY_AUTHFAIL,
 		     uname, 1, SS->authuser);
+	  smtp_tarpit(SS);
+	  type(SS, 503, m551, "Hi %s, EHLO first, then - perhaps - AUTH!", SS->rhostaddr);
 	  return;
 	}
 	if (SS->state != MailOrHello && SS->state != Mail) {
-	  type(SS, 503, m551, "Hi %s, AUTH not allowed during MAIL transaction!", SS->rhostaddr);
 	  policytest(&SS->policystate, POLICY_AUTHFAIL,
 		     uname, 1, SS->authuser);
+	  smtp_tarpit(SS);
+	  type(SS, 503, m551, "Hi %s, AUTH not allowed during MAIL transaction!", SS->rhostaddr);
 	  return;
 	}
 	if (SS->authuser) {
-	  type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
 	  policytest(&SS->policystate, POLICY_AUTHFAIL,
 		     uname, 1, SS->authuser);
+	  smtp_tarpit(SS);
+	  type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
 	  return;
 	}
 
@@ -253,28 +257,31 @@ void smtp_auth(SS,buf,cp)
 #endif
 	  {
 	    if (!CISTREQN(cp, "LOGIN", 5)) {
-	      type(SS, 504, m571, "Hello %s, Only 'AUTH LOGIN' supported.", SS->rhostaddr);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 504, m571, "Hello %s, Only 'AUTH LOGIN' supported.", SS->rhostaddr);
 	      return;
 	    }
 
 #ifdef HAVE_OPENSSL
 	    if (!auth_login_without_tls && !SS->sslmode) {
-	      type(SS, 503, m571,
-		   "Hello %s, Plaintext password authentication must be run under SSL/TLS", SS->rhostaddr);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 503, m571,
+		   "Hello %s, Plaintext password authentication must be run under SSL/TLS", SS->rhostaddr);
 	      return;
 	    }
 #endif /* - HAVE_OPENSSL */
 #ifndef HAVE_OPENSSL
 	    if (!auth_login_without_tls) {
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
 	      type(SS, 503, m571,
 		   "Hello %s, Plaintext password authentication is not enabled in this system",
 		   SS->rhostaddr);
-	      policytest(&SS->policystate, POLICY_AUTHFAIL,
-			 uname, 1, SS->authuser);
 	      return;
 	    }
 #endif /* --HAVE_OPENSSL */
@@ -295,9 +302,10 @@ void smtp_auth(SS,buf,cp)
 		type(SS, 0, NULL, "-> %s", bbuf);
 
 	      if (*ccp != 0) {
-		type(SS, 501, m552, "unrecognized input/extra junk ??");
 		policytest(&SS->policystate, POLICY_AUTHFAIL,
 			   uname, 1, SS->authuser);
+		smtp_tarpit(SS);
+		type(SS, 501, m552, "unrecognized input/extra junk ??");
 		return;
 	      }
 
@@ -327,9 +335,10 @@ void smtp_auth(SS,buf,cp)
 		return;
 	      }
 	      if (strcmp(abuf, "*") == 0) {
-		type(SS, 501, NULL, "AUTH command cancelled");
 		policytest(&SS->policystate, POLICY_AUTHFAIL,
 			   uname, 1, SS->authuser);
+		smtp_tarpit(SS);
+		type(SS, 501, NULL, "AUTH command cancelled");
 		return;
 	      }
 	      rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
@@ -377,9 +386,10 @@ void smtp_auth(SS,buf,cp)
 	    }
 	    if (strcmp(abuf, "*") == 0) {
 	      if (uname) free(uname);
-	      type(SS, 501, NULL, "AUTH command cancelled");
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 501, NULL, "AUTH command cancelled");
 	      return;
 	    }
 
@@ -409,9 +419,10 @@ void smtp_auth(SS,buf,cp)
 	      }
 #endif
 	    } else {
-	      type(SS, 535, NULL, "%s", zpw);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 535, NULL, "%s", zpw);
 	      if (uname) free(uname);
 	    }
 	  }
@@ -435,9 +446,10 @@ void smtp_auth(SS,buf,cp)
 	  char *auth_type;
 
 	  if (SS->authuser) {
-	    type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
 	    policytest(&SS->policystate, POLICY_AUTHFAIL,
 		       uname, 1, SS->authuser);
+	    smtp_tarpit(SS);
+	    type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
 	    return;
 	  }
 
@@ -456,9 +468,10 @@ void smtp_auth(SS,buf,cp)
 
 	  /* check whether mechanism is available */
 	  if (iteminlist(cp, SS->sasl.mechlist, " ") == NULL) {
-	    type(SS, 503, "5.3.3", "AUTH mechanism %.32s not available", cp);
 	    policytest(&SS->policystate, POLICY_AUTHFAIL,
 		       uname, 1, SS->authuser);
+	    smtp_tarpit(SS);
+	    type(SS, 503, "5.3.3", "AUTH mechanism %.32s not available", cp);
 	    return;
 	  }
 
@@ -468,11 +481,12 @@ void smtp_auth(SS,buf,cp)
 	    in = malloc(len);
 	    result = sasl_decode64(q, len-1, in, len, &inlen);
 	    if (result != SASL_OK) {
-	      type(SS, 501, "5.5.4", "cannot BASE64 decode '%s'", q);
 	      authenticating = SASL_NOT_AUTH;
 	      free(in);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 501, "5.5.4", "cannot BASE64 decode '%s'", q);
 	      return;
 	    }
 	  } else {
@@ -489,7 +503,6 @@ void smtp_auth(SS,buf,cp)
 
 	  if (result != SASL_OK && result != SASL_CONTINUE) {
 
-	    type(SS, 500, "5.7.0", "authentication failed");
 	    policytest(&SS->policystate, POLICY_AUTHFAIL,
 		       uname, 1, SS->authuser);
 	    if (logfp){
@@ -500,6 +513,8 @@ void smtp_auth(SS,buf,cp)
 		      cp, sasl_errstring(result, NULL, NULL), result, e);
 	      fflush(logfp);
 	    }
+	    smtp_tarpit(SS);
+	    type(SS, 500, "5.7.0", "authentication failed");
 	    return;
 	  }
 
@@ -515,15 +530,16 @@ void smtp_auth(SS,buf,cp)
 	  result = sasl_encode64(out, outlen, out2, len, &out2len);
 
 	  if (result != SASL_OK) {
-	    type(SS, 454, "4.5.4", "Temporary authentication failure");
-	    policytest(&SS->policystate, POLICY_AUTHFAIL,
-		       uname, 1, SS->authuser);
 	    if (logfp) {
 	      fprintf(logfp, "%s%d#\tAUTH encode64 error [%d for \"%s\"]\n",
 		      logtag, (int)(now - logtagepoch),
 		      result, out);
 	      fflush(logfp);
 	    }
+	    policytest(&SS->policystate, POLICY_AUTHFAIL,
+		       uname, 1, SS->authuser);
+	    smtp_tarpit(SS);
+	    type(SS, 454, "4.5.4", "Temporary authentication failure");
 	    /* start over? */
 	    authenticating = SASL_NOT_AUTH;
 	  } else {
@@ -555,9 +571,10 @@ void smtp_auth(SS,buf,cp)
 
 	    if (abuf[0] == '\0' || i == 0) {
 	      authenticating = SASL_NOT_AUTH;
-	      type(SS,  501, "5.5.2", "missing input");
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS,  501, "5.5.2", "missing input");
 	      break;
 	    }
 
@@ -565,9 +582,10 @@ void smtp_auth(SS,buf,cp)
 	      authenticating = SASL_NOT_AUTH;
 	      
 	      /* rfc 2254 4. */
-	      type(SS, 501, "5.0.0", "AUTH aborted");
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 501, "5.0.0", "AUTH aborted");
 	      break;
 	    }
 
@@ -576,9 +594,10 @@ void smtp_auth(SS,buf,cp)
 	    if (result != SASL_OK) {
 	      authenticating = SASL_NOT_AUTH;
 	      /* rfc 2254 4. */
-	      type(SS, 501, "5.5.4", "cannot decode AUTH parameter %s", abuf);
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 501, "5.5.4", "cannot decode AUTH parameter %s", abuf);
 	      continue;
 	    }
 
@@ -692,9 +711,10 @@ void smtp_auth(SS,buf,cp)
 	    } else {
 
 	      /* not SASL_OK or SASL_CONT */
-	      type(SS, 500, "5.7.0", "authentication failed");
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
+	      smtp_tarpit(SS);
+	      type(SS, 500, "5.7.0", "authentication failed");
 #if 0
 	      if (LogLevel > 9)
 		sm_syslog(LOG_WARNING, e->e_id,

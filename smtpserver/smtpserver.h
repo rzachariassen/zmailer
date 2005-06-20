@@ -278,9 +278,9 @@ struct SmtpSASLState {
     char  *volatile auth_type;
     const char *mechlist;
     sasl_conn_t *conn;
-    volatile int sasl_ok;
-    volatile unsigned int n_auth;	/* count of AUTH commands */
-    volatile unsigned int n_mechs;
+    int sasl_ok;
+    unsigned int n_auth;	/* count of AUTH commands */
+    unsigned int n_mechs;
     unsigned int len;
     sasl_security_properties_t ssp;
 #if 0 /* Is in SASL-1, different/not in SASL-2 */
