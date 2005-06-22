@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2005.
  */
 
 /*
@@ -229,6 +229,9 @@ int msa_mode;
 int submit_listen;
 int submit_connected;
 int deliverby_ok = -1;		/* FIXME: RFC 2852 */
+int no_smtp_auth_on_25;
+char *smtp_auth_username_prompt;
+char *smtp_auth_password_prompt;
 etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
 const char *tls_cert_file = NULL;
 const char *tls_key_file  = NULL;

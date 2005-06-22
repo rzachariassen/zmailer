@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2005-Jun-16"
+.TH SMTPSERVER 8zm "2005-Jun-22"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -104,13 +104,16 @@ This server supports following variations of \fCSMTP\fR protocol:
 Serves message submission protocol, which is SMTP with
 mandatory user authentication. (See RFC 2476)
 
-Actually this mode has exactly same IP-ACL datasets, as
+By default this mode has exactly same IP-ACL datasets, as
 the main mode, and isn't really at all different from
 the primary SMTP service, just running at different port.
+This mode can also have separate ACL dataset,
+see "PARAM policydb\-submit".
 .IP \(bu 3em
 "SMTPS" at TCP port 465.
 This is deprecated in favour of using "STARTTLS" command
 in normal SMTP.
+IP-ACL dataset behaviour is identical with the SMTP port.
 .IP \(bu 3em
 "LMTP" at TCP port 2525 (or whatever).
 This is merely a debug tool, not a true LMTP server!
@@ -521,6 +524,23 @@ to this host, are then able to relay the email thru the server unlimited.
 Limit number of failed SMTP AUTHs per hour to this number,
 above this, and all AUTHs will always fail...
 .RE
+.IP "PARAM no-smtp-auth-on-25"
+.RS
+Disable SMTP AUTH LOGIN on normal SMTP port.
+It does still work at SMTPS and SUBMISSION.
+.RE
+.IP "PARAM smtp-auth-username-prompt \"prompt string\""
+.RS
+A quoted string whose content is sent to remote end in
+SMTP AUTH LOGIN exchange - in cases where username is not
+supplied at the beginning of the exchange...
+.RE
+.IP "PARAM smtp-auth-password-prompt \"prompt string\""
+.RS
+A quoted string whose content is sent to remote end in
+SMTP AUTH LOGIN exchange - possibly shown to user during
+the protocol exchange, possibly not shown...
+.RE
 .IP "PARAM AUTH-LOGIN-also-without-TLS"
 .RS
 This enables 'SMTP AUTH' facility usage also without running
@@ -874,6 +894,17 @@ PARAM  enable-router
 #               # Limit number of failed SMTP AUTHs per hour to
 #               # this number, above this, and all AUTHs will
 #               # always fail...
+#
+#PARAM  no-smtp-auth-on-port-25
+#               # No "AUTH LOGIN"/"AUTH=LOGIN" on port 25, which
+#               # appears to be troublesome to many users.
+#               # This allows authentication in SUBMISSION, though.
+#
+#PARAM smtp-auth-username-prompt "Username:"
+#PARAM smtp-auth-password-prompt "Password:"
+#               # Define text prompts for builtin hard-coded
+#               # AUTH LOGIN processing.  Most clients don't
+#               # show any of these to the users  :-(
 #
 #PARAM  AUTH-LOGIN-also-without-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to

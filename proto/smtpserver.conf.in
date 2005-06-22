@@ -88,6 +88,15 @@
 #                       # Limit number of failed SMTP AUTHs per hour to
 #                       # this number, above this, and all AUTHs will
 #                       # always fail...
+#PARAM  no-smtp-auth-on-port-25
+#                       # No "AUTH LOGIN"/"AUTH=LOGIN" on port 25, which
+#                       # appears to be troublesome to many users.
+#                       # This allows authentication in SUBMISSION, though.
+#PARAM smtp-auth-username-prompt "Username:"
+#PARAM smtp-auth-password-prompt "Password:"
+#                       # Define text prompts for builtin hard-coded
+#                       # AUTH LOGIN processing.  Most clients don't
+#                       # show any of these to the users  :-(
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #                       # External authentication program. The

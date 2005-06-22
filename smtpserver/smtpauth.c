@@ -313,7 +313,12 @@ void smtp_auth(SS,buf,cp)
 
 	    } else {
 	      
-	      i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
+	      if (!smtp_auth_username_prompt)
+		smtp_auth_username_prompt = "Username:";
+
+	      i = encodebase64string(smtp_auth_username_prompt,
+				     strlen(smtp_auth_username_prompt),
+				     abuf, sizeof(abuf));
 	      if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
 	      abuf[i] = 0;
 	      type(SS, 334, NULL, "%s", abuf);
@@ -348,7 +353,11 @@ void smtp_auth(SS,buf,cp)
 	      uname = strdup(bbuf);
 	    }
 
-	    i = encodebase64string("Password:", 9, abuf, sizeof(abuf));
+	    if (!smtp_auth_password_prompt)
+	      smtp_auth_password_prompt = "Password:";
+	    i = encodebase64string(smtp_auth_password_prompt,
+				   strlen(smtp_auth_password_prompt),
+				   abuf, sizeof(abuf));
 	    if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
 	    abuf[i] = 0;
 	    type(SS, 334, NULL, "%s", abuf);
@@ -862,6 +871,10 @@ void
 smtpauth_ehloresponse(SS)
      SmtpState *SS;
 {
+
+	if (no_smtp_auth_on_25 &&
+	    (SS->with_protocol_set & WITH_SMTP)) return;
+
 #ifdef HAVE_SASL2
 	if (do_sasl) {
 

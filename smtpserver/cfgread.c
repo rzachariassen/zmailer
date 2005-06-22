@@ -471,6 +471,12 @@ static void cfparam(str, size, cfgfilename, linenum)
 	enable_router_maxpar  = 1;
     } else if (cistrcmp(name, "smtp-auth") == 0) {
       auth_ok = 1;
+    } else if (cistrcmp(name, "no-smtp-auth-on-25") == 0) {
+      no_smtp_auth_on_25 = 1;
+    } else if (cistrcmp(name, "smtp-auth-username-prompt") == 0 && param1) {
+      smtp_auth_username_prompt = strdup(param1);
+    } else if (cistrcmp(name, "smtp-auth-password-prompt") == 0 && param1) {
+      smtp_auth_password_prompt = strdup(param1);
     } else if (cistrcmp(name, "auth-failrate") == 0 && param1) {
       auth_failrate = atoi(param1);
       if (auth_failrate < 3)
