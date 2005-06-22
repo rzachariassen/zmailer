@@ -432,7 +432,7 @@ int insecure;
     }
     if (msa_mode && ! SS->authuser) {
 	smtp_tarpit(SS);
-	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode must authenticate first!");
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
 	return -1;
     }
 
@@ -1196,7 +1196,7 @@ const char *buf, *cp;
     /* Redundant for sure, but ... */
     if (msa_mode && ! SS->authuser) {
 	smtp_tarpit(SS);
-	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode must authenticate first!");
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
 	return -1;
     }
 

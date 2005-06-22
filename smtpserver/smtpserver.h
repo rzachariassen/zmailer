@@ -326,6 +326,7 @@ typedef struct SmtpState {
     double  tarpit_cval;		/* current tarpit value */
     char rhostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     int  rport;
+    int  lport;
     Usockaddr raddr;
     Usockaddr localsock;
 

@@ -1,5 +1,13 @@
 2005-06-22  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpcmds.c:
+	    Slight change on "In SUBMISSION mode.." error message text.
+
+	* smtpserver.c, smtpserver.h:
+	    Log the port on which the connection arrived into.
+	    It is somewhat difficult to make difference of SUBMISSION
+	    and plain SMTP without it...
+
 	* man/smtpserver.8.in, smtpserver/cfgread.c,
 	  smtpserver/smtpauth.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, proto/smtpserver.conf.in:

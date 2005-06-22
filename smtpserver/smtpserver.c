@@ -952,6 +952,7 @@ int main(argc, argv, envp)
 	  allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
 	SS.netconnected_flg = 0;
+	SS.lport = -1;
 
 	if (!daemon_flg) {
 
@@ -983,6 +984,12 @@ int main(argc, argv, envp)
 			      &localsocksize) != 0) {
 		/* XX: ERROR! */
 	      }
+#if defined(AF_INET6) && defined(INET6)
+	      if (SS.localsock.v6.sin6_family == AF_INET6)
+		SS.lport = ntohs(SS.localsock.v6.sin6_port);
+	      else
+#endif
+		SS.lport = ntohs(SS.localsock.v4.sin_port);
 	    }
 	  }
 	  
@@ -1029,6 +1036,13 @@ int main(argc, argv, envp)
 			  &localsocksize) != 0) {
 	    /* XX: ERROR! */
 	  }
+#if defined(AF_INET6) && defined(INET6)
+	  if (SS.localsock.v6.sin6_family == AF_INET6)
+	    SS.lport = ntohs(SS.localsock.v6.sin6_port);
+	  else
+#endif
+	    SS.lport = ntohs(SS.localsock.v4.sin_port);
+
 	  zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 	  
 	  if (SS.netconnected_flg)
@@ -1045,16 +1059,16 @@ int main(argc, argv, envp)
 		  " [port %d]", SS.rport);
 
 	  if (smtp_syslog && ident_flag) {
-	    zsyslog((LOG_INFO, "connection from %s@%s\n",
-		     SS.ident_username, SS.rhostname));
+	    zsyslog((LOG_INFO, "connection from %s@%s on port %d\n",
+		     SS.ident_username, SS.rhostname, SS.lport));
 	  }
 
 	  pid = getpid();
 	  settrusteduser();	/* dig out the trusted user ID */
 	  openlogfp(NULL, daemon_flg);
 
-	  type(NULL,0,NULL,"connection from %s:%d pid %d ident: %s",
-	       SS.rhostname, SS.rport, pid, SS.ident_username);
+	  type(NULL,0,NULL,"connection from %s:%d on port %d pid %d ident: %s",
+	       SS.rhostname, SS.rport, SS.lport, pid, SS.ident_username);
 
 	  SIGNAL_HANDLE(SIGCHLD, sigchld);
 	  SIGNAL_HANDLE(SIGALRM, timedout);
@@ -1532,6 +1546,13 @@ int main(argc, argv, envp)
 				  &localsocksize) != 0) {
 		    /* XX: ERROR! */
 		  }
+#if defined(AF_INET6) && defined(INET6)
+		  if (SS.localsock.v6.sin6_family == AF_INET6)
+		    SS.lport = ntohs(SS.localsock.v6.sin6_port);
+		  else
+#endif
+		    SS.lport = ntohs(SS.localsock.v4.sin_port);
+
 		  zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 		  
 		  s_setup(&SS, msgfd, msgfd);
@@ -1573,11 +1594,11 @@ int main(argc, argv, envp)
 
 		  if (smtp_syslog && ident_flag) {
 #ifdef HAVE_WHOSON_H
-		    zsyslog((LOG_INFO, "connection from %s@%s (whoson: %s)\n",
-			     SS.ident_username, SS.rhostname, SS.whoson_data));
+		    zsyslog((LOG_INFO, "connection from %s@%s on port %d (whoson: %s)\n",
+			     SS.ident_username, SS.rhostname, SS.lport, SS.whoson_data));
 #else /* WHOSON */
-		    zsyslog((LOG_INFO, "connection from %s@%s\n",
-			     SS.ident_username, SS.rhostname));
+		    zsyslog((LOG_INFO, "connection from %s@%s on port %d\n",
+			     SS.ident_username, SS.rhostname, SS.lport));
 #endif
 		  }
 		  pid = getpid();
@@ -1585,14 +1606,14 @@ int main(argc, argv, envp)
 		  openlogfp(&SS, daemon_flg);
 #ifdef HAVE_WHOSON_H
 		  type(NULL,0,NULL,
-		       "connection from %s %s:%d ipcnt %d childs %d pid %d ident: %s whoson: %s",
-		       SS.rhostname, SS.rhostaddr,SS.rport,
+		       "connection from %s %s:%d on port %d ipcnt %d childs %d pid %d ident: %s whoson: %s",
+		       SS.rhostname, SS.rhostaddr,SS.rport,SS.lport,
 		       sameipcount, childcnt, pid,
 		       SS.ident_username, SS.whoson_data);
 #else
 		  type(NULL,0,NULL,
-		       "connection from %s %s:%d ipcnt %d childs %d pid %d ident: %s",
-		       SS.rhostname, SS.rhostaddr,SS.rport,
+		       "connection from %s %s:%d on port %d ipcnt %d childs %d pid %d ident: %s",
+		       SS.rhostname, SS.rhostaddr,SS.rport,SS.lport,
 		       sameipcount, childcnt, pid,
 		       SS.ident_username);
 #endif
@@ -3292,7 +3313,7 @@ type220headers(SS, identflg, xlatelang, curtime)
     for (; *hh ; ++hh) {
       char c = (hh[1] == NULL) ? ' ' : '-';
       
-      le = linebuf + sizeof(linebuf) -1;
+      le = linebuf + sizeof(linebuf) -8; /* Safety buffer */
       l  = linebuf;
 
       /* The format meta-tags:
@@ -3301,6 +3322,7 @@ type220headers(SS, identflg, xlatelang, curtime)
        *  %H -- SS->myhostname
        *  %I -- '+IDENT' if 'identflg' is set
        *  %i -- SS->rhostaddr
+       *  %p -- SS->lport
        *  %V -- VersionNumb
        *  %T -- curtime string
        *  %X -- xlatelang parameter
@@ -3316,6 +3338,15 @@ type220headers(SS, identflg, xlatelang, curtime)
 	  switch (*s) {
 	  case '%':
 	    *l++ = '%';
+	    break;
+	  case 'p':
+	    {
+	      char p[20];
+	      sprintf(p, "%d", SS->lport);
+	      len = strlen(p);
+	      memcpy(l, p, freespc < len ? freespc : len);
+	      l += len;
+	    }
 	    break;
 	  case 'H':
 	    len = strlen(SS->myhostname);
