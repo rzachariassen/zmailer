@@ -2140,7 +2140,7 @@ int s_getc(SS, timeout_is_fatal)
 	  /* rc > 0 --> we have something to read! */
 	}
 
-	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
+	rc = Z_read(SS, SS->s_buffer, SS->s_buffer_size);
 	SS->s_readerrno = 0;
 	if (rc < 0) {
 	  SS->s_readerrno = errno;
@@ -2183,7 +2183,7 @@ SmtpState *SS;
     /* No new input pending.. return buffer content */
     if (!i) return SS->s_bufread;
 
-    if (SS->s_bufread < sizeof(SS->s_buffer)) {
+    if (SS->s_bufread < SS->s_buffer_size) {
       /* Can fit in some new data.. */
       i = sizeof(SS->s_buffer) - SS->s_bufread;
       i = Z_read(SS, SS->s_buffer + SS->s_bufread, i);
@@ -2276,6 +2276,7 @@ int infd;
     SS->inputfd  = infd;
     SS->outputfd = outfd;
     SS->s_status = 0;
+    SS->s_buffer_size = sizeof(SS->s_buffer);
     SS->s_bufread   = -1;
     SS->s_ungetcbuf = -1;
     SS->s_readout = 0;
@@ -2417,12 +2418,24 @@ int insecure;
     ZSMTP_hook_set_ipaddress(SS->rhostaddr, localport, &rc);
 #endif
 
+#ifdef HAVE_OPENSSL
+    if (ssmtp_connected) {
+      if (tls_start_servertls(SS)) {
+	/* No dice... */
+	type(NULL,0,NULL,"Implicite STARTTLS failed");
+	exit(2);
+      }
+    }
+#endif /* - HAVE_OPENSSL */
+
     if (localport != 25 && detect_incorrect_tls_use) {
       int c;
       int aval = SS->read_alarm_ival;
 
       SS->read_alarm_ival = 2;
+      SS->s_buffer_size = 1;
       c = s_getc(SS, 0);
+      SS->s_buffer_size = sizeof(SS->s_buffer);
 
       SS->read_alarm_ival = aval;
 
@@ -2439,20 +2452,15 @@ int insecure;
 
 	if (c == 0x80) {
 	  ssmtp_connected = 1;
+	  if (tls_start_servertls(SS)) {
+	    /* No dice... */
+	    type(NULL,0,NULL,"Implicite STARTTLS failed");
+	    exit(2);
+	  }
 	}
 #endif /* - HAVE_OPENSSL */
       }
     }
-
-#ifdef HAVE_OPENSSL
-    if (ssmtp_connected) {
-      if (tls_start_servertls(SS)) {
-	/* No dice... */
-	exit(2);
-      }
-    }
-#endif /* - HAVE_OPENSSL */
-
 
 #ifdef HAVE_WHOSON_H
     if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))

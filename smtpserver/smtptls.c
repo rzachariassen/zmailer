@@ -4,7 +4,7 @@
  *
  *  Contains ALSO code for SMTP Transport Agent!
  *
- *  by Matti Aarnio <mea@nic.funet.fi> 1999, 2003
+ *  by Matti Aarnio <mea@nic.funet.fi> 1999, 2003-2005
  *
  *  Reusing TLS code for POSTFIX by:
  *     Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
@@ -18,21 +18,13 @@
 
 #ifdef HAVE_DISTCACHE
 #include <distcache/dc_client.h>
-#endif
 
-/*
- * We are saving sessions to disc, we want to make sure, that the lenght of
- * the filename is somehow limited. When saving client sessions, the hostname
- * is transformed to an MD5-hash, which is defined by RFC to be 16 bytes long.
- * The length of the actual session id is however not defined in RFC2246.
- * OpenSSL defines a SSL_MAX_SSL_SESSION_ID_LENGTH of 32, but nobody
- * guarantees, that a client might not try to resume a session with a longer
- * session id. So to make sure, we define an upper bound of 32.
- */
+static DC_CTX *dc_ctx;
 
 static const char MAIL_TLS_SRVR_CACHE[] = "TLSsrvrcache";
 static const int id_maxlength = 32;	/* Max ID length in bytes */
 static char server_session_id_context[] = "ZMailer/TLS"; /* anything will do */
+#endif
 
 static int do_dump = 0;
 static int verify_depth = 1;
@@ -41,10 +33,6 @@ static int verify_error = X509_V_OK;
 int tls_scache_timeout = 3600;
 int tls_use_scache = 0;
 char *tls_scache_name;
-
-#ifdef HAVE_DISTCACHE
-static DC_CTX *dc_ctx;
-#endif
 
 #define SSL_SESSION_MAX_DER 10*1024
 
@@ -629,6 +617,23 @@ bio_dump_cb(bio, cmd, argp, argi, argl, ret)
      long argl;
      long ret;
 {
+#if 0 /* NOT proper code!  must do in  bio->method->bread()  */
+    static int once = 1;
+
+    if (cmd == BIO_CB_READ && once) {
+      /* This callback is done ONCE per process lifetime ...
+	 ... thus we optimize a bit.  */
+      SmtpState *SS = (SmtpState *)BIO_get_callback_arg(bio);
+
+      once = 0;
+      if (SS->s_ungetcbuf >= 0) {
+	*(char*)argp = SS->s_ungetcbuf;
+	SS->s_ungetcbuf = -1;
+	return 1;
+      }
+    }
+#endif
+
     if (!do_dump)
 	return (ret);
 
@@ -1249,6 +1254,38 @@ static void tls_reset(SMTPD_STATE *state)
 #endif
 
 
+static int z_rbio_bread __((BIO*, char *, int));
+static int
+z_rbio_bread(b, out, outl)
+	BIO *b;
+	char *out;
+	int outl;
+{
+	int ret=0;
+	SmtpState *SS = (SmtpState *)b->cb_arg;
+
+	/* type(NULL,0,NULL,"z_bio_bread(b, 0x%p, %d)", out, outl); */
+
+	if (out) {
+	  /* errno = 0; */
+	  if (SS && SS->s_ungetcbuf >= 0) {
+	    *out = SS->s_ungetcbuf;
+	    SS->s_ungetcbuf = -1;
+	    BIO_clear_retry_flags(b);
+	    /* BIO_set_retry_read(b); */
+	    return 1;
+	  }
+
+	  ret = read (b->num,out,outl);
+	  BIO_clear_retry_flags(b);
+	  if (ret <= 0) {
+	    if (BIO_sock_should_retry(ret))
+	      BIO_set_retry_read(b);
+	  }
+	}
+	return(ret);
+}
+
 int
 tls_start_servertls(SS)
      SmtpState *SS;
@@ -1259,6 +1296,10 @@ tls_start_servertls(SS)
     SSL_CIPHER  * cipher;
     X509	* peer;
     char	cbuf[4000];
+
+    BIO		*wbio, *rbio;
+    BIO_METHOD  *rbiomethod_old;
+    static BIO_METHOD  rbiomethod_new;
 
     /*
      * If necessary, setup a new SSL structure for a connection.
@@ -1326,6 +1367,21 @@ tls_start_servertls(SS)
     }
 
 
+    /*
+     * Now we do deep magic in rbio methods.
+     * We need to have our own low-level read routine
+     * so that we can do ungetc processing properly..
+     *
+     */
+    rbio = SSL_get_rbio(SS->TLS.ssl);
+    rbiomethod_old = rbio->method;
+    rbiomethod_new = *rbiomethod_old;
+    rbiomethod_new.bread = z_rbio_bread;
+    rbio->method = &rbiomethod_new;
+
+    BIO_set_callback_arg(rbio, SS);
+
+
 #if 0
     /*
      * Before really starting anything, try to seed the PRNG a little bit
@@ -1351,7 +1407,7 @@ tls_start_servertls(SS)
      * created for us, so we can use it for debugging purposes.
      */
     if (tls_loglevel >= 3)
-	BIO_set_callback(SSL_get_rbio(SS->TLS.ssl), bio_dump_cb);
+      BIO_set_callback(SSL_get_rbio(SS->TLS.ssl), bio_dump_cb);
 
     /* Dump the negotiation for loglevels 3 and 4*/
     if (tls_loglevel >= 3)
@@ -1371,7 +1427,6 @@ tls_start_servertls(SS)
      */
     for (;;) {
 	int sslerr, rc, i;
-	BIO *wbio, *rbio;
 	fd_set rdset, wrset;
 	struct timeval tv;
 	int wantreadwrite = 0;

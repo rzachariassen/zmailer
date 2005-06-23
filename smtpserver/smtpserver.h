@@ -354,6 +354,7 @@ typedef struct SmtpState {
     int  s_readerrno;
     int  s_seen_eof;
     char s_buffer[64*1024];	/* 64 kB */
+    int  s_buffer_size;		/* adjustable max size.. */
     int  s_ungetcbuf;
     int  s_seen_pipeline;
 
