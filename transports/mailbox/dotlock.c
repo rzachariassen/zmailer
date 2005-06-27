@@ -83,6 +83,12 @@ dotlock(file)
 	sprintf(lockname, "%s.lock", file);
 	sprintf(temp, "%s.L%x.%lx.%x",
 		file, (int)getpid(), (long)time(NULL), (int)gethostid());
+#if 0
+	if (verboselog)
+	  fprintf(verboselog,
+		  "setting up dotlock of: '%s'   '%s'\n",
+		  temp, lockname);
+#endif
 	unlink(temp);
 	for (;;) {
 		if ((fd = open(temp, O_WRONLY|O_CREAT|O_EXCL, 0666)) < 0)
@@ -92,16 +98,31 @@ dotlock(file)
 		now = st.st_ctime;	/* fileserver's idea of current time */
 		close(fd);
 		/* Ignore return value of link, to work around NFS pain */
-		link(temp, lockname);
-		i = stat(temp, &st);
+		i = link(temp, lockname);
+#if 0
+		if (verboselog)
+		  fprintf(verboselog,
+			  " link('%s','%s') -> rc=%d errno=%d %s)\n",
+			  temp,lockname,i,errno, strerror(errno));
+#endif
+		i = lstat(temp, &st);
 		unlink(temp);
+#if 0
+		if (verboselog)
+		  fprintf(verboselog,
+			  " lockfile: stat rc=%d st_nlink=%d\n",
+			  i, st.st_nlink);
+#endif
 		if (i == 0 && st.st_nlink == 2)
 			return 0;
+
 		/* If the lock is too old, remove it. */
-		if (stat(lockname, &st) == 0 && st.st_ctime < now-MAXLOCKAGE &&
+		if (lstat(lockname, &st) == 0 &&
+		    st.st_ctime < now-MAXLOCKAGE &&
 		    unlink(lockname) == 0)
 			continue;
-		if (++fail == MAXFAIL) {
+
+		if (++fail >= MAXFAIL) {
 			errno = EBUSY;		/* yuk */
 			return -2;
 		}

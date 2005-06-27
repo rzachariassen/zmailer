@@ -43,6 +43,10 @@
 #endif
 #include <string.h>
 
+FILE *logfp = NULL;       /* needed very early.. */
+FILE *verboselog = NULL;
+
+
 #include "ta.h"
 
 #include "mail.h"
@@ -288,8 +292,6 @@ const char *defcharset;
 const char *progname;
 const char *channel;
 const char *logfile;
-FILE *logfp = NULL;
-FILE *verboselog = NULL;
 int   readalready = 0;		/* does buffer contain valid message data? */
 uid_t currenteuid;		/* the current euid */
 extern int nobody;		/* safe uid for file/program delivery */
@@ -1655,7 +1657,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
      time_t starttime;
      const char *timestring;
 {
-	int fdmail;
+	int fdmail = -1;
 	struct stat s2;
 	Sfio_t *fp = NULL;
 	const char *mboxlocks = getzenv("MBOXLOCKS");
@@ -1672,12 +1674,87 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	  filelocks = "";
 
 
+	alarm(180); /* Set an timed interrupt coming to us to break
+		       overlengthy file lock acquisition.. */
+
+	if (!S_ISREG(st->st_mode))
+	  /* don't lock non-files */;
+	else {
+
+	  int err;
+
+
+	  if (!ismbox)	/* Not mailbox, use file-locks */
+	    mboxlocks = filelocks;
+
+	  locks = mboxlocks;
+
+	  if (verboselog)
+	    fprintf(verboselog,"Locking sequence: '%s'\n",locks);
+
+	  err = 0;
+	  while (*locks != 0) {
+
+	    if (verboselog)
+	      fprintf(verboselog,"Calling lock: '%c' ..",*locks);
+
+	    switch(*locks) {
+	    case '"': /* ZENV variable may have quotes with it.. */
+	      break;
+	    case ':':
+	      err = -1; /* negative error is no REAL error */
+	      break;
+	    case '.':
+	      if (ismbox)
+		err = acquire_mboxlock(rp,file,uid);
+	      break;
+	    case 'N':
+	    case 'n':
+	      err = acquire_nfsmboxlock(rp,file);
+	      break;
+#if 0 /* L and F locks are ignored at this time! */
+	    case 'L':
+	    case 'l':
+	      err = acquire_lockflock(fdmail,rp,file);
+	      break;
+	    case 'F':
+	    case 'f':
+	      err = acquire_flocklock(fdmail,rp,file);
+	      break;
+#else
+	    case 'L': case 'l':
+	    case 'F': case 'f':
+	      break; /* IGNORE */
+#endif
+	    default:
+	      err = 2; /* BAD INPUT */
+	      break;
+	    }
+	    if (verboselog)
+	      fprintf(verboselog," err=%d\n", err);
+
+	    if (err) break;
+	    ++locks; /* Advance on success only! */
+	  }
+
+	  /* Turn off the alarm */
+	  alarm(0);
+
+	  if (err > 0) {
+	    goto lock_release;
+	  }
+	}
+
+	/* We have locks that must be acquired before... */
+
+
 	if (verboselog)
 	  fprintf(verboselog,
 		  "To open a file with euid=%d egid=%d ismbox=%d file='%s'\n",
 		  (int)geteuid(), (int)getegid(), ismbox, file);
 
 	fdmail = open(file, O_RDWR|O_APPEND);
+
 	if (fdmail < 0) {
 	  char fmtbuf[512];
 	  int saverrno = errno;
@@ -1734,6 +1811,8 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	alarm(180); /* Set an timed interrupt coming to us to break
 		       overlengthy file lock acquisition.. */
 
+	/*  Now we acquire locks that are at the mailbox file itself.. */
+
 	if (!S_ISREG(st->st_mode))
 	  /* don't lock non-files */;
 	else {
@@ -1752,80 +1831,45 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	  err = 0;
 	  while (*locks != 0) {
 	    switch(*locks) {
-	      case '"': /* ZENV variable may have quotes with it.. */
-		break;
-	      case ':':
-		err = -1; /* negative error is no REAL error */
-		break;
-	      case '.':
-		if (ismbox)
-		  err = acquire_mboxlock(rp,file,uid);
-		break;
-	      case 'N':
-	      case 'n':
-		err = acquire_nfsmboxlock(rp,file);
-		break;
-	      case 'L':
-	      case 'l':
-		err = acquire_lockflock(fdmail,rp,file);
-		break;
-	      case 'F':
-	      case 'f':
-		err = acquire_flocklock(fdmail,rp,file);
-		break;
-	      default:
-		err = 1;
-		break;
+	    case '"': /* ZENV variable may have quotes with it.. */
+	      break;
+	    case ':':
+	      err = -1; /* negative error is no REAL error */
+	      break;
+#if 0 /* Ignore dot and N locks */
+	    case '.':
+	      if (ismbox)
+		err = acquire_mboxlock(rp,file,uid);
+	      break;
+	    case 'N':
+	    case 'n':
+	      err = acquire_nfsmboxlock(rp,file);
+	      break;
+#else
+	    case '.':
+	    case 'N':
+	    case 'n':
+	      break; /* IGNORE */
+#endif
+
+	    case 'L':
+	    case 'l':
+	      err = acquire_lockflock(fdmail,rp,file);
+	      break;
+	    case 'F':
+	    case 'f':
+	      err = acquire_flocklock(fdmail,rp,file);
+	      break;
+	    default:
+	      err = 2; /* BAD INPUT */
+	      break;
 	    }
 	    if (err) break;
 	    ++locks; /* Advance on success only! */
 	  }
 
 	  if (err > 0) {
-	    --locks; /* Don't try to revert the failed (= last) lock! */
-	    while (locks >= mboxlocks) {
-	      switch (*locks) {
-		case '"':
-		  break;
-		case '.':
-#ifdef	HAVE_MAILLOCK
-		  if (havemaillock && ismbox)
-		    mailunlock();
-		  havemaillock = 0;
-#endif	/* HAVE_MAILLOCK */
-#ifdef	HAVE_DOTLOCK
-		  if (ismbox)
-		    dotunlock(file);
-		  havedotlock = 0;
-#endif /*HAVE_DOTLOCK*/
-		  break;
-	        case 'N':
-		case 'n':
-#ifdef	USE_NFSMBOX
-		  unlock(file);
-#endif	/* USE_NFSMBOX */
-		  break;
-	        case 'L':
-		case 'l':
-#if defined(HAVE_LOCKF) && defined(F_LOCK) /* If one, also the other */
-		  lseek(fdmail,(off_t)0,SEEK_SET);
-		  lockf(fdmail, F_ULOCK, 0);
-#endif	/* HAVE_LOCKF */
-		  break;
-	        case 'F':
-		case 'f':
-#ifdef HAVE_FLOCK
-		  flock(fdmail, LOCK_UN);
-#endif
-		  break;
-		default:
-		  break;
-	      }
-	      --locks;
-	    }
-	    close(fdmail);
-	    setrootuid(rp);
-	    return;
+	    goto lock_release;
 	  }
 	}
 
@@ -1841,6 +1885,10 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 #endif	/* BIFF || RBIFF */
 
 	fp = putmail(dp, rp, fdmail, "a+", timestring, file, uid);
+
+
+	/* Successes and failures: do lock releases here! */
+ lock_release:
 	
 	if (S_ISREG(st->st_mode)) {
 
@@ -1897,7 +1945,8 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	setrootuid(rp);
 	time(&endtime);
 
-	close(fdmail);
+	if (fdmail >= 0) close(fdmail);
+
 	if (fp != NULL) { /* Dummy marker! */
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(rp->addr->user, s_delivered,
