@@ -61,9 +61,12 @@ struct policystate {		/* Part of SmtpState structure */
 			   But... what about it us being lowest/only MX ?
 			*/
     int implied_submission_mode;
+
 #ifdef HAVE_WHOSON_H
-    int whoson_result;
+    int valid_whoson;
+    int whoson_at_ip;
 #endif
+
 #if defined(HAVE_SPF_ALT_SPF_H) || defined(HAVE_SPF2_SPF_H)
 #define Z_CHECK_SPF_DATA
     int check_spf;

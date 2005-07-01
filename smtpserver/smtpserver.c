@@ -962,6 +962,38 @@ int main(argc, argv, envp)
 	    if (testaddr_set) {
 	      SS.netconnected_flg = 1;
 	      memcpy(&SS.raddr, &testaddr, sizeof(testaddr));
+#ifdef HAVE_WHOSON_H
+             char buf[64];
+	      if (do_whoson && SS.netconnected_flg) {
+	        buf[0]='\0';
+	        if (SS.raddr.v4.sin_family == AF_INET) {  
+	          inet_ntop(AF_INET, (void *) &SS.raddr.v4.sin_addr,    /* IPv4 */
+	            buf, sizeof(buf) - 1);
+#if defined(AF_INET6) && defined(INET6)
+	        } else if (SS.raddr.v6.sin6_family == AF_INET6) {
+	          inet_ntop(AF_INET6, (void *) &SS.raddr.v6.sin6_addr,  /* IPv6 */
+	            buf, sizeof(buf) - 1);
+#endif
+	        }
+	        if ((SS.whoson_result = wso_query(buf, SS.whoson_data,
+	          sizeof(SS.whoson_data)))) {
+	            strcpy(SS.whoson_data,"-unregistered-");
+	          }
+#if DO_PERL_EMBED
+	        else {
+	          int rc;
+	          ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
+	        }
+#endif
+	      } else {
+	        strcpy(SS.whoson_data,"NOT-CHECKED");
+	        strcpy(buf,"NA");
+	        SS.whoson_result = -1;
+	      }
+	      if (debug) 
+	        type(NULL,0,NULL,"Whoson Initialized: IP Used: %s, whoson_result: %d, whoson_data: %s",
+	           buf, SS.whoson_result, SS.whoson_data);
+#endif /* HAVE_WHOSON_H */  
 	    }
 	  } else {
 	    /* Got a peer name (it is a socket) */
@@ -2466,11 +2498,11 @@ int insecure;
     if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
       policystatus     = policyinit(&SS->policystate, policydb_submit, 
 				    (SS->with_protocol_set & WITH_SUBMIT) ? 3 : 2,
-				    SS->whoson_result);
+				    (! SS->whoson_result && SS->whoson_data));
     else
       policystatus     = policyinit(&SS->policystate, policydb, 
 				    (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
-				    SS->whoson_result);
+				    (! SS->whoson_result && SS->whoson_data));
 #else
     if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
       policystatus     = policyinit(&SS->policystate, policydb,

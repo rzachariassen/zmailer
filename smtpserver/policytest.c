@@ -197,17 +197,21 @@ void policydefine(relp, dbtype, dbpath)
 
 
 
-int policyinit(state, rel, submission_mode_flags, whosonrc)
+int policyinit(state, rel, submission_mode_flags, valid_whoson)
      struct policystate *state;
      struct policytest  *rel;
      int submission_mode_flags;
-     int whosonrc;
+     int valid_whoson;
 {
     int openok;
     char *dbname;
 
     if (rel == NULL)
       return -1;  /* Not defined! */
+
+    if (debug) 
+	type(NULL,0,NULL,"Policyinit call starts: submission mode: %d, valid whoson: %d",
+	       submission_mode_flags, valid_whoson);
 
     memset(state, 0, sizeof(*state));
 
@@ -407,13 +411,9 @@ int policyinit(state, rel, submission_mode_flags, whosonrc)
 #endif
 
 #ifdef HAVE_WHOSON_H
-    if (debug) {
-      type(NULL,0,NULL,"TEST: have-whoson found");
-      type(NULL,0,NULL,"TEST: state-whoson=[%d] whosonrc=[%d]",
-	   state->whoson_result, whosonrc);
-    }
-    state->whoson_result = whosonrc;
+    state->valid_whoson = valid_whoson;
 #endif
+
 #ifdef Z_CHECK_SPF_DATA
     state->check_spf=0;
 #endif
@@ -936,7 +936,9 @@ static int _addrtest_(state, pbuf, sourceaddr)
 			 1 << P_A_OutboundSizeLimit |
 			 1 << P_A_FullTrustNet      |
 			 1 << P_A_TrustRecipients   |
+#ifdef HAVE_WHOSON_H
 			 1 << P_A_TrustWhosOn       |
+#endif
 			 1 << P_A_Filtering         |
 			 1 << P_A_RateLimitMsgs     |
 			 1 << P_A_MaxSameIpSource    );
@@ -1046,16 +1048,6 @@ static int _addrtest_(state, pbuf, sourceaddr)
       state->full_trust = 1;
       PICK_PA_MSG(P_A_FullTrustNet);
     }
-#ifdef HAVE_WHOSON_H
-    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
-      if (debug)
-	type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found, accept? = %d",
-	       (state->whoson_result == 0));
-      if (state->whoson_result == 0)
-	state->always_accept = 1;
-      PICK_PA_MSG(P_A_TrustWhosOn);
-    }
-#endif
     if (/* !state->implied_submission_mode && */
 	valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
@@ -1063,6 +1055,25 @@ static int _addrtest_(state, pbuf, sourceaddr)
       state->always_accept = 1;
       PICK_PA_MSG(P_A_RELAYCUSTNET);
     }
+
+#ifdef HAVE_WHOSON_H
+    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+      if (state->valid_whoson){
+	state->trust_recipients = 1;
+       state->whoson_at_ip = 1;
+        if (debug) 
+          type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found at IP address.  (named or _default_ipaddr?)  Trust-Recipients granted.");
+        PICK_PA_MSG(P_A_TrustRecipients);
+      }
+    } else if (valueeq(state->values[P_A_TrustWhosOn], "-")) {
+      if (state->valid_whoson){
+	state->valid_whoson = 0;
+        if (debug) 
+          type(NULL,0,NULL," policytestaddr: 'valid whoson query but trust-whoson -' found at IP address (named or _default_ipaddr?),   Valid-Whoson revoked.");
+      }
+    }
+
+#endif
 
     if (state->values[P_A_Filtering]) {
       if (debug)
@@ -1630,6 +1641,28 @@ static int pt_mailfrom(state, str, len)
     state->sender_freeze = 0;
     state->sender_norelay = 0;
 
+    /*
+     * This is a Whoson HACK
+     *   If a previous MAIL FROM in this SMTP session
+     *   found a trust-whoson match, state->trust-recipients
+     *   was granted.  Reset it now, in case the policy
+     *   configuration specifies per domain whoson trust
+     *  
+     * If we do not reset, all further recipients would
+     *   be accepted even if new from addresses did not have
+     *   a trust whoson match
+     */
+#ifdef HAVE_WHOSON_H
+     if (state->valid_whoson && state->trust_recipients &&
+       (! state->whoson_at_ip) &&
+       (! valueeq(state->values[P_A_TrustRecipients], "+"))){
+       state->trust_recipients = 0;
+       if (debug)
+         type(NULL,0,NULL," pt_mailfrom: resetting whoson forged: state->trust_recipients");
+     }
+#endif
+
+
 #ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
       char *nstr=strdup((const char *)str);
@@ -1663,6 +1696,9 @@ static int pt_mailfrom(state, str, len)
 
       /* state->request initialization !! */
       state->request = ( 1 << P_A_REJECTSOURCE |
+#ifdef HAVE_WHOSON_H
+			 (state->valid_whoson ? 1:0) << P_A_TrustWhosOn  |
+#endif
 			 1 << P_A_FREEZESOURCE   );
 
       /* XX: How about  <@foo:user@domain> ??? */
@@ -1696,6 +1732,9 @@ static int pt_mailfrom(state, str, len)
 			 1 << P_A_FREEZESOURCE  |
 #if 0
 			 1 << P_A_RELAYCUSTOMER |
+#endif
+#ifdef HAVE_WHOSON_H
+			 (state->valid_whoson ?1:0) << P_A_TrustWhosOn  |
 #endif
 			 1 << P_A_SENDERNoRelay |
 			 1 << P_A_SENDERokWithDNS ) & (~ requestmask);
@@ -1813,6 +1852,18 @@ static int pt_mailfrom(state, str, len)
 	return -1;
     }
 
+#ifdef HAVE_WHOSON_H
+    if (state->valid_whoson){
+      if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
+	state->trust_recipients = 1;
+        if (debug) 
+          type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found at EMail address.  (named or _default_dot?)  Trust-Recipients granted.");
+        PICK_PA_MSG(P_A_TrustRecipients);
+      }
+    }
+#endif
+
+
 
     if ((len > 0)  && (at[1] != '[') && state->values[P_A_SENDERokWithDNS]) {
       /*
@@ -1841,24 +1892,12 @@ static int pt_mailfrom(state, str, len)
       return 0;
     }
 
-    /* The 'whoson' is an alternate way to authenticate via external
-       mapper service. */
-#ifdef HAVE_WHOSON_H
-    if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
-      if (debug)
-	type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found, accept? = %d",
-	     (state->whoson_result == 0));
-      if (state->whoson_result == 0)
-	return 0; /* OK! */
-    }
-#endif
-
-
     if ( state->always_accept ) {
       if (debug)
 	type(NULL,0,NULL," allow because of \"always-accept\"");
       return 0;
     }
+
 
 #ifdef Z_CHECK_SPF_DATA
     rc=0;
@@ -1937,7 +1976,6 @@ static int pt_rcptto(state, str, len)
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
     if (state->full_trust)    return  0;
-    /* if (state->always_accept) return  0; */
     if (state->authuser)      return  0;
     if (state->trust_recipients) return 0;
 
@@ -1950,33 +1988,16 @@ static int pt_rcptto(state, str, len)
     }
 #endif
 
-#ifdef HAVE_WHOSON_H
-    if (debug) {
-      type(NULL,0,NULL,"TEST: 'have-whoson' found");
-      type(NULL,0,NULL,"TEST: 'state-whoson=[%d] ",
-	   state->values[P_A_TrustWhosOn]);
-    }
-#endif
-
     /* rcptfreeze even for 'rcpt-nocheck' ? */
 
     /* state->request initialization !! */
     state->request = ( 1 << P_A_RELAYTARGET     |
 		       1 << P_A_ACCEPTbutFREEZE |
 		       1 << P_A_TestRcptDnsRBL  |
-		       1 << P_A_TrustWhosOn     |
 		       1 << P_A_LocalDomain );
 
     /* Test first the full address */
     if (check_user(state, str, len) == 0) {
-#ifdef HAVE_WHOSON_H
-      if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
-	if (state->whoson_result == 0){
-	  PICK_PA_MSG(P_A_TrustWhosOn);
-	  return 0;
-	}
-      }
-#endif
       if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
@@ -2015,7 +2036,6 @@ static int pt_rcptto(state, str, len)
 		       1 << P_A_ACCEPTifMX      |
 		       1 << P_A_ACCEPTifDNS     |
 		       1 << P_A_TestRcptDnsRBL  |
-		       1 << P_A_TrustWhosOn     |
 		       1 << P_A_LocalDomain );
 
     at = find_nonqchr(str, '@', len);
@@ -2075,7 +2095,6 @@ static int pt_rcptto(state, str, len)
 			   1 << P_A_ACCEPTbutFREEZE |
 			   1 << P_A_ACCEPTifMX      |
 			   1 << P_A_ACCEPTifDNS     |
-			   1 << P_A_TrustWhosOn     |
 			   1 << P_A_TestRcptDnsRBL  |
 			   1 << P_A_LocalDomain );
 
@@ -2107,7 +2126,6 @@ static int pt_rcptto(state, str, len)
 			   1 << P_A_ACCEPTbutFREEZE |
 			   1 << P_A_ACCEPTifMX      |
 			   1 << P_A_ACCEPTifDNS     |
-			   1 << P_A_TrustWhosOn     |
 			   1 << P_A_TestRcptDnsRBL  |
 			   1 << P_A_LocalDomain );
 
@@ -2162,9 +2180,6 @@ static int pt_rcptto(state, str, len)
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
     }
-
-    /* WHOSON processing sets 'always_accept' at connection setup..
-       No need to ponder it here.. */
 
     if (state->always_accept) {
       int rc, c = '-';
