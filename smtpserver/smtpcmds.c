@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2005.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -304,8 +304,8 @@ const char *buf, *cp;
 	char sizebuf[20];
 	long policyinlimit = policyinsizelimit(&SS->policystate);
 	long maxinlimit = maxsize;
-	int multiline = multilinereplies;
-	multilinereplies = 1;
+	int multiline = OCP->multilinereplies;
+	OCP->multilinereplies = 1;
 
 	if (policyinlimit >= 0)  /* defined if non-negative value */
 	  maxinlimit = policyinlimit;
@@ -319,43 +319,43 @@ const char *buf, *cp;
 						     The FIXED maximum */
 
 	type(SS, -250, NULL, sizebuf);		/* RFC 1427/1653/1870 */
-	if (mime8bitok)
+	if (OCP->mime8bitok)
 	  type(SS, -250, NULL, "8BITMIME");	/* RFC 1426/1652 */
-	if (pipeliningok)
+	if (OCP->pipeliningok)
 	  type(SS, -250, NULL, "PIPELINING");	/* RFC 1854/2197 */
-	if (chunkingok)
+	if (OCP->chunkingok)
 	  type(SS, -250, NULL, "CHUNKING");	/* RFC 1830: BDAT */
-	if (enhancedstatusok)
+	if (OCP->enhancedstatusok)
 	  type(SS, -250, NULL, "ENHANCEDSTATUSCODES"); /* RFC 2034 */
-	if (expncmdok && STYLE(SS->cfinfo, 'e'))
+	if (OCP->expncmdok && STYLE(SS->cfinfo, 'e'))
 	  type(SS, -250, NULL, "EXPN");		/* RFC 821 */
-	if (vrfycmdok && STYLE(SS->cfinfo, 'v'))
+	if (OCP->vrfycmdok && STYLE(SS->cfinfo, 'v'))
 	  type(SS, -250, NULL, "VRFY");		/* RFC 821 */
-	if (dsn_ok)
+	if (OCP->dsn_ok)
 	  type(SS, -250, NULL, "DSN");		/* RFC 1891 */
 
-	if (deliverby_ok == 0)
+	if (OCP->deliverby_ok == 0)
 	  type(SS, -250, NULL, "DELIVERBY");	/* RFC 2852 */
-	else if (deliverby_ok > 0)
-	  type(SS, -250, NULL, "DELIVERBY %d", deliverby_ok);
+	else if (OCP->deliverby_ok > 0)
+	  type(SS, -250, NULL, "DELIVERBY %d", OCP->deliverby_ok);
 
-	if (rcptlimitcnt > 100)
-	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
+	if (OCP->rcptlimitcnt > 100)
+	  type(SS, -250, NULL, "X-RCPTLIMIT %d", OCP->rcptlimitcnt);
 
 	smtpauth_ehloresponse(SS);
 
 #ifdef HAVE_OPENSSL
 	/* NOTE: This seems to require TLS and STARTTLS facilities,
 	   better known as SSL..  TLS: RFC 2246, STARTTLS: RFC 2487 */
-	if (starttls_ok && !SS->sslmode) {
+	if (OCP->starttls_ok && !SS->sslmode) {
 	  type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
 	}
 #endif /* - HAVE_OPENSSL */
-	if (etrn_ok && !msa_mode)
+	if (OCP->etrn_ok && !msa_mode)
 	  type(SS, -250, NULL, "ETRN");		/* RFC 1985 */
 	type(SS, 250, NULL, "HELP");		/* RFC 821 ? */
 	SS->with_protocol_set |= WITH_EHLO;
-	multilinereplies = multiline;
+	OCP->multilinereplies = multiline;
     } else {
       /* HELO greeting -- or LHLO...  but that is just for debug */
       SS->with_protocol_set = WITH_HELO;
@@ -432,7 +432,7 @@ int insecure;
     }
     if (msa_mode && ! SS->authuser) {
 	smtp_tarpit(SS);
-	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
+	type(SS, 530, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
 	return -1;
     }
 
@@ -582,7 +582,7 @@ int insecure;
 	    if (strict_protocol > 0) break;
 	    if (strict && !sloppy) break;
 	}
-	if (dsn_ok && CISTREQN("RET=", s, 4)) {
+	if (OCP->dsn_ok && CISTREQN("RET=", s, 4)) {
 	    if (drpt_ret) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "RET-param double defined!");
@@ -602,7 +602,7 @@ int insecure;
 	    MIBMtaEntry->ss.IncomingSMTP_OPT_RET ++;
 	    continue;
 	}
-	if (mime8bitok && CISTREQN("BODY=", s, 5)) {
+	if (OCP->mime8bitok && CISTREQN("BODY=", s, 5)) {
 	    /* Actually we do not use this data... */
 	    s += 5;
 	    if (bodytype != NULL) {
@@ -660,7 +660,7 @@ int insecure;
 	    continue;
 	}
 	/* IETF-NOTARY  SMTP-DSN extensions */
-	if (dsn_ok && CISTREQN("ENVID=", s, 6)) {
+	if (OCP->dsn_ok && CISTREQN("ENVID=", s, 6)) {
 	    if (drpt_envid != NULL) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "ENVID double definition!");
@@ -688,7 +688,7 @@ int insecure;
 	    MIBMtaEntry->ss.IncomingSMTP_OPT_ENVID ++;
 	    continue;
 	}
-	if (auth_ok && CISTREQN("AUTH=", s, 5)) {
+	if (OCP->auth_ok && CISTREQN("AUTH=", s, 5)) {
 	    /* RFC 2554 AUTH extension */
 	    auth_param = s + 5;
 	    p = xtext_string(s + 5);
@@ -711,7 +711,7 @@ int insecure;
 	    MIBMtaEntry->ss.IncomingSMTP_OPT_AUTH ++;
 	    continue;
 	}
-	if (deliverby_ok >= 0 && CISTREQN("BY=", s, 3)) {
+	if (OCP->deliverby_ok >= 0 && CISTREQN("BY=", s, 3)) {
 	    /* RFC 2852: DELIVERBY extension */
 	    int neg = 0;
 	    int val = 0;
@@ -766,7 +766,7 @@ int insecure;
 	      break;
 	    }
 	    if ((neg & DELIVERBY_R) &&
-		deliverby_ok > 0 && val < deliverby_ok) {
+		OCP->deliverby_ok > 0 && val < OCP->deliverby_ok) {
 	      smtp_tarpit(SS);
 	      type(SS, 553, m571, "Too small short delivery deadline value given: %d\n", val);
 	      rc = 1;
@@ -918,12 +918,12 @@ int insecure;
 	fprintf(SS->mfp, "%s:%d ", SS->rhostaddr, SS->rport);
       rfc822commentprint(SS->mfp, SS->helobuf);
 
-      if (ident_flag && log_rcvd_ident) {
+      if (ident_flag && OCP->log_rcvd_ident) {
 	fprintf(SS->mfp, " ident: ");
 	rfc822commentprint(SS->mfp, SS->ident_username);
       }
 #ifdef HAVE_WHOSON_H
-      if (log_rcvd_whoson && do_whoson) {
+      if (OCP->log_rcvd_whoson && do_whoson) {
 	fprintf(SS->mfp, " whoson: ");
 	rfc822commentprint(SS->mfp,
 			   ((SS->whoson_result == 0) ? SS->whoson_data :
@@ -931,7 +931,7 @@ int insecure;
 			     "-unavailable-")));
       }
 #endif
-      if (log_rcvd_authuser) {
+      if (OCP->log_rcvd_authuser) {
 	fprintf(SS->mfp, " smtp-auth: ");
 	if (SS->authuser) {
 	  rfc822commentprint(SS->mfp,SS->authuser);
@@ -941,14 +941,14 @@ int insecure;
       }
 #ifdef HAVE_OPENSSL
       if (SS->sslmode) {
-	if (log_rcvd_tls_mode) {
+	if (OCP->log_rcvd_tls_mode) {
 	  fprintf(SS->mfp, " TLS-CIPHER: ");
 	  if (SS->TLS.cipher_info)
 	    rfc822commentprint(SS->mfp, SS->TLS.cipher_info);
 	  else
 	    fprintf(SS->mfp, "<none>");
 	}
-	if (log_rcvd_tls_peer) {
+	if (OCP->log_rcvd_tls_peer) {
 	  fprintf(SS->mfp, " TLS-PEER-CN1: ");
 	  if (SS->TLS.peer_subject)
 	    rfc822commentprint(SS->mfp, SS->TLS.peer_subject);
@@ -956,9 +956,9 @@ int insecure;
 	    fprintf(SS->mfp, "<none>");
 	}
       } else {
-	if (log_rcvd_tls_mode)
+	if (OCP->log_rcvd_tls_mode)
 	  fprintf(SS->mfp, " TLS-CIPHER: <none>");
-	if (log_rcvd_tls_peer)
+	if (OCP->log_rcvd_tls_peer)
 	  fprintf(SS->mfp, " TLS-PEER-CN1: <none>");
       }
 #endif /* - HAVE_OPENSSL */
@@ -1196,14 +1196,14 @@ const char *buf, *cp;
     /* Redundant for sure, but ... */
     if (msa_mode && ! SS->authuser) {
 	smtp_tarpit(SS);
-	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
+	type(SS, 530, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode sender must authenticate first!");
 	return -1;
     }
 
     /* some smtp clients don't get the 503 right and try again, so
        tell the spammers exactly what's happening. */
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
-	 policydb != NULL && SS->policyresult < 0 ) {
+	 OCP->policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
       type(SS, 550, m571, "Hello %s, access denied by the policy analysis functions by earlier rejection", SS->rhostaddr);
       return -1;
@@ -1380,7 +1380,7 @@ const char *buf, *cp;
 #define NOTIFY_DELAY   4
 #define NOTIFY_NEVER   8
 
-	if (dsn_ok && CISTREQN("NOTIFY=", s, 7)) {
+	if (OCP->dsn_ok && CISTREQN("NOTIFY=", s, 7)) {
 	    if (drpt_notify) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "NOTIFY-param double defined!");
@@ -1410,7 +1410,7 @@ const char *buf, *cp;
 	    MIBMtaEntry->ss.IncomingSMTP_OPT_NOTIFY ++;
 	    continue;
 	}
-	if (dsn_ok && CISTREQN("ORCPT=", s, 6)) {
+	if (OCP->dsn_ok && CISTREQN("ORCPT=", s, 6)) {
 	    if (drpt_orcpt) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "ORCPT-param double defined!");
@@ -1433,7 +1433,7 @@ const char *buf, *cp;
 	return -1;
     }
 
-    if (SS->rcpt_count >= rcptlimitcnt) {
+    if (SS->rcpt_count >= OCP->rcptlimitcnt) {
       smtp_tarpit(SS);
       type(SS, 452, "4.5.2", "Too many recipients in one go!");
       return -1;
@@ -1464,7 +1464,7 @@ const char *buf, *cp;
 	if (addrlen == 10)
 	  SS->policyresult = 0; /* Plain <postmaster> */
 	else
-	  if (policydb != NULL && SS->policyresult > -100) {
+	  if (OCP->policydb != NULL && SS->policyresult > -100) {
 	    int rc;
 	    if (debug) typeflush(SS);
 	    if (SS->netconnected_flg)
@@ -1577,7 +1577,7 @@ const char *buf, *cp;
 
     /* IETF-NOTARY DSN data: */
     fputs("todsn", SS->mfp);
-    if (force_rcpt_notify_never) {
+    if (OCP->force_rcpt_notify_never) {
       fwrite(" NOTIFY=NEVER", 1, 13, SS->mfp);
     } else if (drpt_notify) {
 	fputc(' ', SS->mfp);
@@ -1677,7 +1677,7 @@ const char *buf, *cp;
 	smtp_tarpit(SS);
 	type(SS, 452, m431, "insufficient storage space, try again later");
     } else if (s) {
-	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
+	if (SS->from_box && SS->rcpt_count > OCP->MaxErrorRecipients) {
 	    smtp_tarpit(SS);
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else {
@@ -1694,7 +1694,7 @@ const char *buf, *cp;
 	      err = 0;
 	}
     } else {
-	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
+	if (SS->from_box && SS->rcpt_count > OCP->MaxErrorRecipients) {
 	    smtp_tarpit(SS);
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else if (SS->sizeoptval)

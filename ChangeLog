@@ -1,3 +1,39 @@
+2005-07-02  Matti Aarnio  <mea@zmailer.org>
+
+	* doc/guides/smtp-msa-mode:
+	    Note about document being rather obsolete,
+	    and what did replace it...
+
+	* doc/guides/smtpauth-login-pam-support:
+	    Do read  smtpserver(8) man-page about these
+	    details.
+
+	* man/smtpserver.8.in:
+	    Lots of revision work to update the manual towards
+	    what the system implements, and how to use it.
+
+	* proto/smtpserver.conf.in:
+	    Revised and updated default file for current
+	    recommended setup.
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/cfgread.c,    smtpserver/smtptls.c,
+	  smtpserver/policytest.h, smtpserver/policytest.c,
+	  smtpserver/smtpauth.c,   smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c,   smtpserver/smtpetrn.c,
+	  smtpserver/subdaemon-rtr.c:
+	    - Big restructuring, where some three dozen
+	      parameters were moved into groups, and a way
+	      for parameter groups to be created, and then
+	      used was implemented.
+	    - Allows clean(er) parametrization of TLS, and
+	      AUTH setups per served port.
+	    - Should still be able to parse and use configuration
+	      file from years past...
+	    - Realized, why 'debug' mode hung-up customer
+	      interaction, and fixed it.
+	      
+
 2005-06-30  Neal Morgan <Neal@Morgan-Systems.com>
 
 	* smtpserver/smtpserver.c, smtpserver/policytest.h,

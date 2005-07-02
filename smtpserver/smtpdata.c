@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2005.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -164,7 +164,7 @@ const char *buf, *cp;
 	SS->mfp = NULL;
 	return 0;
     }
-    if ((SS->from_box != 0) && (SS->rcpt_count > MaxErrorRecipients)) {
+    if ((SS->from_box != 0) && (SS->rcpt_count > OCP->MaxErrorRecipients)) {
 	/* Too many recipients for a  "MAIL FROM:<>" */
 	type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
 	typeflush(SS);
@@ -185,7 +185,7 @@ const char *buf, *cp;
     }
 
 #ifdef Z_CHECK_SPF_DATA
-    if (spf_received && policyspfhdr(&SS->policystate)) {
+    if (OCP->spf_received && policyspfhdr(&SS->policystate)) {
       fprintf(SS->mfp,"%s\n", policyspfhdr(&SS->policystate));
     }
 #endif
@@ -516,7 +516,7 @@ const char *buf, *cp;
 	  fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
 	}
 #ifdef Z_CHECK_SPF_DATA
-	if (spf_received && policyspfhdr(&SS->policystate)) {
+	if (OCP->spf_received && policyspfhdr(&SS->policystate)) {
 	  fprintf(SS->mfp,"%s\n", policyspfhdr(&SS->policystate));
 	}
 #endif
@@ -600,7 +600,7 @@ const char *buf, *cp;
 	    SS->mfp = NULL;
 	    return 0;
 	}
-	if ((SS->from_box != 0) && (SS->rcpt_count > MaxErrorRecipients)) {
+	if ((SS->from_box != 0) && (SS->rcpt_count > OCP->MaxErrorRecipients)) {
 
 	  /* Too many recipients for a  "MAIL FROM:<>" */
 	  type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");

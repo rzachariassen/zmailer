@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2005-Jun-22"
+.TH SMTPSERVER 8zm "2005-Jul-02"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -342,7 +342,6 @@ exists it is read to configure two kinds of things:
 .IP "PARAM \-entries"
 .RS
 allow server start-time parametrization of several things, including:
-.PP
 .RS 1em
 .IP \(bu 2em
 help-texts
@@ -354,6 +353,32 @@ various feature parametrizations
 .PP
 On PARAM lines the system allows $-expansions of ZENV variables.
 (Special note: '$$' expands as '$', not shell-style process-id number!)
+.PP
+The PARAM lines are managable in groups, which essentially are
+centered around the service specific "Bind*" keywords so that one can set:
+.RS 1em
+.IP \(bu 2em
+global defaults
+.IP \(bu 2em
+Binding-specific parameters
+.RE
+.PP
+A new group (with its own BINDs) begins with: "\fCPARAM newgroup\fR".
+It inherits settings from "default" group, which
+are all parameters (except bindings) that are defined
+before first "\fCPARAM newgroup\fR".
+.PP
+Below individual parameters are labeled to be
+.I (global)
+or
+.I (group)
+depending on what they are.
+.PP
+It is not absolutely necessary to have anything but default group,
+but it cleans some service parametrization issues.
+However, 
+.I "if there are any grouppings, all of them, default including"
+.I "must have bind-sets!"
 .RE
 .IP "The style (\fI-s\fR) option"
 .RS
@@ -373,12 +398,14 @@ misbehaving client software or mailers.
 .RE
 .IP "PARAM maxsize"
 .RS
+.I (global)
 This is synonym to start-time
 .I -M
 option.
 .RE
 .IP "PARAM min-availspace 5000"
 .RS
+.I (global)
 This defines, in
 .BR kilobytes ,
 the minimum available space in
@@ -387,6 +414,7 @@ directory after the message has been accepted in.
 .RE
 .IP "PARAM max-error-recipients"
 .RS
+.I (group)
 This defines how many recipients can be on a message whose source
 address is
 .B MAIL FROM:<>\fR.
@@ -395,6 +423,7 @@ in that form...)
 .RE
 .IP "PARAM MaxSameIpSource"
 .RS
+.I (global)
 This sets the maximum number of active connections from any given
 single IP address.
 .PP
@@ -413,6 +442,7 @@ the connection without telling anything.
 .RE
 .IP "PARAM MaxParallelConnections"
 .RS
+.I (global)
 This limits how many simultaneous connections the server will accept
 in total -- e.g. how many childs a master server can have running.
 Default value: 800.
@@ -429,22 +459,26 @@ In every case the connection is closed right after the possible message.
 .RE
 .IP "PARAM ListenQueueSize"
 .RS
+.I (group)
 This sets the listen queue size parameter for
 .IR listen (2)
 call at the server.
 .RE
 .IP "PARAM TcpRcvBufferSize"
 .RS
+.I (group)
 This sets  setsockopt(SO_RCVBUF)  value, in case the system
 default is not suitable.
 .RE
 .IP "PARAM TcpXmitBufferSize"
 .RS
+.I (group)
 This sets  setsockopt(SO_SNDBUF)  value, in case the system
 default is not suitable.
 .RE
 .IP "PARAM RcptLimitCount 10000"
 .RS
+.I (group)
 This sets the maximum number of accepted recipients per one
 message transaction.  Default (and minimum!) value is 100,
 which is mandated by the RFC 821.
@@ -456,6 +490,10 @@ which is mandated by the RFC 821.
 .IP "PARAM BindAddress any6"
 .IP "PARAM BindAddress iface:ifacename"
 .RS
+.I (group)
+.I "Deprecated old forms of parameters,"
+.I "use of 'BindSmtp' et.al. (below) instead is preferred."
+.PP
 Per default the server mode SMTP-server binds to port 25 and any
 locally accepted address, but occasionally people seem to want to
 have separate server instances with different configurations, and
@@ -470,19 +508,21 @@ addresses.
 .IP "PARAM BindSmtpS <address_or_iface> <optional_port>"
 .IP "PARAM BindSubmit <address_or_iface> <optional_port>"
 .RS
+.I (group)
 Extended versions of abovementioned
 .I Bindaddress
 and
 .I BindPort
 parameters.
 These can be used to bind zero to lots of instances of
-each protocol at different interfaces/addresses/ports, if
-so desired.
+each protocol at different interfaces/addresses/ports,
+if so desired.
 .RE
 .IP "PARAM DEBUGcmd"
 .IP "PARAM EXPNcmd"
 .IP "PARAM VRFYcmd"
 .RS
+.I (group)
 This trio (DEBUGcmd, EXPNcmd, VRFYcmd) are enablers of like named 
 SMTP verbs which have some uses in the debug mode.
 .PP
@@ -491,6 +531,7 @@ direct attacks with them.  (That we know of.)
 .RE
 .IP "PARAM enable-router"
 .RS
+.I (global)
 This enables interactive router use where user inputs reach the router.
 As things turn out, while the canned scripts should be safe against any
 and all inputs, a careless change in the router scripts may endanger
@@ -508,6 +549,7 @@ of ``MAIL FROM'' and ``RCPT TO'' addresses.
 .RE
 .IP "PARAM enable-router-maxpar 2"
 .RS
+.I (global)
 Sets the upper limit of how many parallel interactive routers
 can be activated to handle received routing requests.
 .PP
@@ -515,47 +557,55 @@ Default is 2, accepted value range is 1 thru 20.
 .RE
 .IP "PARAM smtp-auth"
 .RS
+.I (group)
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
 to MAIL verb).  With this the users who are able to 'login' successfully
 to this host, are then able to relay the email thru the server unlimited.
 .RE
 .IP "PARAM auth-failrate 20"
 .RS
+.I (group)
 Limit number of failed SMTP AUTHs per hour to this number,
 above this, and all AUTHs will always fail...
 .RE
 .IP "PARAM no-smtp-auth-on-25"
 .RS
+.I (group)
 Disable SMTP AUTH LOGIN on normal SMTP port.
 It does still work at SMTPS and SUBMISSION.
 .RE
 .IP "PARAM smtp-auth-username-prompt \"prompt string\""
 .RS
+.I (group)
 A quoted string whose content is sent to remote end in
 SMTP AUTH LOGIN exchange - in cases where username is not
 supplied at the beginning of the exchange...
 .RE
 .IP "PARAM smtp-auth-password-prompt \"prompt string\""
 .RS
+.I (group)
 A quoted string whose content is sent to remote end in
 SMTP AUTH LOGIN exchange - possibly shown to user during
 the protocol exchange, possibly not shown...
 .RE
 .IP "PARAM AUTH-LOGIN-also-without-TLS"
 .RS
+.I (group)
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
 .RE
 .IP "PARAM smtp-auth-sasl"
 .RS
+.I (group)
 If the system has been configured with
 .I SASL2
 support, use that instead of built-in plain-text authenticator code.
 .PP
 .B "Presently experimental code!"
 .RE
-.IP "PARAM smtp-mechanisms mech name list"
+.IP "PARAM sasl-mechanisms 'mech name list'"
 .RS
+.I (group)
 List only those mechanisms that are wanted to be supported in the
 running system.
 Undefined list means: any and all what the SASL-system supports.
@@ -567,6 +617,8 @@ Experience is partial, and failed in several combinations.
 .RE
 .IP "PARAM MSA-mode"
 .RS
+.I (global)
+.I (obsolete)
 Enable Message Submission Agent mode, where smtpserver
 .B requires
 successful user authentication during SMTP sessions initiated from
@@ -577,6 +629,7 @@ file).
 .RE
 .IP "PARAM SMTP-auth-pipe /path/to/program"
 .RS
+.I (group)
 This is a path to the external authentication program.
 The authenticator should read a username from command line,
 and a password from standard input.
@@ -588,6 +641,7 @@ Exit status 0 means successful authentication.
 .RE
 .IP "PARAM use-tcp-wrapper"
 .RS
+.I (group)
 If TCP-WRAPPER is configured in, uncommenting this
 will activate its use to look service name:  smtp-receiver
 .RE
@@ -599,6 +653,7 @@ will activate its use to look service name:  smtp-receiver
 .IP "PARAM NoETRN"
 .IP "PARAM NoPIPELINING"
 .RS
+.I (group)
 This set contains
 .B disablers
 of like named Extended SMTP EHLO responses, plus EHLO verb itself,
@@ -613,39 +668,63 @@ for it, as in general they work quite fine.
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
 .RE
-.IP "PARAM no-multiline-replies"
+.IP "PARAM 8BITMIME-OK"
+.IP "PARAM CHUNKING-OK"
+.IP "PARAM DSN-OK"
+.IP "PARAM EHLO-OK"
+.IP "PARAM ENCHANCEDSTATUS(CODES)-OK"
+.IP "PARAM ETRN-OK"
+.IP "PARAM PIPELINING-OK"
 .RS
+.I (group)
+Enablers for previous parameters in case you have
+chosen to disable something from the default group,
+and want to enable it now.
+.RE
+.IP "PARAM no-multiline-replies"
+.IP "PARAM multiline-replies-ok"
+.RS
+.I (group)
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
+(Enabler available just in case desired group default is disabled.)
 .RE
 .IP "PARAM force-rcpt-notify-never"
+.IP "PARAM no-force-rcpt-notify-never"
 .RS
+.I (group)
 Whatever the incoming DNS NOTIFY= value is, we force it always
 to be NOTIFY=NEVER.   This is for those who won't like to let
 others even to find out that the message made into the system,
 but still want to support incoming DSN. (That is, not to disable DSN!)
+.PP
+Disabler available in case group default is forced.
 .RE
 .IP "PARAM hdr220 a string of stuff"
 .RS
+.I (global)
 This allows full customization of the initial greeting message.
 For details, see the sample configuration below.
 .RE
 .IP "PARAM contact-pointer-message ...."
 .RS
-This is a final message for many SMTP rejects.  By default, it's value is
+.I (group)
+This is a final message for many SMTP rejects.
+By default, it's value is
 .B "\"Ask HELP for our contact information.\""
 You may want to put here, e.g., a pointer to a web page with local policy.
 See example in the sample configuration below.
 .RE
 .IP "PARAM help ...."
 .RS
+.I (global)
 This allows adding locally relevant data into the SMTP protocol
 HELP command response texts.
 See example in the sample configuration below.
 .RE
 .IP "PARAM policydb DBTYPE /path/to/dbfile"
-.IP "PARAM policydb\-submit DBTYPE /path/to/dbfile"
 .RS
+.I (group)
 These defines smtp input policy filtering/analysis database location
 for all protocols, and (if wanted) separately for submission.
 See the comments at the sample
@@ -661,6 +740,7 @@ For more info, see: \fBFIXME:FIXME:FIXME\fR
 .RE
 .IP "PARAM contentfilter $MAILBIN/smtp-contentfilter"
 .RS
+.I (global)
 An external program for received message content analysis.
 .PP
 Alternate possibility is to have this to point to a named socket,
@@ -674,16 +754,19 @@ section.
 .RE
 .IP "PARAM contentfilter-maxpar 2"
 .RS
+.I (global)
 Max parallel contentfilter instances to be running.
 Default is 2, and internal hard limit is 20.
 .RE
 .IP "PARAM debug-contentfilter"
 .RS
+.I (global)
 Sends some debug-data of the content-filter interface
 into the smtpserver protocol log file.
 .RE
 .IP "PARAM tarpit initial exponent toplimit"
 .RS
+.I (group)
 This defines a pre-reply slow-down factor, and next delay multiplier
 (All are floating points, not integrs.)
 .PP
@@ -704,6 +787,7 @@ Finally, "toplimit" caps the delay value.
 .IP "PARAM tls-dcert-file  $MAILVAR/db/smtpserver-dcert.pem"
 .IP "PARAM tls-dkey-file   $MAILVAR/db/smtpserver-dkey.pem"
 .RS
+.I (group)
 These are TLSv1 parameters, and all parts of this parameter cluster
 must be set for the facility to work!
 .PP
@@ -714,11 +798,14 @@ http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 Also see below section
 .BR "OPENSSL RELATED PARAMETERS" .
 .PP
-The "dcert" and "dkey" are for DSA derived private key, and certificates.
+The "dcert" and "dkey" are for DSA derived private key, and certificates,
+and they are deprecated.
 .RE
 .IP "PARAM tls-dh512  $MAILVAR/db/smtpserver-cert-dh512.pem"
 .IP "PARAM tls-dh1024 $MAILVAR/db/smtpserver-cert-dh1024.pem"
 .RS
+.I (group)
+.I (deprecated)
 Optional file to supply auxiliary DH parameters for the DSA related
 key exchange, in case the certificate is so old, that it does not contain
 them.
@@ -726,10 +813,13 @@ The system has built-in default values for these.
 .RE
 .IP "PARAM listen-ssmtp"
 .RS
+.I (group)
+.I (deprecated)
 Listen on port TCP/465, which is deprecated SSL/SMTP listener port.
 .RE
 .IP "PARAM outlook-tls-bug"
 .RS
+.I (group)
 Microsoft does it again...
 If TLS is set at Outlook, and server port is not 25, it bloody well
 seems to expect that the server starts in TLS handshake mode.
@@ -740,6 +830,13 @@ time, and it happens to be 0x80, then this server will initiate TLS
 negotiation.  If nothing happens (well-behaving client), normal
 SMTP greeting is presented.
 .RE
+.IP "PARAM tls-use-scache"
+.IP "PARAM tls-scache-name 'zzzz'"
+.IP "PARAM tls-scache-timeout 3600"
+.RS
+.I (group)
+Distributed TLS session cache support; incomplete testing.
+.RE
 .IP "PARAM tls-loglevel   0"
 .IP "PARAM tls-ccert-vd   0"
 .IP "PARAM tls-ask-cert   0"
@@ -747,6 +844,7 @@ SMTP greeting is presented.
 .IP "PARAM tls-CApath ... (somewhen: verify client's certificates)"
 .IP "PARAM tls-enforce-tls 1"
 .RS
+.I (group)
 These are some futher thoughs that may materialize some time..
 .RE
 .IP "PARAM rcvd-ident"
@@ -755,11 +853,13 @@ These are some futher thoughs that may materialize some time..
 .IP "PARAM rcvd-tls-mode"
 .IP "PARAM rcvd-tls-peer"
 .RS
+.I (group)
 This quintet controls what possibly collected data is shown at
 the published ``Received:'' header that this system generates.
 .RE
 .IP "PARAM etrn-cluster node-name-or-address mq2-username mq2-passwd"
 .RS
+.I (global)
 In load-balance clusters a network level load-balancer may distribute
 the incoming SMTP connections to multiple real machines, and by using
 this parameter (repeatedly) to list those peers, system can relay
@@ -770,18 +870,21 @@ user initiated ETRN requests to all cluster nodes.
 .RE
 .IP "PARAM lmtp-mode"
 .RS
+.I (global)
 When desiring to test LMTP (RFC 2033), this parameter can be turned on,
-.I "however ZMailer is no real LMTP server, and this feature is"
-.I "only for debug purposes."
+.I "however ZMailer is no real LMTP server, and this feature exists"
+.I "only for the smtp-client debug purposes!"
 .RE
 .IP "PARAM spf-received"
 .RS
+.I (group)
 Create Received-SPF header if SPF check is done and data is available.
 .br
 See http://spf.pobox.com/ for explanation of SPF.
 .RE
 .IP "PARAM spf-threshold keyword"
 .RS
+.I (group)
 Accept incoming messages with level equal or higher than specified threshold.
 Levels are sorted as follows:
 .RS 3em
@@ -799,6 +902,7 @@ See http://spf.pobox.com/ for explanation of SPF.
 .RE
 .IP "PARAM spf-localpolicy local_policy"
 .RS
+.I (group)
 Specify local policy for SPF check.
 .br
 See http://libspf2.org/docs/api.html#SPF_compile_local_policy for local policy explanation.
@@ -807,10 +911,12 @@ Note: if your local policy contains space(s) quote it using single (') or double
 .RE
 .IP "PARAM spf-whitelist-use-default true|false"
 .RS
+.I (group)
 Use (true) or not use (false) default globally maintained whitelist of known trusted email forwarders.
 .RE
 .IP "PARAM report-auth-file ${MAILSHARE}/scheduler.auth"
 .RS
+.I (group)
 If exists, is used to authenticate a set of interactive report
 queries that can be done thru the
 .I smtpserver
@@ -831,234 +937,324 @@ what scheduler uses.
 #
 # smtpserver.conf - autogenerated edition
 #
-#PARAM maxsize        10000000 # Same as -M -option
-#PARAM min-availspace     5000 # Minimum free in POSTOFFICE after
-#                              # message has arrived; in kBs.
-#PARAM max-error-recipients  3 # More than this is probably SPAM!
-#PARAM max-unknown-commands 10 # More than this is probably broken
-#                              # client
-#PARAM MaxSameIpSource      10 # Max simultaneous connections
-#                              # from any IP source address
-#PARAM MaxParallelConnections 800 # Max simultaneous connections
-#                              # in total to the server
-#PARAM TcpRcvBufferSize  32000 # Should not need to set!
-#PARAM TcpXmitBufferSize 32000 # Should not need to set!
+#### global parameters ####
 #
-#PARAM ListenQueueSize      10 # listen(2) parameter
+#PARAM maxsize              10000000    # Same as -M -option
+#PARAM min-availspace           5000    # Minimum free in POSTOFFICE after
+#                                       # message has arrived; in KILOBYTES.
+#PARAM MaxSameIpSource            10    # Max simultaneous connections
+#                                       # from any IP source address
+#PARAM MaxParallelConnections    800    # Max simultaneous connections
+#                                       # in total to the server
+#PARAM max-unknown-commands       10    # Max unknown cmds before we hung up
+#                                       # because we thing the client is
+#                                       # broken/spammer/something
 #
-#PARAM RcptLimitCount    10000 # Max number of recipients for one
-#                              # MAIL FROM session. Minimum: 100
+PARAM  enable-router    # This is a security decission for you.
+#       # This is needed for EXPN/VRFY and interactive
+#       # processing of MAIL FROM and RCPT TO addresses.
+#       # However it also may allow external user entrance
+#       # to ZMailer router shell environment with suitably
+#       # pervert input, if quotation rules are broken in
+#       # the scripts.
+PARAM  enable-router-maxpar 2
+#       # Resource control: Start at most 2 interactive
+#       # routers, if such are needed. The value range
+#       # is 1 thru 20 ...
 #
-#PARAM BindPort          25    # Binding port
-#PARAM BindAddress  [0.0.0.0]  # Binding address - for multihomers..
-#PARAM BindAddress [IPv6.0::0] # and here is for IPv6 - NO SPACES!
-#          ###### Number of address binders is not limited!
+#PARAM perl-hook  /path/to/smtpserver-perl-hook.pl  # (still experimental)
 #
-#PARAM BindSmtp    <addr_or_if>  <optional_port>
-#PARAM BindSmtpS   <addr_or_if>  <optional_port>
-#PARAM BindSubmit  <addr_or_if>  <optional_port>
-#          ###### Number of protocol address binders is not limited!
 #
-# Enables of some commands:
+# HDR220 metatags:
+#  %%  =  '%' character
+#  %H  =  myhostname
+#  %I  =  '+IDENT' if 'identflg' is set
+#  %i -- remote IP address in text literal form
+#  %V  =  VersionNumb
+#  %T  =  curtime string
+#  %X  =  xlatelang parameter
+#
+#PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Propulsion Inc
+#PARAM hdr220 %H ESMTP (NO UCE)(NO UBE) our local time is now %T
+#
+# Note above the "ESMTP" words are present because *some* MTA systems won't
+# do EHLO greeting, unless they see "ESMTP" - against RFC 1869 part 4.
+# "EHLO is to be done blindly, server responses are not to be studied for
+#  any possible 'ESMTP' keyword!"
+#
+#
+#PARAM help =============================================================
+#PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+#PARAM help  Our telephone number is: +1-234-567-8900, and
+#PARAM help  telefax number is: +1-234-567-8999
+#PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
+#PARAM help
+#PARAM help  Questions regarding our email service should be sent via
+#PARAM help  email to address  <postmaster@OURDOMAIN>
+#PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
+#PARAM help =============================================================
+
+# A load-balanced server cluster may want to communicate
+# the ETRN request to cluster components, here is how:
+# See also:  doc/guides/etrn-cluster
+#
+#PARAM etrn-cluster localhost              mq-etrn-user mq-etrn-pw
+#PARAM etrn-cluster node-2-name-or-address mq-etrn-user mq-etrn-pw
+#PARAM etrn-cluster node-3-name-or-address mq-etrn-user mq-etrn-pw
+#...
+#PARAM etrn-cluster node-40-name-or-address mq-etrn-user mq-etrn-pw
+
+#PARAM lmtp-mode        # When wanting to emulate LMTP server,
+#                       # In reality this is only for debugging
+#                       # the smtp TA's LMTP mode.
+
+# Uncomment following for not to strip incoming addresses of format:
+# <@aa,@bb:cc@dd> into non-source-routed base form: <cc@dd>
+#
+#PARAM  allowsourceroute
+#      # DON'T ENABLE UNLESS YOU USE ROUTER BASED
+#      # POLICY ANALYSIS!  (Which doesn't exist anymore!)
+
+
+##### GROUP PARAMETERS -- DEFAULT SETTINGS #####
+
+#PARAM max-error-recipients        3    # More than this is probably SPAM!
+#
+#PARAM TcpRcvBufferSize        32000    # Should not need to set!
+#PARAM TcpXmitBufferSize       32000    # Should not need to set!
+#
+#PARAM ListenQueueSize         20000    # listen(2) parameter
+#
+#PARAM RcptLimitCount          10000    # Max number of recipients for one
+#                                       # MAIL FROM session. Minimum: 100
+
+#
+# SPF support options (see http://spf.pobox.com/)
+# Zmailer needs to be compiled with libspf_alt
+# (see http://www.midwestcs.com/spf/libspf-alt/)
+#
+#PARAM spf-localpolicy  "ip4:1.2.3.4/24 ?exists:%{ir}.trusted-forwarders.domain.com"
+#                       # SPF localpolicy (see libspf2 documentation)
+#PARAM spf-whitelist-use-default  false
+#                       # use (true) or not use (false) default whitelist
+#                       # (see libspf2 documentation)
+#
+#
+#PARAM spf-received     # Create Received-SPF header if SPF check is
+#                       # done and data is available.
+#
+#PARAM spf-threshold  softfail    # worst acceptable SPF check result
+#                       # 'fail' - always accept
+#                       # 'softfail' - accept if 'softfail',
+#                       #   'unpublished', 'neutral', 'pass'
+#                       # 'none' - treat 'softfail' as 'fail'
+#                       #   accept all better results
+#                       # 'neutral' - reject unpublished
+#                       # 'pass' - accept only 'pass' and
+#                       #   DNS errors.
+#      See http://spf.pobox.com/ for more explanation of SPF.
+#
+# Enablers of some commands:
 #PARAM  DEBUGcmd
-PARAM   EXPNcmd
-PARAM   VRFYcmd
-PARAM  enable-router
-#               # This is a security decission for you.
-#               # This is needed for EXPN/VRFY and interactive
-#               # processing of MAIL FROM and RCPT TO addresses.
-#               # However it also may allow external user entrance
-#               # to ZMailer router shell environment with some
-#               # suitably pervert input, if quotation rules are
-#               # broken in the scripts.
-#PARAM  enable-router-maxpar 2
-#               # Resource control: Start at most 2 interactive
-#               # routers, if such are needed. The value range
-#               # is 1 thru 20 ...
+#PARAM  EXPNcmd
+#PARAM  VRFYcmd
+#
+# Matching disablers (original default state)
+#PARAM  no-DEBUGcmd
+#PARAM  no-EXPNcmd
+#PARAM  no-VRFYcmd
 #
 #PARAM  smtp-auth-sasl
-#               # Authentication with SASL[2] mechanisms
-#               # in the system.  Enabling this takes precedence over
-#               # smtp-auth below!
+#       # Authentication with SASL[2] mechanisms
+#       # in the system.  Enabling this takes
+#       # precedence over smtp-auth below!
 #
-#PARAM  sasl-mechanisms  LIST OF SASL MECHANISMS
-#               # A space delimittered list of SASL mechanisms we
-#               # want to support.
+#PARAM  sasl-mechanisms  "LIST OF SASL MECHANISMS"
+#       # A quoted space delimittered list of SASL-
+#       # mechanisms we want to support.
+#       # Possibly just: "plain" !
 #
 #PARAM  smtp-auth
-#               # enable if you want to allow SMTP to autenticate
-#               # with the default code against system /etc/passwd
-#               # (or whatever source  getpwnam() uses for it..)
+#       # Enable, if you want to allow SMTP to autenticate
+#       # with the default code against system  /etc/passwd
+#       # (or whatever source  getpwnam() uses for it..)
+#       # This is intended to be used WITH the TLS network
+#       # encryption!  This supports just plaintext logins.
 #
 #PARAM  auth-failrate 20
-#               # Limit number of failed SMTP AUTHs per hour to
-#               # this number, above this, and all AUTHs will
-#               # always fail...
+#       # Limit number of failed SMTP AUTHs per hour per IP
+#       # to this number, above this, and all AUTHs will
+#       # always fail... (Anti-oracle machinery.)
 #
 #PARAM  no-smtp-auth-on-port-25
-#               # No "AUTH LOGIN"/"AUTH=LOGIN" on port 25, which
-#               # appears to be troublesome to many users.
-#               # This allows authentication in SUBMISSION, though.
+#       # No "AUTH LOGIN"/"AUTH=LOGIN" on port 25, which
+#       # appears to be troublesome to many users.
+#       # This allows authentication in SUBMISSION, though.
 #
 #PARAM smtp-auth-username-prompt "Username:"
 #PARAM smtp-auth-password-prompt "Password:"
-#               # Define text prompts for builtin hard-coded
-#               # AUTH LOGIN processing.  Most clients don't
-#               # show any of these to the users  :-(
-#
-#PARAM  AUTH-LOGIN-also-without-TLS
-#               # Enable, if the "AUTH LOGIN" is to be allowed to
-#               # be used without running under SSL/TLS security
-#               # envelope.
-#
-#PARAM  MSA-mode
-#               # Message Submission Agent mode.  Obsoleted by
-#               # the  BindSubmit  parameter.
+#       # Define text prompts for builtin hard-coded
+#       # AUTH LOGIN processing.  Most clients don't
+#       # show any of these to the users  :-(
 #
 #PARAM  SMTP-auth-pipe /path/to/program
-#               # External authentication program. The
-#               # authenticator should read a username from
-#               # command line and a password from standard input.
-#               # Exit status 0 means successful authentication.
+#       # External authentication program. The
+#       # authenticator should read a username from
+#       # command line and a password from standard input.
+#       # Exit status 0 means successful authentication.
+#       # Works only without SASL
+#
+#PARAM  AUTH-LOGIN-also-without-TLS
+#       # Enable, if the "AUTH LOGIN" must be allowed to
+#       # be used without running under SSL/TLS encryption
+#       # envelope.   Plain-text authentications should
+#       # not be used, but you are probably using them
+#       # at POP3 and IMAP services, anyway...
 #
 #PARAM  use-tcp-wrapper
-#               # If TCP-WRAPPER is configured in, uncommenting this
-#               # will activate its use to look service name:  smtp-receiver
+#       # If TCP-WRAPPER is configured in, uncommenting this
+#       # will activate its use to look service name: smtp-receiver
 #
-# Disablers of some facility adverticements
+# Disablers of some facility adverticements/supports:
+#
 #PARAM  NoEHLO
 #PARAM  NoPIPELINING
 #PARAM  No8BITMIME
 #PARAM  NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
-#PARAM  no-multiline-replies # except to EHLO
-#PARAM  force-rcpt-notify-never # Want to hide something...
 #
-# HDR220 metatags:
-#  %% -- '%' character
-#  %H -- SS->myhostname
-#  %I -- '+IDENT' if 'identflg' is set
-#  %i -- remote IP address in text literal form
-#  %V -- VersionNumb
-#  %T -- curtime string
-#  %X -- xlatelang parameter
+# Matching re-enabler, if default-group got disabled:
+#PARAM EHLO-OK
+#PARAM PIPELINING-OK
+#PARAM 8BITMIME-OK
+#PARAM CHUNKING-OK
+#PARAM DSN-OK
+#PARAM ETRN-OK
+
+PARAM   no-multiline-replies # except to EHLO (Bloody M$ RFC821/AppE violators)
+#PARAM  multiline-replies-ok # except to EHLO (Bloody M$ RFC821/AppE violators)
+
+#PARAM   force-rcpt-notify-never
+#     # Some want to hide the delivery knowledge.
+#PARAM   no-force-rcpt-notify-never
+#     # invert previous, default
 #
-#PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Inc.
-#PARAM hdr220 %H (NO UCE)(NO UBE) our local time is now %T
 #
-PARAM contact-pointer-message See http://www.yoyodyne.com/mailpolicy.html
+# Final message for SMTP rejects.  You can put a pointer to your policy
+# web page or such things.
+#PARAM contact-pointer-message "Ask HELP for our contact information."
 #
-PARAM help ------------------------------------------------------
-PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
-PARAM help  Our telephone number is: +1-234-567-8900, and
-PARAM help  telefax number is: +1-234-567-8999
-PARAM help  Our business-hours are Mon-Fri: 0800-1700 (TZ: -0700)
-PARAM help
-PARAM help  Questions regarding our email service should be sent
-PARAM help  via email to address  <postmaster@OURDOMAIN>
-PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
-PARAM help ------------------------------------------------------
 #
-# Uncomment following for not to strip incoming addresses of
-# form: <@aa,@bb:cc@dd> into non-source-routed base form: <cc@dd>
-#
-#PARAM allowsourceroute
-#
-# The policy database:
-# (NOTE: See `makedb' for its default suffixes!)
+# The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 #
 PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
-#PARAM  policydb-submit $DBTYPE  $MAILVAR/db/smtp-policy-submit
 #
 # External program for received message content analysis:
-#PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
+#PARAM  contentfilter   $MAILBIN/smtp-contentfilter
 #PARAM  contentfilter-maxpar 2  # Max parallel content filters; 1 .. 20
-#PARAM  debug-contentfilter # Debug the content-filter interface
-
-#PARAM  tarpit 0 0 0    # No "tarpit" for 4XX/5XX reply codes
-#PARAM  tarpit 20 0.1 300 # Initial delay: 20 secs, next = prev + (prev * 0.1)
+#PARAM  debug-contentfilter # Debug the content-filter interface protocol
 
 #
-# TLSv1/SSLv[23] parameters;
-# all must be used for the system to work!
+#PARAM  tarpit 0 0 0   # No "tarpit" for 4XX/5XX reply codes (default)
+#PARAM  tarpit 20 0.1 300  # Initial delay: 20 secs, next = prev + (prev * 0.1)
+
 #
-# See   doc/guides/openssl,  or:
+# TLSv1/SSLv[23] parameters; all must be used for the system to work!
+#
+# See  doc/guides/openssl,  or:
 # http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 #
-#PARAM  use-tls
-##PARAM listen-ssmtp    # A deprecated TCP/465 port listener for SSL/SMTP
-##PARAM outlook-tls-bug # Variant of ssmtp
+#PARAM use-tls     # enable to serve STARTTLS
+#PARAM no-use-tls  #(default)
+#
+#PARAM outlook-tls-bug
+#     # Fix problems when with Outlook is talking to SUBMIT port
 #
 #PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
 #PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
 #PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem
-#PARAM  tls-dcert-file  $MAILVAR/db/smtpserver-dcert.pem
-#PARAM  tls-dkey-file   $MAILVAR/db/smtpserver-dkey.pem
-#PARAM  tls-dh512       $MAILVAR/db/smtpserver-dh512.pem
-#PARAM  tls-dh1024      $MAILVAR/db/smtpserver-dh1024.pem
+#
+#  # If system default SSL-session-cache is to be used ?
+#PARAM  tls-use-scache
+#PARAM  tls-scache-name "zzz"
+#PARAM  tls-scache-timeout 3600 # (cache timeout in seconds)
+#
 #  # Then some futher thoughs that may materialize some time..
 #PARAM tls-loglevel     0
 #PARAM tls-ccert-vd     0
 #PARAM tls-ask-cert     0
 #PARAM tls-require-cert 0
-##PARAM tls-CApath ... (somewhen: verify client's certificates)
+##PARAM tls-CApath ... (somewhen: ways to verify client's certificates)
 ##PARAM tls-enforce-tls 1
 
-# Elements to be added into "Received:" header's
-# initial comment part:
+# Elements to be added into "Received:" header's initial comment part:
 #
-#PARAM rcvd-ident       # The ident lookup result
-#                       # (or even admitting it having queried)
+#PARAM rcvd-ident       # The ident lookup result (or even admitting it)
 #PARAM rcvd-whoson      # Likewise for "whoson"
 #PARAM rcvd-auth-user   # Authenticated Username
-#PARAM rcvd-tls-mode    # Cipher or not
-#PARAM rcvd-tls-ccert   # Client Certificate reference
+#PARAM rcvd-tls-mode    # Cipher, or not
+#PARAM rcvd-tls-peer    # Client Certificate reference
+#  (plus their   no-rcvd-*  versions)
 
-# EGD/PRNGD type entropy source for OpenSSL in case your
-# system does not have  /dev/*random  devices:
-#
-#PARAM tls-random-source /var/run/prngd-socket
-
-
-# A load-balanced server cluster may want to communicate
-# the ETRN request to cluster components, here is how:
-# See also:  doc/guides/etrn-cluster
-#
-#PARAM etrn-cluster localhost mq2-username mq2-passwd
-#PARAM etrn-cluster node-2-name-or-address mq2-username mq2-passwd
-#PARAM etrn-cluster node-3-name-or-address mq2-username mq2-passwd
-#...
-#PARAM etrn-cluster node-40-name-or-address mq2-username mq2-passwd
-
-#
-#PARAM lmtp-mode        # When wanting to emulate LMTP server,
-#                       # In reality this is only for debugging
-#                       # the smtp TA's LMTP mode.
-#
-
-#PARAM spf-received     # Create Received-SPF header if SPF check is
-#                       # done and data is available.
-#PARAM spf-threshold keyword 
-#        Accept incoming messages with level equal or higher than
-#        specified threshold.  Levels are sorted as follows:
-#               fail:      1
-#               softfail:  2
-#               none:      3
-#               neutral:   4
-#               pass:      5
-#        See http://spf.pobox.com/ for explanation of SPF.
-#
 
 #
 #PARAM report-auth-file ${MAILSHARE}/scheduler.auth
-#   Defines where ACL/AUTH data for "Z-REPORT" SMTP verb
+#   Defines where ACL/AUTH data for "Z-REPORT" SMTP-verb
 #   is stored.
 #
 
 #
+#   ### deprecated old forms of binds ###
+#PARAM BindPort                   25    # Binding port
+#PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
+#PARAM BindAddress               any    # Same as [0.0.0.0]
+#PARAM BindAddress              any6    # ditto for IPv6
+#PARAM BindAddress       [IPv6.0::0]    # and here is for IPv6 - NO SPACES!
+#PARAM BindAddress      iface:eth0:2    # Addresses of that interface
+#          ###### Number of address binders is not limited!
 #
-# HELO/EHLO-pattern     style-flags
+#   ### preferred new forms of binds, addresses as above ###
+#PARAM BindSmtp    <addr_or_if>  <optional_port>
+#PARAM BindSmtpS   <addr_or_if>  <optional_port>
+#PARAM BindSubmit  <addr_or_if>  <optional_port>
+#          ###### Number of protocol address binders is not limited!
+
+#PARAM newgroup
+#   Begins a new group definition, and is intended to be
+#   used along with service specific Binds:
+#
+# < at first default settings common to everything       >
+# < including TLS setups, however without authentication >
+# PARAM BindSmtp    any 25
+#
+# PARAM newgroup  #  <initiate new group>
+#         # We have external hardware SSL accelerator
+#         # we implement backend service for SMTPS
+#         # but STARTTLS is now forbidden.
+# PARAM no-use-tls
+# PARAM BindSmtp    any 2501   # 
+# PARAM smtp-auth  
+#   <and other things needed>
+#
+# PARAM newgroup  #  <initiate new group>
+#         # Define SMTPS service
+# PARAM use-tls
+# PARAM BindSmtpS    any 465   # 
+# PARAM smtp-auth  
+#   <and other things needed>
+#
+# PARAM newgroup  #  <initiate new group>
+#         # Define SUBMIT service
+# PARAM use-tls
+# PARAM BindSubmit    any 587   # 
+# PARAM smtp-auth  
+#   <and other things needed>
+#
+
+#
+#
+# HELO/EHLO-pattern     style-flags / !reject_message
 #               [max loadavg]
 #
 #  Note about the style-flags: 'ftve' set needs enable-router!
@@ -1084,16 +1280,20 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 #               .SMTP-TIMEOUT   .DATA-EOF    .BDAT-EOF
 #          depending on where the abort happened..
 #
-localhost           999 ftveR
-some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
-# If the host presents itself as:  HELO [1.2.3.4]  be lenient to
-# it..  The syntax below is due to these patterns being SH-GLOB
-# style patterns where the brackets are special characters.
-\\[*\\]               999 ve
-# Per default demant strict syntactic adherence, including fully
+#localhost           * ftveR
+#some.host.domain    * !NO EMAIL ACCEPTED FROM YOUR MACHINE
+
+# If the host presents itself as:  HELO [1.2.3.4], be lenient to it..
+# The syntax below is due to these patterns being SH-GLOB style patterns
+# where the brackets are special characters.
+
+#\\[*\\]                * ftve
+
+# Per default demand strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
 # on that detail, remove the "R" from "veR" string below:
-*                   999 veR
+
+*                    * ftveR
 .fi
 .sp
 .RE
@@ -1293,6 +1493,17 @@ the following file would also be needed:
 auth     required  pam_pwdb.so shadow
 auth     required  pam_nologin.so
 account  required  pam_pwdb.so
+\fR---------------------------------------------
+.fi
+.PP
+An alternate configuration for Linux is:
+.nf
+------- /etc/pam.d/smtpauth-login -----------
+\fC
+#%PAM-1.0
+auth       required     pam_stack.so service=system-auth
+account    required     pam_stack.so service=system-auth
+\fR---------------------------------------------
 .fi
 .PP
 For
@@ -1307,6 +1518,7 @@ file:
 smtpauth-login  auth required   pam_unix_auth.so.1
 smtpauth-login  auth required   pam_authtok_get.so.1
  ....
+\fR-------------------------------
 .fi
 .SH SMTP-POLICY CONFIGURATION
 This subsystem of

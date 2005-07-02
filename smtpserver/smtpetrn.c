@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2001.
+ *      Copyright 1991-2005.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -50,7 +50,7 @@ int silence;
 	typeflush(SS);
 	return -1;
     } else if (!silence) {
-      if (multilinereplies) {
+      if (OCP->multilinereplies) {
 	type(SS,-250,m200,"An ETRN request is initiated - lets hope the system");
 	type(SS,-250,m200,"has resources to honour it. We call the remote,");
 	type(SS, 250,m200,"if we have anything to send there.");

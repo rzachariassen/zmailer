@@ -157,6 +157,3 @@ extern char *policymsg __((struct policystate *ps));
 extern char *policyspfhdr __((struct policystate *ps));
 extern long  policyinsizelimit __((struct policystate *ps));
 extern long  policysameiplimit __((struct policystate *ps));
-
-extern struct policytest *policydb;
-extern struct policytest *policydb_submit;

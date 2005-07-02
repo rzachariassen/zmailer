@@ -174,7 +174,8 @@ static void dollarexpand(s0, space)
 }
 
 
-static int cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
+static int cfg_add_bindaddr(CP, param1, use_ipv6, bindtype, bindport)
+     ConfigParams *CP;
      char *param1;
      int use_ipv6, bindtype, bindport;
 {
@@ -205,19 +206,19 @@ static int cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
 	}
 #endif
 	if ( !rc ) {
-	  bindaddrs = realloc( bindaddrs,
-			       sizeof(bindaddr) * (bindaddrs_count +2) );
-	  bindaddrs_types = realloc( bindaddrs_types,
-				     sizeof(int) * (bindaddrs_count +2) );
-	  bindaddrs_ports = realloc( bindaddrs_ports,
-				     sizeof(int) * (bindaddrs_count +2) );
-	  if (!bindaddrs || !bindaddrs_types || !bindaddrs_ports)
-	    bindaddrs_count = 0;
+	  CP->bindaddrs = realloc( CP->bindaddrs,
+			       sizeof(bindaddr) * (CP->bindaddrs_count +2) );
+	  CP->bindaddrs_types = realloc( CP->bindaddrs_types,
+				     sizeof(int) * (CP->bindaddrs_count +2) );
+	  CP->bindaddrs_ports = realloc( CP->bindaddrs_ports,
+				     sizeof(int) * (CP->bindaddrs_count +2) );
+	  if (!CP->bindaddrs || !CP->bindaddrs_types || !CP->bindaddrs_ports)
+	    CP->bindaddrs_count = 0;
 	  else {
-	    bindaddrs      [ bindaddrs_count ] = bindaddr;
-	    bindaddrs_types[ bindaddrs_count ] = bindtype;
-	    bindaddrs_ports[ bindaddrs_count ] = bindport;
-	    bindaddrs_count += 1;
+	    CP->bindaddrs      [ CP->bindaddrs_count ] = bindaddr;
+	    CP->bindaddrs_types[ CP->bindaddrs_count ] = bindtype;
+	    CP->bindaddrs_ports[ CP->bindaddrs_count ] = bindport;
+	    CP->bindaddrs_count += 1;
 	  }
 	}
 #if 0
@@ -270,13 +271,13 @@ static void cfparam(str, size, cfgfilename, linenum)
     if (cistrcmp(name, "sasl-mechanisms") == 0) {
       param2 = strchr(str, '\n');
       if (param2) *param2 = 0;
-      SASL_Auth_Mechanisms = strdup(str);
+      CP->SASL_Auth_Mechanisms = strdup(str);
       return;
     }
     if (cistrcmp(name, "contact-pointer-message") == 0) {
       param2 = strchr(str, '\n');
       if (param2) *param2 = 0;
-      contact_pointer_message = strdup(str);
+      CP->contact_pointer_message = strdup(str);
       return;
     }
 
@@ -304,11 +305,15 @@ static void cfparam(str, size, cfgfilename, linenum)
     if (*str != 0)
 	*str++ = 0;
 
+    if (cistrcmp(name, "newgroup") == 0) {
+      ConfigParams_newgroup();
+    }
+
     /* How many parallel clients a servermode smtpserver allows
        running in parallel, and how many parallel sessions can
        be coming from same IP address */
 
-    if (cistrcmp(name, "same-ip-source-parallel-max") == 0 && param1) {
+    else if (cistrcmp(name, "same-ip-source-parallel-max") == 0 && param1) {
 	sscanf(param1, "%d", &MaxSameIpSource);
     } else if (cistrcmp(name, "MaxSameIpSource") == 0 && param1) {
 	sscanf(param1, "%d", &MaxSameIpSource);
@@ -321,15 +326,16 @@ static void cfparam(str, size, cfgfilename, linenum)
     /* TCP related parameters */
 
     else if   (cistrcmp(name, "ListenQueueSize") == 0   && param1) {
-	sscanf(param1, "%d", &ListenQueueSize);
+	sscanf(param1, "%d", &CP->ListenQueueSize);
     } else if (cistrcmp(name, "tcprcvbuffersize") == 0  && param1) {
-	sscanf(param1, "%d", &TcpRcvBufferSize);
+	sscanf(param1, "%d", &CP->TcpRcvBufferSize);
     } else if (cistrcmp(name, "tcpxmitbuffersize") == 0 && param1) {
-	sscanf(param1, "%d", &TcpXmitBufferSize);
+	sscanf(param1, "%d", &CP->TcpXmitBufferSize);
     }
 
     /* IP address and port binders */
 
+#if 1 /* Should obsolete.. */
     else if (cistrcmp(name, "BindPort") == 0 && param1) {
       bindport = atoi(param1);
       if (bindport != 0 && bindport != 0xFFFFU)
@@ -337,11 +343,12 @@ static void cfparam(str, size, cfgfilename, linenum)
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
       int rc = 0;
       if (use_ipv6)
-	rc += cfg_add_bindaddr( param1, 1, BINDADDR_ALL, 0 );
-      rc += cfg_add_bindaddr( param1, 0, BINDADDR_ALL, 0 );
+	rc += cfg_add_bindaddr( CP, param1, 1, BINDADDR_ALL, 0 );
+      rc += cfg_add_bindaddr( CP, param1, 0, BINDADDR_ALL, 0 );
       if (rc > 1)
 	goto bad_cfg_line;
     }
+#endif
 
     else if (cistrcmp(name, "BindSmtp") == 0 && param1) {
       int port = 25;
@@ -349,8 +356,8 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SMTP, port );
-      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SMTP, port );
+	rc += cfg_add_bindaddr( CP, param1, 1, BINDADDR_SMTP, port );
+      rc += cfg_add_bindaddr( CP, param1, 0, BINDADDR_SMTP, port );
       if (rc > 1)
 	goto bad_cfg_line;
     }
@@ -360,8 +367,8 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SMTPS, port );
-      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SMTPS, port );
+	rc += cfg_add_bindaddr( CP, param1, 1, BINDADDR_SMTPS, port );
+      rc += cfg_add_bindaddr( CP, param1, 0, BINDADDR_SMTPS, port );
       if (rc > 1)
 	goto bad_cfg_line;
     }
@@ -371,8 +378,8 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SUBMIT, port );
-      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SUBMIT, port );
+	rc += cfg_add_bindaddr( CP, param1, 1, BINDADDR_SUBMIT, port );
+      rc += cfg_add_bindaddr( CP, param1, 0, BINDADDR_SUBMIT, port );
       if (rc > 1)
 	goto bad_cfg_line;
     }
@@ -388,14 +395,14 @@ static void cfparam(str, size, cfgfilename, linenum)
 	    minimum_availspace = 1000;
 	}
     } else if (cistrcmp(name, "RcptLimitCnt") == 0 && param1) {
-	sscanf(param1, "%d", &rcptlimitcnt);
-	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
+	sscanf(param1, "%d", &CP->rcptlimitcnt);
+	if (CP->rcptlimitcnt < 100) CP->rcptlimitcnt = 100;
     } else if (cistrcmp(name, "RcptLimitCount") == 0 && param1) {
-	sscanf(param1, "%d", &rcptlimitcnt);
-	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
+	sscanf(param1, "%d", &CP->rcptlimitcnt);
+	if (CP->rcptlimitcnt < 100) CP->rcptlimitcnt = 100;
     } else if (cistrcmp(name, "Rcpt-Limit-Count") == 0 && param1) {
-	sscanf(param1, "%d", &rcptlimitcnt);
-	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
+	sscanf(param1, "%d", &CP->rcptlimitcnt);
+	if (CP->rcptlimitcnt < 100) CP->rcptlimitcnt = 100;
 #if 0
     } else if (cistrcmp(name, "accept-percent-kludge") == 0) {
 	percent_accept = 1;
@@ -405,7 +412,7 @@ static void cfparam(str, size, cfgfilename, linenum)
     } else if (cistrcmp(name, "allowsourceroute") == 0) {
       allow_source_route = 1;
     } else if (cistrcmp(name, "max-error-recipients") == 0 && param1) {
-	sscanf(param1, "%d", &MaxErrorRecipients);
+	sscanf(param1, "%d", &CP->MaxErrorRecipients);
     } else if (cistrcmp(name, "max-unknown-commands") == 0 && param1) {
 	sscanf(param1, "%d", &unknown_cmd_limit);
     } else if (cistrcmp(name, "sum-sizeoption-value") == 0) {
@@ -413,31 +420,32 @@ static void cfparam(str, size, cfgfilename, linenum)
     }
 
     else if (cistrcmp(name, "use-tcp-wrapper") == 0) {
-	use_tcpwrapper = 1;
+	CP->use_tcpwrapper = 1;
     }
 
     else if (cistrcmp(name, "tarpit") == 0 && param3 /* 3 params */) {
-	tarpit_initial  = atof(param1);
-	tarpit_exponent = atof(param2);
-	tarpit_toplimit = atof(param3);
+	CP->tarpit_initial  = atof(param1);
+	CP->tarpit_exponent = atof(param2);
+	CP->tarpit_toplimit = atof(param3);
     }
 
     else if (cistrcmp(name, "deliverby") == 0) {
       if (param1)
-	deliverby_ok = atol(param1);
+	CP->deliverby_ok = atol(param1);
       else
-	deliverby_ok = 0;
+	CP->deliverby_ok = 0;
     }
 
     /* Two parameter policydb option: DBTYPE and DBPATH */
 
     else if (cistrcmp(name, "policydb") == 0 && param2 /* 2 params */) {
-	policydefine(&policydb, param1, param2);
+	policydefine(&CP->policydb, param1, param2);
     }
+#if 0
     else if (cistrcmp(name, "policydb-submit") == 0 && param2 /* 2 params */) {
 	policydefine(&policydb_submit, param1, param2);
     }
-
+#endif
     else if (cistrcmp(name, "contentfilter") == 0 && param1) {
       if (access(param1, X_OK) == 0)
 	contentfilter = strdup(param1);
@@ -453,80 +461,121 @@ static void cfparam(str, size, cfgfilename, linenum)
     else if (cistrcmp(name, "perl-hook") == 0 && param1) {
       if (access(param1, X_OK) == 0)
 	perlhookpath = strdup(param1);
-    }
 
-    /* A few facility enablers: (default: off) */
-
-    else if (cistrcmp(name, "debugcmd") == 0) {
-      debugcmdok = 1;
-    } else if (cistrcmp(name, "expncmd") == 0) {
-      expncmdok = 1;
-    } else if (cistrcmp(name, "vrfycmd") == 0) {
-      vrfycmdok = 1;
     } else if (cistrcmp(name, "enable-router") == 0) {
       enable_router = 1;
     } else if (cistrcmp(name, "enable-router-maxpar") == 0 && param1) {
       enable_router_maxpar = atoi(param1);
       if (enable_router_maxpar < 1)
 	enable_router_maxpar  = 1;
+
+    /* A few facility enablers: (default: off) */
+
+    } else if (cistrcmp(name, "debugcmd") == 0) {
+      CP->debugcmdok = 1;
+    } else if (cistrcmp(name, "no-debugcmd") == 0) {
+      CP->debugcmdok = 0;
+    } else if (cistrcmp(name, "expncmd") == 0) {
+      CP->expncmdok = 1;
+    } else if (cistrcmp(name, "no-expncmd") == 0) {
+      CP->expncmdok = 0;
+    } else if (cistrcmp(name, "vrfycmd") == 0) {
+      CP->vrfycmdok = 1;
+    } else if (cistrcmp(name, "no-vrfycmd") == 0) {
+      CP->vrfycmdok = 0;
+
     } else if (cistrcmp(name, "smtp-auth") == 0) {
-      auth_ok = 1;
+      CP->auth_ok = 1;
+    } else if (cistrcmp(name, "no-smtp-auth") == 0) {
+      CP->auth_ok = 0;
     } else if (cistrcmp(name, "no-smtp-auth-on-25") == 0) {
-      no_smtp_auth_on_25 = 1;
+      CP->no_smtp_auth_on_25 = 1;
     } else if (cistrcmp(name, "smtp-auth-username-prompt") == 0 && param1) {
-      smtp_auth_username_prompt = strdup(param1);
+      CP->smtp_auth_username_prompt = strdup(param1);
     } else if (cistrcmp(name, "smtp-auth-password-prompt") == 0 && param1) {
-      smtp_auth_password_prompt = strdup(param1);
+      CP->smtp_auth_password_prompt = strdup(param1);
     } else if (cistrcmp(name, "auth-failrate") == 0 && param1) {
-      auth_failrate = atoi(param1);
-      if (auth_failrate < 3)
-	auth_failrate = 3;
+      CP->auth_failrate = atoi(param1);
+      if (CP->auth_failrate < 3)
+	CP->auth_failrate = 3;
     } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {
-      auth_login_without_tls = 1;
+      CP->auth_login_without_tls = 1;
     } else if (cistrcmp(name, "smtp-auth-sasl") == 0) {
-      do_sasl = 1;
+      CP->do_sasl = 1;
+    } else if (cistrcmp(name, "no-smtp-auth-sasl") == 0) {
+      CP->do_sasl = 0;
+#if 1 /* Should obsolete.. */
     } else if (cistrcmp(name, "msa-mode") == 0) {
       msa_mode = 1;
+#endif
     } else if (cistrcmp(name, "smtp-auth-pipe") == 0 && param1) {
-      smtpauth_via_pipe = strdup(param1);
-    }
+      CP->smtpauth_via_pipe = strdup(param1);
 
     /* Store various things into 'rvcdfrom' header per selectors */
 
-    else if (cistrcmp(name, "rcvd-ident") == 0) {
-      log_rcvd_ident = 1;
+    } else if (cistrcmp(name, "rcvd-ident") == 0) {
+      CP->log_rcvd_ident = 1;
+    } else if (cistrcmp(name, "no-rcvd-ident") == 0) {
+      CP->log_rcvd_ident = 0;
     } else if (cistrcmp(name, "rcvd-whoson") == 0) {
-      log_rcvd_whoson = 1;
+      CP->log_rcvd_whoson = 1;
+    } else if (cistrcmp(name, "no-rcvd-whoson") == 0) {
+      CP->log_rcvd_whoson = 0;
     } else if (cistrcmp(name, "rcvd-auth-user") == 0) {
-      log_rcvd_authuser = 1;
+      CP->log_rcvd_authuser = 1;
+    } else if (cistrcmp(name, "no-rcvd-auth-user") == 0) {
+      CP->log_rcvd_authuser = 0;
     } else if (cistrcmp(name, "rcvd-tls-mode") == 0) {
-      log_rcvd_tls_mode = 1;
+      CP->log_rcvd_tls_mode = 1;
+    } else if (cistrcmp(name, "no-rcvd-tls-mode") == 0) {
+      CP->log_rcvd_tls_mode = 0;
     } else if (cistrcmp(name, "rcvd-tls-peer") == 0) {
-      log_rcvd_tls_peer = 1;
-    }
+      CP->log_rcvd_tls_peer = 1;
+    } else if (cistrcmp(name, "no-rcvd-tls-peer") == 0) {
+      CP->log_rcvd_tls_peer = 0;
 
     /* Some Enhanced-SMTP facility disablers: (default: on ) */
 
-    else if (cistrcmp(name, "nopipelining") == 0) {
-      pipeliningok = 0;
+    } else if (cistrcmp(name, "nopipelining") == 0) {
+      CP->pipeliningok = 0;
+    } else if (cistrcmp(name, "pipelining-ok") == 0) {
+      CP->pipeliningok = 1;
     } else if (cistrcmp(name, "noenhancedstatuscodes") == 0) {
-      enhancedstatusok = 0;
+      CP->enhancedstatusok = 0;
+    } else if (cistrcmp(name, "enhancedstatuscodes-ok") == 0) {
+      CP->enhancedstatusok = 1;
     } else if (cistrcmp(name, "noenhancedstatus") == 0) {
-      enhancedstatusok = 0;
+      CP->enhancedstatusok = 0;
+    } else if (cistrcmp(name, "enhancedstatus-ok") == 0) {
+      CP->enhancedstatusok = 1;
     } else if (cistrcmp(name, "no8bitmime") == 0) {
-      mime8bitok = 0;
+      CP->mime8bitok = 0;
+    } else if (cistrcmp(name, "8bitmime-ok") == 0) {
+      CP->mime8bitok = 1;
     } else if (cistrcmp(name, "nochunking") == 0) {
-      chunkingok = 0;
+      CP->chunkingok = 0;
+    } else if (cistrcmp(name, "chunking-ok") == 0) {
+      CP->chunkingok = 1;
     } else if (cistrcmp(name, "nodsn") == 0) {
-      dsn_ok = 0;
+      CP->dsn_ok = 0;
+    } else if (cistrcmp(name, "dsn-ok") == 0) {
+      CP->dsn_ok = 1;
     } else if (cistrcmp(name, "noehlo") == 0) {
-      ehlo_ok = 0;
+      CP->ehlo_ok = 0;
+    } else if (cistrcmp(name, "ehlo-ok") == 0) {
+      CP->ehlo_ok = 1;
     } else if (cistrcmp(name, "noetrn") == 0) {
-      etrn_ok = 0;
+      CP->etrn_ok = 0;
+    } else if (cistrcmp(name, "etrn-ok") == 0) {
+      CP->etrn_ok = 1;
     } else if (cistrcmp(name, "no-multiline-replies") == 0) {
-      multilinereplies = 0;
+      CP->multilinereplies = 0;
+    } else if (cistrcmp(name, "multiline-replies-ok") == 0) {
+      CP->multilinereplies = 1;
     } else if (cistrcmp(name, "force-rcpt-notify-never") == 0) {
-      force_rcpt_notify_never = 1;
+      CP->force_rcpt_notify_never = 1;
+    } else if (cistrcmp(name, "no-force-rcpt-notify-never") == 0) {
+      CP->force_rcpt_notify_never = 0;
     }
 
 #ifdef HAVE_OPENSSL
@@ -534,86 +583,79 @@ static void cfparam(str, size, cfgfilename, linenum)
     /* TLSv1/SSLv* options */
 
     else if (cistrcmp(name, "use-tls") == 0)
-      starttls_ok = 1;		/* Default: OFF */
+      CP->starttls_ok = 1;		/* Default: OFF */
+    else if (cistrcmp(name, "no-use-tls") == 0)
+      CP->starttls_ok = 0;		/* Default: OFF */
 
     else if (cistrcmp(name, "listen-ssmtp") == 0)
-      ssmtp_listen = 1;		/* Default: OFF */
+      CP->ssmtp_listen = 1;		/* Default: OFF */
 
     else if (cistrcmp(name, "outlook-tls-bug") == 0) {
-      detect_incorrect_tls_use = 1;	/* Default: OFF */
+      CP->detect_incorrect_tls_use = 1;	/* Default: OFF */
 
     } else if (cistrcmp(name, "tls-cert-file") == 0 && param1) {
-      if (tls_cert_file) free((void*)tls_cert_file);
-      tls_cert_file = strdup(param1);
-      if (!tls_key_file)	/* default the other */
-	tls_key_file = strdup(param1);
+      CP->tls_cert_file = strdup(param1);
+      if (!CP->tls_key_file)	/* default the other */
+	CP->tls_key_file = strdup(param1);
 
     } else if (cistrcmp(name, "tls-key-file")  == 0 && param1) {
-      if (tls_key_file) free((void*)tls_key_file);
-      tls_key_file = strdup(param1);
-      if (!tls_cert_file)	/* default the other */
-	tls_cert_file = strdup(param1);
+      CP->tls_key_file = strdup(param1);
+      if (!CP->tls_cert_file)	/* default the other */
+	CP->tls_cert_file = strdup(param1);
 
     } else if (cistrcmp(name, "tls-dcert-file") == 0 && param1) {
-      if (tls_dcert_file) free((void*)tls_dcert_file);
-      tls_dcert_file = strdup(param1);
-      if (!tls_dkey_file)	/* default the other */
-	tls_dkey_file = strdup(param1);
+      CP->tls_dcert_file = strdup(param1);
+      if (!CP->tls_dkey_file)	/* default the other */
+	CP->tls_dkey_file = strdup(param1);
 
     } else if (cistrcmp(name, "tls-dkey-file")  == 0 && param1) {
-      if (tls_dkey_file) free((void*)tls_dkey_file);
-      tls_dkey_file = strdup(param1);
-      if (!tls_dcert_file)	/* default the other */
-	tls_dcert_file = strdup(param1);
+      CP->tls_dkey_file = strdup(param1);
+      if (!CP->tls_dcert_file)	/* default the other */
+	CP->tls_dcert_file = strdup(param1);
 
     } else if (cistrcmp(name, "tls-dh1024")  == 0 && param1) {
-      if (tls_dh1024_param) free((void*)tls_dh1024_param);
-      tls_dh1024_param = strdup(param1);
+      CP->tls_dh1024_param = strdup(param1);
 
     } else if (cistrcmp(name, "tls-dh512")  == 0 && param1) {
-      if (tls_dh512_param) free((void*)tls_dh512_param);
-      tls_dh512_param = strdup(param1);
+      CP->tls_dh512_param = strdup(param1);
 
     } else if (cistrcmp(name, "tls-random-source")  == 0 && param1) {
-      if (tls_random_source) free((void*)tls_random_source);
-      tls_random_source = strdup(param1);
+      CP->tls_random_source = strdup(param1);
 
     } else if (cistrcmp(name, "tls-cipher-list")  == 0 && param1) {
-      if (tls_cipherlist) free((void*)tls_cipherlist);
-      tls_cipherlist = strdup(param1);
+      CP->tls_cipherlist = strdup(param1);
 
     } else if (cistrcmp(name, "tls-CAfile")    == 0 && param1) {
-      if (tls_CAfile) free((void*)tls_CAfile);
-      tls_CAfile = strdup(param1);
+      CP->tls_CAfile = strdup(param1);
 
     } else if (cistrcmp(name, "tls-CApath")    == 0 && param1) {
-      if (tls_CApath) free((void*)tls_CApath);
-      tls_CApath = strdup(param1);
+      CP->tls_CApath = strdup(param1);
 
     } else if (cistrcmp(name, "tls-loglevel")  == 0 && param1) {
-      sscanf(param1,"%d", & tls_loglevel);
+      sscanf(param1,"%d", & CP->tls_loglevel);
 
     } else if (cistrcmp(name, "tls-enforce-tls")==0 && param1) {
-      sscanf(param1,"%d", & tls_enforce_tls);
+      sscanf(param1,"%d", & CP->tls_enforce_tls);
 
     } else if (cistrcmp(name, "tls-ccert-vd")  == 0 && param1) {
-      sscanf(param1,"%d", & tls_ccert_vd);
+      sscanf(param1,"%d", & CP->tls_ccert_vd);
 
     } else if (cistrcmp(name, "tls-ask-cert")  == 0 && param1) {
-      sscanf(param1,"%d", & tls_ask_cert);
+      sscanf(param1,"%d", & CP->tls_ask_cert);
 
     } else if (cistrcmp(name, "tls-require-cert") == 0 && param1) {
-      sscanf(param1,"%d", & tls_req_cert);
+      sscanf(param1,"%d", & CP->tls_req_cert);
 
     } else if (cistrcmp(name, "tls-use-scache") == 0) {
-      tls_use_scache = 1;
+      CP->tls_use_scache = 1;
+    } else if (cistrcmp(name, "tls-scache-name") == 0 && param1) {
+      CP->tls_scache_name = strdup(param1);
 
     } else if (cistrcmp(name, "tls-scache-timeout") == 0 && param1) {
-      sscanf(param1,"%d", & tls_scache_timeout);
+      sscanf(param1,"%d", & CP->tls_scache_timeout);
 
     } else if (cistrcmp(name, "report-auth-file")   == 0 && param1) {
-      if (reportauthfile) free((void*)reportauthfile);
-      reportauthfile = strdup(param1);
+      CP->reportauthfile = strdup(param1);
 
     } else if (cistrcmp(name, "lmtp-mode") == 0) {
       lmtp_mode = 1;
@@ -635,44 +677,44 @@ static void cfparam(str, size, cfgfilename, linenum)
     /* SPF related things */
     /* Generate SPF-Received header */
     else if (cistrcmp(name, "spf-received") == 0) {
-      use_spf=1;
-      spf_received=1;
+      CP->use_spf=1;
+      CP->spf_received=1;
     }
     /* Reject mail if SPF query result is equal or higher than threshold */
     else if (cistrcmp(name, "spf-threshold") == 0 && param1 /* 1 param */) {
-      use_spf=1;
+      CP->use_spf=1;
       if (cistrcmp(param1, "fail") == 0) {
-	spf_threshold=1;	/* relaxed - they say: fail but we accept */
+	CP->spf_threshold=1;	/* relaxed - they say: fail but we accept */
       } else if (cistrcmp(param1, "softfail") == 0) {
-	spf_threshold=2;	/* default - they don't assume real reject */
+	CP->spf_threshold=2;	/* default - they don't assume real reject */
       } else if (cistrcmp(param1, "none") == 0) {
-	spf_threshold=3;	/* stricter - but allow all who don't publish */
+	CP->spf_threshold=3;	/* stricter - but allow all who don't publish */
       } else if (cistrcmp(param1, "neutral") == 0) {
-	spf_threshold=4;	/* draconian - SFP-less won't pass */
+	CP->spf_threshold=4;	/* draconian - SFP-less won't pass */
       } else if (cistrcmp(param1, "pass") == 0) {
-	spf_threshold=5;	/* extreme - allow only explicit 'pass' */
+	CP->spf_threshold=5;	/* extreme - allow only explicit 'pass' */
       } else {
 	type(NULL,0,NULL, "Cfgfile '%s' line %d param %s has bad arg: '%s'",
 		cfgfilename, linenum, name, param1);
-	spf_threshold=0;	/* always accept (even 'fail') */
+	CP->spf_threshold=0;	/* always accept (even 'fail') */
       }
     }
     /* SPF localpolicy setting */
     else if (cistrcmp(name, "spf-localpolicy") == 0 && param1 /* 1 param */) {
-        use_spf=1;
-        spf_localpolicy=strdup(param1);
+        CP->use_spf=1;
+        CP->spf_localpolicy=strdup(param1);
     }
     /* SPF localpolicy: whether to include default whitelist or not */
     else if (cistrcmp(name, "spf-whitelist-use-default") == 0 && param1 /* 1 param */) {
-        use_spf=1;
+	CP->use_spf=1;
         if(cistrcmp(param1,"true") == 0) {
-            spf_whitelist_use_default=1; /* 'include:spf.trusted-forwarder.org' added to localpolicy */
+	  CP->spf_whitelist_use_default=1; /* 'include:spf.trusted-forwarder.org' added to localpolicy */
         } else if (cistrcmp(param1,"false") == 0) {
-            spf_whitelist_use_default=0;
+	  CP->spf_whitelist_use_default=0;
         } else {
             type(NULL,0,NULL, "Cfgfile '%s' line %d param %s has bad arg: '%s'",
                     cfgfilename, linenum, name, param1);
-            spf_whitelist_use_default=0;
+            CP->spf_whitelist_use_default=0;
         }
     }
 
@@ -758,9 +800,9 @@ readcffile(name)
 	cfg_add_bindaddr( NULL, 1, BINDADDR_ALL, 0 );
       cfg_add_bindaddr( NULL, 0, BINDADDR_ALL, 0 );
     }
-    bindaddr_set = (bindaddrs != NULL);
+    CP->bindaddr_set = (CP->bindaddrs != NULL);
 #if !(defined(HAVE_SPF_ALT_SPF_H) || defined(HAVE_SPF2_SPF_H))
-    if (use_spf) {
+    if (CP->use_spf) {
       type(NULL,0,NULL, "SPF parameters specified but SPF support not compiled in");
     }
 #endif

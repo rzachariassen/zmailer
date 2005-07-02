@@ -1,11 +1,22 @@
-If you have  <security/pam_appl.h>  header in your system,
-you have already compiled the PAM-based SHADOW support in.
-To complete it, you will need following file:
+	(obsoleted with  smtpserver.8  documenting this same)
 
 
-------- /etc/pam.d/smtpauth-login -----------
-#%PAM-1.0
-auth       required     /lib/security/pam_pwdb.so shadow
-auth       required     /lib/security/pam_nologin.so
-account    required     /lib/security/pam_pwdb.so
----------------------------------------------
+PAM-SUPPORT FOR SMTP-AUTH
+       If  the  system has <security/pam_appl.h> file, and admin has chosen to
+       compile system using PAM support.  For Linux the following  file  would
+       also be needed:
+
+       ------- /etc/pam.d/smtpauth-login -----------
+       #%PAM-1.0
+       auth     required  pam_pwdb.so shadow
+       auth     required  pam_nologin.so
+       account  required  pam_pwdb.so
+
+       For Solaris the setup needs editing /etc/pam.conf file:
+
+       ------- /etc/pam.conf ---------
+        ....
+       smtpauth-login  auth required   pam_unix_auth.so.1
+       smtpauth-login  auth required   pam_authtok_get.so.1
+        ....
+

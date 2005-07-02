@@ -30,10 +30,6 @@ static int do_dump = 0;
 static int verify_depth = 1;
 static int verify_error = X509_V_OK;
 
-int tls_scache_timeout = 3600;
-int tls_use_scache = 0;
-char *tls_scache_name;
-
 #define SSL_SESSION_MAX_DER 10*1024
 
 
@@ -53,7 +49,7 @@ smtp_starttls(SS, buf, cp)
      SmtpState *SS;
      const char *buf, *cp;
 {
-    if (!starttls_ok) {
+    if (!OCP->starttls_ok) {
       /* Ok, then 'command not implemented' ... */
       type(SS, 502, m540, NULL);
       return;
@@ -228,7 +224,7 @@ static int new_session_cb(SSL *ssl, SSL_SESSION *session)
     unsigned char *id;
     unsigned int idlen;
     int rc;
-    long timeout = tls_scache_timeout;
+    long timeout = OCP->tls_scache_timeout;
 
     SSL_set_timeout(session, timeout);
     id    = session->session_id;
@@ -281,7 +277,7 @@ static void tls_scache_init(ssl_ctx)
 	 */
 
 	SSL_CTX_sess_set_cache_size(ssl_ctx, 1);
-	SSL_CTX_set_timeout(ssl_ctx, tls_scache_timeout);
+	SSL_CTX_set_timeout(ssl_ctx, OCP->tls_scache_timeout);
 
 	SSL_CTX_set_session_id_context(ssl_ctx,
 				       (void*)&server_session_id_context,
@@ -290,7 +286,7 @@ static void tls_scache_init(ssl_ctx)
 	/*
 	 * The session cache is realized by distcache, if at all..
 	 */
-	if (tls_scache_name) {
+	if (OCP->tls_scache_name) {
 	    SSL_CTX_set_session_cache_mode(ssl_ctx,
 					   ( SSL_SESS_CACHE_SERVER |
 					     SSL_SESS_CACHE_NO_INTERNAL ));
@@ -396,7 +392,7 @@ tmp_rsa_cb(s, export, keylength)
     static RSA *rsa_tmp = NULL;
 
     if (rsa_tmp == NULL) {
-	if (tls_loglevel >= 2)
+	if (OCP->tls_loglevel >= 2)
 	    type(NULL,0,NULL,"Generating temp (%d bit) RSA key...", keylength);
 	rsa_tmp = RSA_generate_key(keylength, RSA_F4, NULL, NULL);
     }
@@ -456,7 +452,7 @@ verify_callback(ok, ctx)
     depth = X509_STORE_CTX_get_error_depth(ctx);
 
     X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
-    if (tls_loglevel >= 1)
+    if (OCP->tls_loglevel >= 1)
 	type(NULL,0,NULL,"Client cert verify depth=%d %s", depth, buf);
     if (!ok) {
 	type(NULL,0,NULL,"verify error:num=%d:%s", err,
@@ -483,7 +479,7 @@ verify_callback(ok, ctx)
 	type(NULL,0,NULL,"cert has expired");
 	break;
     }
-    if (tls_loglevel >= 1)
+    if (OCP->tls_loglevel >= 1)
 	type(NULL,0,NULL,"verify return:%d", ok);
     return (ok);
 }
@@ -510,7 +506,7 @@ apps_ssl_info_callback(s, where, ret)
 	str = "undefined";
 
     if (where & SSL_CB_LOOP) {
-	if (tls_loglevel >= 2)
+	if (OCP->tls_loglevel >= 2)
 	    type(NULL,0,NULL,"%s:%s", str, SSL_state_string_long(s));
     } else if (where & SSL_CB_ALERT) {
 	str = (where & SSL_CB_READ) ? "read" : "write";
@@ -880,7 +876,7 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	if (tls_serverengine)
 	  return (0);				/* already running */
 
-	if (tls_loglevel >= 1)
+	if (OCP->tls_loglevel >= 1)
 	  type(NULL,0,NULL,"starting TLS engine");
 	
 	/*
@@ -929,7 +925,8 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	while ( 1 ) {
 
 	  /* Parametrized version ? */
-	  if (tls_random_source && tls_randseeder(tls_random_source) >= 0)
+	  if (OCP->tls_random_source &&
+	      tls_randseeder(OCP->tls_random_source) >= 0)
 	    break;
 	  
 	  /* How about  /dev/urandom  ?  */
@@ -987,8 +984,8 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * Set the list of ciphers, if explicitely given; otherwise the
 	 * (reasonable) default list is kept.
 	 */
-	if (tls_cipherlist) {
-	  if (SSL_CTX_set_cipher_list(ssl_ctx, tls_cipherlist) == 0) {
+	if (OCP->tls_cipherlist) {
+	  if (SSL_CTX_set_cipher_list(ssl_ctx, OCP->tls_cipherlist) == 0) {
 	    tls_print_errors();
 	    return (-1);
 	  }
@@ -1011,14 +1008,14 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * hand, the file is not really readable.
 	 */
 
-	if (!tls_CAfile || *tls_CAfile == 0)
+	if (!OCP->tls_CAfile || *OCP->tls_CAfile == 0)
 	  CAfile = NULL;
 	else
-	  CAfile = tls_CAfile;
-	if (!tls_CApath || *tls_CApath == 0)
+	  CAfile = OCP->tls_CAfile;
+	if (!OCP->tls_CApath || *OCP->tls_CApath == 0)
 	  CApath = NULL;
 	else
-	  CApath = tls_CApath;
+	  CApath = OCP->tls_CApath;
 	
 	/*
 	 * Now we load the certificate and key from the files and check,
@@ -1026,7 +1023,7 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * set_cert_stuff().   We cannot run without.
 	 */
 
-	if (tls_ask_cert && (!CApath && !CAfile)) {
+	if (OCP->tls_ask_cert && (!CApath && !CAfile)) {
 	  type(NULL,0,NULL,"TLS engine: No CA certificate file/directory defined, and asking for client certs");
 	  return (-1);
 	}
@@ -1035,7 +1032,7 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	    (!SSL_CTX_set_default_verify_paths(ssl_ctx))) {
 	  /* Consider this to be fatal ONLY if client
 	     certificates really are required ( = hardly ever) */
-	  if (tls_ask_cert && tls_req_cert) {
+	  if (OCP->tls_ask_cert && OCP->tls_req_cert) {
 	    type(NULL,0,NULL,"TLS engine: cannot load CA data");
 	    tls_print_errors();
 	    return (-1);
@@ -1058,24 +1055,24 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * changed in the cipher setup.
 	 */
 
-	if (!tls_cert_file || *tls_cert_file == 0)
+	if (!OCP->tls_cert_file || *OCP->tls_cert_file == 0)
 	  s_cert_file = NULL;
 	else
-	  s_cert_file = tls_cert_file;
-	if (!tls_key_file  || *tls_key_file == 0)
+	  s_cert_file = OCP->tls_cert_file;
+	if (!OCP->tls_key_file  || *OCP->tls_key_file == 0)
 	  s_key_file = NULL;
 	else
-	  s_key_file = tls_key_file;
+	  s_key_file = OCP->tls_key_file;
 
-	if (!tls_dcert_file || *tls_dcert_file == 0)
+	if (!OCP->tls_dcert_file || *OCP->tls_dcert_file == 0)
 	  s_dcert_file = NULL;
 	else
-	  s_dcert_file = tls_dcert_file;
+	  s_dcert_file = OCP->tls_dcert_file;
 
-	if (!tls_dkey_file || *tls_dkey_file == 0)
+	if (!OCP->tls_dkey_file || *OCP->tls_dkey_file == 0)
 	  s_dkey_file = NULL;
 	else
-	  s_dkey_file = tls_dkey_file;
+	  s_dkey_file = OCP->tls_dkey_file;
 
 	if (s_cert_file) {
 	  if (!set_cert_stuff(ssl_ctx, s_cert_file, s_key_file)) {
@@ -1118,15 +1115,15 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 
 	SSL_CTX_set_tmp_dh_callback(ssl_ctx, tmp_dh_cb);
 	
-	if (tls_dh1024_param) {
-	  dh_1024 = load_dh_param(tls_dh1024_param);
+	if (OCP->tls_dh1024_param) {
+	  dh_1024 = load_dh_param(OCP->tls_dh1024_param);
 	  if (!dh_1024) {
 	    type(NULL,0,NULL,"TLS engine: could not load 1024bit DH parameters from given file; will use built-in default value");
 	    tls_print_errors();
 	  }
 	}
-	if (tls_dh512_param) {
-	  dh_512 = load_dh_param(tls_dh512_param);
+	if (OCP->tls_dh512_param) {
+	  dh_512 = load_dh_param(OCP->tls_dh512_param);
 	  if (!dh_512) {
 	    type(NULL,0,NULL,"TLS engine: could not load 512bit DH parameters from given file; will use builtin default value");
 	    tls_print_errors();
@@ -1406,11 +1403,11 @@ tls_start_servertls(SS)
      * Well there is a BIO below the SSL routines that is automatically
      * created for us, so we can use it for debugging purposes.
      */
-    if (tls_loglevel >= 3)
+    /* if (OCP->tls_loglevel >= 3) */
       BIO_set_callback(SSL_get_rbio(SS->TLS.ssl), bio_dump_cb);
 
     /* Dump the negotiation for loglevels 3 and 4*/
-    if (tls_loglevel >= 3)
+    if (OCP->tls_loglevel >= 3)
 	do_dump = 1;
 
     /*
@@ -1525,7 +1522,7 @@ tls_start_servertls(SS)
 
 
     /* Only loglevel==4 dumps everything */
-    if (tls_loglevel < 4)
+    if (OCP->tls_loglevel < 4)
 	do_dump = 0;
     /*
      * Lets see, whether a peer certificate is available and what is
@@ -1540,13 +1537,13 @@ tls_start_servertls(SS)
 
 	X509_NAME_oneline(X509_get_subject_name(peer),
 			  cbuf, sizeof(cbuf));
-	if (tls_loglevel >= 1)
+	if (OCP->tls_loglevel >= 1)
 	    type(NULL,0,NULL,"subject=%s", cbuf);
 	SS->TLS.peer_subject = strdup(cbuf);
 
 	X509_NAME_oneline(X509_get_issuer_name(peer),
 			  cbuf, sizeof(cbuf));
-	if (tls_loglevel >= 1)
+	if (OCP->tls_loglevel >= 1)
 	    type(NULL,0,NULL,"issuer=%s", cbuf);
 	SS->TLS.peer_issuer = strdup(cbuf);
 
@@ -1561,7 +1558,7 @@ tls_start_servertls(SS)
 	  cbuf[k] = 0;
 	  SS->TLS.peer_fingerprint = strdup(cbuf);
 
-	  if (tls_loglevel >= 1)
+	  if (OCP->tls_loglevel >= 1)
 	    type(NULL,0,NULL,"fingerprint=%s", SS->TLS.peer_fingerprint);
 	}
 
@@ -1573,7 +1570,7 @@ tls_start_servertls(SS)
 				  NID_commonName, cbuf, sizeof(cbuf));
  	SS->TLS.issuer_CN = strdup(cbuf);
 
- 	if (tls_loglevel >= 3)
+ 	if (OCP->tls_loglevel >= 3)
 	  type(NULL,0,NULL, "subject_CN=%s, issuer_CN=%s",
 	       SS->TLS.peer_CN ? SS->TLS.peer_CN : "",
 	       SS->TLS.issuer_CN ? SS->TLS.issuer_CN : "");
@@ -1612,8 +1609,10 @@ tls_start_servertls(SS)
 void
 Z_init __((void))
 {
-    if (starttls_ok)
-	tls_init_serverengine(tls_ccert_vd,tls_ask_cert,tls_req_cert);
+    if (OCP->starttls_ok)
+	tls_init_serverengine(OCP->tls_ccert_vd,
+			      OCP->tls_ask_cert,
+			      OCP->tls_req_cert);
 }
 
 void
@@ -1681,7 +1680,7 @@ static DC_CTX *ssl_scache_dc_init()
 {
     DC_CTX *ctx;
 
-    if (!tls_scache_name) return NULL;
+    if (!OCP->tls_scache_name) return NULL;
 
     /*
      * Create a session context
@@ -1702,7 +1701,7 @@ static DC_CTX *ssl_scache_dc_init()
      * performance/stability danger of file-descriptor bloatage. */
 #define SESSION_CTX_FLAGS	0
 #endif
-    ctx = DC_CTX_new(tls_scache_name, SESSION_CTX_FLAGS);
+    ctx = DC_CTX_new(OCP->tls_scache_name, SESSION_CTX_FLAGS);
     if(!ctx) {
       type(NULL,0,NULL,"distributed scache failed to obtain context");
       exit(1);

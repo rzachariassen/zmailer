@@ -1,7 +1,7 @@
 /*
  *  Globals of the ZMailer  smtp-server
  *
- *  Matti Aarnio <mea@nic.funet.fi> 1997-2004
+ *  Matti Aarnio <mea@nic.funet.fi> 1997-2005
  */
 
 
@@ -399,93 +399,136 @@ extern char *hdr220lines[];
 extern char logtag[];
 extern time_t logtagepoch, now;
 
+/* Spool related counters */
 extern long availspace;
 extern long minimum_availspace;
 extern long maxsize;
+
+
+/* Global parameters */
 extern int use_ipv6;
-extern double tarpit_initial;
-extern double tarpit_exponent;
-extern double tarpit_toplimit;
-extern int MaxErrorRecipients;
-extern int TcpRcvBufferSize;
-extern int TcpXmitBufferSize;
-extern int ListenQueueSize;
 extern int MaxSameIpSource;
 extern int MaxParallelConnections;
 extern int percent_accept;
 extern int smtp_syslog;
 extern int allow_source_route;
-extern int debugcmdok;
-extern int expncmdok;
-extern int vrfycmdok;
-extern int pipeliningok;
-extern int mime8bitok;
-extern int chunkingok;
-extern int enhancedstatusok;
-extern int multilinereplies;
-extern int dsn_ok;
-extern int auth_ok;
-extern int no_smtp_auth_on_25;
-extern char *smtp_auth_username_prompt;
-extern char *smtp_auth_password_prompt;
-extern int auth_failrate;
-extern int ehlo_ok;
-extern int etrn_ok;
-extern int starttls_ok;
-extern int ssmtp_listen;
-extern int msa_mode;
-extern int deliverby_ok;
+
+extern char *contentfilter;
+extern int debug_content_filter;
+extern char *perlhookpath;
+
+extern int enable_router;
+extern int enable_router_maxpar;
+extern int configuration_ok;
+extern int unknown_cmd_limit;
+
+extern int msa_mode;  /* ?? */
+extern int sum_sizeoption_value;
+extern int lmtp_mode;
+
+
 #define MAX_ETRN_CLUSTER_IDX 40
 typedef struct {
   char *nodename; char *username; char *password;
 } etrn_cluster_ent;
 extern etrn_cluster_ent etrn_cluster[];
-extern const char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
-extern const char *tls_dcert_file, *tls_dkey_file, *tls_dh1024_param;
-extern const char *tls_dh512_param;
-extern const char *tls_random_source;
-extern const char *tls_cipherlist;
-extern const char *SASL_Auth_Mechanisms;
-extern const char *contact_pointer_message;
-extern const char *reportauthfile;
-extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
-extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;
-extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
-extern int log_rcvd_tls_mode, log_rcvd_tls_peer;
-extern int auth_login_without_tls;
-extern char *smtpauth_via_pipe;
-extern char *contentfilter;
-extern char *perlhookpath;
-extern int debug_content_filter;
-extern int strict_protocol;
-extern int rcptlimitcnt;
-extern int enable_router;
-extern int enable_router_maxpar;
-extern int use_tcpwrapper;
-extern int configuration_ok;
-extern int unknown_cmd_limit;
-extern int sum_sizeoption_value;
-extern int lmtp_mode;
-extern int do_sasl;
-extern int MaxSLBits;
-extern char *AuthMechanisms;
-extern int detect_incorrect_tls_use;
-extern int force_rcpt_notify_never;
 
-extern int use_spf, spf_received, spf_threshold, spf_whitelist_use_default;
-extern char *spf_localpolicy;
+typedef struct ConfigParams_ {
+  double tarpit_initial;
+  double tarpit_exponent;
+  double tarpit_toplimit;
 
-extern int bindaddr_set, bindport_set, testaddr_set;
-extern u_short   bindport;
-extern Usockaddr *bindaddrs;
-extern int       *bindaddrs_types;
-extern int       *bindaddrs_ports;
-extern int        bindaddrs_count;
+  int MaxErrorRecipients;
+  int TcpRcvBufferSize;
+  int TcpXmitBufferSize;
+  int ListenQueueSize;
+
+  struct policytest *policydb; /* group, can default */
+
+  int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
+  int log_rcvd_tls_mode, log_rcvd_tls_peer;
+
+  int auth_ok;
+  int auth_login_without_tls;
+  int no_smtp_auth_on_25;
+  char *smtp_auth_username_prompt; /* group, can default */
+  char *smtp_auth_password_prompt; /* group, can default */
+  int auth_failrate;
+
+  char *smtpauth_via_pipe;		/* group, can default */
+  const char *SASL_Auth_Mechanisms;	/* group, can default */
+  int do_sasl;
+  int MaxSLBits;
+  char *AuthMechanisms;			/* group, can default */
+
+  int ehlo_ok;
+  int etrn_ok;
+  int starttls_ok;
+  int deliverby_ok;
+  int ssmtp_listen;
+  int submit_listen;
+  int debugcmdok;
+  int expncmdok;
+  int vrfycmdok;
+  int pipeliningok;
+  int mime8bitok;
+  int chunkingok;
+  int enhancedstatusok;
+  int multilinereplies;
+  int dsn_ok;
+
+	/* group, can default */
+  const char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
+  const char *tls_dcert_file, *tls_dkey_file, *tls_dh1024_param;
+  const char *tls_dh512_param;
+  const char *tls_random_source;
+  const char *tls_cipherlist;
+  int tls_loglevel, tls_enforce_tls, tls_ccert_vd;
+  int tls_ask_cert, tls_req_cert;
+
+  int tls_scache_timeout, tls_use_scache;
+  char *tls_scache_name;
+
+
+  const char *contact_pointer_message; 	/* group, can default */
+
+  const char *reportauthfile;		/* group, can default */
+
+  int rcptlimitcnt;
+  int use_tcpwrapper;
+
+  int detect_incorrect_tls_use;
+  int force_rcpt_notify_never;
+
+  int use_spf, spf_received, spf_threshold, spf_whitelist_use_default;
+  char *spf_localpolicy;		/* group, can default */
+
+		/* group locals: */
+  int bindaddr_set;
+  Usockaddr *bindaddrs;
+  int       *bindaddrs_types;
+  int       *bindaddrs_ports;
+  int        bindaddrs_count;
 #define BINDADDR_ALL    0xFFFF
 #define BINDADDR_SMTP   0x0001
 #define BINDADDR_SMTPS  0x0002
 #define BINDADDR_SUBMIT 0x0004
-extern Usockaddr testaddr;
+} ConfigParams;
+
+extern ConfigParams CPdefault;
+extern ConfigParams **CPpSet;
+extern int CPpSetSize;
+extern ConfigParams *CP;
+extern ConfigParams *OCP;
+
+extern int bindport_set;
+extern u_short   bindport;
+
+extern int strict_protocol;
+
+extern int testaddr_set;
+extern  Usockaddr testaddr;
+
 
 extern const char *progname;
 extern int debug, skeptical, checkhelo, ident_flag, verbose, daemon_flg;
@@ -593,7 +636,6 @@ extern int sawsigchld;
 extern const char *rfc822atom __((const char *str));
 extern const char *xtext_string __((const char *str));
 
-extern void s_setup  __((SmtpState * SS, int infd, int outfd));
 extern void s_ungetc __((SmtpState *SS, int ch));
 extern int s_feof __((SmtpState * SS));
 extern int s_seen_eof __((SmtpState * SS));

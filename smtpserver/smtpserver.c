@@ -93,8 +93,6 @@ struct command command_list[] =
     {0, Null}
 };
 
-struct policytest *policydb;
-struct policytest *policydb_submit;
 struct smtpconf *cfhead;
 struct smtpconf *cfinfo;
 
@@ -106,8 +104,13 @@ int skeptical = 1;
 int checkhelo;
 int verbose;
 int daemon_flg = 1;
+int debug_no_stdout;
 int pid;
 int router_status;
+int ident_flag;
+int use_ipv6;
+int msa_mode;
+
 FILE *logfp;
 int   logfp_to_syslog;
 int D_alloc;
@@ -125,6 +128,8 @@ int unknown_cmd_limit = 10;
 int sum_sizeoption_value;
 int always_flush_replies;
 int sawsigchld;
+
+etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX];
 
 char   logtag[32];
 time_t logtagepoch, now;
@@ -171,9 +176,7 @@ const char *style = "ve";
 long availspace = -1;		/* available diskspace/2 in bytes       */
 long minimum_availspace = 5000; /* 5 million bytes free, AT LEAST */
 long maxsize;
-int ListenQueueSize  = 20000;
-int TcpRcvBufferSize;
-int TcpXmitBufferSize;
+
 int MaxSameIpSource = 100;	/* Max number of smtp connections in progress
 				   from same IP address -- this to detect
 				   systems sending lots of mail all in
@@ -186,10 +189,8 @@ int MaxSameIpSource = 100;	/* Max number of smtp connections in progress
 				   the remote SMTP server... */
 int MaxParallelConnections = 800; /* Total number of childs allowed */
 
-int MaxErrorRecipients = 3;	/* Max number of recipients for a message
-				   that has a "box" ( "<>" ) as its source
-				   address. */
 int percent_accept = -1;
+
 
 int maxloadavg = 999;		/* Maximum load-average that is tolerated
 				   with smtp-server actively receiving..
@@ -200,74 +201,85 @@ int maxloadavg = 999;		/* Maximum load-average that is tolerated
 int allow_source_route;		/* When zero, do ignore source route address
 				   "@a,@b:c@d" by collapsing it into "c@d" */
 
-int rcptlimitcnt = 10000;	/* Allow up to 10 000 recipients for each
+ConfigParams CPdefault;
+ConfigParams *CP;  /* Config & Setup time pointer */
+ConfigParams *OCP; /* Operational time pointer    */
+ConfigParams **CPpSet;
+int CPpSetSize;
+
+static void CPdefault_init __((void));
+static void CPdefault_init()
+{
+
+  CP = &CPdefault;
+  CPpSet = (void*)malloc(sizeof(void**)*2);
+  CPpSetSize = 1;
+  CPpSet[0] = CP;
+  CPpSet[1] = NULL;
+
+  CP->ListenQueueSize  = 20000;
+  CP->MaxErrorRecipients = 3;	/* Max number of recipients for a message
+				   that has a "box" ( "<>" ) as its source
+				   address. */
+
+  CP->rcptlimitcnt = 10000;	/* Allow up to 10 000 recipients for each
 				   MAIL FROM. -- or tune this.. */
 
-int debugcmdok;
-int expncmdok;
-int vrfycmdok;
-int use_ipv6;
-int ident_flag;
-int do_whoson;
-int pipeliningok = 1;
-int chunkingok = 1;
-int enhancedstatusok = 1;
-int multilinereplies = 1;
-int enable_router;		/* Off by default -- security */
-int do_sasl;
-int MaxSLBits = 1000000;	/* a HIGH value */
-int SASLOpts;
-int mime8bitok = 1;
-int dsn_ok = 1;
-int auth_ok;
-int ehlo_ok = 1;
-int etrn_ok = 1;
-int starttls_ok;
-int ssmtp_listen;	   /* Listen on port TCP/465; deprecated SMTP in TLS */
+  CP->pipeliningok = 1;
+  CP->chunkingok = 1;
+  CP->enhancedstatusok = 1;
+  CP->multilinereplies = 1;
+  CP->MaxSLBits = 1000000;	/* a HIGH value */
+  CP->mime8bitok = 1;
+  CP->dsn_ok = 1;
+  CP->ehlo_ok = 1;
+  CP->etrn_ok = 1;
+
+  CP->deliverby_ok = -1;		/* FIXME: RFC 2852 */
+  CP->tls_ccert_vd    = 1;
+}
+
+void ConfigParams_newgroup __((void));
+void ConfigParams_newgroup()
+{
+  ConfigParams *CPn = malloc(sizeof(*CP));
+  if (CPn) {
+    /* Copy everything from CPdefaults -- initially we did set defaults.. */
+    *CPn = *(&CPdefault);
+    CP = CPn;
+    CPpSet = realloc(CPpSet, sizeof(void**)*(CPpSetSize+2));
+    if (!CPpSet) {
+    out_of_memory:;
+      type(NULL,0,NULL,"OUT OF MEMORY!");
+      exit(64);
+    }
+    CPpSet[CPpSetSize] = CP;
+    ++CPpSetSize;
+
+    /* Now clean/duplicate those set elements,
+       that are reallocated at PARAM keyword processing */
+    
+    CP->bindaddr_set = 0;
+    CP->bindaddrs       = NULL;
+    CP->bindaddrs_types = NULL;
+    CP->bindaddrs_ports = NULL;
+    CP->bindaddrs_count = 0;
+
+  } else
+    goto out_of_memory;
+}
+
+
+
+/* int submit_connected; */
 int ssmtp_connected;
-int msa_mode;
-int submit_listen;
-int submit_connected;
-int deliverby_ok = -1;		/* FIXME: RFC 2852 */
-int no_smtp_auth_on_25;
-char *smtp_auth_username_prompt;
-char *smtp_auth_password_prompt;
-etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { {NULL,}, };
-const char *tls_cert_file = NULL;
-const char *tls_key_file  = NULL;
-const char *tls_dcert_file = NULL;
-const char *tls_dkey_file  = NULL;
-const char *tls_CAfile    = NULL;
-const char *tls_CApath    = NULL;
-const char *tls_dh1024_param = NULL;
-const char *tls_dh512_param = NULL;
-const char *tls_cipherlist = NULL;
-const char *tls_random_source = NULL;
-int tls_loglevel;
-int tls_enforce_tls;
-int tls_ccert_vd    = 1;
-int tls_ask_cert;
-int tls_req_cert;
-int log_rcvd_whoson;
-int log_rcvd_ident;
-int log_rcvd_authuser;
-int log_rcvd_tls_mode;
-int log_rcvd_tls_peer;
-int auth_login_without_tls;
-char *smtpauth_via_pipe;
-Usockaddr *bindaddrs;
-int	  *bindaddrs_types;
-int	  *bindaddrs_ports;
-int        bindaddrs_count;
-Usockaddr testaddr;
-int bindaddr_set;
+int do_whoson;
+
 int testaddr_set;
-u_short bindport;
+Usockaddr testaddr;
+
 int bindport_set;
-int use_tcpwrapper;
-double tarpit_initial; /* TARPIT is DISABLED, by default */
-double tarpit_exponent;
-double tarpit_toplimit;
+u_short bindport;
 
 int lmtp_mode;	/* A sort-of RFC 2033 LMTP mode ;
 		   this is MAINLY for debug purposes,
@@ -305,6 +317,8 @@ static RETSIGTYPE reaper   __((int sig));
 static RETSIGTYPE timedout __((int sig));
 static RETSIGTYPE sigterminator __((int sig));
 static void smtpserver __((SmtpState *, int insecure));
+static void s_setup  __((SmtpState * SS, int infd, int outfd));
+
 
 
 const char *msg_toohighload = "421 Sorry, the system is too loaded for email reception at the moment\r\n";	/* XX: ??? */
@@ -391,10 +405,12 @@ int insecure;
 }
 
 
-static void create_server_socket __((int *, int **, int **,
+static void create_server_socket __((ConfigParams *, int *, int **, int **,
+				     ConfigParams ***,
 				     int, int, int, Usockaddr * ));
 
-static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, portnum, bindaddr)
+static void create_server_socket (CP, lscnt_p, ls_p, lst_p, lsCP_p, lsocktype, use_ipv6, portnum, bindaddr)
+     ConfigParams *CP, ***lsCP_p;
      int *lscnt_p, **ls_p, **lst_p;
      int use_ipv6, portnum, lsocktype;
      Usockaddr *bindaddr;
@@ -455,13 +471,15 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 
 	*ls_p              = realloc( *ls_p,  sizeof(int) * ((*lscnt_p) +2));
 	*lst_p             = realloc( *lst_p, sizeof(int) * ((*lscnt_p) +2));
-	if (! *ls_p ||  ! *lst_p ) {
+	*lsCP_p            = realloc( *lsCP_p, sizeof(void*)*((*lscnt_p) +2));
+	if (! *ls_p ||  ! *lst_p || ! *lsCP_p) {
 	  fprintf(stderr, "%s: malloc() failure!\n", progname);
 	  exit(1);
 	}
 
-	(*ls_p )[ *lscnt_p ] = s;
-	(*lst_p)[ *lscnt_p ] = lsocktype;
+	(*ls_p  )[ *lscnt_p ] = s;
+	(*lst_p )[ *lscnt_p ] = lsocktype;
+	(*lsCP_p)[ *lscnt_p ] = CP;
 
 	*lscnt_p += 1;
 
@@ -483,19 +501,19 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 	}
 #endif
 #ifdef SO_RCVBUF
-	if (TcpRcvBufferSize > 0)
+	if (CP->TcpRcvBufferSize > 0)
 	  if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
-			 (char *) &TcpRcvBufferSize,
-			 sizeof(TcpRcvBufferSize)) < 0) {
+			 (char *) &CP->TcpRcvBufferSize,
+			 sizeof(CP->TcpRcvBufferSize)) < 0) {
 	    fprintf(stderr, "%s: setsockopt(SO_RCVBUF): %s\n",
 		    progname, strerror(errno));
 	  }
 #endif
 #ifdef SO_SNDBUF
-	if (TcpXmitBufferSize > 0)
+	if (CP->TcpXmitBufferSize > 0)
 	  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF,
-			 (char *) &TcpXmitBufferSize,
-			 sizeof(TcpXmitBufferSize)) < 0) {
+			 (char *) &CP->TcpXmitBufferSize,
+			 sizeof(CP->TcpXmitBufferSize)) < 0) {
 	    fprintf(stderr, "%s: setsockopt(SO_SNDBUF): %s\n",
 		    progname, strerror(errno));
 	  }
@@ -567,9 +585,9 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 
 	fd_nonblockingmode(s);
 
-	if (listen(s, ListenQueueSize) < 0) {
+	if (listen(s, CP->ListenQueueSize) < 0) {
 	  fprintf(stderr, "%s: listen(smtp_sock,%d): %s\n",
-		  progname, ListenQueueSize, strerror(errno));
+		  progname, CP->ListenQueueSize, strerror(errno));
 	}
 }
 
@@ -603,7 +621,9 @@ int main(argc, argv, envp)
 	setvbuf(stderr, NULL, _IOLBF, 8192);
 
 	memset(&SS, 0, sizeof(SS));
-	bindaddrs = NULL;
+
+	CPdefault_init();
+
 	SS.mfp = NULL;
 	SS.style = "ve";
 	SS.with_protocol_set = 0;
@@ -937,10 +957,6 @@ int main(argc, argv, envp)
 	  subdaemon_contentfilter(0);
 
 
-#ifdef HAVE_OPENSSL
-	Z_init(); /* Some things for private processors */
-#endif /* - HAVE_OPENSSL */
-
 #ifdef DO_PERL_EMBED
 	if (perlhookpath) {
 	  atexit(ZSMTP_hook_atexit);
@@ -963,36 +979,38 @@ int main(argc, argv, envp)
 	      SS.netconnected_flg = 1;
 	      memcpy(&SS.raddr, &testaddr, sizeof(testaddr));
 #ifdef HAVE_WHOSON_H
-             char buf[64];
-	      if (do_whoson && SS.netconnected_flg) {
-	        buf[0]='\0';
-	        if (SS.raddr.v4.sin_family == AF_INET) {  
-	          inet_ntop(AF_INET, (void *) &SS.raddr.v4.sin_addr,    /* IPv4 */
-	            buf, sizeof(buf) - 1);
+	      {
+		char buf[64];
+		if (do_whoson && SS.netconnected_flg) {
+		  buf[0]='\0';
+		  if (SS.raddr.v4.sin_family == AF_INET) {  
+		    inet_ntop(AF_INET, (void *) &SS.raddr.v4.sin_addr,    /* IPv4 */
+			      buf, sizeof(buf) - 1);
 #if defined(AF_INET6) && defined(INET6)
-	        } else if (SS.raddr.v6.sin6_family == AF_INET6) {
-	          inet_ntop(AF_INET6, (void *) &SS.raddr.v6.sin6_addr,  /* IPv6 */
-	            buf, sizeof(buf) - 1);
+		  } else if (SS.raddr.v6.sin6_family == AF_INET6) {
+		    inet_ntop(AF_INET6, (void *) &SS.raddr.v6.sin6_addr,  /* IPv6 */
+			      buf, sizeof(buf) - 1);
 #endif
-	        }
-	        if ((SS.whoson_result = wso_query(buf, SS.whoson_data,
-	          sizeof(SS.whoson_data)))) {
+		  }
+		  if ((SS.whoson_result = wso_query(buf, SS.whoson_data,
+						    sizeof(SS.whoson_data)))) {
 	            strcpy(SS.whoson_data,"-unregistered-");
 	          }
 #if DO_PERL_EMBED
-	        else {
-	          int rc;
-	          ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
-	        }
+		  else {
+		    int rc;
+		    ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
+		  }
 #endif
-	      } else {
-	        strcpy(SS.whoson_data,"NOT-CHECKED");
-	        strcpy(buf,"NA");
-	        SS.whoson_result = -1;
+		} else {
+		  strcpy(SS.whoson_data,"NOT-CHECKED");
+		  strcpy(buf,"NA");
+		  SS.whoson_result = -1;
+		}
+		if (debug) 
+		  type(NULL,0,NULL,"Whoson Initialized: IP Used: %s, whoson_result: %d, whoson_data: %s",
+		       buf, SS.whoson_result, SS.whoson_data);
 	      }
-	      if (debug) 
-	        type(NULL,0,NULL,"Whoson Initialized: IP Used: %s, whoson_result: %d, whoson_data: %s",
-	           buf, SS.whoson_result, SS.whoson_data);
 #endif /* HAVE_WHOSON_H */  
 	    }
 	  } else {
@@ -1031,6 +1049,11 @@ int main(argc, argv, envp)
 	  sprintf(SS.ident_username, "uid#%d@localhost", (int)getuid());
 	  
 	  /* INTERACTIVE */
+	  OCP = CP;
+#ifdef HAVE_OPENSSL
+	  Z_init(); /* Some things for private processors */
+#endif /* - HAVE_OPENSSL */
+
 	  s_setup(&SS, FILENO(stdin), FILENO(stdout));
 	  smtpserver(&SS, 0);
 
@@ -1077,6 +1100,11 @@ int main(argc, argv, envp)
 
 	  zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 	  
+	  OCP = CP;
+#ifdef HAVE_OPENSSL
+	  Z_init(); /* Some things for private processors */
+#endif /* - HAVE_OPENSSL */
+
 	  if (SS.netconnected_flg)
 	    s_setup(&SS, FILENO(stdin), FILENO(stdin));
 	  else
@@ -1116,8 +1144,9 @@ int main(argc, argv, envp)
 	  int  listensocks_count = 0;
 	  int *listensocks       = malloc( 3 * sizeof(int) );
 	  int *listensocks_types = malloc( 3 * sizeof(int) );
+	  ConfigParams **listensocks_CPs = malloc( 3 * sizeof(void**) );
 	  int  msgfd;
-	  
+	  int CPindex;
 
 	  if (postoffice == NULL
 	      && (postoffice = getzenv("POSTOFFICE")) == NULL)
@@ -1174,7 +1203,8 @@ int main(argc, argv, envp)
 
 	  settrusteduser();	/* dig out the trusted user ID */
 	  zcloselog();		/* close the syslog too.. */
-	  detach();		/* this must NOT close fd's */
+	  if (debug < 2)
+	    detach();		/* this must NOT close fd's */
 	  /* Close fd's 0, 1, 2 now */
 	  close(0);
 	  close(1);
@@ -1205,135 +1235,165 @@ int main(argc, argv, envp)
 	      bindport = ntohs(service->s_port);
 	  }
 
-	  /* Without explicite bindings, pick up defaults.. */
+	  for (CPindex = 0; CPindex < CPpSetSize; ++CPindex) {
 
-	  if (!bindaddrs || bindaddrs_count <= 0) {
+	    /* Pick groups.. */
+	    CP = CPpSet[ CPindex ];
+
+	    /* Without explicite bindings, pick up defaults.. */
+
+	    if (!CP->bindaddrs || CP->bindaddrs_count <= 0) {
 
 	      if (1 /* smtp_listen */ ) {
 		if (use_ipv6)
-		  create_server_socket( & listensocks_count,
+		  create_server_socket( CP,
+					& listensocks_count,
 					& listensocks,
 					& listensocks_types,
+					& listensocks_CPs,
 					LSOCKTYPE_SMTP,
 					1,
 					bindport,
 					NULL );
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SMTP,
 				      0,
 				      bindport,
 				      NULL );
 	      }
 
-	      if (ssmtp_listen) {
+	      if (CP->ssmtp_listen) {
 		if (use_ipv6)
-		  create_server_socket( & listensocks_count,
+		  create_server_socket( CP,
+					& listensocks_count,
 					& listensocks,
 					& listensocks_types,
+					& listensocks_CPs,
 					LSOCKTYPE_SSMTP,
 					1,
 					465, /* Deprecated SMTP/TLS WKS port */
 					NULL );
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SSMTP,
 				      0,
 				      465, /* Deprecated SMTP/TLS WKS port */
 				      NULL );
 	      }
 
-	      if (submit_listen) {
+	      if (CP->submit_listen) {
 		if (use_ipv6)
-		  create_server_socket( & listensocks_count,
+		  create_server_socket( CP,
+					& listensocks_count,
 					& listensocks,
 					& listensocks_types,
+					& listensocks_CPs,
 					LSOCKTYPE_SUBMIT,
 					1,
 					587, /* SUBMIT port */
 					NULL );
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SUBMIT,
 				      0,
 				      587, /* SUBMIT port */
 				      NULL );
 	      }
 
-	  }
+	    }
 
-	  /* With explicite bindings! */
+	    /* With explicite bindings! */
 
-	  for (j = 0; j < bindaddrs_count; ++j) {
-	    switch (bindaddrs_types[j]) {
-	    case BINDADDR_ALL:
+	    for (j = 0; j < CP->bindaddrs_count; ++j) {
+	      switch (CP->bindaddrs_types[j]) {
+	      case BINDADDR_ALL:
 	      /* Do it by the registered IP address' address family! */
 
 	      if (1 /* smtp_listen */ ) {
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SMTP,
-				      bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
 				      bindport, /* default: 25 .. */
-				      &bindaddrs[j]);
+				      &CP->bindaddrs[j]);
 	      }
-	      if (ssmtp_listen) {
-		create_server_socket( & listensocks_count,
+	      if (CP->ssmtp_listen) {
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SSMTP,
-				      bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
 				      465, /* SMTPS port */
-				      &bindaddrs[j]);
+				      &CP->bindaddrs[j]);
 	      }
-	      if (submit_listen) {
-		create_server_socket( & listensocks_count,
+	      if (CP->submit_listen) {
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SUBMIT,
-				      bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
 				      587, /* SUBMISSION port */
-				      &bindaddrs[j]);
+				      &CP->bindaddrs[j]);
 	      }
 	      break;
 
 	      case BINDADDR_SMTP:
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SMTP,
-				      bindaddrs[j].v4.sin_family != AF_INET,
-				      bindaddrs_ports[j],
-				      &bindaddrs[j]);
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs_ports[j],
+				      &CP->bindaddrs[j]);
 		break;
 
 	      case BINDADDR_SMTPS:
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SSMTP,
-				      bindaddrs[j].v4.sin_family != AF_INET,
-				      bindaddrs_ports[j],
-				      &bindaddrs[j]);
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs_ports[j],
+				      &CP->bindaddrs[j]);
 		break;
 
 	      case BINDADDR_SUBMIT:
-		create_server_socket( & listensocks_count,
+		create_server_socket( CP,
+				      & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
+				      & listensocks_CPs,
 				      LSOCKTYPE_SUBMIT,
-				      bindaddrs[j].v4.sin_family != AF_INET,
-				      bindaddrs_ports[j],
-				      &bindaddrs[j]);
+				      CP->bindaddrs[j].v4.sin_family != AF_INET,
+				      CP->bindaddrs_ports[j],
+				      &CP->bindaddrs[j]);
 		break;
 	      default:
 		break;
+	      }
+	      
 	    }
-
 	  }
 
 
@@ -1410,7 +1470,8 @@ int main(argc, argv, envp)
 	      if (_Z_FD_ISSET(listensocks[i],rdset)) {
 		n = listensocks[i];
 		socktag = listensocks_types[i];
-		  
+		OCP     = listensocks_CPs[i];
+	  
 		raddrlen = sizeof(SS.raddr);
 		msgfd = accept(n, (struct sockaddr *) &SS.raddr, &raddrlen);
 		if (msgfd < 0) {
@@ -1511,9 +1572,11 @@ int main(argc, argv, envp)
 		} else {			/* Child */
 		  SIGNAL_RELEASE(SIGCHLD);
 		  
-		  disable_childreap(); /* Child does not do childreap.. */
+		  disable_childreap(); /* Child does not do childreap..
+					  it may do other reaps, though. */
 
 		  SS.netconnected_flg = 1;
+		  debug_no_stdout = 1;
 		  
 		  switch (socktag) {
 		  case LSOCKTYPE_SMTP:
@@ -1525,7 +1588,7 @@ int main(argc, argv, envp)
 		    SS.with_protocol_set |= WITH_TLS;
 		    break;
 		  case LSOCKTYPE_SUBMIT:
-		    submit_connected = 1;
+		    /* submit_connected = 1; */
 		    msa_mode = 1;
 		    SS.with_protocol_set |= WITH_SUBMIT;
 		    break;
@@ -1587,6 +1650,12 @@ int main(argc, argv, envp)
 
 		  zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 		  
+		  /* We have set the OCP above.. */
+		  /* OCP = OCP; */
+#ifdef HAVE_OPENSSL
+		  Z_init(); /* Some things for private processors */
+#endif /* - HAVE_OPENSSL */
+
 		  s_setup(&SS, msgfd, msgfd);
 		  
 		  if (ident_flag != 0)
@@ -1941,7 +2010,7 @@ const char *msg;
     zsyslog((LOG_ERR,
 	     "%s%04d - aborted (%ld bytes) from %s/%d: %s",
 	     logtag, dt, tell, SS->rhostname, SS->rport, msg));
-    if (logfp && (SS->tarpit > tarpit_initial)) {
+    if (logfp && (SS->tarpit > OCP->tarpit_initial)) {
         char *ts = rfc822date(&now);
 	char *n = strchr(ts, '\n');
 	if (n) *n = 0;
@@ -2244,7 +2313,7 @@ int buflen, *rcp;
 	int c, co = -1;
 	int i = -1, rc = -1;
 
-	if (!pipeliningok || !s_hasinput(SS))
+	if (!OCP->pipeliningok || !s_hasinput(SS))
 	  typeflush(SS);
 
 	/* Alarm processing on the SMTP protocol channel */
@@ -2301,7 +2370,7 @@ int buflen, *rcp;
 }
 
 
-void s_setup(SS, infd, outfd)
+static void s_setup(SS, infd, outfd)
 SmtpState *SS;
 int infd;
 {
@@ -2337,7 +2406,7 @@ int insecure;
     int policystatus;
     struct hostent *hostent;
     int localport;
-    long maxsameip;
+    long maxsameip = 0;
 
 #ifdef USE_TRANSLATION
     char lang[4];
@@ -2345,9 +2414,11 @@ int insecure;
     lang[0] = '\0';
 #endif
 
+    if (!OCP) OCP = CP; /* Backup setup.. */
+
     SS->VerboseCommand = 0;
 
-    SS->tarpit      = tarpit_initial;
+    SS->tarpit      = OCP->tarpit_initial;
     SS->tarpit_cval = 0;
 
     stashmyaddresses(NULL);
@@ -2495,31 +2566,20 @@ int insecure;
     }
 
 #ifdef HAVE_WHOSON_H
-    if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
-      policystatus     = policyinit(&SS->policystate, policydb_submit, 
-				    (SS->with_protocol_set & WITH_SUBMIT) ? 3 : 2,
-				    (! SS->whoson_result && SS->whoson_data));
-    else
-      policystatus     = policyinit(&SS->policystate, policydb, 
-				    (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
-				    (! SS->whoson_result && SS->whoson_data));
+    policystatus = policyinit(&SS->policystate, OCP->policydb, 
+			      (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
+			      (! SS->whoson_result && SS->whoson_data));
 #else
-    if (policydb_submit && (SS->with_protocol_set & WITH_SUBMIT))
-      policystatus     = policyinit(&SS->policystate, policydb,
-				    (SS->with_protocol_set & WITH_SUBMIT) ? 3 : 2,
-				    0);
-    else
-      policystatus     = policyinit(&SS->policystate, policydb,
-				    (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
-				    0);
+    policystatus = policyinit(&SS->policystate, OCP->policydb,
+			      (SS->with_protocol_set & WITH_SUBMIT) ? 1 : 0,
+			      0);
 #endif
 
     if (!SS->netconnected_flg) {
       policystatus = 0; /* For internal - non-net-connected - mode
 			   lack of PolicyDB is no problem at all.. */
       SS->reject_net = 0;
-      maxsameip = 0;
-    } else {
+    } else if (policystatus == 0) { /* net connected, and db opened ok */
       if (debug) typeflush(SS);
       SS->policyresult = policytestaddr(&SS->policystate,
 					POLICY_SOURCEADDR,
@@ -2541,7 +2601,7 @@ int insecure;
 
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
-    if (use_tcpwrapper && SS->netconnected_flg &&
+    if (OCP->use_tcpwrapper && SS->netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {
 	zsyslog((LOG_WARNING, "refusing connection from %s:%d/%s",
 		 SS->rhostname, SS->rport, SS->ident_username));
@@ -2770,21 +2830,21 @@ int insecure;
 	if (lmtp_mode && (SS->carp->cmd == Hello || SS->carp->cmd == Hello2))
 	  goto unknown_command;
 
-	if (SS->carp->cmd == DebugMode && ! debugcmdok)
+	if (SS->carp->cmd == DebugMode && ! OCP->debugcmdok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Expand    && ! expncmdok)
+	if (SS->carp->cmd == Expand    && ! OCP->expncmdok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Verify    && ! vrfycmdok)
+	if (SS->carp->cmd == Verify    && ! OCP->vrfycmdok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Verify2   && ! vrfycmdok)
+	if (SS->carp->cmd == Verify2   && ! OCP->vrfycmdok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Hello2    && ! ehlo_ok)
+	if (SS->carp->cmd == Hello2    && ! OCP->ehlo_ok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Turnme    && ! etrn_ok)
+	if (SS->carp->cmd == Turnme    && ! OCP->etrn_ok)
 	  goto unknown_command;
-	if (SS->carp->cmd == Auth      && ! auth_ok)
+	if (SS->carp->cmd == Auth      && ! OCP->auth_ok)
 	  goto unknown_command;
-	if (SS->carp->cmd == BData     && ! chunkingok)
+	if (SS->carp->cmd == BData     && ! OCP->chunkingok)
 	  goto unknown_command;
 
 	/* Lack of configuration is problem only with network connections */
@@ -2800,7 +2860,9 @@ int insecure;
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	  smtp_tarpit(SS);
 	  type(SS, -400, "4.7.0", "%s", contact_pointer_message);
-	  type(SS,  400, "4.7.0", "Policy database problem, code=%d", policystatus);
+	  type(SS,  400, "4.7.0", "Policy database problem: %s",
+	       (policystatus == 1 ? "Configuration bug" :
+		(policystatus == 2 ? "db Open failure" : "NO BUG??")));
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver policy database problem, code: %d", policystatus));
 	  zsleep(20);
@@ -3008,7 +3070,7 @@ int insecure;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
 	    /* I want a log entry for when tarpit is complete - jmack Apr,2003 */
-	    if (SS->tarpit > tarpit_initial ) {
+	    if (SS->tarpit > OCP->tarpit_initial ) {
 		      char *ts = rfc822date(&now);
 		      char *n = strchr(ts,'\n');
 		      if (n) *n = 0;
@@ -3040,7 +3102,7 @@ int insecure;
       policytest(&SS->policystate, POLICY_DATAABORT,
 		 NULL, SS->rcpt_count, NULL);
 
-    if (logfp && (SS->tarpit > tarpit_initial)) {
+    if (logfp && (SS->tarpit > OCP->tarpit_initial)) {
          char *ts = rfc822date(&now);
 	 char *n = strchr(ts, '\n');
 	 if (n) *n = 0;
@@ -3180,7 +3242,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       sprintf(buf, "%03d%c", code, c);
     } else {
       sprintf(buf, "%03d%c", code, c);
-      if (enhancedstatusok && status && status[0] != 0)
+      if (OCP->enhancedstatusok && status && status[0] != 0)
 	sprintf(buf+4, "%s ", status);
     }
     s = strlen(buf)+buf;
@@ -3322,7 +3384,10 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       }
     }
 
-    if (debug && !SS) fprintf(stdout, "%s\n", buf);
+    if (debug && !SS && !debug_no_stdout) {
+      fprintf(stdout, "%s\n", buf);
+      fflush(stdout);
+    }
     if (!SS) return; /* Only to local log.. */
 
     memcpy(s, "\r\n", 2);
@@ -3491,8 +3556,8 @@ va_dcl
 
     abscode = (code < 0) ? -code : code;
 
-    if (multilinereplies) {
-      if (enhancedstatusok) {
+    if (OCP->multilinereplies) {
+      if (OCP->enhancedstatusok) {
 	sprintf(buf, "%03d-%s ", abscode, status);
 	s += strlen(status) +1;
       } else { /* No status codes */
@@ -3592,10 +3657,10 @@ void smtp_tarpit(SS)
 	zsleep((int)(SS->tarpit + 0.500));
 
 	/* adjust tarpit delay and limit here, "after!" the sleep */
-	SS->tarpit += (SS->tarpit * tarpit_exponent);
+	SS->tarpit += (SS->tarpit * OCP->tarpit_exponent);
 	/* was 250 - set up to a config param in smtpserver.conf - jmack apr 2003 */
-        if (SS->tarpit < 0.0 || SS->tarpit > tarpit_toplimit )
-		SS->tarpit = tarpit_toplimit;
+        if (SS->tarpit < 0.0 || SS->tarpit > OCP->tarpit_toplimit )
+		SS->tarpit = OCP->tarpit_toplimit;
 
 
 	/* XX: Count each tarpit call, or just once per connection ? */

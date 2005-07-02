@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2005.
  */
 
 /*  SMTPSERVER  ROUTER MULTIPLEXER-SERVER  SUBDAEMON    */
@@ -46,6 +46,7 @@ struct subdaemon_handler subdaemon_handler_router = {
 
 static int MaxRtrs = 2;
 int enable_router_maxpar = 2;
+int enable_router;
 
 typedef struct state_rtr {
 	struct peerdata *replypeer;

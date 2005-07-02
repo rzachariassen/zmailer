@@ -1,6 +1,6 @@
 /*
  *  policytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997-2004
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-2005
  *
  */
 
@@ -207,7 +207,7 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
     char *dbname;
 
     if (rel == NULL)
-      return -1;  /* Not defined! */
+      return 1;  /* Not defined! */
 
     if (debug) 
 	type(NULL,0,NULL,"Policyinit call starts: submission mode: %d, valid whoson: %d",
@@ -1873,6 +1873,11 @@ static int pt_mailfrom(state, str, len)
       int rc;
       time_t then;
       time(&then);
+
+      if (debug)
+	type(NULL,0,NULL," doing SENDERokWithDNS analysis: '%.*s'",
+	     len - (1 + at - str), at + 1);
+
       rc = sender_dns_verify( state, test_c, (const char *)at+1,
 			      len - (1 + at - str) );
       time(&now);
@@ -2292,6 +2297,7 @@ int policytest(state, what, str, len, authuser)
      const int len;
 {
     int rc;
+    int d;
     if (state == NULL || state->PT == NULL)
       return 0;
 
@@ -2315,10 +2321,16 @@ int policytest(state, what, str, len, authuser)
 	rc = pt_heloname(state, (const unsigned char *)str, len);
 	break;
     case POLICY_MAILFROM:
+	d = debug;
+	/* debug = 1; */
 	rc = pt_mailfrom(state, (const unsigned char *)str, len);
+	debug = d;
 	break;
     case POLICY_RCPTTO:
+	d = debug;
+	/* debug = 1; */
 	rc = pt_rcptto(state, (const unsigned char *)str, len);
+	debug = d;
 	break;
     case POLICY_RCPTPOSTMASTER:
 	rc = pt_rcptpostmaster(state, (const unsigned char *)str, len);

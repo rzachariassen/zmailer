@@ -1,3 +1,9 @@
+	This has been obsoleted pretty much with latter developments
+	of smtpserver's  PARAM BindSubmit  parameter.
+	Multi-instance setup is still valid, and not really documented
+	elsewere...
+			/Matti Aarnio - 2005-Jul-01
+
 	This email describes how MSA-mode can be used, and is included
 	in ZMailer sources per 2.99.52 level except that '-x' option
 	is replaced with  PARAM BindAddress  configuration parameter.

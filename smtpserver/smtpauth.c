@@ -2,7 +2,7 @@
  *  ZMailer smtpserver,  AUTH command things (RFC 2554, sort of);
  *  part of ZMailer.
  *
- *  by Matti Aarnio <mea@nic.funet.fi> 1999,2002,2003
+ *  by Matti Aarnio <mea@nic.funet.fi> 1999,2002,2003,2005
  *
  *  The basis of SASL[2] code is from Sendmail 8.12.3
  *
@@ -218,6 +218,14 @@ void smtp_auth(SS,buf,cp)
 	long uid;
 	char *zpw;
 
+	if (OCP->no_smtp_auth_on_25 &&
+	    (SS->with_protocol_set & WITH_SMTP)) {
+	  smtp_tarpit(SS); /* Double tarpit.. */
+	  smtp_tarpit(SS);
+	  type(SS, 503, m551, "Hi %s, AUTH NOT SUPPORTED AT PORT 25!", SS->rhostaddr);
+	  return;
+	}
+
 	rc = policytest(&SS->policystate, POLICY_AUTHFAIL,
 			uname, 0, SS->authuser);
 	if (rc < 0) {
@@ -265,7 +273,7 @@ void smtp_auth(SS,buf,cp)
 	    }
 
 #ifdef HAVE_OPENSSL
-	    if (!auth_login_without_tls && !SS->sslmode) {
+	    if (!OCP->auth_login_without_tls && !SS->sslmode) {
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
 	      smtp_tarpit(SS);
@@ -275,7 +283,7 @@ void smtp_auth(SS,buf,cp)
 	    }
 #endif /* - HAVE_OPENSSL */
 #ifndef HAVE_OPENSSL
-	    if (!auth_login_without_tls) {
+	    if (!OCP->auth_login_without_tls) {
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
 			 uname, 1, SS->authuser);
 	      smtp_tarpit(SS);
@@ -313,11 +321,11 @@ void smtp_auth(SS,buf,cp)
 
 	    } else {
 	      
-	      if (!smtp_auth_username_prompt)
-		smtp_auth_username_prompt = "Username:";
+	      if (!OCP->smtp_auth_username_prompt)
+		OCP->smtp_auth_username_prompt = "Username:";
 
-	      i = encodebase64string(smtp_auth_username_prompt,
-				     strlen(smtp_auth_username_prompt),
+	      i = encodebase64string(OCP->smtp_auth_username_prompt,
+				     strlen(OCP->smtp_auth_username_prompt),
 				     abuf, sizeof(abuf));
 	      if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
 	      abuf[i] = 0;
@@ -353,10 +361,10 @@ void smtp_auth(SS,buf,cp)
 	      uname = strdup(bbuf);
 	    }
 
-	    if (!smtp_auth_password_prompt)
-	      smtp_auth_password_prompt = "Password:";
-	    i = encodebase64string(smtp_auth_password_prompt,
-				   strlen(smtp_auth_password_prompt),
+	    if (!OCP->smtp_auth_password_prompt)
+	      OCP->smtp_auth_password_prompt = "Password:";
+	    i = encodebase64string(OCP->smtp_auth_password_prompt,
+				   strlen(OCP->smtp_auth_password_prompt),
 				   abuf, sizeof(abuf));
 	    if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
 	    abuf[i] = 0;
@@ -407,13 +415,15 @@ void smtp_auth(SS,buf,cp)
 	    if (debug)
 	      type(SS, 0, NULL, "-> %s", bbuf);
 
-	    if (tls_loglevel > 3)
+	    if (OCP->tls_loglevel > 3) {
+	      /* The TLS debugging dump does reveal arrived frame
+		 data content as is, so it tells also the password.. */
 	      type(NULL,0,NULL,"zpwmatch: user '%s' password '%s'", uname, bbuf);
-	    else if (tls_loglevel > 0)
+	    } else if (OCP->tls_loglevel > 0)
 	      type(NULL,0,NULL,"zpwmatch: user '%s' (password: *not so easy*!)", uname);
 	    
-	    if (smtpauth_via_pipe)
-	      zpw = pipezpwmatch(smtpauth_via_pipe, uname, bbuf, &uid);
+	    if (OCP->smtpauth_via_pipe)
+	      zpw = pipezpwmatch(OCP->smtpauth_via_pipe, uname, bbuf, &uid);
 	    else
 	      zpw = zpwmatch(uname, bbuf, &uid);
 
@@ -872,7 +882,7 @@ smtpauth_ehloresponse(SS)
      SmtpState *SS;
 {
 
-	if (no_smtp_auth_on_25 &&
+	if (OCP->no_smtp_auth_on_25 &&
 	    (SS->with_protocol_set & WITH_SMTP)) return;
 
 #ifdef HAVE_SASL2
@@ -882,7 +892,7 @@ smtpauth_ehloresponse(SS)
 
 	  if (SS->sasl.sasl_ok) {
 	    SS->sasl.ssp.security_flags = (SASLSecOpts & SASL_SEC_MAXIMUM);
-	    if (!(auth_login_without_tls || SS->sslmode)) {
+	    if (!(OCP->auth_login_without_tls || SS->sslmode)) {
 	      SS->sasl.ssp.security_flags |= SASL_SEC_NOPLAINTEXT;
 	    }
 	    SS->sasl.ssp.security_flags |= SASL_SEC_NOANONYMOUS;
@@ -948,8 +958,8 @@ smtpauth_ehloresponse(SS)
 	    type(NULL,0,NULL, "AUTH -- no mechlist!");
 	} else
 #endif
-	  if (auth_ok) {
-	    if (auth_login_without_tls || SS->sslmode) {
+	  if (OCP->auth_ok) {
+	    if (OCP->auth_login_without_tls || SS->sslmode) {
 	      type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
 						     Sun Solstice/ ? */
 	      type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
