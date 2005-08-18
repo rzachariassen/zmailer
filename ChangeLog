@@ -1,3 +1,9 @@
+2005-08-18  "Darryl L. Miles" <darryl@netbauds.net>
+
+	* smtpserver/smtpauth.c:
+	    Under SASL2 mechanisms, follow restructurings
+	    a month and half ago.
+
 2005-07-02  Matti Aarnio  <mea@zmailer.org>
 
 	* doc/guides/smtp-msa-mode:
@@ -32,7 +38,6 @@
 	      file from years past...
 	    - Realized, why 'debug' mode hung-up customer
 	      interaction, and fixed it.
-	      
 
 2005-06-30  Neal Morgan <Neal@Morgan-Systems.com>
 

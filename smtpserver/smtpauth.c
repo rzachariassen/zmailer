@@ -261,7 +261,7 @@ void smtp_auth(SS,buf,cp)
 	  while (*cp == ' ' || *cp == '\t') ++cp;
 
 #ifdef HAVE_SASL2
-	if (!do_sasl)
+	if (!OCP->do_sasl)
 #endif
 	  {
 	    if (!CISTREQN(cp, "LOGIN", 5)) {
@@ -814,7 +814,7 @@ smtpauth_init(SS)
 #ifdef HAVE_SASL2
       int result;
 
-      if (do_sasl) {
+      if (OCP->do_sasl) {
 
 	SS->sasl.n_mechs = 0;
 
@@ -886,7 +886,7 @@ smtpauth_ehloresponse(SS)
 	    (SS->with_protocol_set & WITH_SMTP)) return;
 
 #ifdef HAVE_SASL2
-	if (do_sasl) {
+	if (OCP->do_sasl) {
 
 	int result;
 
