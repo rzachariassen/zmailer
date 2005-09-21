@@ -107,7 +107,7 @@ struct policytest {
 #ifdef HAVE_GDBM
 	GDBM_FILE _gdbm;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DB *_db;
 #if defined(HAVE_DB3) || defined(HAVE_DB4)
         DB_ENV *_db_env;

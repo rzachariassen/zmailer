@@ -1,3 +1,8 @@
+2005-09-22  Nick Briggs <briggs@parc.com>
+
+	* smtpserver/policytest.h:
+	    Missed  "HAVE_DB4"  instance definition.
+
 2005-08-18  "Darryl L. Miles" <darryl@netbauds.net>
 
 	* smtpserver/smtpauth.c:
