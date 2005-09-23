@@ -2322,20 +2322,21 @@ int buflen, *rcp;
 	/* Our own  fgets() -- gets also NULs, flags illegals.. */
 	--buflen;
 	while ((c = s_getc(SS, 1)) != EOF && i < buflen) {
-	    if (c == '\n') {
-		buf[++i] = c;
-		break;
-	    } else if (co == '\r' && rc < 0)
-		rc = i;		/* Spurious CR on the input.. */
-
-	    if (c == '\0' && rc < 0)
-		rc = i;
-	    if ((c & 0x80) != 0 && rc < 0)
-		rc = i;
-	    if (c != '\r' && c != '\t' &&
-		(c < 32 || c == 127) && rc < 0)
-		rc = i;
 	    buf[++i] = c;
+	    if (c == '\n')
+		break;
+	    if (rc < 0) {
+	      if (co == '\r')
+		rc = i;		/* Spurious CR on the input.. */
+	      else if (c == '\0')
+		rc = i;
+	      else if ((c & 0x80))
+		rc = i;
+	      else {
+		if (c != '\r' && c != '\t' && (c < 32 || c == 127))
+		  rc = i;
+	      }
+	    }
 	    co = c;
 	}
 	buf[++i] = '\0';
