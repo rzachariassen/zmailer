@@ -19,7 +19,9 @@
 
 #include "smtpserver.h"
 
-#ifndef HAVE_OPENSSL
+#ifdef HAVE_OPENSSL
+#include <openssl/md5.h>
+#else
 #include "md5.h"
 #endif /* --HAVE_OPENSSL */
 

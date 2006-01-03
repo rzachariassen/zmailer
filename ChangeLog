@@ -1,3 +1,9 @@
+2006-01-03  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.h, smtpserver/smtpetrn.c:
+	    OpenSSL API has changed a bit, must now explicitely
+	    include  <openssl/md5.h>
+
 2005-09-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

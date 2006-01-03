@@ -32,7 +32,7 @@ copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
 AC_REVISION($Revision$)
 
 # In version numbers, USE NO HYPHENS!
-AC_INIT(ZMailer, [2.99.57.pre3], [zmhack@nic.funet.fi])
+AC_INIT(ZMailer, [2.99.57.pre4], [zmhack@nic.funet.fi])
 
 AC_PREFIX_DEFAULT([/opt/zmailer])
 
@@ -2766,9 +2766,10 @@ AC_SUBST(SASL2INCL)
 AC_SUBST(SASL2LIB)
 
 AC_ARG_WITH(sasl2-prefix, [  --with-sasl2-prefix=/dir/path (defines both include and lib)],
-        SASL2PREFIX="$withval")
+    SASL2PREFIX="$withval")
 AC_ARG_WITH(sasl2-include, [  --with-sasl2-include=/dir/incl/path],
-        SASL2INCL="-I$withval")
+	[SASL2INCL="-I$withval"
+	 AC_DEFINE(HAVE_SASL_SASL_H, 1, [Have <sasl/sasl.h> header])])
 AC_ARG_WITH(sasl2-lib, [  --with-sasl2-lib=/dir/lib/path],
         [if test -f "$withval/libsasl2.so" ; then
           SASL2LIB="$withval/libsasl2.so"

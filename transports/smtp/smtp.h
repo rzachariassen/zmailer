@@ -119,6 +119,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/md5.h>
 #endif /* - HAVE_OPENSSL */
 
 
