@@ -227,7 +227,7 @@ appendlet(SS, dp, convertmode, CT)
 		return EX_IOERR;
 	      }
 	      sprintf(SS->remotemsg,
-		      "smtp; 500 (msgbuffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
+		      "smtp; 500 (msgbuffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      return EX_IOERR;
@@ -274,7 +274,7 @@ appendlet(SS, dp, convertmode, CT)
 	      /* We NEVER get timeouts here.. We get anything else.. */
 	      if (rc != i) {
 		sprintf(SS->remotemsg,
-			"500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
+			"500 (msgbuffer write IO-error[4]! [%s] DATA %d/%d [%d%%])",
 			strerror(errno),
 			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 		return EX_IOERR;
@@ -297,7 +297,7 @@ appendlet(SS, dp, convertmode, CT)
 	      return EX_IOERR;
 	    }
 	    sprintf(SS->remotemsg,
-		    "500 (msgbuffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
+		    "500 (msgbuffer write IO-error[5]! [%s] DATA %d/%d [%d%%])",
 		    strerror(errno),
 		    SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	    if (bufferfull > 1) readalready = 0;

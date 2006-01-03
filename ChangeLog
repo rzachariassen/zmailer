@@ -1,5 +1,18 @@
 2006-01-03  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Version: 2.99.57.pre4
+
+	* configure.in:
+	    SASL2 needs some m4 define() macros...
+
+	* transports/smtp/appendlet.c:
+	    Couple debugging printouts fixed.
+
+	* scheduler/transport.c:
+	    Oops..  Error detection failures in select processing.
+	    Correct errno/err variable use.
+
 	* transports/smtp/smtp.h, smtpserver/smtpetrn.c:
 	    OpenSSL API has changed a bit, must now explicitely
 	    include  <openssl/md5.h>
