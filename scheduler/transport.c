@@ -1174,9 +1174,9 @@ time_t timeout;
 
 	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
 	  in_select = 0;
-	  if (errno == EINTR || errno == EAGAIN)
+	  if (err == EINTR || err == EAGAIN)
 	    return 0;
-	  if (errno == EINVAL || errno == EBADF) {
+	  if (err == EINVAL || err == EBADF) {
 	    sfprintf(sfstderr, "** select() returned errno=%d\n", err);
 	    for (i = 0; i < maxf; ++i) {
 	      if (_Z_FD_ISSET(i,rdmask)  &&  fcntl(i,F_GETFL,0) < 0)
@@ -1190,7 +1190,9 @@ time_t timeout;
 	  perror("select() returned unknown error ");
 	  fflush(stderr);
 	  sfsync(sfstderr);
+#if 0
 	  abort(); /* Select with unknown error */
+#endif
 	} else if (n == 0) {
 	  /* sfprintf(sfstderr, "abnormal 0 return from select!\n"); */
 	  /* -- just a timeout -- fast or long */
