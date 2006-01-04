@@ -48,7 +48,7 @@ static const char *no_input = "No input";
 
 /* Could use 'unsigned short' here, but the Alpha machines dislike
    anything smaller than int (32 bit) */
-static
+static const
 #if defined(__alpha)||defined(__alpha__)
  int
 #else

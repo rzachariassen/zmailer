@@ -3,8 +3,17 @@
 	* smtpserver/rfc821scn.c:
 	    After years of operation, learned that bad EHLO-parameter
 	    with 8-bit chars is able to crash the smtpserver in 
-	    rfc821_domain() when it check byte (character) being
-	    in some class or other.
+	    rfc821_domain() when it checks bytes (characters) being
+	    in some class or other, and encounters 8th-bit-set one.
+	    Everywhere else the input is pre-sanitized of characters
+	    outside printable ASCII range.
+	    This was observed on a 2.6.x Linux running on x86-64 hardware,
+	    with the character classification table at the beginning of
+	    the .data section leading to reading of memory in front of
+	    said section in non-mapped space --> SEGV.
+	
+	    Made also the used character classification dataset to
+	    be 'const', which it is...
 
 2006-01-03  Matti Aarnio  <mea@zmailer.org>
 
