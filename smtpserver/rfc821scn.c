@@ -334,55 +334,55 @@ static
 __MY_INLINE__ int is_821_alpha(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_ALPHA);
+    return (char_array[chr & 0xFF] & CHAR_ALPHA);
 }
 
 __MY_INLINE__ int is_821_alnum(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_ALNUM);
+    return (char_array[chr & 0xFF] & CHAR_ALNUM);
 }
 
 __MY_INLINE__ int is_821_specl(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_SPECL);
+    return (char_array[chr & 0xFF] & CHAR_SPECL);
 }
 
 __MY_INLINE__ int is_821_digit(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_DIGIT);
+    return (char_array[chr & 0xFF] & CHAR_DIGIT);
 }
 
 __MY_INLINE__ int is_821_xdigit(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_XDIGIT);
+    return (char_array[chr & 0xFF] & CHAR_XDIGIT);
 }
 
 __MY_INLINE__ int is_821_C(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_C);
+    return (char_array[chr & 0xFF] & CHAR_C);
 }
 
 __MY_INLINE__ int is_821_X(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_X);
+    return (char_array[chr & 0xFF] & CHAR_X);
 }
 
 __MY_INLINE__ int is_821_Q(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_Q);
+    return (char_array[chr & 0xFF] & CHAR_Q);
 }
 
 __MY_INLINE__ int is_822_atomchar(chr)
 unsigned int chr;
 {
-    return (char_array[chr] & CHAR_822ATM);
+    return (char_array[chr & 0xFF] & CHAR_822ATM);
 }
 
 /* ================================================================ */
