@@ -1,3 +1,14 @@
+<!-- ======================================================== -->
+<!--  ZMailer manual                                          -->
+<!--                                                          -->
+<!--  Build and Install -part                                 -->
+<!--                                                          -->
+<!--  Copyright Matti Aarnio                                  -->
+<!--  <mea@nic.funet.fi>                                      -->
+<!--  1995-2006                                               -->
+<!--                                                          -->
+<!-- ======================================================== -->
+
 <!-- \segment{zinstall}{chapter}{Build and Install}			-->
 <!-- %begin{latexonly}							-->
 <!-- \cleardoublepage							-->
@@ -12,7 +23,8 @@
 This section describes how to build and install ZMailer.
 </PARA>
 
-<TIP><PARA>Consider joining the ZMailer user-community email list.
+<TIP><PARA>Consider joining the ZMailer user-community email list,
+or at least reading/searching its archive.
 It is the place to meet the Gurus, in case you have problems.
 See the <QUOTE><FILENAME>Overview</></> file in the source distribution
 for more information.</PARA></TIP>
@@ -23,7 +35,8 @@ for more information.</PARA></TIP>
 <!-- ############################################################### -->
 
 
-<CHAPTER ID=ch.zins.build-and-install><?dbhtml filename="zins-buildinstall.html">
+<CHAPTER ID=ch.zins.build-and-install>
+<!-- ?dbhtml filename="zins-buildinstall.html" -->
 <TITLE>Build and Install</TITLE>
 <SECT1 ID="build.environment"><TITLE>Environment Issues</>
 
@@ -31,29 +44,20 @@ for more information.</PARA></TIP>
 The cornerstone of everything in busy Internet email routing
 is a well-working DNS server, and modern resolver library.
 If you use the BIND name-server, you should be using (or install)
-a recent version, at least BIND 4.8. In this package there is also 
-a bundled resolver from  bind-4.9.4, however it is a bit difficult
-at BSD systems (because those developers use BSD themselves, and
-make an assumption that everybody has their version of things&hellip;
-
-On the other hand, those systems have reasonably modern resolvers,
-so no need to worry about it &mdash; I hope.) 
+a recent version,
+As of this writing (January 2006), BIND server developers recommend version 9.
+They also strongly recommend, that you do not let zone data masters
+(either masters, or slave copies) to do any recursive resolving,
+and do recursive resolvings with servers that do not have locally
+mastered data.
 </PARA>
 
 <PARA>
 For performance reasons you should have <EMPHASIS>local</> instance of
-name-server. <EMPHASIS>Even when you don't have any DNS zone data to
-originate yourself, an instance of name-server is able to cache
-replies it receives from the network, and thus be able to faster
-yield replies for repeated questions.</EMPHASIS>
+recursively resolving caching name-server.  (And for <EMPHASIS>security
+reasons</> it should not do any local DNS zone masterings.)
 </PARA>
 
-<PARA>
-You may also choose to use <QUOTE><APPLICATION>whoson</></> services provided by
-a utility package at <QUOTE><FILENAME CLASS=DIRECTORY>contrib/</></> sub-directory.
-If you do, then do install that before configuring and installing the ZMailer.
-(More on section <XREF LINKEND="installing-whoson-service">.)
-</PARA>
 
 <PARA>
 You may also want to support any of following facilities by pre-installing
@@ -66,12 +70,12 @@ them into your system (before compiling and installing ZMailer, that is):
   </LISTITEM>
   <LISTITEM>
     <PARA>
-      TCP-Wrapper
+      TCP-Wrapper  (can also do without it)
     </PARA>
   </LISTITEM>
   <LISTITEM>
     <PARA>
-      LDAP client library
+      LDAP client library (if necessary)
     </PARA>
   </LISTITEM>
   <LISTITEM>
@@ -84,6 +88,8 @@ them into your system (before compiling and installing ZMailer, that is):
     <PARA>
       Whoson service to tie in with e.g. POP and IMAP servers for
       authenticating SMTP relaying.
+      (But the use of SMTP authentication is definitely preferred
+       instead of using external hacks like "POP-before-Post".)
     </PARA>
   </LISTITEM>
 </ITEMIZEDLIST>
@@ -160,16 +166,51 @@ The file i-node numbers must not change with <FUNCTION>rename</>(2) or
 </PARA>
 
 <PARA>
-The <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory must be
-a single partition within which files can be <FUNCTION>link</>(2)ed from one
-directory to another, as well as moved around with <FUNCTION>rename</>(2).
+Most of the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory
+must be a single mounted filesystem within which files can
+be <FUNCTION>link</>(2)ed from one directory to another, as well as moved
+around with <FUNCTION>rename</>(2)
 </PARA>
 
 <PARA>
-People have asked several times if e.g.
- <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</>, and
- <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
-could be at separate partitions.  No they can't!
+However, the 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+subdirectory <EMPHASIS>can be</EMPHASIS> separate filesystem
+mounted under 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>!
+Such arrangement can (under some situations) result in additional
+system performance, as transport agents need to modify (write
+locks) files in the 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+subdirectory, while they only read (without locks) files in
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/queue/</>
+subdirectory.
+</PARA>
+
+
+<PARA>
+Adding system reliability in form of having directory data committed
+to disk at the time of the directory modifying operations returning with
+success is a nice bonus, although in normal UFS-like cases that taxes
+system performance heavily.
+</PARA>
+
+<PARA>
+E.g. running fast-and-loose with async metadata updates in Linux EXT2
+filesystem gives you performance, but in case the system crashes, your
+postoffice directory may be in shambles, and important email may have
+been lost.
+</PARA>
+
+<PARA>
+How exactly you can combat the problem is yours to choose.
+Most filesystems for UNIX have lots of different options at mount-time,
+and also by-directory attributes can be set to control these things.
+Check yours after your decide on what kind of data loss threat you can
+tolerate at the expence of what speed reduction.
+(E.g. 300+ day straight uptime with power surges during a thunderstorm at
+ the end of it toasting your machine along with its disks and filesystems,
+ but trouble-free running until then ?)
 </PARA>
 </IMPORTANT>
 
@@ -478,7 +519,8 @@ or in case the default guessing didn't get it right:
 </SECT1>
 </CHAPTER>
 
-<CHAPTER ID=ch.zins.system-configuring><?dbhtml filename="zins-sysconfig.html">
+<CHAPTER ID=ch.zins.system-configuring>
+<!-- ?dbhtml filename="zins-sysconfig.html" -->
 <TITLE>System Configuring</>
 <INDEXTERM ID=idx.build.config><PRIMARY>build</><SECONDARY>config</></>
 <INDEXTERM ID=idx.config.basic-zm-install><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></>
@@ -1566,7 +1608,8 @@ appropriate for your site.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER ID=ch.zins-clientinstall><?dbhtml filename="zins-clientinst.html">
+<CHAPTER ID=ch.zins-clientinstall>
+<!-- ?dbhtml filename="zins-clientinst.html" -->
 <TITLE>Installation to Clients</>
 
 <PARA>
@@ -1663,7 +1706,7 @@ one of following (depending upon the system):
 <!-- ############################################################### -->
 
 <CHAPTER ID="ZINS.CONFIGURE-OPTIONS-LIST">
-<?dbhtml filename="zins-configure-options.html">
+<!-- ?dbhtml filename="zins-configure-options.html" -->
 <TITLE><FILENAME>./configure</> options</>
 <INDEXTERM ID=idx.zins.build.configure.options><PRIMARY>build</><SECONDARY>configure</><TERTIARY>options</></>
 <INDEXTERM ID=idx.zins.configure.options><PRIMARY>configure</><SECONDARY>options</></>
@@ -2700,7 +2743,8 @@ ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 
 <!-- ############################################################### -->
 
-<CHAPTER ID=ch.zins.verification><?dbhtml filename="zins-verification.html">
+<CHAPTER ID=ch.zins.verification>
+<!-- ?dbhtml filename="zins-verification.html" -->
 <TITLE>Verifying the System</TITLE>
 
 <PARA>
@@ -2709,11 +2753,18 @@ FIXME! FIXME! <EMPHASIS> TO BE WRITTEN !</>
 
 </CHAPTER>
 
-<CHAPTER ID=installing-whoson-service><?dbhtml filename="zins-whoson.html">
+<CHAPTER ID=installing-whoson-service>
+<!-- ?dbhtml filename="zins-whoson.html" -->
 <TITLE>Installing Whoson Service</TITLE>
 
 <PARA>
 FIXME! FIXME! <EMPHASIS> TO BE WRITTEN !</>
+</PARA>
+
+<PARA>
+The need for this, and other similar "POP-before-SMTP" approaches has
+pretty much been obsoleted by development of SMTP AUTHENTICATION,
+and doing it in particular under TLS wrappers on SUBMISSION port.
 </PARA>
 
 </CHAPTER>

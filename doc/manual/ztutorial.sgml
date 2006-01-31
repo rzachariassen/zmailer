@@ -1,13 +1,13 @@
-<!-- -------------------------------------------------------- -->
+<!-- ======================================================== -->
 <!--  ZMailer manual                                          -->
 <!--                                                          -->
 <!--  Tutorial part                                           -->
 <!--                                                          -->
 <!--  Copyright Matti Aarnio                                  -->
 <!--  <mea@nic.funet.fi>                                      -->
-<!--  1995-2000                                               -->
+<!--  1995-2006                                               -->
 <!--                                                          -->
-<!-- -------------------------------------------------------- -->
+<!-- ======================================================== -->
 
 <PART ID="ZTUTORIAL"><?dbhtml filename="ztutorial.html">
 <TITLE>Tutorial</TITLE>
@@ -86,6 +86,9 @@ but not interpersonal.
 <PARA>
 In addition to users, the basic building blocks of messaging are
 <EMPHASIS>User Agents (<ACRONYM>UA</>s)</> and
+<EMPHASIS>Message Submission Agent (<ACRONYM>MSA</>)</> is newer term
+for specific sub-task of Internet email, namely authenticated message
+submission to first MTA of MTS system.
 <EMPHASIS>Message Transfer Agents (<ACRONYM>MTA</>s)</>.
 User agents are the interface through which a human user interacts with
 the messaging system.
@@ -94,23 +97,36 @@ applications.
 MTAs are used to transport messages from one computer system to another.
 An example of a good MTA is ZMailer. 
 <EMPHASIS>Access Units (<ACRONYM>AU</>s)</>
-can be used for accessing telematic services, for example telefax. 
+can be used for accessing telematic services, for example telefax.
+(Or in general act on user behalf somehow, e.g. automated scripts.)
 <EMPHASIS>Message Stores (<ACRONYM>MS</>s)</>
 can be used between MTAs and UAs.
 They are used for storing messages before and while UAs are used
 to access and manipulate them.
+<EMPHASIS>Message Delivery Agent (<ACRONYM>MDA</>)</> is newer term
+intended to cover specific sub-task of moving the message from MTA system
+to the care of MS, UA or AU.  Some new MTA suites even do parts of the
+UA functionality (<QUOTE><FILENAME>.forward</FILENAME></> -processing)
+in the MDA.
 <EMPHASIS>Gateways (<ACRONYM>GW</>s)</>
 are used in between two different types of messaging systems,
 for example between SMTP and X.400 mail.
-Gateways are conceptually made of two MTAs and a UA that interconnects them.
+Gateways are conceptually made of two MTAs and a UA that interconnects
+them.
 </PARA>
 
 <PARA>
 There are two more acronyms worth looking at in the messaging model,
 namely <EMPHASIS><ACRONYM>MTS</> (Message Transport System)</> and
 <EMPHASIS><ACRONYM>MHS</> (Message Handling System)</>.
-MTS is the collection of MTAs (and GWs), while MHS includes MTS and UA
-functionality (UAs, MSs and AUs).
+MTS is the collection of MTAs (and GWs and MSAs and MDAs), while MHS
+includes MTS and UA functionality (UAs, MSs and AUs).
+</PARA>
+
+<PARA>
+All in all, X.400 terms are not a complete match on how things are done
+in Internet email, nor should they be considered as normative, merely
+giving you a reasonable frame of reference that isn't very wrong.
 </PARA>
 
 <PARA>
@@ -308,10 +324,12 @@ to remedy the situation.
 <PARA>
 Error messages must be sent to the envelope sender address,
 as this is a MTA function.
+<!--
 If a header like <QUOTE><LITERAL>Errors-to:</></> is being used, it implies 
 that envelope sender should be sent to the one in the 
 <QUOTE><LITERAL>Errors-to:</></>
 header.
+-->
 </PARA>
 
 <PARA>
@@ -331,7 +349,7 @@ a UA function.
 <TITLE>Introduction</TITLE>
 
 <PARA>
-ZMailer is a mailer subsystem for the UNIX operating system.
+ZMailer is a mailer subsystem for the UNIX operating systems.
 It is in charge of handling all mail messages that are created
 on a system, from their creation until final disposition locally
 or by transfer to another system.
@@ -355,6 +373,15 @@ which will excel in demanding environments, but is simple enough to
 fit easily everywhere.
 </PARA>
 
+<PARA>
+However ZMailer is not smallest memory footprint MTA there is, nor
+it tries to be.  What it has and does, are ways to limit resource
+expenditure &ddash; one can't very easily overwhelm ZMailer MTA
+in e.g. ISP's outbound SMTP relay task (unless sysadmin hasn't
+configured any limits on e.g. incoming messages from any given
+client IP address...)
+</PARA>
+
 <SECT2 ID=ztut-zfeatures-design-summary>
 <TITLE>Design Summary</TITLE>
 
@@ -368,40 +395,93 @@ fit easily everywhere.
 </FIGURE>
 
 <PARA>
-ZMailer is a multi-process mailer, using two daemon processes to manipulate
-messages.  One of these processes is a <COMMAND>router</>, and makes all
-decisions about what should happen to a message.
-The other daemon is a message queue manager, <COMMAND>scheduler</>, used to
+ZMailer is a multi-process mailer, using three daemon processes to manipulate
+messages.
+Message arrive in via <COMMAND>sendmail</> program "API" for internally
+originated messages, or via <COMMAND>Smtpserver</> subsystem,  which is
+system front-door for messages coming in from the external network.
+The <COMMAND>Smtpserver</> is in reality a cluster of auxiliary programs
+providing efficient low-overhead support for various analysis things needed
+while messages are coming in.
+Second one of these processes is a <COMMAND>router</>, and makes all
+decisions about what should happen to a message; routing and possibly
+message header visible things rewriting.
+The third daemon is a message queue manager, <COMMAND>scheduler</>, used to
 schedule delivery of messages.
 The Router uses a configuration file that closely follows
- <EMPHASIS>Bourne shell script</> syntax and semantics, with minimal magic.
+<EMPHASIS>Bourne shell script</> syntax and semantics, with minimal magic.
 Message files are moved around in a series of directories, and
-the <COMMAND>Scheduler</> and its <EMPHASIS>Transport Agents</> run off of
-control files created by the <EMPHASIS>Router</>.
+the <COMMAND>Scheduler</> and its <EMPHASIS>Transport Agents</>
+run off of control files created by the <EMPHASIS>Router</>.
 </PARA>
 
 <PARA>
-The <COMMAND>Router</> will process messages one at a time, as it finds them
-in a directory where <EMPHASIS>User Agents</> submit their outgoing messages.
-<EMPHASIS>Message Envelope</> and <EMPHASIS>Message Header</> information is
-all kept in the same <EMPHASIS>message file</> along with
+The <COMMAND>Sendmail</> is very simple "plug-compatible" message submission
+agent for system internal message submissions into the ZMailer MTA, and
+does all its things without any sort of set-uid privilege escalation needs.
+</PARA>
+
+<PARA>
+The <COMMAND>Smtpserver</> has evolved into rather complicated animal,
+as it aims to really efficiently support things that in the early days
+required truly heavy-weight auxiliary program startups for every incoming
+SMTP connection &ddash; startup of such auxiliaries has now been shared
+over a large number of arriving connection and messages by means of having
+them as <COMMAND>Smtpserver's</> permant auxiliary helpers:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+First is a slightly less burdened <COMMAND>Router</> for determining
+if source or destination address domains are possibly known in the system,
+and primarily being able to reject messages at front door that are destined
+to nonexistent addresses.
+(This instance is separate from <EMPHASIS>main</> <COMMAND>Router</>,
+and thus is somewhat duplicating main Router's task, but this doesn't
+e.g. do list expansions and other such expensive things.)
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+There is also <COMMAND>Content-Filter</> that can be used up to how ever
+complicated message content analysis <EMPHASIS>syncronously</> with incoming
+message feed  (there is also a possible "input" subdirectory for offline
+non-synchronous content analysis, however synchronous processing has
+certain appeal in itself, not the least the ability to tell message sender
+to go and stuff their SPAMs into...)
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+And third is the <COMMAND>Rate-Tracker</> subsystem, that can keep track
+of such things as "Non-authenticated customer at IP address N.N.N.N has
+sent more than 60 messages in past hour, stop that sending until the
+sliding window allows more to be sent."
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+These do operate so that when smtp-subsystem shutdown has been ordered,
+and last client goes away, they drop by themselves.
+</PARA>
+
+
+<PARA>
+The <EMPHASIS>main <COMMAND>Router</> subsystem</> will process messages
+one at a time (per <COMMAND>Router</> instance), as it finds them in a
+directory where <EMPHASIS>User Agents</> submit their outgoing messages.
+<EMPHASIS>Message Envelope</> and <EMPHASIS>Message Header</> information
+is all kept in the same <EMPHASIS>message file</> along with
 the <EMPHASIS>message body</>, and this file is never modified by
 any ZMailer program.
 After parsing the envelope and RFC822 header information,
 the <COMMAND>Router</> validates the information extracted,
-and calls functions defined in the configuration file to decide
-exactly how to deliver the message and how to transform the embedded addresses.
-The algorithms that do this are easily re-configurable, since the control flow
-and address manipulation is specified by familiar shell script statements.
-When the <COMMAND>Router</> is finished, it will produce a message control
-file for use by the delivery processing stage of ZMailer, and move
-the original message file to another location.
+and calls functions defined in the configuration file to decide exactly,
+how to deliver the message and how to transform the embedded addresses.
+The algorithms that do this are easily re-configurable, since the control
+flow and address manipulation is specified by familiar(ish) shell script
+statements.
+When the <COMMAND>Router</> is finished on a message, it will produce
+a <EMPHASIS>message control file</> for use by the delivery processing
+stage of ZMailer, and move the original message file to another location.
 </PARA>
 
 <PARA>
-Once the <COMMAND>Router</> has decided what to do with each of
-the addresses in a message, the <COMMAND>Scheduler</> builds a summary
-of this information by reading the control file created by
+Once the main <COMMAND>Router</> subsystem has decided what to do with
+each of the addresses in a message, the <COMMAND>Scheduler</> builds
+a summary of this information by reading the control file created by
 the <COMMAND>Router</>.
 This knowledge is merged with a data structure it maintains that stores
 which messages are supposed to be sent where, and how.
@@ -411,9 +491,10 @@ to the immediate destination.
 These delivery programs are called <EMPHASIS>Transport Agents</>, and
 communicate with the <COMMAND>Scheduler</> using a simple protocol that
 tells them which messages to process and returns status reports to
-the <COMMAND>Scheduler</>.  The <COMMAND>Scheduler</> also manages status
-reports, taking appropriate action on delivery errors and when all delivery
-instructions for a message have been processed.
+the <COMMAND>Scheduler</>.
+The <COMMAND>Scheduler</> also manages status reports, taking appropriate
+action on delivery errors and when all delivery instructions for a message
+have been processed.
 </PARA>
 
 <PARA>
@@ -432,6 +513,36 @@ is included that simulates most of the <APPLICATION>Sendmail</> functionality
 in the ZMailer environment.
 This allows ZMailer to replace a <COMMAND>Sendmail</> installation without
 requiring changes in standard <EMPHASIS>User Agents</>.
+</PARA>
+
+<PARA>
+Several other tools and utilities exist for other specific purposes.
+</PARA>
+
+<PARA>
+There are also facilities that allow <EMPHASIS>loosely coupled cluster</>
+creation.
+Each member machine of the cluster is separate entity, but they can keep
+track of <EMPHASIS>rate-tracking data</> of all of their neighbours, as
+well as activate on demand <EMPHASIS>ETRN queue flush</> in cluster wide
+setup.
+None of these is guaranteed in any strict way, which makes their
+implementation technology considerably simpler, and also occasional
+limits that they implement are not considered to be upheld rigorously
+under every possible conditions. A tripple-sigma reliability on e.g. limit
+enforcement is considered "a plenty good enough".
+</PARA>
+
+<PARA>
+In loosely coupled clusters, <EMPHASIS>delivery to system internal
+(UNIX-style) message store is not clusterized</>, unless the store
+in question is some sort of e.g. LMTP connected external Message Store.
+(Even UNIX-style mailbox files may work, if underneath there is some
+sort of cluster-wide filesystem, which has working FCNTL locks.)
+One such way was once to use front-line processing to map arrived
+message to actual recipient and node into which it was expected to
+go, and to proxy POP and IMAP services so that users didn't need
+to know on which node their mailboxes did actually reside.
 </PARA>
 
 <FIGURE PGWIDE="1" FLOAT="1" ID=fig.ztut.zmdirs>
@@ -581,6 +692,11 @@ other sendmail/system utilities:
     slower, and safer, than fully asynchronous.)
   </PARA></LISTITEM>
   <LISTITEM><PARA>
+    Possible separate filesystem spindle on
+    <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport//</>
+    directory.
+  </PARA></LISTITEM>
+  <LISTITEM><PARA>
     Amount of memory, and thus filesystem buffering, and
     (lack of) swapping by component processes.
   </PARA></LISTITEM>
@@ -600,6 +716,8 @@ other sendmail/system utilities:
 
 </CHAPTER>
 
+
+<!--
 
 <CHAPTER><?dbhtml filename="ztut-some-comparisons.html">
 <TITLE>Comparison With Other Popular MTA's</TITLE>
@@ -720,7 +838,7 @@ mail administrator a software tool that fits the times.
 </PARA>
 
 <PARA>
-&PGBREAK; <!-- hard-break for TeX processing -->
+&PGBREAK; < ! - - hard-break for TeX processing - - >
 </PARA>
 
 
@@ -751,8 +869,8 @@ MTA comparison experiment report at
   <ENTRY>SMTP Piggybacking</ENTRY>
 </ROW>
 </THEAD>
-<!-- <TFOOT>
-    </TFOOT> -->
+< ! - - <TFOOT>
+    </TFOOT> - - >
 <TBODY>
 <ROW>
   <ENTRY>ZMailer 2.99.53</ENTRY>
@@ -882,4 +1000,7 @@ In fact the <APPLICATION>qmail</APPLICATION> delivers each
 </SECT1>
 
 </CHAPTER>
+
+-->
+
 </PART>

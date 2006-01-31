@@ -228,8 +228,15 @@
 ;; No breaking at top-most SECTION levels, only at CHAPTER and alike.
 ;;
 (define (chunk-element-list)
-  (list (normalize "preface")
-        (normalize "chapter")
+  (list
+        (normalize "set")  ;; sets are definitely chunks...
+        (normalize "book") ;; just in case nothing else matches...
+        (normalize "part")
+     ;; (normalize "chapter")
+     ;; (normalize "sect1") 
+     ;; (normalize "section") 
+
+        (normalize "preface")
         (normalize "appendix") 
         (normalize "article")
         (normalize "glossary")
@@ -239,11 +246,6 @@
         (normalize "setindex")
      ;; (normalize "reference")
      ;; (normalize "refentry")
-        (normalize "part")
-     ;; (normalize "sect1") 
-     ;; (normalize "section") 
-        (normalize "book") ;; just in case nothing else matches...
-        (normalize "set")  ;; sets are definitely chunks...
         ))
 
 

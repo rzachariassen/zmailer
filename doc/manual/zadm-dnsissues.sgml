@@ -4,8 +4,12 @@
 <PARA>
 The cornerstone of everything in busy Internet email routing is a properly
 working DNS server, and a modern resolver library. If you use the BIND 
-nameserver, you should be using a recent version, at least BIND 4.8.
-(As of this writing, bind is on version 8.1.2)
+nameserver, you should be using a recent version.
+As of this writing (January 2006), BIND server developers recommend version 9.
+They also strongly recommend, that you do not let zone data masters
+(either masters, or slave copies) to do any recursive resolving,
+and do recursive resolvings with servers that do not have locally
+mastered data.
 </PARA>
 
 <PARA>

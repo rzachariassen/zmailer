@@ -1,13 +1,13 @@
-<!-- -------------------------------------------------------- -->
+<!-- ======================================================== -->
 <!--  ZMailer manual                                          -->
 <!--                                                          -->
 <!--  Cover page                                              -->
 <!--                                                          -->
 <!--  Copyright Matti Aarnio                                  -->
 <!--  <mea@nic.funet.fi>                                      -->
-<!--  1995-2000                                               -->
+<!--  1995-2006                                               -->
 <!--                                                          -->
-<!-- -------------------------------------------------------- -->
+<!-- ======================================================== -->
 
 <BOOKINFO>
 <TITLE>ZMailer</TITLE>
@@ -42,7 +42,7 @@ incomplete documentation, see if man-pages are more complete!
 </AUTHOR>
 </AUTHORGROUP>
 
-<PUBDATE>2002</PUBDATE>
+<PUBDATE>2006</PUBDATE>
 
 <COPYRIGHT>
 <YEAR>1988</YEAR>
@@ -57,6 +57,9 @@ incomplete documentation, see if man-pages are more complete!
 <YEAR>2001</YEAR>
 <YEAR>2002</YEAR>
 <YEAR>2003</YEAR>
+<YEAR>2004</YEAR>
+<YEAR>2005</YEAR>
+<YEAR>2006</YEAR>
 <HOLDER>Matti Aarnio, All rights reserved.</HOLDER>
 </COPYRIGHT>
 

@@ -2,7 +2,7 @@
 # GNU-Makefile for ZMailer manual
 #
 
-VERSION = "v1.99.25"
+VERSION = "v1.99.26"
 
 #
 #  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, openjade-1.3.1
@@ -119,7 +119,7 @@ HTML.index:
 	mv zmanual/HTML.index .
 
 genindex.sgm index-html index-dvi index-pdf: HTML.index
-	./collateindex.pl -d zman-index.html -f -g -i document-index -t Index -o genindex.sgm HTML.index
+	collateindex.pl -d zman-index.html -f -g -i document-index -t Index -o genindex.sgm HTML.index
 
 zmanual.ps: zmanual.dvi $(FIGEPS)
 	dvips -ta4 -ozmanual.ps zmanual.dvi
@@ -139,6 +139,7 @@ zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	make z-version.txt
 	make index-pdf
 	db2pdf -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#pdf'  zmanual.sgml
+
 
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists

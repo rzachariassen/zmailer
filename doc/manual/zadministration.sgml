@@ -1,3 +1,14 @@
+<!-- ======================================================== -->
+<!--  ZMailer manual                                          -->
+<!--                                                          -->
+<!--  Administration -part                                    -->
+<!--                                                          -->
+<!--  Copyright Matti Aarnio                                  -->
+<!--  <mea@nic.funet.fi>                                      -->
+<!--  1995-2006                                               -->
+<!--                                                          -->
+<!-- ======================================================== -->
+
 <PART ID="ZADMINISTRATION"><?dbhtml filename="zadministration.html">
 <TITLE>Administation</TITLE>
 <!-- %% \chapter{Administration} -->

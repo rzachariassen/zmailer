@@ -180,8 +180,9 @@ do
 	-e 's/&PGBREAK;//g'		\
 	-e 's/&pgbreak;//g'		\
 			|		\
-	tidy -i -u -n -q |		\
+	tidy -i -u -n -q -wrap 130 |	\
   perl -ne 's/<LINK rel="STYLESHEET" type="text\/css" href="zmanual.css">/<!--#include file="zmanual.css" -->/o; 
+       s{(<BODY .*>)}{$1 <SCRIPT SRC="http://www.google-analytics.com/urchin.js" TYPE="text/javascript"> </SCRIPT> <SCRIPT TYPE="text/javascript"> _uacct = "UA-194078-3"; urchinTracker(); </SCRIPT>}o;
        s/("[^.]*)\.html#/$1.shtml#/go;
        s/("[^.]*)\.html"/$1.shtml"/go;
        print;'				\

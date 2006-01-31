@@ -31,6 +31,29 @@ The file i-node numbers must not change with <FUNCTION>rename</>(2) or
 </PARA>
 
 <PARA>
+Most of the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory
+must be a single mounted filesystem within which files can
+be <FUNCTION>link</>(2)ed from one directory to another, as well as moved
+around with <FUNCTION>rename</>(2)
+</PARA>
+
+<PARA>
+However, the 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+subdirectory <EMPHASIS>can be</EMPHASIS> separate filesystem
+mounted under 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>!
+Such arrangement can (under some situations) result in additional
+system performance, as transport agents need to modify (write
+locks) files in the 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+subdirectory, while they only read (without locks) files in
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/queue/</>
+subdirectory.
+</PARA>
+
+
+<PARA>
 Adding system reliability in form of having directory data committed
 to disk at the time of the directory modifying operations returning with
 success is a nice bonus, although in normal UFS-like cases that taxes
@@ -53,19 +76,6 @@ tolerate at the expence of what speed reduction.
 (E.g. 300+ day straight uptime with power surges during a thunderstorm at
  the end of it toasting your machine along with its disks and filesystems,
  but trouble-free running until then ?)
-</PARA>
-
-<PARA>
-The <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory must be
-a single partition within which files can be <FUNCTION>link</>(2)ed from one
-directory to another, as well as moved around with <FUNCTION>rename</>(2).
-</PARA>
-
-<PARA>
-People have asked several times if e.g.
- <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</>, and
- <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
-could be at separate partitions.  No they can't!
 </PARA>
 </IMPORTANT>
 
@@ -375,8 +385,8 @@ with a bit explanatory name of type:
 
 <PARA>
 The files in the freezer-area are in the input format to
-the <COMMAND>router</>, and as of this wiring, there are no tools
-to automatically process them for obvious spams, and just those
+the <COMMAND>router</>, and as of this writing, there are no tools
+to automatically process them for obvious spams, and leave just those
 that were falsely triggered.
 </PARA>
 </SECT1>
