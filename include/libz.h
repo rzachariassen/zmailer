@@ -135,7 +135,8 @@ extern token822 * scan822utext __((const char **cpp, size_t n,
 
 #ifndef __Usockaddr__
 typedef union {
-    struct sockaddr_in v4;
+    struct sockaddr     sa;
+    struct sockaddr_in  v4;
 #ifdef INET6
     struct sockaddr_in6 v6;
 #endif

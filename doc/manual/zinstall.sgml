@@ -15,7 +15,9 @@
 <!-- %end{latexonly}							-->
 <!-- 									-->
 
-<PART ID="ZINSTALL"><?dbhtml filename="zinstall.html">
+<PART ID="ZINSTALL">
+<?dbhtml chunk="no">
+<?dbhtml filename="zinstall.html" >
 <TITLE>Build and Install</TITLE>
 
 <PARTINTRO>
@@ -36,7 +38,8 @@ for more information.</PARA></TIP>
 
 
 <CHAPTER ID=ch.zins.build-and-install>
-<!-- ?dbhtml filename="zins-buildinstall.html" -->
+<?dbhtml chunk="no">
+<?dbhtml filename="zins-buildinstall.html">
 <TITLE>Build and Install</TITLE>
 <SECT1 ID="build.environment"><TITLE>Environment Issues</>
 
@@ -520,7 +523,8 @@ or in case the default guessing didn't get it right:
 </CHAPTER>
 
 <CHAPTER ID=ch.zins.system-configuring>
-<!-- ?dbhtml filename="zins-sysconfig.html" -->
+<?dbhtml chunk="no">
+<?dbhtml filename="zins-sysconfig.html">
 <TITLE>System Configuring</>
 <INDEXTERM ID=idx.build.config><PRIMARY>build</><SECONDARY>config</></>
 <INDEXTERM ID=idx.config.basic-zm-install><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></>
@@ -1609,7 +1613,8 @@ appropriate for your site.
 </CHAPTER>
 
 <CHAPTER ID=ch.zins-clientinstall>
-<!-- ?dbhtml filename="zins-clientinst.html" -->
+<?dbhtml chunk="no">
+<?dbhtml filename="zins-clientinst.html">
 <TITLE>Installation to Clients</>
 
 <PARA>
@@ -1706,7 +1711,8 @@ one of following (depending upon the system):
 <!-- ############################################################### -->
 
 <CHAPTER ID="ZINS.CONFIGURE-OPTIONS-LIST">
-<!-- ?dbhtml filename="zins-configure-options.html" -->
+<?dbhtml filename="zins-configure-options.html">
+<?dbhtml chunk="no">
 <TITLE><FILENAME>./configure</> options</>
 <INDEXTERM ID=idx.zins.build.configure.options><PRIMARY>build</><SECONDARY>configure</><TERTIARY>options</></>
 <INDEXTERM ID=idx.zins.configure.options><PRIMARY>configure</><SECONDARY>options</></>
@@ -2744,7 +2750,8 @@ ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 <!-- ############################################################### -->
 
 <CHAPTER ID=ch.zins.verification>
-<!-- ?dbhtml filename="zins-verification.html" -->
+<?dbhtml chunk="no">
+<?dbhtml filename="zins-verification.html">
 <TITLE>Verifying the System</TITLE>
 
 <PARA>
@@ -2754,7 +2761,8 @@ FIXME! FIXME! <EMPHASIS> TO BE WRITTEN !</>
 </CHAPTER>
 
 <CHAPTER ID=installing-whoson-service>
-<!-- ?dbhtml filename="zins-whoson.html" -->
+<?dbhtml chunk="no">
+<?dbhtml filename="zins-whoson.html">
 <TITLE>Installing Whoson Service</TITLE>
 
 <PARA>

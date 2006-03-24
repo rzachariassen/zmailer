@@ -1,7 +1,5 @@
 #! /bin/sh
 #
-#
-#
 
 F="man-index.html"
 
@@ -9,7 +7,8 @@ cat <<EOF  > $F
 <HTML>
 <HEAD><TITLE>ZMailer man-pages</TITLE></HEAD>
 <BODY BGCOLOR=white>
-
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript"> </script>
+<script type="text/javascript"> _uacct = "UA-194078-3"; urchinTracker(); </script>
 <H1>ZMailer man-pages of `TZ=UTC date`</H1>
 
 <P>
@@ -48,7 +47,7 @@ for x in $bases; do
     fi
 
     if [ -f "$x.pdf" ]; then
-      echo "$hh<TD><A HREF=\"./$x.pdf\">$x</A></TD></TR>" >> $F
+      echo "$hh<TD><A HREF=\"./$x.pdf\" onClick=\"javascript:urchinTracker('./$x.pdf');\">$x</A></TD></TR>" >> $F
     else
       echo "$hh<TD>&nbsp;</TD></TR>" >> $F
     fi

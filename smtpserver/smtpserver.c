@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 
 /*
@@ -129,7 +129,8 @@ int sum_sizeoption_value;
 int always_flush_replies;
 int sawsigchld;
 
-etrn_cluster_ent etrn_cluster[MAX_ETRN_CLUSTER_IDX];
+etrn_cluster_ent       etrn_cluster       [MAX_ETRN_CLUSTER_IDX];
+smtpserver_cluster_ent smtpserver_cluster [MAX_SMTPSERVER_CLUSTER_IDX];
 
 char   logtag[32];
 time_t logtagepoch, now;
@@ -239,7 +240,6 @@ static void CPdefault_init()
   CP->tls_ccert_vd    = 1;
 }
 
-void ConfigParams_newgroup __((void));
 void ConfigParams_newgroup()
 {
   ConfigParams *CPn = malloc(sizeof(*CP));
@@ -974,7 +974,7 @@ int main(argc, argv, envp)
 
 	  raddrlen = sizeof(SS.raddr);
 	  memset(&SS.raddr, 0, raddrlen);
-	  if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
+	  if (getpeername(SS.inputfd, &SS.raddr.sa, &raddrlen)) {
 	    if (testaddr_set) {
 	      SS.netconnected_flg = 1;
 	      memcpy(&SS.raddr, &testaddr, sizeof(testaddr));
@@ -1030,7 +1030,7 @@ int main(argc, argv, envp)
 		 a machine with multiple identities per multiple interfaces,
 		 or via virtual IP-numbers, or ... */
 	      localsocksize = sizeof(SS.localsock);
-	      if (getsockname(FILENO(stdin), (struct sockaddr *) &SS.localsock,
+	      if (getsockname(FILENO(stdin), &SS.localsock.sa,
 			      &localsocksize) != 0) {
 		/* XX: ERROR! */
 	      }
@@ -1069,7 +1069,7 @@ int main(argc, argv, envp)
 	  raddrlen = sizeof(SS.raddr);
 	  memset(&SS.raddr, 0, raddrlen);
 
-	  if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
+	  if (getpeername(SS.inputfd, &SS.raddr.sa, &raddrlen))
 	    SS.netconnected_flg = 0;
 	  else
 	    SS.netconnected_flg = 1;
@@ -1087,7 +1087,7 @@ int main(argc, argv, envp)
 	     a machine with multiple identities per multiple interfaces,
 	     or via virtual IP-numbers, or ... */
 	  localsocksize = sizeof(SS.localsock);
-	  if (getsockname(FILENO(stdin), (struct sockaddr *) &SS.localsock,
+	  if (getsockname(FILENO(stdin), &SS.localsock.sa,
 			  &localsocksize) != 0) {
 	    /* XX: ERROR! */
 	  }
@@ -1473,7 +1473,7 @@ int main(argc, argv, envp)
 		OCP     = listensocks_CPs[i];
 	  
 		raddrlen = sizeof(SS.raddr);
-		msgfd = accept(n, (struct sockaddr *) &SS.raddr, &raddrlen);
+		msgfd = accept(n, &SS.raddr.sa, &raddrlen);
 		if (msgfd < 0) {
 		  int err = errno;
 		  switch (err) {
@@ -1637,7 +1637,7 @@ int main(argc, argv, envp)
 		     a machine with multiple identities per multiple interfaces,
 		     or via virtual IP-numbers, or ... */
 		  localsocksize = sizeof(SS.localsock);
-		  if (getsockname(msgfd, (struct sockaddr *) &SS.localsock,
+		  if (getsockname(msgfd, &SS.localsock.sa,
 				  &localsocksize) != 0) {
 		    /* XX: ERROR! */
 		  }
@@ -1772,6 +1772,8 @@ int main(argc, argv, envp)
 
 	  /* Stand-alone server, kill the pidfile at the exit! */
 	  killpidfile(pidfile);
+	  subdaemons_kill_cluster_listeners();
+
 	  openlogfp(&SS, daemon_flg);
 	  zsyslog((LOG_INFO, "killed server."));
 	  if (logfp != NULL) {
@@ -2373,7 +2375,7 @@ int buflen, *rcp;
 
 static void s_setup(SS, infd, outfd)
 SmtpState *SS;
-int infd;
+int infd, outfd;
 {
     SS->inputfd  = infd;
     SS->outputfd = outfd;

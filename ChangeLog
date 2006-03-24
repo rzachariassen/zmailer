@@ -1,3 +1,53 @@
+2006-03-24  Matti Aarnio  <mea@zmailer.org>
+
+	* include/libz.h:
+	    Add the generic "struct sockaddr" into Usockaddr union
+	    to be used in syscalls so that no casts are needed.
+
+	* utils/makedb/makedb.c:
+	    One (integer) parameter was not typed at all, which
+	    defaulted it to be integer...  just some compilers
+	    warned about this case...
+
+	* smtpserver/cfgread.c, smtpserver/smtpserver.c, TODO,
+	  smtpserver/smtpserver.h, smtpserver/subdaemon-trk.c,
+	  man/smtpserver.8.in, smtpserver/subdaemons.c:
+	    Half-way completed smtpserver tracker cluster protocol
+	    implementation.
+
+	* smtpserver/smtpserver.c:
+	    Under some test conditions the 'stdin' file descriptor
+	    talking to the smtpserver process is not the same one
+	    that is under 'stdout'.
+
+	* smtpserver/zpwmatch.c:
+	    Add a note, that yes, it is perfectly normal to get
+	    some compiler complaints here...
+
+	* scheduler/scheduler.c:
+	    Change scheduler's message about "should not happen"-
+	    type happening with a job file.
+
+	* man/man-index.sh, man/man-to-html.sh, doc/manual/zinstall.sgml,
+	  doc/manual/zmanual.dsl, doc/manual/ztutorial.sgml,
+	    Usage of Google-Analytics at ZMailer.ORG site did affect
+	    slightly also publishing scripts...
+
+2006-01-28  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpetrn.c:
+	    Make the scheduler's ETRN request file creation to happen
+	    within transport subdirectory tree, and be safe by using
+	    mkstemp().  Previously code created it (safely) in public/
+	    subdirectory, but after adding support for separation of
+	    public+router+queue  and  transport  directory trees, code
+	    no longer was successfull at creating the file in separated
+	    transport -directory (filesystem).  Selection of use of
+	    mkstemp() and only that was a bit of lazyness from my part.
+	    There is different mechanism that should be used primarily
+	    for ETRNs (see for smtpserver's ETRN-cluster thing,) this
+	    is a backup mechanism.
+
 2006-01-04  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/rfc821scn.c:
@@ -9,11 +59,16 @@
 	    outside printable ASCII range.
 	    This was observed on a 2.6.x Linux running on x86-64 hardware,
 	    with the character classification table at the beginning of
-	    the .data section leading to reading of memory in front of
-	    said section in non-mapped space --> SEGV.
-	
-	    Made also the used character classification dataset to
-	    be 'const', which it is...
+	    the .data section below of which there was non-mapped range..
+	    .. upon which referral a SEGV was generated.
+	    
+	    Made also the used character classification dataset
+	    to be 'const', which it is...
+
+	    Btw: this is NOT a SECURITY bug, code never writes into that
+	    array, only reads from it, and as a result (depending on
+	    multiple things in your runtime environment) may just read
+	    junk, or segfault.  Gigo rule.
 
 2006-01-03  Matti Aarnio  <mea@zmailer.org>
 

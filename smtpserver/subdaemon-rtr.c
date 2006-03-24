@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 
 /*  SMTPSERVER  ROUTER MULTIPLEXER-SERVER  SUBDAEMON    */

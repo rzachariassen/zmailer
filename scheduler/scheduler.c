@@ -328,7 +328,7 @@ static void cfp_free0(cfp)
 	if (!cfp->head) {
 	  /* This should *not* be happening.. */
 	  sfprintf(sfstderr,
-		   "%s: SHOULD NOT HAPPEN: cfp->head == NULL; spoolid: %s\n",
+		   "%s: SHOULD NOT HAPPEN: (except for ETRN files) cfp->head == NULL; spoolid: %s\n",
 		   progname, cfp->spoolid);
 	  unctlfile(cfp, 1);
 	  return;

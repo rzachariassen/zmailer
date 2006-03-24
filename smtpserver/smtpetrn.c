@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -32,21 +32,60 @@ int silence;
 {
     FILE *mfp;
     int rc;
+    int fd = -1;
+    struct stat stbuf;
 
-    mfp = mail_open(MSG_RFC822);
+    char *ofpname = (char*)emalloc(16+strlen(TRANSPORTDIR)+30);
+    char *ifpname = (char*)emalloc(16+strlen(TRANSPORTDIR)+30);
+    sprintf(ifpname, "%s/..etrn-XXXXXX", TRANSPORTDIR);
+
+    runasrootuser();
+
+#ifdef HAVE_MKSTEMP
+    fd = mkstemp(ifpname);
+#endif
+
+    runastrusteduser();
+
+    if (fd < 0) {
+#ifndef HAVE_MKSTEMP
+      type(SS, 452, m400, "Failed to initiate ETRN request; mkstemp() missing!");
+#else
+      type(SS, 452, m400, "Failed to initiate ETRN request; mkstemp() failure!");
+#endif
+      typeflush(SS);
+      return -1;
+    }
+
+    mfp = fdopen(fd, "w");
+
+    if (!mfp) close(fd); /* Clean up fd:s after ourselves.. */
 
     if (!mfp && silence) return -1;
     if (!mfp) {
-	type(SS, 452, m400, "Failed to initiate ETRN request;  Disk full?");
+	type(SS, 452, m400, "Failed to initiate ETRN request;  fdopen() failure?");
 	typeflush(SS);
 	return -1;
     }
 
     fprintf(mfp, "%c%c%s %s\n", _CF_TURNME,  _CFTAG_NORMAL, cp, SS->rhostaddr);
+    fflush(mfp);
     /* printf("050-My uid=%d/%d\r\n",getuid(),geteuid()); */
+
+    if (fstat(fd, &stbuf) < 0) {
+      /* XX: should not happen at all... */
+    }
+
+    fclose(mfp); /* Closes FILE* and FD */
+
+    sprintf(ofpname, "%s/%ld-etrn", TRANSPORTDIR, (long)stbuf.st_ino );
+
     runasrootuser();
-    rc = mail_close_alternate(mfp, TRANSPORTDIR, "");
+    rc = eqrename(ifpname, ofpname);
     runastrusteduser();
+
+    if (rc) unlink(ifpname);
+
     if (rc && !silence) {
 	type(SS,452,m400,"Failed to initiate local ETRN request; Permission denied?");
 	typeflush(SS);
@@ -226,7 +265,7 @@ const char *name, *cp;
 #endif
 	  sa->v4.sin_port = htons(portnum);
 
-	while ((rc = connect(fd, (struct sockaddr *)sa, alen)) < 0 &&
+	while ((rc = connect(fd, & sa->sa, alen)) < 0 &&
 	       (errno == EINTR || errno == EAGAIN));
 	if (rc >= 0) break;
 	if (rc < 0) {

@@ -427,9 +427,18 @@ extern int sum_sizeoption_value;
 extern int lmtp_mode;
 
 
-#define MAX_ETRN_CLUSTER_IDX 40
+#define MAX_SMTPSERVER_CLUSTER_IDX 40
 typedef struct {
-  char *nodename; char *username; char *password;
+  Usockaddr addr;
+  char *secret;
+} smtpserver_cluster_ent;
+extern smtpserver_cluster_ent smtpserver_cluster[];
+
+#define MAX_ETRN_CLUSTER_IDX       40
+typedef struct {  /* Talks with SCHEDULER process */
+  char *nodename;
+  char *username;
+  char *password;
 } etrn_cluster_ent;
 extern etrn_cluster_ent etrn_cluster[];
 
@@ -537,6 +546,7 @@ extern const char *style;
 
 extern struct smtpconf *readcffile __((const char *fname));
 extern struct smtpconf *findcf __((const char *host));
+extern void ConfigParams_newgroup __((void));
 
 extern int loadavg_current __((void));
 
@@ -716,10 +726,11 @@ extern int  fd_blockingmode __((int fd));
 extern void fd_restoremode __((int fd, int mode));
 
 /* subdaemons.c */
-extern int subdaemons_init               __((void));
-extern int subdaemons_init_router        __((void));
-extern int subdaemons_init_ratetracker   __((void));
-extern int subdaemons_init_contentfilter __((void));
+extern int  subdaemons_init                   __((void));
+extern int  subdaemons_init_router            __((void));
+extern int  subdaemons_init_ratetracker       __((void));
+extern int  subdaemons_init_contentfilter     __((void));
+extern void subdaemons_kill_cluster_listeners __((void));
 
 struct fdgets_fdbuf {
 	int rdsize;
@@ -777,6 +788,7 @@ struct subdaemon_handler {
 	int (*shutdown)  __((void *state));
         int (*killpeer)  __((void *state, struct peerdata *));
 	int (*reaper)    __((void *state));
+	int (*sigusr2)   __((void *state));
 	Vuint *reply_delay_G;	/* MIB variable pointer */
 	Vuint *reply_queue_G;   /* MIB variable pointer */
 };

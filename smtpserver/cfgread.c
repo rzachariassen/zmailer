@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 
 /*
@@ -673,6 +673,33 @@ static void cfparam(str, size, cfgfilename, linenum)
 	++idx;
       }
     }
+
+    /* Cluster-wide rate-tracking support machinery */
+    else if (cistrcmp(name, "tracking-cluster") == 0 && param3 /* 3 params */) {
+      /* Params: ip-address portnum shared-secret */
+      static int idx = 0;
+      Usockaddr addr;
+      int rc;
+      int port;
+
+      rc = zgetbindaddr(param1, use_ipv6, &addr);
+      port = atoi(param2);
+      if (rc == 0 && port > 0) {
+	if (addr.v4.sin_family == AF_INET)
+	  addr.v4.sin_port = htons(port);
+#ifdef INET6
+	else
+	  addr.v6.sin6_port = htons(port);
+#endif
+	if (idx < MAX_SMTPSERVER_CLUSTER_IDX) {
+	  smtpserver_cluster[idx].addr   = addr;
+	  smtpserver_cluster[idx].secret = strdup(param3);
+	  ++idx;
+	}
+      }
+    }
+
+
 
     /* SPF related things */
     /* Generate SPF-Received header */

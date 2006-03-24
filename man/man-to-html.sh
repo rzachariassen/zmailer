@@ -17,7 +17,7 @@ export LINES
 
 echo "<HTML><HEAD><TITLE>"
 basename "$1"
-echo "</TITLE></HEAD><BODY BGCOLOR=white><PRE>"
+echo '</TITLE></HEAD><BODY BGCOLOR=white><script src="http://www.google-analytics.com/urchin.js" type="text/javascript"> </script> <script type="text/javascript"> _uacct = "UA-194078-3"; urchinTracker(); </script> <PRE>'
 groff -t -man -Tascii "$1" | \
     perl -e '
         #select STDIN; $| = 1;
@@ -85,6 +85,7 @@ groff -t -man -Tascii "$1" | \
         s{</I><B>_</B><I>}{_}og;
 	# Ordinary man-pages
         s{<I>([-.0-9a-zA-Z_]+)</I>\((\dzm)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
+
 	# Ordinary PERL PODs
         s{<I>([-.0-9a-zA-Z_]+::[-.0-9a-zA-Z_]+)</I>\((\d\w+)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	print;' | \

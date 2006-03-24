@@ -265,8 +265,24 @@
 
 ;; Returns the depth of auto TOC that should be made at the nd-level
 (define (toc-depth nd)  99)
-(define chapter-toc?    #t)
-(define %force-chapter-toc% #t)
+(define %generate-part-toc%  #t)
+(define chapter-toc?         #f)
+(define %force-chapter-toc%  #f)
+
+(define $generate-chapter-toc$
+  ;; REFENTRY generate-chapter-toc
+  ;; PURP Should a Chapter Table of Contents be produced?
+  ;; DESC
+  ;; If true, an automatically generated
+  ;; chapter TOC should be included. By default, it's true.  It's false if
+  ;; the output is going to a single file and the current node isn't the
+  ;; root element.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  (lambda ()
+    (or (not nochunks)
+(node-list=? (current-node) (sgml-root-element)))))
 
 (define %admon-graphics%
   ;; REFENTRY admon-graphics
@@ -384,9 +400,6 @@
 
 (define %section-autolabel% 
   ;; Are sections enumerated?
-  #t)
-
-(define %generate-part-toc%
   #t)
 
 (define %shade-verbatim%

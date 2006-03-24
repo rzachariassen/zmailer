@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2006.
  */
 
 /*
@@ -34,6 +34,16 @@ static int subdaemon_loop __((int, struct subdaemon_handler *));
 /* static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, struct subdaemon_handler *subdaemon_handler, void *statep)); */
 
 
+static int got_sigusr2;
+
+static RETSIGTYPE subdaemon_sigusr2(sig)
+     int sig;
+{
+	got_sigusr2 = 1;
+
+	SIGNAL_HANDLE(sig, subdaemon_sigusr2);
+}
+
 
 void subdaemon_ratetracker(fd)
      int fd;
@@ -45,9 +55,9 @@ void subdaemon_ratetracker(fd)
 
   subdaemon_handler_ratetracker.reply_queue_G = & i1;
   subdaemon_handler_ratetracker.reply_delay_G = & i2;
-  
+
   subdaemon_loop(fd, & subdaemon_handler_ratetracker);
-  zsleep(10);
+  zsleep(2);
   exit(0);
 }
 
@@ -61,7 +71,7 @@ void subdaemon_contentfilter(fd)
   subdaemon_handler_contentfilter.reply_delay_G = & MIBMtaEntry->ss.Cfilter_reply_delay_G;
 
   subdaemon_loop(fd, & subdaemon_handler_contentfilter);
-  zsleep(10);
+  zsleep(2);
   exit(0);
 }
 
@@ -75,7 +85,7 @@ void subdaemon_router(fd)
   subdaemon_handler_router.reply_delay_G = & MIBMtaEntry->ss.Irouter_reply_delay_G;
 
   subdaemon_loop(fd, & subdaemon_handler_router);
-  zsleep(10);
+  zsleep(2);
   exit(0);
 }
 
@@ -109,6 +119,7 @@ int subdaemons_init_router __((void))
 	      if (contentfilter_rdz_fd >= 0)
 		close(contentfilter_rdz_fd); /* Our sister server's handle */
 
+	      /* We convert fdpassing socket(pair) to fd=0 in child side... */
 	      close(to[1]); /* Close the parent (called) end */
 	      if (to[0]) {
 		dup2(to[0], 0);
@@ -159,6 +170,7 @@ int subdaemons_init_ratetracker __((void))
 	    if (contentfilter_rdz_fd >= 0)
 	      close(contentfilter_rdz_fd); /* Our sister server's handle */
 
+	    /* We convert fdpassing socket(pair) to fd=0 in child side... */
 	    close(to[1]); /* Close the parent (called) end */
 	    if (to[0]) {
 	      dup2(to[0], 0);
@@ -215,6 +227,7 @@ int subdaemons_init_contentfilter __((void))
 	      if (ratetracker_rdz_fd >= 0)
 		close(ratetracker_rdz_fd); /* Our sister server's handle */
 
+	      /* We convert fdpassing socket(pair) to fd=0 in child side... */
 	      close(to[1]); /* Close the parent (called) end */
 	      if (to[0]) {
 		dup2(to[0], 0);
@@ -243,6 +256,13 @@ int subdaemons_init __((void))
 	subdaemons_init_router();
 
 	return 0;
+}
+
+void subdaemons_kill_cluster_listeners __((void))
+{
+	if (ratetracker_server_pid > 0)
+	  kill(ratetracker_server_pid, SIGUSR2);
+	/* contentfilter and router subsystems don't need this ? */
 }
 
 
@@ -332,7 +352,7 @@ subdaemon_kill_peer(peer)
      struct peerdata *peer;
 {
 	close(peer->fd);
-	peer->fd = -1;
+	peer->fd     = -1;
 	peer->in_job = 0;
 
 	job_unlink( peer );
@@ -356,6 +376,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	SIGNAL_HANDLE(SIGCHLD, sigchld);
 	SIGNAL_RELEASE(SIGCHLD);
+	SIGNAL_HANDLE(SIGUSR2, subdaemon_sigusr2);
+	SIGNAL_RELEASE(SIGUSR2);
 
 	memset( & job_head, 0, sizeof(job_head) );
 
@@ -411,6 +433,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    else
 	      default_reaper(SIGCHLD);
 	  }
+	  if (got_sigusr2) {
+	    got_sigusr2 = 0;
+	    if (subdaemon_handler->sigusr2)
+	      subdaemon_handler->sigusr2( &statep );
+	  }
 
 	  if ( (rendezvous_socket < 0) &&
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
@@ -443,6 +470,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    }
 	  }
 	  top_peer = top_peer2; /* New topmost peer index */
+
+	  time(&now);
 
 	  rc = (subdaemon_handler->preselect)( statep, & rdset, & wrset, &topfd );
 	  if (rc > 0) tv.tv_sec = 0; /* RAPID select */
@@ -594,8 +623,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    rc = read( peer->fd, peer->inpbuf + peer->inlen,
 			       peer->inpspace - peer->inlen );
 		    if (rc > 0) {
+		      char *p;
 		      peer->inlen += rc;
-		      if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
+		      p = memchr( peer->inpbuf, '\n', peer->inlen );
+		      if (p) {
 			peer->in_job = 1;
 			peer->when_in = now;
 			job_linkin( &job_head, peer );
@@ -626,7 +657,6 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	talk_with_subprocesses:;
 
 	  for (n = 0; n < top_peer; ++n) {
-
 #if 1
 	    peer = job_head.head;
 	    if (!peer) break;

@@ -9,11 +9,15 @@
 <!--                                                          -->
 <!-- ======================================================== -->
 
-<PART ID="ZTUTORIAL"><?dbhtml filename="ztutorial.html">
+<PART ID="ZTUTORIAL">
+<?dbhtml chunk='no'>
+<?dbhtml filename="ztutorial.html" >
 <TITLE>Tutorial</TITLE>
 
 
-<CHAPTER><?dbhtml filename="ztut-intro.html">
+<CHAPTER>
+<?dbhtml chunk="no">
+<?dbhtml filename="ztut-intro.html">
 <TITLE>Introduction to Email</TITLE>
 
 <SECT1 ID=ztut-messaging>
@@ -341,7 +345,9 @@ a UA function.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><?dbhtml filename="ztut-zfeatures.html">
+<CHAPTER>
+<?dbhtml chunk="no" >
+<?dbhtml filename="ztut-zfeatures.html">
 <TITLE>ZMailer's Features, and Facilities</TITLE>
 
 
@@ -369,17 +375,58 @@ that has benefitted from experiences with earlier mailers.
 
 <PARA>
 ZMailer provides a capable, robust, efficient subsystem to do the job,
-which will excel in demanding environments, but is simple enough to
-fit easily everywhere.
+which will excel in demanding environments, but is technologically simple
+enough to fit easily everywhere.  (In UNIX-like environments.)
 </PARA>
 
 <PARA>
 However ZMailer is not smallest memory footprint MTA there is, nor
-it tries to be.  What it has and does, are ways to limit resource
-expenditure &ddash; one can't very easily overwhelm ZMailer MTA
-in e.g. ISP's outbound SMTP relay task (unless sysadmin hasn't
-configured any limits on e.g. incoming messages from any given
-client IP address...)
+it tries to be.
+What it has and does, are ways to limit resource expenditure, while
+still providing high-performance services.
+One can't very easily overwhelm a machine where ZMailer MTA runs
+by just feeding it too much work in parallel. (Message Queues can
+grow beyond any reason, but even there are safety limiters.)
+Limits are available for example:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>Number of parallel incoming SMTP sessions overall</></>
+<LISTITEM><PARA>Number of parallel incoming SMTP sessions from any given single IP address</></>
+<LISTITEM><PARA>Number of messages per source IP address in timeframe</></>
+<LISTITEM><PARA>Number of parallel internal processing programs</></>
+<LISTITEM><PARA>Number of parallel SMTP sessions feeding messages outside</></>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+For ZMailer's incoming SMTP interaction there are ways to define,
+that the usual anonymous user from given address space can send
+only so many messages with only so many recipients per time interval.
+Such limits help keeping Zombie botnet Windows machines from causing
+too much trouble.
+Technology aimed for keeping such service abusers under control is
+ever evolving, and can probably never be 100% capable.
+Also the abusers do learn rather quickly what is bad in their
+behaviour, and they do modify their programs to get past any
+filters thrown at them.
+At the same time, legitimate users are hadly ever evolving
+their behaviour, and are always behaving rather foolishly, or
+rather their used UA softwares behaves more like hijacked Zombies,
+or perhaps there is just a NAT box, and several users beyond it...
+</PARA>
+
+<PARA>
+In the longer run, service providers will need bigger and bigger
+servers (or clusters of smaller servers) to make their inbound
+and outbound SMTP services.
+They will also need ways to track user behaviour online, and
+if necessary, modify reaction algorithms in timescales of few hours.
+Further complication is, that the service providers need different
+behaviour models according to "this is Consumer" vs. "this is Corporate"
+customer.
+Corporate clients usually have some MTA of their own, and thus
+their legitimate network behaviour is a lot more like what spammers
+do these days, and separating spammer hijacked system there is really
+difficult.
 </PARA>
 
 <SECT2 ID=ztut-zfeatures-design-summary>
@@ -397,31 +444,39 @@ client IP address...)
 <PARA>
 ZMailer is a multi-process mailer, using three daemon processes to manipulate
 messages.
+Used technologies are as simple as possible, e.g. while networking stuff
+is as advanced as possible (with fallbacks to simplest basic behaviour),
+some of other modern things (like threads) are not used in favor of 
+simpler approaches 
+</PARA>
+
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
 Message arrive in via <COMMAND>sendmail</> program "API" for internally
 originated messages, or via <COMMAND>Smtpserver</> subsystem,  which is
 system front-door for messages coming in from the external network.
 The <COMMAND>Smtpserver</> is in reality a cluster of auxiliary programs
 providing efficient low-overhead support for various analysis things needed
 while messages are coming in.
-Second one of these processes is a <COMMAND>router</>, and makes all
+Second one of these processes is a <COMMAND>Router</>, and makes all
 decisions about what should happen to a message; routing and possibly
 message header visible things rewriting.
-The third daemon is a message queue manager, <COMMAND>scheduler</>, used to
-schedule delivery of messages.
+The third daemon is a message queue manager, <COMMAND>Scheduler</>,
+used to schedule the delivery of messages.
 The Router uses a configuration file that closely follows
 <EMPHASIS>Bourne shell script</> syntax and semantics, with minimal magic.
 Message files are moved around in a series of directories, and
-the <COMMAND>Scheduler</> and its <EMPHASIS>Transport Agents</>
-run off of control files created by the <EMPHASIS>Router</>.
-</PARA>
+the <COMMAND>Scheduler</> and its <COMMAND>Transport Agents</>
+run off of control files created by the <COMMAND>Router</>.
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 The <COMMAND>Sendmail</> is very simple "plug-compatible" message submission
 agent for system internal message submissions into the ZMailer MTA, and
 does all its things without any sort of set-uid privilege escalation needs.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 The <COMMAND>Smtpserver</> has evolved into rather complicated animal,
 as it aims to really efficiently support things that in the early days
 required truly heavy-weight auxiliary program startups for every incoming
@@ -453,12 +508,13 @@ sent more than 60 messages in past hour, stop that sending until the
 sliding window allows more to be sent."
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
-These do operate so that when smtp-subsystem shutdown has been ordered,
-and last client goes away, they drop by themselves.
-</PARA>
+These auxiliary servers do operate so that when smtpserver-subsystem
+shutdown has been ordered, and last client needing support goes away,
+they drop away themselves.
+</PARA></LISTITEM>
 
 
-<PARA>
+<LISTITEM><PARA>
 The <EMPHASIS>main <COMMAND>Router</> subsystem</> will process messages
 one at a time (per <COMMAND>Router</> instance), as it finds them in a
 directory where <EMPHASIS>User Agents</> submit their outgoing messages.
@@ -476,9 +532,9 @@ statements.
 When the <COMMAND>Router</> is finished on a message, it will produce
 a <EMPHASIS>message control file</> for use by the delivery processing
 stage of ZMailer, and move the original message file to another location.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 Once the main <COMMAND>Router</> subsystem has decided what to do with
 each of the addresses in a message, the <COMMAND>Scheduler</> builds
 a summary of this information by reading the control file created by
@@ -495,17 +551,17 @@ the <COMMAND>Scheduler</>.
 The <COMMAND>Scheduler</> also manages status reports, taking appropriate
 action on delivery errors and when all delivery instructions for a message
 have been processed.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 There are several standard <EMPHASIS>Transport Agents</> included with
 the ZMailer distribution.
 The collection currently includes a local delivery program, an SMTP client
 implementation, and a Transport Agent that can run Sendmail-M-line-compatible
 delivery programs.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 A separate <COMMAND>mailq</> utility allows querying the <COMMAND>Scheduler</>
 for the state of its queues.
 For existing <APPLICATION>Sendmail</> installations, a replacement program
@@ -513,13 +569,13 @@ is included that simulates most of the <APPLICATION>Sendmail</> functionality
 in the ZMailer environment.
 This allows ZMailer to replace a <COMMAND>Sendmail</> installation without
 requiring changes in standard <EMPHASIS>User Agents</>.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 Several other tools and utilities exist for other specific purposes.
-</PARA>
+</PARA></LISTITEM>
 
-<PARA>
+<LISTITEM><PARA>
 There are also facilities that allow <EMPHASIS>loosely coupled cluster</>
 creation.
 Each member machine of the cluster is separate entity, but they can keep
@@ -544,6 +600,8 @@ message to actual recipient and node into which it was expected to
 go, and to proxy POP and IMAP services so that users didn't need
 to know on which node their mailboxes did actually reside.
 </PARA>
+</LISTITEM>
+</ITEMIZEDLIST>
 
 <FIGURE PGWIDE="1" FLOAT="1" ID=fig.ztut.zmdirs>
   <TITLE ID=figtit.ztut.zmdirs>
@@ -719,7 +777,9 @@ other sendmail/system utilities:
 
 <!--
 
-<CHAPTER><?dbhtml filename="ztut-some-comparisons.html">
+<CHAPTER>
+<?dbhtml chunk="no">
+<?dbhtml filename="ztut-some-comparisons.html">
 <TITLE>Comparison With Other Popular MTA's</TITLE>
 
 <VARIABLELIST>

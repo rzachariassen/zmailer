@@ -5,6 +5,22 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 contrib/zmailcheck  -script   vs.  mailq output ?
 	Fix the first, or both.
 
+FEATURE: smtpserver ratetracker subsystem:
+	- UDP unicast talking of events to configured list of peers
+	  (for server cluster state tracking) (or TCP mesh of sockets ?)
+	- Track HELO/EHLO greeting text changes per client IP
+	- Track MAIL FROM address changes per client IP
+	- Track user authentication userid changes per client IP (?)
+	- For authenticated users, track:
+	  - Changes on HELO parameters
+	  - MAIL FROM address changes
+	  - Message counts
+	  - RCPT counts
+	  ... etc ...
+	(2006-1-30: half-way thru, need: config stuff, number of FIXMEs,
+	including peer authentication handshakes, actual message xmit to
+	peers, and message processing at reception.)
+
 VERIFY: router/daemonsub:
 	the queue in router is trivial (run in any|age-order, unless bounced
 	around due to e.g. router crashing, which puts the thing at the tail
@@ -129,7 +145,7 @@ transports/smtp:
 	In EZMLM mode: if some recipient is bounced, ones following it
 	seem to be getting rather spurious looking errors. (case hotmail.com
 	giving occasional 'transaction failed').   Possibly semi-generic
-	problemas the EZMLM-rcpt-splitting is a subcase in larger code.
+	problems the EZMLM-rcpt-splitting is a subcase in larger code.
 	Possibly also old code running...  Updated the system, and begun
 	to watch for the phenomena...
 	2003-02-18: Actually this is MS Exchange 2000 bug

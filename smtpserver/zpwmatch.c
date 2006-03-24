@@ -125,6 +125,9 @@ pam_cons(num_msg, msg, resp, appdata_ptr)
     return PAM_SUCCESS;
 }
 
+/* yes, following will complain in some systems..
+   details on constness of PAM routines have varied
+   greatly, for example. */
 static struct pam_conv pam_c = {
     pam_cons,
     NULL

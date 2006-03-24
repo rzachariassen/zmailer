@@ -3,14 +3,23 @@
 
 PAM-SUPPORT FOR SMTP-AUTH
        If  the  system has <security/pam_appl.h> file, and admin has chosen to
-       compile system using PAM support.  For Linux the following  file  would
-       also be needed:
+       compile system using PAM support.
 
+       For Linux the following  file  would also be needed:
+
+       (new version at the time of this writing)
+       ------- /etc/pam.d/smtpauth-login -----------
+       #%PAM-1.0
+       auth       required     pam_stack.so service=system-auth
+       account    required     pam_stack.so service=system-auth
+
+       (for older Linux PAM setup)
        ------- /etc/pam.d/smtpauth-login -----------
        #%PAM-1.0
        auth     required  pam_pwdb.so shadow
        auth     required  pam_nologin.so
        account  required  pam_pwdb.so
+
 
        For Solaris the setup needs editing /etc/pam.conf file:
 

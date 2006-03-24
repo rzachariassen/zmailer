@@ -46,16 +46,8 @@ static const char *no_input = "No input";
 	(d?CHAR_DIGIT:0)|(e?CHAR_C:0)|(f?CHAR_X:0)|(g?CHAR_Q:0)| \
 	(h?CHAR_XDIGIT:0)|(i?CHAR_822ATM:0)|(j?CHAR_XCHAR:0)
 
-/* Could use 'unsigned short' here, but the Alpha machines dislike
-   anything smaller than int (32 bit) */
-static const
-#if defined(__alpha)||defined(__alpha__)
- int
-#else
- short
-#endif
- char_array[] =
-{
+static const short int char_array[] = {
+
 		       /* /------------------------------ CHAR_ALPHA
 			  |  /--------------------------- CHAR_ALNUM
 			  |  |  /------------------------ CHAR_SPECL

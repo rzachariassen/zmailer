@@ -1,4 +1,4 @@
-/* Copyright 1993-2002 - Matti Aarnio
+/* Copyright 1993-2006 - Matti Aarnio
 
    The way the Zmailer uses DBM entries is by using strings with
    their terminating NULL as keys, and as data..  Thus the length
@@ -146,7 +146,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
      void *dbf;
      const int typ, linenum;
      const void *s, *t;
-     const int slen, tlen;
+     const int slen, tlen, overwritemode;
 {
 #ifdef HAVE_NDBM
 	DBM *ndbmfile = dbf;

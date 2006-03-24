@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2005-Jul-02"
+.TH SMTPSERVER 8zm "2006-Jan-30"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -856,6 +856,15 @@ These are some futher thoughs that may materialize some time..
 .I (group)
 This quintet controls what possibly collected data is shown at
 the published ``Received:'' header that this system generates.
+.RE
+.IP "PARAM smtpserver-cluster node-name-or-address port-number shared-secret
+.RS
+.I (global)
+In load-balance clusters a network level load-balancer may distribute
+the incoming SMTP connections to multiple real machines, and by using
+this parameter (repeatedly) to list those peers, system can track
+user behaviour consistently regardless of into which node user connection
+came at any given time.
 .RE
 .IP "PARAM etrn-cluster node-name-or-address mq2-username mq2-passwd"
 .RS
