@@ -174,6 +174,8 @@ static void dollarexpand(s0, space)
 }
 
 
+static int cfg_add_bindaddr __((ConfigParams *CP, char *param1, int use_ipv6, int bindtype, int bindport));
+
 static int cfg_add_bindaddr(CP, param1, use_ipv6, bindtype, bindport)
      ConfigParams *CP;
      char *param1;
@@ -824,8 +826,8 @@ readcffile(name)
     fclose(fp);
     if (!called_getbindaddr) {
       if (use_ipv6)
-	cfg_add_bindaddr( NULL, 1, BINDADDR_ALL, 0 );
-      cfg_add_bindaddr( NULL, 0, BINDADDR_ALL, 0 );
+	cfg_add_bindaddr( NULL, NULL, 1, BINDADDR_ALL, 0 );
+      cfg_add_bindaddr( NULL, NULL, 0, BINDADDR_ALL, 0 );
     }
     CP->bindaddr_set = (CP->bindaddrs != NULL);
 #if !(defined(HAVE_SPF_ALT_SPF_H) || defined(HAVE_SPF2_SPF_H))

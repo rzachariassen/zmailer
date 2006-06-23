@@ -1,3 +1,10 @@
+2006-06-23  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/cfgread.c:
+	    Found incorrect call to  cfg_add_bindaddr() ...
+	    Routine had no ANSI prototype, thus compiler didn't
+	    flag it..
+
 2006-03-24  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libz.h:
