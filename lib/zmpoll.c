@@ -115,7 +115,7 @@ int zmpoll_addfd(fdsp, nfdsp, rdfd, wrfd, backptr)
 	int *nfdsp;
 	int rdfd;
 	int wrfd;
-	void **backptr;
+	struct zmpollfd **backptr;
 {
 	int nfds = *nfdsp +1, i;
 	struct zmpollfd * fdp = realloc(*fdsp, sizeof(*fdp) * nfds);
