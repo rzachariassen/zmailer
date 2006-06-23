@@ -60,7 +60,7 @@ int zmpoll(__fds, __nfds, __timeout)
 	}
 	rc = poll( fds, __nfds, __timeout );
 	for (i = 0; i < __nfds; ++i) {
-	  fds[i].revents = __fds[i].revents;
+	   __fds[i].revents = fds[i].revents;
 	}
 	free(fds);
 	return rc;
