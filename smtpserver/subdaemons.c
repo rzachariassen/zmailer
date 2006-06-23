@@ -368,7 +368,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	struct peerhead job_head;
 	void *statep = NULL;
 	/* int ppid; */
-	int top_peer = 0, top_peer2, topfd, newfd;
+	int top_peer = 0, top_peer2, topfd;
 	/* int last_peer_index = 0; */
 
 	fd_set rdset, wrset;
@@ -449,7 +449,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  tv.tv_sec  = 10; /* 10 second tick.. */
 	  tv.tv_usec =  0;
 
-	  topfd = 0;
+	  topfd = -1;
 	  if (rendezvous_socket >= 0) {
 	    _Z_FD_SET(rendezvous_socket, rdset);
 	    topfd = rendezvous_socket;
@@ -503,8 +503,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	    if (rendezvous_socket >= 0 &&
 		_Z_FD_ISSET(rendezvous_socket, rdset)) {
+
 	      /* We have (possibly) something to receive.. */
-	      newfd = -1;
+	      int newfd = -1;
 	      rc = fdpass_receivefd(rendezvous_socket, &newfd);
 
 	      /* type(NULL,0,NULL,"fdpass_received(%d) -> rc=%d newfd = %d",
@@ -513,6 +514,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	      if (rc == 0) {
 		close(rendezvous_socket);
 		rendezvous_socket = -1;
+
+		/* Loop again to study things, things don't look all
+		   too bright for our continued existence.. */
+		continue;
 
 	      } else if ((rc > 0)  && (newfd >= 0)) { /* Successfully received something */
 		/* Ok, we have 'newfd', now we need a new peer slot.. */
