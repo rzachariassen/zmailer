@@ -356,6 +356,9 @@
 /* System has OpenSSL of some version, and want to use it. */
 #undef HAVE_OPENSSL
 
+/* Define to 1 if you have the `poll' function. */
+#undef HAVE_POLL
+
 /* Define to 1 if you have the <protocols/rwhod.h> header file. */
 #undef HAVE_PROTOCOLS_RWHOD_H
 
@@ -558,6 +561,9 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/poll.h> header file. */
+#undef HAVE_SYS_POLL_H
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #undef HAVE_SYS_RESOURCE_H

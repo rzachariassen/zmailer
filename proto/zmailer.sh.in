@@ -234,6 +234,10 @@ do
                 fi
                 echoo ") "
 	    fi
+	    # And finally, execute the policy-builder in case
+	    # some file that is used both in routing, and in
+	    # smtpserver policy codes did change...
+	    policy-builder.sh
             ;;
         newf*)
             newfqdnaliases

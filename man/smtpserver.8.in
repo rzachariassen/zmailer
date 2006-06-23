@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2006-Jan-30"
+.TH SMTPSERVER 8zm "2006-Apr-7"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -965,7 +965,12 @@ PARAM  enable-router    # This is a security decission for you.
 #       # However it also may allow external user entrance
 #       # to ZMailer router shell environment with suitably
 #       # pervert input, if quotation rules are broken in
-#       # the scripts.
+#       # the scripts.  Not having this enabled does mean
+#       # that input can freely feed whatever locally non-
+#       # existent addresses that are then bouncing via
+#       # routing, or via delivery attempts.
+#       # Spamming being what it is, any bounce message _you_
+#       # don't need to send is all the better...
 PARAM  enable-router-maxpar 2
 #       # Resource control: Start at most 2 interactive
 #       # routers, if such are needed. The value range
@@ -1266,13 +1271,15 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 # HELO/EHLO-pattern     style-flags / !reject_message
 #               [max loadavg]
 #
-#  Note about the style-flags: 'ftve' set needs enable-router!
+#  Note about the style-flags: 've' set needs enable-router!
+#   'ft' mean nothing anymore, and 'FT' disable use of enabled
+#    inline router address analysis (if 'enable-router' is set.)
 #    The system will not complain about lack of it (since 2.99.56),
 #    but without that enable, those four flags have no effect.
 #
 #  List of supported style flags:
-#    f     Process MAIL FROM thru the interactive router
-#    t     Process RCPT TO thru the interactive router
+#    F     DISABLE processing of MAIL FROM thru the interactive router
+#    T     DISABLE processing of RCPT TO thru the interactive router
 #    v     Process VRFY thru the interactive router
 #    e     Process EXPN thru the interactive router
 #    R     Require always fully-qualified addresses for MAIL FROM,
@@ -1296,13 +1303,13 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 # The syntax below is due to these patterns being SH-GLOB style patterns
 # where the brackets are special characters.
 
-#\\[*\\]                * ftve
+#\\[*\\]                * ve
 
 # Per default demand strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
 # on that detail, remove the "R" from "veR" string below:
 
-*                    * ftveR
+*                    * veR
 .fi
 .sp
 .RE

@@ -37,7 +37,8 @@ struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_postselect,
 	subdaemon_handler_rtr_shutdown,
 	subdaemon_handler_rtr_killpeer,
-	NULL,
+	NULL, /* reaper */
+	NULL, /* sigusr2 */
 	NULL,
 	NULL
 };

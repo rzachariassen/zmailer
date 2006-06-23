@@ -848,7 +848,7 @@ int insecure;
       return -1;
     }
     s = NULL;
-    if ( enable_router && /* addrlen > 0 && */ STYLE(SS->cfinfo, 'f')) {
+    if ( enable_router && /* addrlen > 0 && */ !STYLE(SS->cfinfo, 'F')) {
 	s = router(SS, RKEY_FROM, 1, cp, addrlen);
 	if (s == NULL) {
 	    /* the error was printed in router() */
@@ -1543,7 +1543,7 @@ const char *buf, *cp;
     }
 
     s = NULL;
-    if (enable_router && STYLE(SS->cfinfo, 't')) {
+    if (enable_router && !STYLE(SS->cfinfo, 'T')) {
 	s = router(SS, RKEY_TO, 1, cp, addrlen);
 	if (s == NULL) {
 	    /* the error was printed in router() */

@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-2002 Matti Aarnio.
+ *	Some functions Copyright 1991-2006 Matti Aarnio.
  */
 
 /*
@@ -14,6 +14,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #endif
+
+#include "zmpoll.h"  /* We have ZMPOLL -wrapper for preferrably real poll(2),
+			or as a backup, for select(2).  */
 
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
@@ -132,6 +135,8 @@ struct router_child {
   int   fromchild;
   int   childpid;
   int   hungry;
+  struct zmpollfd *fdpto;
+  struct zmpollfd *fdpfrom;
 
   char *linebuf;
   int   linespace;
@@ -537,109 +542,58 @@ static void _parent_writer(rc)
 }
 
 
-#ifdef	HAVE_SELECT
-
-#ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
-# include <sys/types.h>
-# include <sys/select.h>
-#endif
-
-
-#if	defined(BSD4_3) || defined(sun)
-#include <sys/file.h>
-#endif
-#include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
-
 /* Return info re has some waiting been done */
 
 static int parent_reader(waittime)
 	int waittime;
 {
-  fd_set rdset, wrset;
-  int i, highfd, fd, rc;
-  struct timeval tv;
+  int i, fd, rc, highfd;
+  struct zmpollfd *fds = NULL;
+  struct zmpollfd *notifyfdp = NULL;
 
   if (notifysocket_reinit && notifysocket_reinit < now)
     notifysock_init();
 
  redo_again:;
 
-  _Z_FD_ZERO(rdset);
-  _Z_FD_ZERO(wrset);
+  highfd = 0;
 
   highfd = notifysocket;
   if (notifysocket >= 0)
-    _Z_FD_SET(notifysocket, rdset);
+    zmpoll_addfd(&fds, &highfd, notifysocket, -1, &notifyfdp);
 
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
     /* Places to read from ?? */
     fd = routerchilds[i].fromchild;
-    if (fd >= 0) {
-      _Z_FD_SET(fd, rdset);
-      if (highfd < fd)
-	highfd = fd;
-    }
+    if (fd >= 0)
+      zmpoll_addfd(&fds, &highfd, fd, -1, &routerchilds[i].fdpfrom);
+    else
+      routerchilds[i].fdpfrom = NULL; /* Mark that we do NOT have dataset! */
+
     /* Something wanting to write ?? */
     fd = routerchilds[i].tochild;
     if (fd >= 0 &&
-	routerchilds[i].childout < routerchilds[i].childsize) {
-      _Z_FD_SET(fd, wrset);
-      if (highfd < fd)
-	highfd = fd;
-    }
+	routerchilds[i].childout < routerchilds[i].childsize)
+      /* Have fd, but nothing to write.. */
+      zmpoll_addfd(&fds, &highfd, -1, fd, &routerchilds[i].fdpto);
+    else
+      routerchilds[i].fdpto = NULL; /* Mark that we do NOT have dataset! */
   }
+
 #if 0
-  if (highfd < 0) return 0; /* Nothing to do! */
+  if (highfd < 0) {
+    if (fds) free(fds);
+    return 0; /* Nothing to do! */
+  }
 #endif
 
-  tv.tv_sec = waittime;
-  tv.tv_usec = 0;
-  rc = select(highfd+1, &rdset, &wrset, NULL, &tv);
+  rc = zmpoll( fds, highfd, waittime*1000 /* millisecs */ );
 
-  if (rc == 0) return 1; /* Nothing to do, leave..
-			    Did sleep for a second! */
+  if (rc == 0) {
+    if (fds) free(fds);
+    return 1; /* Nothing to do, leave..
+		 Did sleep for a waittime! */
+  }
 
   if (rc < 0) {
     /* Drat, some error.. */
@@ -650,36 +604,26 @@ static int parent_reader(waittime)
       _parent_writer(&routerchilds[i]);
       _parent_reader(&routerchilds[i]);
     }
+    if (fds) free(fds);
     return 0;  /* Urgh, an error.. */
   }
 
-  /* Ok, select gave indication of *something* being ready for read */
+  /* Ok, zmpoll() gave indication of *something* being ready for read */
 
-  if (notifysocket >= 0 && _Z_FD_ISSET(notifysocket, rdset))
+  if (notifyfdp  &&  (notifyfdp->revents & ZM_POLLIN))
     notify_reader(notifysocket);
 
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
-    fd = routerchilds[i].tochild;
-    if (fd >= 0 && _Z_FD_ISSET(fd, wrset))
+    struct router_child *r = &routerchilds[i];
+
+    if (r->fdpto && r->fdpto->revents & ZM_POLLOUT)
       _parent_writer(&routerchilds[i]);
-    fd = routerchilds[i].fromchild;
-    if (fd >= 0 && _Z_FD_ISSET(fd, rdset))
+    if (r->fdpfrom && r->fdpfrom->revents & ZM_POLLIN)
       _parent_reader(&routerchilds[i]);
   }
+
   return 1; /* Did some productive job, don't sleep at the caller.. */
 }
-
-#else /* NO HAVE_SELECT */
-static int parent_reader(waittime)
-	int waittime;
-{
-  int i;
-  /* No select, but can do non-blocking -- we hope.. */
-  for (i = 0; i < MAXROUTERCHILDS; ++i)
-    _parent_reader(&routerchilds[i], waittime);
-  return 0;
-}
-#endif
 
 
 

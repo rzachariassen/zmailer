@@ -1292,7 +1292,8 @@ tls_start_servertls(SS)
     SSL_SESSION * session;
     SSL_CIPHER  * cipher;
     X509	* peer;
-    char	cbuf[4000];
+    char	  cbuf[ 4000 ];
+    const char  * kp;
 
     BIO		*wbio, *rbio;
     BIO_METHOD  *rbiomethod_old;
@@ -1581,9 +1582,21 @@ tls_start_servertls(SS)
     /*
      * Finally, collect information about protocol and cipher for logging
      */
-    SS->TLS.protocol = SSL_get_version(SS->TLS.ssl);
+    kp = SSL_get_version(SS->TLS.ssl);
+    if (kp)
+      SS->TLS.protocol = strdup(kp); /* This data belongs to SSL library,
+					make a copy of it for ourselves.
+					Darryl L. Miles */
+    else
+      SS->TLS.protocol = NULL;
     cipher = SSL_get_current_cipher(SS->TLS.ssl);
-    SS->TLS.cipher_name    = SSL_CIPHER_get_name(cipher);
+    kp    = SSL_CIPHER_get_name(cipher);
+    if (kp)
+      SS->TLS.cipher_name = strdup(kp); /* This data belongs to SSL library,
+					   make a copy of it for ourselves.
+					   Darryl L. Miles */
+    else
+      SS->TLS.cipher_name = NULL;
     SS->TLS.cipher_usebits = SSL_CIPHER_get_bits(cipher,
 						 &SS->TLS.cipher_algbits);
 

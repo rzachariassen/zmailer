@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-2001 Matti Aarnio.
+ *	Some functions Copyright 1991-2006 Matti Aarnio.
  */
 
 /*
@@ -646,7 +646,6 @@ FILE *fp;
 	int lastfd = getdtablesize();
 	fd_set fdset;
 	struct timeval tv;
-	extern int errno;
 
 	fprintf(fp,"File handles: %d/",lastfd);
 

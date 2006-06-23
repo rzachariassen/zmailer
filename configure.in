@@ -1698,9 +1698,9 @@ AC_CHECK_FUNCS( endgrent fchdir ftime getcwd getgroups setgroups \
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
                  protocols/rwhod.h select.h sys/select.h \
-		 ifaddrs.h locale.h )
+		 ifaddrs.h locale.h sys/poll.h)
 
-AC_CHECK_FUNCS(select syslog getdtablesize setpriority \
+AC_CHECK_FUNCS(select poll syslog getdtablesize setpriority \
 	       getifaddrs freeifaddrs setlocale)
 
 AC_CHECK_HEADERS(sys/loadavg.h) dnl Solaris 8, BSD uses <stdlib.h>

@@ -144,6 +144,9 @@ pipeauth(cmd, msg, msgsize, uname, password)
         fprintf( wfp, "%s\n", password );
 	fflush(wfp);
         fclose( wfp );
+	wfp = NULL; /* Mark the pointer null too, so we won't
+		       double-close this futher below.
+		       "Darryl L. Miles" <darryl@netbauds.net> */
 	/* Following weird thing is because we have top-level
 	   child-death reaper code at the main part of this
 	   program... */

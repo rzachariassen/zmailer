@@ -3,7 +3,51 @@
 	* smtpserver/cfgread.c:
 	    Found incorrect call to  cfg_add_bindaddr() ...
 	    Routine had no ANSI prototype, thus compiler didn't
-	    flag it..
+	    flag it during compile..
+
+	* smtpserver/subdaemon-rtr.c:
+	    Hunting a bad select() detection..
+
+	* configure.in:
+	    Autodetect sys/poll.h,  and  poll() functions.
+
+	* lib/Makefile.in, lib/zmpoll.c, router/daemonsub.c,
+	  zzz
+	    Introduce internal  zmpoll()  API.
+
+	* router/functions.c:
+	    Remove internal explicite 'extern int errno';
+
+	* transports/libta/mimeheaders.c:
+	    Compiler complained about untyped (default int) function parameter.
+
+2006-04-06  Daryl L. Miles  (forgotten commits)
+	
+	* smtpserver/zpwmatch-pipe.c:
+	    Remember to mark wfp closed by NULLing the pointer.
+
+	* smtpserver/smtptls.c:
+	    SSL library has some local data, make our own copy of it
+	    so that we can correctly free it latter..
+
+	* utils/policy-builder.sh.in:
+	    Having multiple (different) policy datasets does 
+	    benefit of having an option to explicitely refer to
+	    particular basename.
+
+2006-03-25  Matti Aarnio  <mea@zmailer.org>  (forgotten commits)
+
+	* smtpserver/smtpcmds.c, man/smtpserver.8.in,
+	  proto/smtpserver.conf.in:
+	    Turn opposite the meaning of 'f' and 't' style flags;
+	    from now on there must be 'F' and/or 'T' style flag
+	    if you do NOT want to use internal router to verify
+	    MAIL FROM and RCPT TO verb addresses.
+
+	* proto/zmailer.sh.in:
+	    Run also policy-builder.sh  after  newdb in case
+	    there was some source database that was used in both
+	    sets.
 
 2006-03-24  Matti Aarnio  <mea@zmailer.org>
 

@@ -32,7 +32,8 @@ fi
 . $ZCONFIG
 
 DBDIR="$MAILVAR/db/"
-USAGE="Usage: $0 [-n] [-d dbdir]"
+DBFILE="smtp-policy"
+USAGE="Usage: $0 [-n] [-d dbdir] [-f dbfile]"
 
 while [ "$1" != "" ]; do
     case "$1" in
@@ -45,6 +46,16 @@ while [ "$1" != "" ]; do
 	    if [ ! -d $DBDIR ]; then
 		echo $USAGE
 		exit 1
+	    fi
+	    ;;
+
+	-f)
+	    shift
+	    DBFILE=$1
+	    if [ ! -f "${DBDIR}/${DBFILE}.src" ]
+	    then
+	        echo $USAGE
+	        exit 1
 	    fi
 	    ;;
 	?)
@@ -64,36 +75,36 @@ umask 022
 
 cd $DBDIR
 
-if [ ! -f smtp-policy.src ] ; then
-	echo "No $DBDIR/smtp-policy.src input file"
+if [ ! -f ${DBFILE}.src ] ; then
+	echo "No $DBDIR/${DBFILE}.src input file"
 	exit 64 # EX_USAGE
 fi
 
 #if [ f$FLAG != fn ]; then
-#    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
-#	$MAILBIN/smtp-policy-retrieve.pl
+#    if [ -x $MAILBIN/${DBFILE}-retrieve.pl ] ; then
+#	$MAILBIN/${DBFILE}-retrieve.pl
 #    else
 #	if [ -x $MAILBIN/spamlist.py -a -r spamlist_sources ] ; then
-#	    $MAILBIN/spamlist.py spamlist_sources > smtp-policy.spam.new && \
-#		mv  smtp-policy.spam.new smtp-policy.spam
+#	    $MAILBIN/spamlist.py spamlist_sources > ${DBFILE}.spam.new && \
+#		mv  ${DBFILE}.spam.new ${DBFILE}.spam
 #	else
 #	    #
 #	    # Following IS NOT SAFE, if either produces errors, those
 #	    # go (usually) to the result file, and in the end the result
-#	    # OVERWRITES the "running"  smtp-policy.spam  file.
+#	    # OVERWRITES the "running"  ${DBFILE}.spam  file.
 #	    #
-#	    > smtp-policy.spam.new
+#	    > ${DBFILE}.spam.new
 #	   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
 #		| sed -e '1,$s/^@/./' \
-#		>> smtp-policy.spam.new
+#		>> ${DBFILE}.spam.new
 #	   lynx -source http://www.sprocket.com/Security/SpamDomains | \
-#		awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
-#	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
-#		    sort | uniq > smtp-policy.spam.new2
-#	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
-#		mv smtp-policy.spam smtp-policy.spam.old
-#		mv smtp-policy.spam.new2 smtp-policy.spam
-#		rm -f smtp-policy.spam.new
+#		awk 'NF > 0 {printf ".%s\n",$1}' >> ${DBFILE}.spam.new
+#	    cat ${DBFILE}.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
+#		    sort | uniq > ${DBFILE}.spam.new2
+#	    if [ `grep -c cyberpromo ${DBFILE}.spam.new` -gt "0" ]; then
+#		mv ${DBFILE}.spam ${DBFILE}.spam.old
+#		mv ${DBFILE}.spam.new2 ${DBFILE}.spam
+#		rm -f ${DBFILE}.spam.new
 #	    else
 #		echo "Hmm....something went wrong while updating the spam policy."
 #		echo "Please try again."
@@ -107,7 +118,7 @@ fi
 # Fork off a subshell to do it all...
 (
   # The basic boilerplate
-  cat smtp-policy.src
+  cat ${DBFILE}.src
 
   # Localnames
   echo "# ----------"
@@ -116,59 +127,59 @@ fi
   sed -e 's/#.*$//' | \
   awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
 
-  # smtp-policy.relay
+  # ${DBFILE}.relay
   # (Lists NETWORKS (NO DOMAINS!) that are allowed to use us as relay)
   # (well, actually it could also list e.g.: ".our.domain" if it would
   #  be fine to allow relaying from anybody whose IP address reverses to
   #  domain suffix ".our.domain")
-  if [ -f smtp-policy.relay.manual ] ; then
+  if [ -f ${DBFILE}.relay.manual ] ; then
     echo "# -------------------------"
-    echo "# smtp-policy.relay.manual:"
-    cat smtp-policy.relay.manual | \
+    echo "# ${DBFILE}.relay.manual:"
+    cat ${DBFILE}.relay.manual | \
     sed -e 's/#.*$//' | \
     awk '/^#/{next;}
 	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
-  if [ -f smtp-policy.relay ] ; then
+  if [ -f ${DBFILE}.relay ] ; then
     echo "# ------------------"
-    echo "# smtp-policy.relay:"
-    cat smtp-policy.relay | \
+    echo "# ${DBFILE}.relay:"
+    cat ${DBFILE}.relay | \
     sed -e 's/#.*$//' | \
     awk '/^#/{next;}
 	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
 
-  # smtp-policy.mx.manual
+  # ${DBFILE}.mx.manual
   # (Lists domains that are allowed to use us as inbound MX relay for them)
-  if [ -f smtp-policy.mx.manual ] ; then
+  if [ -f ${DBFILE}.mx.manual ] ; then
     echo "# ----------------------"
-    echo "# smtp-policy.mx.manual:"
-    cat smtp-policy.mx.manual | \
+    echo "# ${DBFILE}.mx.manual:"
+    cat ${DBFILE}.mx.manual | \
     sed -e 's/#.*$//' | \
     awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
-  # smtp-policy.mx
+  # ${DBFILE}.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
-  if [ -f smtp-policy.mx ] ; then
+  if [ -f ${DBFILE}.mx ] ; then
     echo "# ---------------"
-    echo "# smtp-policy.mx:"
-    cat smtp-policy.mx | \
+    echo "# ${DBFILE}.mx:"
+    cat ${DBFILE}.mx | \
     sed -e 's/#.*$//' | \
     awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
 
-  # smtp-policy.spam
+  # ${DBFILE}.spam
   # (Lists users, and domains that are known spam sources)
   # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
   #  which is intended for QMAIL, and thus needs to be edited..)
-  if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
+  if [ -f ${DBFILE}.spam -o -f ${DBFILE}.spam.manual ] ; then
     echo "# ---------------------------"
-    echo "# smtp-policy.spam{,.manual}:"
-    ( if [ -f smtp-policy.spam ] ; then
-	cat smtp-policy.spam
+    echo "# ${DBFILE}.spam{,.manual}:"
+    ( if [ -f ${DBFILE}.spam ] ; then
+	cat ${DBFILE}.spam
       fi
-      if [ -f smtp-policy.spam.manual ] ; then
-	cat smtp-policy.spam.manual
+      if [ -f ${DBFILE}.spam.manual ] ; then
+	cat ${DBFILE}.spam.manual
       fi ) | tr "[A-Z]" "[a-z]" | \
     sed -e 's/#.*$//' | \
     sed 's/^@//g' | sort | uniq | \
@@ -182,7 +193,7 @@ fi
   fi
 
 # --------- end of subshell
-) > smtp-policy.dat
+) > ${DBFILE}.dat
 
 umask 022 # Make sure the resulting db file(s) are readable by all
 
@@ -190,29 +201,29 @@ umask 022 # Make sure the resulting db file(s) are readable by all
 # has same key repeating, append latter data instances to the first
 # one (-A):
 
-if $MAILBIN/makedb -A -p $DBTYPE smtp-policy-new smtp-policy.dat
+if $MAILBIN/makedb -A -p $DBTYPE ${DBFILE}-new ${DBFILE}.dat
 then
   :
 else
   rc=$?
-  echo "smtp-policy control database makedb failure rc= $rc"
+  echo "${DBFILE} control database makedb failure rc= $rc"
   exit $rc
 fi
 
 case $DBTYPE in
 dbm)
-	mv smtp-policy-new.dir  smtp-policy.dir
-	mv smtp-policy-new.pag  smtp-policy.pag
+	mv ${DBFILE}-new.dir  ${DBFILE}.dir
+	mv ${DBFILE}-new.pag  ${DBFILE}.pag
 	;;
 ndbm)
-	mv smtp-policy-new.dir  smtp-policy.dir
-	mv smtp-policy-new.pag  smtp-policy.pag
+	mv ${DBFILE}-new.dir  ${DBFILE}.dir
+	mv ${DBFILE}-new.pag  ${DBFILE}.pag
 	;;
 gdbm)
-	mv smtp-policy-new.gdbm smtp-policy.gdbm
+	mv ${DBFILE}-new.gdbm ${DBFILE}.gdbm
 	;;
 btree)
-	mv smtp-policy-new.db   smtp-policy.db
+	mv ${DBFILE}-new.db   ${DBFILE}.db
 	;;
 esac
 
