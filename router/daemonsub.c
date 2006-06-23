@@ -556,9 +556,9 @@ static int parent_reader(waittime)
 
  redo_again:;
 
-  highfd = 0;
+  highfd = 0; /* actually counts polled fd's, does not track
+		 highest fd like with select(2) ! */
 
-  highfd = notifysocket;
   if (notifysocket >= 0)
     zmpoll_addfd(&fds, &highfd, notifysocket, -1, &notifyfdp);
 
