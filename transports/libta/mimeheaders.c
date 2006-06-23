@@ -84,7 +84,7 @@ static int  /* FIXME: ??? LEAKS ?? */
 strqcpy(bufp, startpos, buflenp, str)
 	char **bufp;
 	const char *str;
-	int *buflenp;
+	int *buflenp, startpos;
 {
 	const char *s = str;
 	char *buf = *bufp;
