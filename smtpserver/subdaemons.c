@@ -429,14 +429,14 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	  if (sawsigchld) {
 	    if (subdaemon_handler->reaper)
-	      subdaemon_handler->reaper( &statep );
+	      subdaemon_handler->reaper( statep );
 	    else
 	      default_reaper(SIGCHLD);
 	  }
 	  if (got_sigusr2) {
 	    got_sigusr2 = 0;
 	    if (subdaemon_handler->sigusr2)
-	      subdaemon_handler->sigusr2( &statep );
+	      subdaemon_handler->sigusr2( statep );
 	  }
 
 	  if ( (rendezvous_socket < 0) &&

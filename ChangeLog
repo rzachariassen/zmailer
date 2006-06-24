@@ -4,7 +4,10 @@
 	  smtpserver/subdaemons.c, smtpserver/subdaemon-trk.c:
 	   Sun SUNWspro compiler v.11 practically wants all
 	   global variables that signal handlers modify to be
-	   of type "volatile".
+	   of type "volatile".  --  Nope, didn't help...
+	   Latter found extraneous pointer formation and usage
+	   where such were not necessary and caused observed
+	   misbehaviour...
 
 2006-06-23  Matti Aarnio  <mea@zmailer.org>
 
