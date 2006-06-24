@@ -34,7 +34,7 @@ static int subdaemon_loop __((int, struct subdaemon_handler *));
 /* static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, struct subdaemon_handler *subdaemon_handler, void *statep)); */
 
 
-static int got_sigusr2;
+static volatile int got_sigusr2;
 
 static RETSIGTYPE subdaemon_sigusr2(sig)
      int sig;

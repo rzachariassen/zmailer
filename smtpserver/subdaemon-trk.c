@@ -625,7 +625,7 @@ dump_v4_rcptline(p, spl)
 }
 
 
-static int got_sigusr1;
+static volatile int got_sigusr1;
 
 static RETSIGTYPE subdaemon_trk_sigusr1(sig)
      int sig;

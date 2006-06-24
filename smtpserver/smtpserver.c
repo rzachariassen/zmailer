@@ -121,13 +121,13 @@ int X_8bit;
 int X_settrrc = 9;
 #endif				/* USE_TRANSLATION */
 int strict_protocol;
-int mustexit;
+volatile int mustexit;		/* set from within signal handler */ 
 int configuration_ok;
-int gotalarm;
+volatile int gotalarm;		/* set from within signal handler */ 
 int unknown_cmd_limit = 10;
 int sum_sizeoption_value;
 int always_flush_replies;
-int sawsigchld;
+volatile int sawsigchld;	/* set from within signal handler */ 
 
 etrn_cluster_ent       etrn_cluster       [MAX_ETRN_CLUSTER_IDX];
 smtpserver_cluster_ent smtpserver_cluster [MAX_SMTPSERVER_CLUSTER_IDX];
@@ -1993,7 +1993,7 @@ reaper(sig)
       logfp = NULL;
     }
 
-    SIGNAL_HANDLE(SIGCHLD, reaper);
+    SIGNAL_HANDLE(SIGCHLD, sigchld);
     SIGNAL_RELEASE(SIGCHLD);
 }
 

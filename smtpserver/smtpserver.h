@@ -641,7 +641,7 @@ extern int runastrusteduser __((void));
 extern char **environ;
 extern int kill __((pid_t, int));
 extern RETSIGTYPE sigchld  __((int sig));
-extern int sawsigchld;
+extern volatile int sawsigchld;
 
 extern const char *rfc822atom __((const char *str));
 extern const char *xtext_string __((const char *str));
