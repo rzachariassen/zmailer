@@ -19,10 +19,10 @@
 const char taspid_encodechars[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123abcdefghijklmnopqrstuvwxyz4567890-=";
 
-void taspoolid(buf,mtime,inodenum)
-char *buf;
-time_t mtime;
-long inodenum;
+void taspoolid(buf,inodenum,mtime,mtimens)
+     char *buf;
+     time_t mtime;
+     long inodenum, mtimens;
 {
   char *s = buf;
   struct tm *tt;
@@ -52,6 +52,15 @@ long inodenum;
   *s++ = taspid_encodechars[tt->tm_min];
   /* Seconds */
   *s++ = taspid_encodechars[tt->tm_sec];
+
+  if (mtimens != 0) { /* Add nanoseconds to the spoolid ONLY IF it differs from zero! */
+    /* Nanoseconds */
+    *s++ = taspid_encodechars[ (mtimens >> 24) & 63 ]; /*   1.1 s  */
+    *s++ = taspid_encodechars[ (mtimens >> 18) & 63 ]; /*  16.8 ms */
+    *s++ = taspid_encodechars[ (mtimens >> 12) & 63 ]; /* 262.1 µs */
+    *s++ = taspid_encodechars[ (mtimens >>  6) & 63 ]; /*   4.1 µs */
+    *s++ = taspid_encodechars[ (mtimens      ) & 63 ]; /*    64 ns */
+  }
 
   *s = 0; /* terminate zero */
 
