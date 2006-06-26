@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8zm "2005-May-25"
+.TH SCHEDULER 8zm "2006-Jun-26"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -974,6 +974,11 @@ where the fields are:
 .IP spoolid
 Spoolid (encoded inode and spool file mtime), which can be used
 to correlate with syslogged data with these same ids.
+The spoolid uses nanosecond resolution version of mtime, if such is
+supported in the system, and will in all cases encode nanoseconds as
+last five characters of the spoolid.
+Systems which do not internally support nanosecond timers in files
+will often result with same spoolid value for two messages.
 .PP
 .IP timestamp
 The original spoolfile ctime (modification time) stamp in decimal.
