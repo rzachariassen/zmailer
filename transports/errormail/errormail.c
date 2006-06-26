@@ -332,8 +332,23 @@ process(dp)
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
 	  struct stat stbuf;
 
+	  /* This is NOT spoolid, the mtime will change yet... */
 	  fstat(sffileno(mfp),&stbuf);
-	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
+	  taspoolid(boundarystr,  (long)stbuf.st_ino, stbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		    stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		    stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		    stbuf.st_mtimensec
+#else
+		    0
+#endif
+#endif
+#endif
+		    );
 	  strcat(boundarystr, "=_/errmail/");
 	  strcat(boundarystr, dom);
 	}
@@ -541,7 +556,7 @@ process(dp)
 	{
 	  /* Ok, build response with proper "spoolid" */
 	  char taspid[30];
-	  taspoolid(taspid, mtime, inum);
+	  taspoolid(taspid, inum, mtime, 0); /* FIXME! FIXME! */
 
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(verboselog, rp, n, 0, taspid);

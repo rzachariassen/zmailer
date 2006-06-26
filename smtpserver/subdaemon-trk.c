@@ -66,12 +66,12 @@ int auth_failrate = 20;
 extern int ratetracker_rdz_fd;
 extern int ratetracker_server_pid;
 
-static int subdaemon_handler_trk_init  __((void**));
-static int subdaemon_handler_trk_input __((void *, struct peerdata*));
-static int subdaemon_handler_trk_preselect  __((void*, fd_set *, fd_set *, int *));
-static int subdaemon_handler_trk_postselect __((void*, fd_set *, fd_set *));
-static int subdaemon_handler_trk_shutdown   __((void*));
-static int subdaemon_handler_trk_sigusr2    __((void*));
+static int subdaemon_handler_trk_init  __((struct subdaemon_state **));
+static int subdaemon_handler_trk_input __((struct subdaemon_state *, struct peerdata*));
+static int subdaemon_handler_trk_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
+static int subdaemon_handler_trk_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
+static int subdaemon_handler_trk_shutdown   __((struct subdaemon_state *));
+static int subdaemon_handler_trk_sigusr2    __((struct subdaemon_state *));
 
 
 struct subdaemon_handler subdaemon_handler_ratetracker = {
@@ -821,7 +821,7 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 
 static int
 subdaemon_handler_trk_init (statep)
-     void **statep;
+     struct subdaemon_state **statep;
 {
 	int i;
 	struct trk_state *state = calloc(1, sizeof(*state));
@@ -843,7 +843,7 @@ subdaemon_handler_trk_init (statep)
 #endif
 
 
-	*statep = state;
+	*statep = (struct subdaemon_state *)state;
 
         /* runastrusteduser(); */
 
@@ -894,14 +894,14 @@ static void cluster_trk_opeers_output __((struct cluster_trk_peers *cpeer, const
 
 static int
 subdaemon_handler_trk_input (statep, peerdata)
-     void *statep;
+     struct subdaemon_state *statep;
      struct peerdata *peerdata;
 {
-	struct trk_state *state = statep;
 	char actionlabel[8], iplabel[40], typelabel[10];
 	char lastlimits[20], countstr[20], *s1, *s2, *s3, *s4, *s5;
 	int i, llv1, llv2, llv3, llv4, count1, count2;
 	long ipv4addr;
+	struct trk_state *state = (struct trk_state *)statep;
 
 	subdaemon_trk_checksigusr1(state);
 	if (state->cpeers)
@@ -1178,12 +1178,12 @@ static void cluster_trk_opeer_setup(peers)
 
 static int
 subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
-     void *statep;
+     struct subdaemon_state *statep;
      fd_set *rdset, *wrset;
      int *topfd;
 {
-	struct trk_state *state = statep;
 	int i;
+	struct trk_state *state = (struct trk_state *)statep;
 
 	subdaemon_trk_checksigusr1(state);
 
@@ -1616,10 +1616,10 @@ static void cluster_trk_ipeer_output(ipeer, inpbuf, len)
 
 static int
 subdaemon_handler_trk_postselect (statep, rdset, wrset)
-     void *statep;
+     struct subdaemon_state *statep;
      fd_set *rdset, *wrset;
 {
-	struct trk_state *state = statep;
+	struct trk_state *state = (struct trk_state *)statep;
 
 	if (now >= state->next_slotchange)
 	  new_ipv4_timeslot( state );
@@ -1867,9 +1867,9 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 
 static int
 subdaemon_handler_trk_sigusr2 (statep)
-     void *statep;
+     struct subdaemon_state *statep;
 {
-	struct trk_state *state = statep;
+	struct trk_state *state = (struct trk_state *)statep;
 
 	if (state && state->cpeers &&
 	    state->cpeers->listenfd >= 0)
@@ -1885,7 +1885,7 @@ subdaemon_handler_trk_sigusr2 (statep)
 
 static int
 subdaemon_handler_trk_shutdown (statep)
-     void *statep;
+     struct subdaemon_state *statep;
 {
 
 	/* FIXME? Close peers?  (exit soon after will do it..) */

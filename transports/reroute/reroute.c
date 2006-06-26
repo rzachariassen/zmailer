@@ -4,7 +4,7 @@
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1991-2003 by Matti Aarnio.
+ *	Copyright 1991-2006 by Matti Aarnio.
  */
 
 /*
@@ -411,7 +411,7 @@ process(dp)
 	  char taspid[30];
 	  char msgbuf[100], msgbuf2[100];
 	  char msgbuf3[100];
-	  taspoolid(taspid, mtime, ino);
+	  taspoolid(taspid, ino, mtime, 0); /* FIXME! FIXME! */
 
 	  sprintf(msgbuf,"2.2.0 (Sent into reroute with spoolid: %s )",taspid);
 	  sprintf(msgbuf2,"x-local; 250 (Sent into reroute with spoolid: %s )",taspid);

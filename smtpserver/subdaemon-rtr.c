@@ -23,12 +23,12 @@ extern int mustexit;
 
 static const char *Hungry = "#hungry\n";
 
-static int subdaemon_handler_rtr_init  __((void**));
-static int subdaemon_handler_rtr_input __((void *, struct peerdata*));
-static int subdaemon_handler_rtr_preselect  __((void*, fd_set *, fd_set *, int *));
-static int subdaemon_handler_rtr_postselect __((void*, fd_set *, fd_set *));
-static int subdaemon_handler_rtr_shutdown   __((void*));
-static int subdaemon_handler_rtr_killpeer __((void *, struct peerdata*));
+static int subdaemon_handler_rtr_init  __((struct subdaemon_state **));
+static int subdaemon_handler_rtr_input __((struct subdaemon_state *, struct peerdata*));
+static int subdaemon_handler_rtr_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
+static int subdaemon_handler_rtr_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
+static int subdaemon_handler_rtr_shutdown   __((struct subdaemon_state *));
+static int subdaemon_handler_rtr_killpeer __((struct subdaemon_state *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_init,
@@ -236,7 +236,7 @@ static int subdaemon_callr (RTR)
 
 static int
 subdaemon_handler_rtr_init (statep)
-     void **statep;
+     struct subdaemon_state **statep;
 {
 	RtState *state;
 	int idx;
@@ -245,7 +245,8 @@ subdaemon_handler_rtr_init (statep)
 	if (MaxRtrs < 1)       MaxRtrs = 1;
 	if (MaxRtrs > MAXRTRS) MaxRtrs = MAXRTRS;
 
-	*statep = state  = calloc(MaxRtrs, sizeof(RtState));
+	state  = calloc(MaxRtrs, sizeof(RtState));
+	*statep = (struct subdaemon_state*) state;
 
 
 	if (state) {
@@ -278,10 +279,10 @@ subdaemon_handler_rtr_init (statep)
  */
 static int
 subdaemon_handler_rtr_input (state, peerdata)
-     void *state;
+     struct subdaemon_state *state;
      struct peerdata *peerdata;
 {
-	RtState *RTstate = state;
+	RtState *RTstate = (RtState *)state;
 	int rc = 0;
 	int idx;
 
@@ -337,11 +338,11 @@ subdaemon_handler_rtr_input (state, peerdata)
 
 static int
 subdaemon_handler_rtr_killpeer (state, peerdata)
-     void *state;
+     struct subdaemon_state *state;
      struct peerdata *peerdata;
 {
 	int idx;
-	RtState *RTstate = state;
+	RtState *RTstate = (RtState *)state;
 
 	for (idx = 0; idx < MaxRtrs; ++idx) {
 
@@ -366,13 +367,13 @@ subdaemon_handler_rtr_killpeer (state, peerdata)
 
 static int
 subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
-     void *state;
+     struct subdaemon_state *state;
      fd_set *rdset, *wrset;
      int *topfdp;
 {
 	int rc = -1;
 	int idx;
-	RtState *RTstate = state;
+	RtState *RTstate = (RtState *)state;
 
 	if (! state) return 0; /* No state to monitor */
 
@@ -396,13 +397,13 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 
 static int
 subdaemon_handler_rtr_postselect (state, rdset, wrset)
-     void *state;
+     struct subdaemon_state *state;
      fd_set *rdset, *wrset;
 {
 	int rc = 0;
 	int idx;
 	int sawhungry = 0;
-	RtState *RTstate = state;
+	RtState *RTstate = (RtState *)state;
 
 	if (! state) return -1; /* No state to monitor */
 
@@ -474,7 +475,7 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 
 static int
 subdaemon_handler_rtr_shutdown (state)
-     void *state;
+     struct subdaemon_state *state;
 {
 	return -1;
 }

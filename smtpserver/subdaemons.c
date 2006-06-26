@@ -366,7 +366,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	int n, rc;
 	struct peerdata *peers, *peer;
 	struct peerhead job_head;
-	void *statep = NULL;
+	struct subdaemon_state *statep = NULL;
 	/* int ppid; */
 	int top_peer = 0, top_peer2, topfd;
 	/* int last_peer_index = 0; */

@@ -81,7 +81,9 @@ struct ctlfile {
 	char	*vfpfn;		/* a filename for verbose logging of mail    */
 	uid_t	uid;		/* the owner of the control file (= msg file)*/
 	time_t	mtime;		/* original msg file's mtime (~ arrival)     */
+	long	mtimens;	/* .. and nanoseconds of it.		     */
 	time_t	envctime;	/* when the transport file was created	     */
+	long	envctimens;	/* .. and nanoseconds of it.		     */
 	char*   spoolid;	/* buffer for msg file spoolid storage	     */
 	int	haderror;	/* some errors/diagnostics need processing   */
 	int	resynccount;	/* How many resync requests ?		     */

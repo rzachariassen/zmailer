@@ -779,16 +779,19 @@ struct peerhead {
 	int			  queuecount;
 };
 
+struct subdaemon_state {
+  void *p; /* dummy */
+};
 
 struct subdaemon_handler {
-	int (*init)      __((void **statepp));
-	int (*input)     __((void *state, struct peerdata *));
-	int (*preselect) __((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
-	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
-	int (*shutdown)  __((void *state));
-        int (*killpeer)  __((void *state, struct peerdata *));
-	int (*reaper)    __((void *state));
-	int (*sigusr2)   __((void *state));
+	int (*init)      __((struct subdaemon_state **statepp));
+	int (*input)     __((struct subdaemon_state *state, struct peerdata *));
+	int (*preselect) __((struct subdaemon_state *state, fd_set *rdset, fd_set *wrset, int *topfd));
+	int (*postselect)__((struct subdaemon_state *state, fd_set *rdset, fd_set *wrset));
+	int (*shutdown)  __((struct subdaemon_state *state));
+        int (*killpeer)  __((struct subdaemon_state *state, struct peerdata *));
+	int (*reaper)    __((struct subdaemon_state *state));
+	int (*sigusr2)   __((struct subdaemon_state *state));
 	Vuint *reply_delay_G;	/* MIB variable pointer */
 	Vuint *reply_queue_G;   /* MIB variable pointer */
 };

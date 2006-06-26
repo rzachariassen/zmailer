@@ -58,12 +58,12 @@ char *contentfilter;
 
 static const char *Hungry = "#hungry\n";
 
-static int subdaemon_handler_ctf_init  __((void**));
-static int subdaemon_handler_ctf_input __((void *, struct peerdata*));
-static int subdaemon_handler_ctf_preselect  __((void*, fd_set *, fd_set *, int *));
-static int subdaemon_handler_ctf_postselect __((void*, fd_set *, fd_set *));
-static int subdaemon_handler_ctf_shutdown   __((void*));
-static int subdaemon_handler_ctf_killpeer __((void *, struct peerdata*));
+static int subdaemon_handler_ctf_init  __((struct subdaemon_state **));
+static int subdaemon_handler_ctf_input __((struct subdaemon_state *, struct peerdata*));
+static int subdaemon_handler_ctf_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
+static int subdaemon_handler_ctf_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
+static int subdaemon_handler_ctf_shutdown   __((struct subdaemon_state *));
+static int subdaemon_handler_ctf_killpeer __((struct subdaemon_state *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_init,
@@ -299,10 +299,10 @@ subdaemon_ctf_start __((CTF, idx))
 
 static int
 subdaemon_handler_ctf_init (statep)
-     void **statep;
+     struct subdaemon_state **statep;
 {
 	struct state_ctf *state = calloc(1, sizeof(struct state_ctf));
-	*statep = state;
+	*statep = (struct subdaemon_state*) state;
 
 	MaxCtfs = contentfilter_maxctfs;
 	if (MaxCtfs > MAXCTFS) MaxCtfs = MAXCTFS;
@@ -339,12 +339,12 @@ subdaemon_handler_ctf_init (statep)
  */
 static int
 subdaemon_handler_ctf_input (state, peerdata)
-     void *state;
+     struct subdaemon_state *state;
      struct peerdata *peerdata;
 {
-	Ctfstate *CTF = state;
 	int rc = 0;
 	int idx;
+	Ctfstate *CTF = (Ctfstate*)state;
 
 	/* FIXME:FIXME: don't start more than necessary! */
 
@@ -392,10 +392,10 @@ subdaemon_handler_ctf_input (state, peerdata)
 
 static int
 subdaemon_handler_ctf_killpeer (state, peerdata)
-     void *state;
+     struct subdaemon_state *state;
      struct peerdata *peerdata;
 {
-	Ctfstate *CTF = state;
+	Ctfstate *CTF = (Ctfstate*)state;
 	int idx;
 
 	/* FIXME:FIXME: don't start more than necessary! */
@@ -419,11 +419,11 @@ subdaemon_handler_ctf_killpeer (state, peerdata)
 
 static int
 subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
-     void *state;
+     struct subdaemon_state *state;
      fd_set *rdset, *wrset;
      int *topfdp;
 {
-	Ctfstate *CTF = state;
+	Ctfstate *CTF = (Ctfstate*)state;
 	int idx;
 	struct stat stbuf;
 	int rc = -1;
@@ -469,13 +469,13 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 
 static int
 subdaemon_handler_ctf_postselect (state, rdset, wrset)
-     void *state;
+     struct subdaemon_state *state;
      fd_set *rdset, *wrset;
 {
-	Ctfstate *CTF = state;
 	int rc = 0;
 	int idx;
 	int sawhungry = 0;
+	Ctfstate *CTF = (Ctfstate*)state;
 
 	if (! CTF) return -1; /* No state to monitor */
 
@@ -527,7 +527,7 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 
 static int
 subdaemon_handler_ctf_shutdown (state)
-     void *state;
+     struct subdaemon_state *state;
 {
 	return -1;
 }

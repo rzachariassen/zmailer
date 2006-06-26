@@ -812,7 +812,22 @@ reporterrs(cfpi, delayreports)
 
 	  fstat(sffileno(errfp),&stbuf); /* doesn't matter exactly what,
 					  as long as unique */
-	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
+
+	  taspoolid(boundarystr, (long)stbuf.st_ino, stbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		    stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		    stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		    stbuf.st_mtimensec
+#else
+		    0
+#endif
+#endif
+#endif
+		    );
 
 	  strcat(boundarystr, "=_/");
 	  strcat(boundarystr, dom);
@@ -1059,7 +1074,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	  sprintf(rptspoolid, "POSTMAN :error-on-error"); /* < 30 chr ! */
 	} else {
 	  _sfmail_close_async(errfp, &ino, &mtime, msgwriteasync);	/* XX: check for error */
-	  taspoolid(rptspoolid, mtime, ino);
+	  taspoolid(rptspoolid, ino, mtime, 0); /* FIME! FIXME! */
 	}
 
 	if (do_syslog)

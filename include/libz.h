@@ -189,7 +189,7 @@ extern int strmatch __((const char *pattern, const char *term));
 /* include "splay.h" ! */
 
 /* taspoolid.c */ /* Minimum buffer size: 32 bytes ! */
-extern void taspoolid __((char *buf, time_t mtime, long inodenum));
+extern void taspoolid __((char *buf, long inodenum, time_t mtime, long mtimens));
 
 /* token.c */
 #ifdef Z_TOKEN_H

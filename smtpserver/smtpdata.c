@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -199,7 +199,21 @@ const char *buf, *cp;
     fname = mail_fname(SS->mfp);
     fstat(FILENO(SS->mfp), &stbuf);
 
-    taspoolid(taspid, stbuf.st_mtime, stbuf.st_ino);
+    taspoolid(taspid, stbuf.st_ino, stbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+	      stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+	      stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+	      stbuf.st_mtimensec
+#else
+	      0
+#endif
+#endif
+#endif
+		);
     tell = stbuf.st_size,
 
     report(SS, "Got '.'; tell=%ld", tell);
@@ -534,7 +548,21 @@ const char *buf, *cp;
       fname = mail_fname(SS->mfp);
       fstat(FILENO(SS->mfp), &stbuf);
 
-      taspoolid(taspid, stbuf.st_mtime, stbuf.st_ino);
+      taspoolid(taspid, stbuf.st_ino, stbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		stbuf.st_mtimensec
+#else
+		0
+#endif
+#endif
+#endif
+		);
       tell = stbuf.st_size;
 
     } else {

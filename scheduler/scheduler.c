@@ -1930,7 +1930,23 @@ slurp(fd, ino)
 	cfp->fd       = fd;
 	cfp->dirind   = -1; /* Not known -- or top-level */
 	cfp->uid      = stbuf.st_uid;
+
 	cfp->envctime = stbuf.st_ctime;
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+	cfp->envctimens = stbuf.st_ctim.tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+	cfp->envctimens = stbuf.st_ctim.__tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+	cfp->envctimens = stbuf.st_ctimensec;
+#else
+	cfp->envctimens = 0;
+#endif
+#endif
+#endif
+
+
 	cfp->contents = contents;
 
 	/* 
@@ -2475,11 +2491,26 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 					another machine, and run things
 					in there, and still have same
 					expiration times.. */
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+	cfp->mtimens = stbuf.st_mtim.tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+	cfp->mtimens = stbuf.st_mtim.__tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+	cfp->mtimens = stbuf.st_mtimensec;
+#else
+	cfp->mtimens = 0;
+#endif
+#endif
+#endif
 
 	/* Reuse the buffer ...
 	   Generate same spoolid string that all other subsystems also
 	   report to syslog. */
-	taspoolid(path2, cfp->mtime, cfp->id);
+
+	taspoolid(path2, cfp->id, cfp->mtime, cfp->mtimens);
+
 	cfp->spoolid = strsave(path2);
 	if (!cfp->spoolid) {
 	  /* malloc() failure.. */

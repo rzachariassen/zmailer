@@ -830,7 +830,23 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	/* Add 3% for CRLFs.. -- assume average line length of 35 chars. */
 	d->msgsizeestimate += (3 * d->msgsizeestimate) / 100;
 
-	taspoolid(spoolid, d->msgmtime, d->msginonumber);
+	taspoolid(spoolid, d->msginonumber, stbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		  stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		  stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		  stbuf.st_mtimensec
+#else
+		  0
+#endif
+#endif
+#endif
+		);
+
+
 	d->taspoolid = strdup(spoolid);
 	if (!d->taspoolid) {
 	  ctlclose(d);

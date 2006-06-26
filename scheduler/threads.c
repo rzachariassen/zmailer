@@ -706,10 +706,17 @@ static int vtx_mtime_cmp(ap, bp)
 
 	if ((*a)->cfp->mtime < (*b)->cfp->mtime)
 	  return -1;
-	else if ((*a)->cfp->mtime == (*b)->cfp->mtime)
-	  return 0;
-	else
+	else if ((*a)->cfp->mtime > (*b)->cfp->mtime)
 	  return 1;
+	/* else */
+
+	if ((*a)->cfp->mtimens < (*b)->cfp->mtimens)
+	  return -1;
+	else if ((*a)->cfp->mtimens > (*b)->cfp->mtimens)
+	  return 1;
+	/* else */
+
+	return 0;
 }
 
 

@@ -2587,7 +2587,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	
 	  env[envi++] = cp;
 	  strcpy(cp, "MSGSPOOLID="); cp += 11;
-	  taspoolid(cp, rp->desc->msgmtime, rp->desc->msginonumber);
+	  strcat(cp, rp->desc->taspoolid);
 	  cp += strlen(cp) + 1;
 	  if (cp > cpe) break;
 
@@ -3822,7 +3822,21 @@ return_receipt (dp, retrecptaddr, uidstr)
 	  struct stat stbuf;
 
 	  fstat(sffileno(mfp),&stbuf);
-	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
+	  taspoolid(boundarystr, (long)stbuf.st_ino, stbuf.st_ctime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		  stbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		  stbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		  stbuf.st_mtimensec
+#else
+		  0
+#endif
+#endif
+#endif
+		    );
 	  strcat(boundarystr, "=_/return-receipt/");
 	  strcat(boundarystr, dom);
 	}

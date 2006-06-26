@@ -263,7 +263,22 @@ makeLetter(e)
 #endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 
 
-	taspoolid(e->e_spoolid, e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino);
+	taspoolid(e->e_spoolid, (long)e->e_statbuf.st_ino,
+		  e->e_statbuf.st_mtime,
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+		  e->e_statbuf.st_mtim.tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+		  e->e_statbuf.st_mtim.__tv_nsec
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+		  e->e_statbuf.st_mtimensec
+#else
+		  0
+#endif
+#endif
+#endif
+		  );
 
 
 	inheader = 0; /* 0: envelope, 1: RFC-822 */

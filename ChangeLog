@@ -1,3 +1,21 @@
+2006-06-26  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, man/scheduler.8.in, router/rfc822.c,
+	  lib/taspoolid.c, scheduler/msgerror.c, scheduler/scheduler.c,
+	  scheduler/scheduler.h, scheduler/threads.c,
+	  smtpserver/smtpdata.c, transports/libta/ctlopen.c,
+	  transports/mailbox/mailbox.c, transports/errormail/errormail.c,
+	  transports/reroute/reroute.c:
+	    Modified the  taspoolid()  to produce nano-second resolution
+	    representation of file modification time -- unfortunately most
+	    real filesystems do not support such...
+
+	* smtpserver/smtpserver.h, smtpserver/subdaemon-ctf.c,
+	  smtpserver/subdaemon-rtr.c, smtpserver/subdaemon-trk.c,
+	  smtpserver/subdaemons.c:
+	    Instead of "void *", so pass in a typed structure
+	    so help intercept wrong declarations and usages.
+
 2006-06-24  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h, 
