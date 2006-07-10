@@ -3406,7 +3406,7 @@ vcsetup(SS, sa, fdp, hostname)
 {
 	int af, port;
 	int addrsiz;
-	int sk;
+	int sk, rc;
 	Usockaddr *sai = (Usockaddr *)sa;
 	Usockaddr sad;
 	int wantbindaddr = 0;
@@ -3475,6 +3475,9 @@ abort();
 	}
 
 	wantbindaddr = !zgetbindaddr(localidentity, af, &sad); 
+	if (localidentity && logfp)
+	  fprintf(logfp, "%s#\tlocalidentity=%s wantbindaddr=%d\n",
+		  logtag(), localidentity, wantbindaddr);
 
 	if (wantreserved && getuid() == 0) {
 	  /* try grabbing a port */
@@ -3482,14 +3485,16 @@ abort();
 	    if (af == AF_INET) {
 	      sad.v4.sin_family = AF_INET;
 	      sad.v4.sin_port   = htons(p);
-	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad.v4) >= 0)
+	      rc = bind(sk, (struct sockaddr *)&sad, sizeof sad.v4);
+	      if (rc >= 0)
 		break;
 	    }
 #if defined(AF_INET6) && defined(INET6)
 	    else if (af == AF_INET6) {
 	      sad.v6.sin6_family = AF_INET6;
 	      sad.v6.sin6_port   = htons(p);
-	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad.v6) >= 0)
+	      rc = bind(sk, (struct sockaddr *)&sad, sizeof sad.v6);
+	      if (rc >= 0)
 		break;
 	    }
 #endif
@@ -3526,15 +3531,16 @@ abort();
 	  /* Ok, it wasn't a desire for any PRIVILEGED port, just
 	     binding on the specific IP will be accepted. */
 	  errno = 0;
+	  rc = -2;
 	  if (af == AF_INET)
-	    bind(sk, (struct sockaddr *)&sad, sizeof sad.v4);
+	    rc = bind(sk, (struct sockaddr *)&sad, sizeof sad.v4);
 #if defined(AF_INET6) && defined(INET6)
 	  if (af == AF_INET6)
-	    bind(sk, (struct sockaddr *)&sad, sizeof sad.v6);
+	    rc = bind(sk, (struct sockaddr *)&sad, sizeof sad.v6);
 #endif
 	  if (logfp)
-	    fprintf(logfp,"%s#\tlocalidentity=%s bind() errno = %d\n",
-		    logtag(), localidentity, errno);
+	    fprintf(logfp,"%s#\tlocalidentity=%s bind() rc=%d errno = %d\n",
+		    logtag(), localidentity, rc, errno);
 	  /* If it fails, what could we do ? */
 	}
 

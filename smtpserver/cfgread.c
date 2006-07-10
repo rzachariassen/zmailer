@@ -183,9 +183,13 @@ static int cfg_add_bindaddr(CP, param1, use_ipv6, bindtype, bindport)
 {
 	Usockaddr bindaddr;
 	int rc;
+	int af = AF_INET;
+	if (use_ipv6) {
+	  af = AF_INET6;
+	}
 
 	called_getbindaddr=1;
-	rc = zgetbindaddr(param1, use_ipv6, &bindaddr);
+	rc = zgetbindaddr(param1, af, &bindaddr);
 #if 0  /* The  zgetbindaddr() does parse v6 addresses even when
 	  wanting to get only v4 address and reject all else.. */
 	if ( !rc ) {
@@ -683,8 +687,12 @@ static void cfparam(str, size, cfgfilename, linenum)
       Usockaddr addr;
       int rc;
       int port;
+      int af = AF_INET;
+      if (use_ipv6) {
+	af = AF_INET6;
+      }
 
-      rc = zgetbindaddr(param1, use_ipv6, &addr);
+      rc = zgetbindaddr(param1, af, &addr);
       port = atoi(param2);
       if (rc == 0 && port > 0) {
 	if (addr.v4.sin_family == AF_INET)

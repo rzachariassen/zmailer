@@ -76,37 +76,43 @@ zgetbindaddr(bindspec, af, sap)
 	memset(sap, 0, sizeof(*sap));
 
 #if defined(AF_INET6) && defined(INET6)
-	if (cistrcmp(bindspec, "any6") == 0 && af) {
+	if (cistrcmp(bindspec, "any6") == 0 && (af == AF_INET6)) {
 	  sap->v6.sin6_family = AF_INET6;
 	  /* All other fields are zero.. */
 
-	} else 	if (af &&
+	} else 	if ((af == AF_INET6) &&
 		    (cistrncmp(bindspec, "[ipv6 ", 6) == 0 ||
 		     cistrncmp(bindspec, "[ipv6:", 6) == 0 ||
 		     cistrncmp(bindspec, "[ipv6.", 6) == 0)) {
 		char *s = strchr(bindspec, ']');
+		int c = s ? *s : 0;
 		if (s) *s = 0;
 		if (inet_pton
 		    (AF_INET6, bindspec + 6, &sap->v6.sin6_addr) < 1) {
 			/* False IPv6 number literal */
 			/* ... then we don't set the IP address... */
+			if (s) *s = c;
 			result = 1;
 		}
+		if (s) *s = c;
 		sap->v6.sin6_family = AF_INET6;
 	} else
 #endif
-	if (cistrcmp(bindspec, "any") == 0 && !af) {
+	if (cistrcmp(bindspec, "any") == 0 && (af == AF_INET)) {
 	  sap->v4.sin_family = AF_INET;
 	  /* All other fields are zero.. */
 
-	} else if (*bindspec == '[' && !af) {
+	} else if (*bindspec == '[' && (af == AF_INET)) {
 	  char *s = strchr(bindspec, ']');
+	  int c = s ? *s : 0;
 	  if (s) *s = 0;
 	  if (inet_pton(AF_INET, bindspec + 1, &sap->v4.sin_addr) < 1) {
 	    /* False IP(v4) number literal */
 	    /* ... then we don't set the IP address... */
+	    if (s) *s = c;
 	    result = 1;
 	  }
+	  if (s) *s = c;
 	  sap->v4.sin_family = AF_INET;
 	} else {
 	  if (CISTREQN(bindspec, "iface:", 6)) {

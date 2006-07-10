@@ -56,6 +56,9 @@ hashtest: $(srcdir)/hashtest.c crc32.o pjwhash32.o
 	$(CC) $(CFLAGS) -o hashtest $(srcdir)/hashtest.c crc32.o pjwhash32.o
 
 
+zgetbindaddr-test: zgetbindaddr-test.o zgetbindaddr.o
+	$(CC) $(CFLAGS) -o $@ zgetbindaddr-test.o zgetbindaddr.o  -L../libs -lzc -lzm @LIBRESOLV@ @LIBSOCKET@
+
 fdstatfs-test: fdstatfs-test.o fdstatfs.o
 	$(CC) $(CFLAGS) -o $@ fdstatfs-test.o fdstatfs.o
 

@@ -214,9 +214,10 @@ const char *buf, *cp;
 #endif
 #endif
 		);
+
     tell = stbuf.st_size,
 
-    report(SS, "Got '.'; tell=%ld", tell);
+    report(SS, "Got '.'; size=%ld", tell);
 
     {
       long bavail, bused, iavail, iused;
@@ -573,7 +574,7 @@ const char *buf, *cp;
 
     }
 
-    report(SS, "BDAT %ld%s; tell=%ld", bdata_chunksize,
+    report(SS, "BDAT %ld%s; size=%ld", bdata_chunksize,
 	   bdata_last ? " LAST":"", tell);
 
     if (SS->state != BData) {

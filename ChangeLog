@@ -1,3 +1,15 @@
+2006-07-10  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/zgetbindaddr.c, transports/smtp/smtp.c, smtpserver/cfgread.c,
+	  lib/Makefile.in, lib/zgetgindaddr-test.c:
+	    Hunted for the non-functionality of the smtp TA's  -L  option.
+	    Found out that calls and behaviours were inconsistent - now
+	    the parameter is "address family" value, not magic boolean.
+
+	* smtpserver/smtpdata.c:
+	    In status-line, report last received msg "size=" value, not
+	    semi-mysterious "tell=" (per UNIX syscall..)
+
 2006-06-26  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, man/scheduler.8.in, router/rfc822.c,
