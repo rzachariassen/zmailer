@@ -289,7 +289,7 @@ process(dp)
 	char lastchar;
 	int reportcnt = 0;
 	struct stat stbuf;
-	long inum;
+	long inum, mtimems;
 	time_t mtime;
 	const char *fromuser;
 
@@ -549,14 +549,14 @@ process(dp)
 	if (sferror(mfp)) {
 	  sfmail_abort(mfp);
 	  n = EX_IOERR;
-	} else if (_sfmail_close_(mfp, &inum, &mtime) == EOF)
+	} else if (_sfmail_close_(mfp, &inum, &mtime, &mtimems) == EOF)
 	  n = EX_IOERR;
 	else
 	  n = EX_OK;
 	{
 	  /* Ok, build response with proper "spoolid" */
 	  char taspid[30];
-	  taspoolid(taspid, inum, mtime, 0); /* FIXME! FIXME! */
+	  taspoolid(taspid, inum, mtime, mtimems);
 
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(verboselog, rp, n, 0, taspid);

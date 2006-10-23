@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2006
  */
 
 
@@ -39,6 +39,7 @@
 #include "libz.h"
 
 #include "libc.h"
+#include "zmpoll.h"
 
 extern int forkrate_limit;
 extern int freeze;
@@ -1039,133 +1040,103 @@ static void waitandclose(fd)
 	reclaim(fd, cpids[fd].tofd);
 }
 
-#ifdef	HAVE_SELECT
 
-#ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
-# include <sys/types.h>
-# include <sys/select.h>
-#endif
-
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
-
-
-int in_select = 0;
+int in_poll = 0;
 
 int
 mux(timeout)
 time_t timeout;
 {
-	int	i, n, maxf;
-	fd_set	rdmask;
-	fd_set	wrmask;
-	struct timeval tv;
+	int	i, n;
+	int wait_secs;
 	struct procinfo *proc = cpids;
+
+	int highfd, maxf;
+	struct zmpollfd *fds = NULL;
+
+	struct zmpollfd *queryfds = NULL;
+	struct zmpollfd *query6fds = NULL;
+	struct zmpollfd *notifyfds = NULL;
 
 	timed_log_reinit();
 
-	if (in_select) {
+	if (in_poll) {
 	  sfprintf(sfstderr,"**** recursed into mux()! ***\n");
 	  return 0;
 	}
 
 	queryipccheck();
 
-	tv.tv_sec = timeout - now; /* Timeout in seconds */
+	wait_secs = timeout - now; /* Timeout in seconds */
 	if (timeout < now)
-	  tv.tv_sec = 0;
-	tv.tv_usec = 0;
+	  wait_secs = 0;
 
 	maxf = -1;
-	_Z_FD_ZERO(rdmask);
-	_Z_FD_ZERO(wrmask);
+	highfd = 0;
 	readsockcnt = 0;
 	if (cpids != NULL)
-	  for (proc = cpids,i = 0; i < scheduler_nofiles ; ++i,++proc)
+	  for (proc = cpids,i = 0; i < scheduler_nofiles ; ++i,++proc) {
+	    proc->fdpfrom = proc->fdpto = NULL;
+
 	    if (proc->pid != 0) {
 	      /* Something can be read ? */
-	      _Z_FD_SET(i, rdmask);
+	      zmpoll_addfd(&fds, &highfd, i, -1, &(proc->fdpfrom));
+	      /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpfrom) QX ***\n", highfd, i, -1); */
 	      if (maxf < i)
 		maxf = i;
 
 	      ++readsockcnt;
 	      /* Something to write ? */
 	      if (proc->cmdlen > 0 && proc->tofd >= 0) {
-		_Z_FD_SET(proc->tofd, wrmask);
+	        zmpoll_addfd(&fds, &highfd, -1,  proc->tofd, &(proc->fdpto));
+	        /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpto) QX ***\n", highfd, -1, proc->tofd); */
 		if (maxf < proc->tofd)
 		  maxf = proc->tofd;
+	      } else {
+		proc->fdpto = NULL;
 	      }
 
 	    }
+	  }
 
 	if (querysocket >= 0) {
-	  _Z_FD_SET(querysocket, rdmask);
+	  zmpoll_addfd(&fds, &highfd, querysocket, -1, &queryfds);
 	  if (maxf < querysocket)
 	    maxf = querysocket;
 	}
 	if (querysocket6 >= 0) {
-	  _Z_FD_SET(querysocket6, rdmask);
+	  zmpoll_addfd(&fds, &highfd, querysocket6, -1, &query6fds);
 	  if (maxf < querysocket6)
 	    maxf = querysocket6;
 	}
 	if (notifysocket >= 0) {
-	  _Z_FD_SET(notifysocket, rdmask);
+	  zmpoll_addfd(&fds, &highfd, notifysocket, -1, &notifyfds);
 	  if (maxf < notifysocket)
 	    maxf = notifysocket;
 	}
 
-	/* Although we don't react on the results of these MQ2 fd's,
-	   getting them to break timeouts is important for MAILQv2
-	   responsiveness. ! */
+	/* Although we don't react on the results of these MQ2 fd's
+	   here in main loop, getting them to break timeouts is
+	   important for MAILQv2 responsiveness. ! */
 
 	if (mailqmode == 2)
-	  maxf = mq2add_to_mask(&rdmask, &wrmask, maxf);
+	  maxf = mq2add_to_poll(&fds, &highfd, maxf);
 
-	if (maxf < 0)
+	if (highfd == 0) {
+	  if (fds) free(fds);
 	  return -1;
+	}
 
-	++maxf;
 	/* sfprintf(sfstderr, "about to select on %x [%d]\n",
 	   mask.fds_bits[0], maxf); */
 
-	in_select = 1;
+	in_poll = 1;
 
-	n = select(maxf, &rdmask, &wrmask, NULL, &tv);
+	/* n = select(maxf, &rdmask, &wrmask, NULL, &tv); */
+	n = zmpoll(fds, highfd, wait_secs * 1000);
+	if (verbose)
+	  sfprintf(sfstderr,"**** QX zmpoll(fds, %d, %d * 1000) = %d; maxf = %d; QX ***\n", highfd, wait_secs, n, maxf);
+
 
 	if (n < 0) {
 	  int err = errno;
@@ -1173,21 +1144,24 @@ time_t timeout;
 	  timed_log_reinit();
 
 	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
-	  in_select = 0;
-	  if (err == EINTR || err == EAGAIN)
+	  in_poll = 0;
+	  if (err == EINTR || err == EAGAIN) {
+	    if (fds) free(fds);
 	    return 0;
+	  }
 	  if (err == EINVAL || err == EBADF) {
 	    sfprintf(sfstderr, "** select() returned errno=%d\n", err);
-	    for (i = 0; i < maxf; ++i) {
-	      if (_Z_FD_ISSET(i,rdmask)  &&  fcntl(i,F_GETFL,0) < 0)
-		sfprintf(sfstderr,"** Invalid fd on a select() rdmask: %d\n",i);
-	      if (_Z_FD_ISSET(i,wrmask)  &&  fcntl(i,F_GETFL,0) < 0)
-		sfprintf(sfstderr,"** Invalid fd on a select() wrmask: %d\n",i);
+	    for (i = 0; i < highfd; ++i) {
+	      if (fds[i].events & ZM_POLLIN && fcntl(fds[i].fd,F_GETFL,0) < 0)
+		sfprintf(sfstderr,"** Invalid fd on a zmpoll() ZM_POLLIN fds: %d\n", fds[i].fd);
+	      if (fds[i].events & ZM_POLLOUT && fcntl(fds[i].fd,F_GETFL,0) < 0)
+		sfprintf(sfstderr,"** Invalid fd on a zmpoll() ZM_POLLOUT fds: %d\n", fds[i].fd);
 	    }
 	    sfsync(sfstderr);
+	    if (fds) free(fds);
 	    abort(); /* mux() select() error EINVAL or EBADF !? */
 	  }
-	  perror("select() returned unknown error ");
+	  perror("poll() returned unknown error ");
 	  fflush(stderr);
 	  sfsync(sfstderr);
 #if 0
@@ -1197,32 +1171,34 @@ time_t timeout;
 	  /* sfprintf(sfstderr, "abnormal 0 return from select!\n"); */
 	  /* -- just a timeout -- fast or long */
 	  timed_log_reinit();
-	  in_select = 0;
+	  in_poll = 0;
+	  if (fds) free(fds);
 	  return 1;
 	} else {
 	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
 
 	  /* In case we really should react.. */
 	  if (querysocket >= 0 &&
-	      _Z_FD_ISSET(querysocket, rdmask))
+	      queryfds && queryfds->revents & ZM_POLLIN)
 	    queryipccheck();
 	  if (querysocket6 >= 0 &&
-	      _Z_FD_ISSET(querysocket6, rdmask))
+	      query6fds && query6fds->revents & ZM_POLLIN)
 	    queryipccheck();
 	  
 	  if (notifysocket >= 0 &&
-	      _Z_FD_ISSET(notifysocket, rdmask))
+	      notifyfds && notifyfds->revents & ZM_POLLIN)
 	    receive_notify(notifysocket);
 
 	  if (cpids != NULL) {
 
 	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
+	      /* sfprintf(sfstderr,"**** QX i = %d QX ***\n", i); */
 	      
 	      timed_log_reinit();
 
 	      if (proc->pid < 0 ||
-		  (proc->pid > 0 && _Z_FD_ISSET(i, rdmask))) {
-		_Z_FD_CLR(i, rdmask);
+	          (proc->pid > 0 && proc->fdpfrom && proc->fdpfrom->revents & ZM_POLLIN)) {
+		/* _Z_FD_CLR(i, rdmask); */
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */
 		readfrom(i);
@@ -1230,7 +1206,7 @@ time_t timeout;
 
 	      /* In case we have non-completed 'feeds', try feeding them */
 	      if (proc->pid > 0    &&  proc->tofd >= 0   &&
-		  proc->cmdlen > 0 &&  _Z_FD_ISSET(proc->tofd, wrmask))
+		  proc->cmdlen > 0 && proc->fdpto && proc->fdpto->revents & ZM_POLLOUT)
 		flush_child(proc);
 
 	      /* Because this loop might take a while ... */
@@ -1241,11 +1217,14 @@ time_t timeout;
 	    }
 	  }
 
-	  in_select = 0;
+	  in_poll = 0;
 	}
 	/* sfprintf(sfstderr, "return from mux\n"); */
+	if (fds) free(fds);
 	return 0;
 }
+
+
 
 /* Call it how often you wish, but act it only once a second, or so.. */
 static time_t lastqueryipccheck;
@@ -1255,10 +1234,6 @@ void
 queryipccheck()
 {
 	int	n;
-	fd_set	rdmask;
-	fd_set	wrmask;
-	struct timeval tv;
-	int maxfd;
 
 	timed_log_reinit(); /* internal: mytime(&now); */
 
@@ -1274,50 +1249,52 @@ queryipccheck()
 	   */
 	}
 
-	if ((querysocket >= 0) || (querysocket6 >= 0) || (notifysocket >= 0)) {
+	if ( (querysocket  >= 0) ||
+	     (querysocket6 >= 0) ||
+	     (notifysocket >= 0)    ) {
 
-	  maxfd = 0;
+	  int highfd, maxfd;
+	  struct zmpollfd *fds = NULL;
 
-	  tv.tv_sec = 0;
-	  tv.tv_usec = 0;
+	  struct zmpollfd *queryfds = NULL;
+	  struct zmpollfd *query6fds = NULL;
+	  struct zmpollfd *notifyfds = NULL;
 
-	  _Z_FD_ZERO(rdmask);
-	  _Z_FD_ZERO(wrmask);
-	  if (querysocket >= 0) {
-	    _Z_FD_SET(querysocket, rdmask);
-	    if (maxfd < querysocket)
-	      maxfd = querysocket;
-	  }
-	  if (querysocket6 >= 0) {
-	    _Z_FD_SET(querysocket6, rdmask);
-	    if (maxfd < querysocket6)
-	      maxfd = querysocket6;
-	  }
-	  if (notifysocket >= 0) {
-	    _Z_FD_SET(notifysocket, rdmask);
-	    if (maxfd < notifysocket)
-	      maxfd = notifysocket;
-	  }
+	  maxfd = -1;
+
+	  highfd = 0;
+
+	  if (querysocket >= 0)
+	    zmpoll_addfd( &fds, &highfd, querysocket, -1, &queryfds);
+
+	  if (querysocket6 >= 0)
+	    zmpoll_addfd( &fds, &highfd, querysocket6, -1, &query6fds);
+
+	  if (notifysocket >= 0)
+	    zmpoll_addfd( &fds, &highfd, notifysocket, -1, &notifyfds);
+
 
 	  if (mailqmode == 2) {
-	    maxfd = mq2add_to_mask(&rdmask, &wrmask, maxfd);
-	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
+	    maxfd = mq2add_to_poll(&fds, &highfd, maxfd);
+
+	    n = zmpoll(fds, highfd, /* wait: */ 0 /* ms */ );
+
 	    if (n > 0)
-	      mq2_areinsets(&rdmask, &wrmask);
+	      mq2_areinsets(fds);
+
 	  } else 
-	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
+	    n = zmpoll(fds, highfd, /* wait: */ 0 /* ms */ );
 
-	  if ((n > 0) && (notifysocket >= 0) &&
-	      _Z_FD_ISSET(notifysocket, rdmask)) {
+	  if (notifyfds && (notifyfds->revents & ZM_POLLIN))
 	    receive_notify(notifysocket);
-	  }
 
-	  if ((n > 0) && (querysocket6 >= 0) &&
-	      _Z_FD_ISSET(querysocket6, rdmask)) {
+
+	  if (query6fds && (query6fds->revents & ZM_POLLIN)) {
+
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
 
-	    n = accept(querysocket6, (struct sockaddr *)&raddr, &raddrlen);
+	    n = accept(querysocket6, (struct sockaddr *)&raddr, (void*)&raddrlen);
 	    if (n >= 0) {
 	      if (mailqmode == 1) {
 		int pid;
@@ -1376,12 +1353,13 @@ queryipccheck()
 	      }
 	    }
 	  }
-	  if ((n > 0) && (querysocket >= 0) &&
-	      _Z_FD_ISSET(querysocket, rdmask)) {
+
+	  if (queryfds && (queryfds->revents & ZM_POLLIN)) {
+
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
 
-	    n = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
+	    n = accept(querysocket, (struct sockaddr *)&raddr, (void*)&raddrlen);
 	    if (n >= 0) {
 	      if (mailqmode == 1) {
 		int pid;
@@ -1422,21 +1400,7 @@ queryipccheck()
 
 		MIBMtaEntry->sc.MQ2sockConnects ++;
 
-#if 0  /* NOT IN MAILQ-V2 MODE ! */
-#ifdef USE_TCPWRAPPER
-#ifdef HAVE_TCPD_H /* TCP-Wrapper code */
-		if (wantconn(n, "mailq") == 0) {
-		  char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
-		  int   len = strlen(msg);
-		  write(n,msg,len);
-		  MIBMtaEntry->sc.MQ2sockTcpWrapRej ++;
-		  close(n);
-		}
-		else
-#endif
-#endif
-#endif
-		  mq2_register(n, &raddr);
+		mq2_register(n, &raddr);
 	      }
 	    }
 	  }
@@ -1753,49 +1717,9 @@ queryipcinit()
 	} else {
 	  mytime(&now); 
 	  qipcretry = now + 5; /* Will do retry soon.. */
-
 	}
 }
 
-#else	/* !HAVE_SELECT */
-
-int
-mux(timeout)
-time_t timeout;
-{
-	int	fd;
-
-	/*
-	 * Nice'n easy and simpleminded: grab a random file descriptor,
-	 * and sit and read off it until something happens.
-	 * Some very complicated mux'ing schemes (with shared pipes'n stuff)
-	 * are possible in the absence of async i/o like select() or the
-	 * simulation USG supplies, but it ain't worth the hassle.
-	 */
-	readsockcnt = 0;
-	if (cpids != NULL)
-	  for (fd = 0; fd < scheduler_nofiles ; ++fd)
-	    if (cpids[fd].pid != 0) {
-	      readfrom(fd);
-	      ++readsockcnt;
-	    }
-
-	mytime(&now);
-	if (timeout > now)
-	  sleep(1);
-	return 1;
-}
-
-void queryipccheck()
-{
-	/* NOTHING AT ALL -- No select(), no querysocket.. */
-}
-
-void
-queryipcinit()
-{
-}
-#endif	/* HAVE_SELECT */
 
 static void readfrom(fd)
 	int fd;

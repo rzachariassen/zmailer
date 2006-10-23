@@ -478,7 +478,7 @@ reporterrs(cfpi, delayreports)
 	char boundarystr[400];
 	char rptspoolid[30];
 	time_t mtime;
-	long ino;
+	long ino, mtimens;
 	int actionsets[5]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED,
 			      4:EXPANDED */
 	ACTSETENUM thisaction;
@@ -1062,7 +1062,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	/* And cap the tail with paired MIME boundary.. */
 	sfprintf(errfp, "--%s--\n", boundarystr);
 
-	ino = 0; mtime = 0;
+	ino = 0; mtime = mtimens = 0;
 	close(cfp->fd);
 	free_cfp_memory(cfp);
 
@@ -1073,8 +1073,8 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	    sfmail_abort(errfp);
 	  sprintf(rptspoolid, "POSTMAN :error-on-error"); /* < 30 chr ! */
 	} else {
-	  _sfmail_close_async(errfp, &ino, &mtime, msgwriteasync);	/* XX: check for error */
-	  taspoolid(rptspoolid, ino, mtime, 0); /* FIME! FIXME! */
+	  _sfmail_close_async(errfp, &ino, &mtime, &mtimens, msgwriteasync);	/* XX: check for error */
+	  taspoolid(rptspoolid, ino, mtime, mtimens);
 	}
 
 	if (do_syslog)

@@ -8,6 +8,7 @@
 #include "zmsignal.h" /* used for kill(2) */
 #include "libz.h"
 #include "libc.h"
+#include "mail.h"
 
 #ifndef	_IOFBF
 #define	_IOFBF	0

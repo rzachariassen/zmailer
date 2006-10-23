@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.53+ Scheduler "mailq2" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2003
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2006
  *
  */
 
@@ -16,11 +16,6 @@
 #include "libz.h"
 
 #include "prototypes.h"
-
-#ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
-# include <sys/types.h>
-# include <sys/select.h>
-#endif
 
 #ifdef HAVE_SYS_LOADAVG_H
 #include <sys/loadavg.h>
@@ -42,45 +37,7 @@
 #endif
 #include "libc.h"
 
-
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
-
+#include "zmpoll.h"
 
 
 static void mq2interpret __((struct mailq *, char *));
@@ -448,31 +405,39 @@ void mq2_register(fd, addr)
 }
 
 /* EXTERNAL */
-int mq2add_to_mask(rdmaskp, wrmaskp, maxfd)
-     fd_set *rdmaskp, *wrmaskp;
+int mq2add_to_poll(fds, highfd, maxfd)
+     struct zmpollfd **fds;
+     int *highfd;
      int maxfd;
 {
   struct mailq *mq = mq2root;
 
   for ( ; mq ; mq = mq->nextmailq ) {
+    mq->fds = NULL;
+
     if (mq->fd < 0)
       continue;
 
-    if (mq->fd > maxfd)
+    /* _Z_FD_SET(mq->fd, *rdmaskp);
+       if (mq->outbufcount < mq->outbufsize)
+       _Z_FD_SET(mq->fd, *wrmaskp);
+    */
+
+    zmpoll_addfd(fds, highfd, mq->fd,
+		 (mq->outbufcount < mq->outbufsize ? mq->fd : -1),
+		 &mq->fds);
+
+    if (maxfd < mq->fd)
       maxfd = mq->fd;
-
-    _Z_FD_SET(mq->fd, *rdmaskp);
-
-    if (mq->outbufcount < mq->outbufsize)
-      _Z_FD_SET(mq->fd, *wrmaskp);
   }
 
   return maxfd;
 }
 
+
 /* EXTERNAL */
-void mq2_areinsets(rdmaskp, wrmaskp)
-     fd_set *rdmaskp, *wrmaskp;
+void mq2_areinsets(fds)
+     struct zmpollfd *fds;
 {
     struct mailq *mq;
 
@@ -486,7 +451,7 @@ void mq2_areinsets(rdmaskp, wrmaskp)
     mq = mq2root;
     while ( mq ) {
       struct mailq *mq2 = mq->nextmailq;
-      if (mq->fd >= 0 && _Z_FD_ISSET(mq->fd, *wrmaskp)) {
+      if ( mq->fds && (mq->fds->revents & ZM_POLLOUT) ) {
 	mq2_wflush(mq);
       }
 
@@ -502,7 +467,8 @@ void mq2_areinsets(rdmaskp, wrmaskp)
     mq = mq2root;
     while ( mq ) {
       struct mailq *mq2 = mq->nextmailq;
-      if (mq->fd < 0 || _Z_FD_ISSET(mq->fd, *rdmaskp)) {
+      if ( mq->fds && (mq->fds->revents & ZM_POLLIN) ) {
+	mq->fds = NULL;
 	mq2_read(mq);
       }
       mq = mq2;

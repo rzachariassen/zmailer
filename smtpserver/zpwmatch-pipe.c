@@ -139,6 +139,7 @@ pipeauth(cmd, msg, msgsize, uname, password)
     envp[envc++] = cp;
     envp[envc] = NULL;
     
+    wfp = rfp = NULL;
     pid = run( &rfp, &wfp, argv[0], argv, envp );
     if (pid > 1) {
         fprintf( wfp, "%s\n", password );

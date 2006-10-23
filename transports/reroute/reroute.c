@@ -294,7 +294,7 @@ process(dp)
 	struct rcpt *rp;
 	const char *cp;
 	char buf[BUFSIZ];
-	long ino;
+	long ino, mtimems;
 	time_t mtime;
 	int rcpt_cnt = 0;
 
@@ -396,7 +396,7 @@ process(dp)
 	  mail_abort(mfp);
 	  code = EX_TEMPFAIL;
 	  cp = "write error during resubmission";
-	} else if (_mail_close_(mfp, &ino, &mtime) == EOF) {
+	} else if (_mail_close_(mfp, &ino, &mtime, &mtimems) == EOF) {
 	  code = EX_TEMPFAIL;
 	  cp = "message not resubmitted";
 	} else {
@@ -411,7 +411,7 @@ process(dp)
 	  char taspid[30];
 	  char msgbuf[100], msgbuf2[100];
 	  char msgbuf3[100];
-	  taspoolid(taspid, ino, mtime, 0); /* FIXME! FIXME! */
+	  taspoolid(taspid, ino, mtime, mtimems);
 
 	  sprintf(msgbuf,"2.2.0 (Sent into reroute with spoolid: %s )",taspid);
 	  sprintf(msgbuf2,"x-local; 250 (Sent into reroute with spoolid: %s )",taspid);

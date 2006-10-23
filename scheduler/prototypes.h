@@ -172,9 +172,9 @@ extern void report __(( FILE *fpi, FILE *fpo ));
 /* extern int lockaddr __((int, char *, int, int, int)); */
 
 /* mq2.c */
-extern int mq2add_to_mask __((fd_set *rdmaskp, fd_set *wrmaskp, int));
+extern int mq2add_to_poll __((struct zmpollfd **fds, int *highfd, int));
 extern void mq2_register __((int fd, Usockaddr *));
-extern void mq2_areinsets __((fd_set *rdmaskp, fd_set *wrmaskp));
+extern void mq2_areinsets __((struct zmpollfd *fds));
 extern int  mq2_puts __((struct mailq *, char *s));
 extern int  mq2_putc __((struct mailq *, int c));
 extern int  mq2_active __((void));

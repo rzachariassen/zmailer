@@ -662,6 +662,7 @@ static int resolveattributes(rel, recursions, state, key, init)
 	type(NULL,0,NULL," Key: %u.%u.%u.%u", key[2], key[3], key[4], key[5]);
 */
 
+    rlen = 0; /* <-- Placate compiler.. */
     str_base = str = (unsigned char *) dbquery(rel, &key[0], key[0], &rlen);
 
     /* str[0]    - attribute list lenght

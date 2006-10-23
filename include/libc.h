@@ -27,24 +27,6 @@ extern int getdtablesize __((void));
 extern int         readzenv __((const char *file));
 extern const char *getzenv  __((const char *variable));
 
-/* mail.c */
-extern const char *postoffice;
-extern FILE *_mail_fopen  __((char **filenamep));
-extern int    mail_link   __((const char *from, char **tonamep));
-extern FILE * mail_open   __((const char *type));
-extern int    mail_abort  __((FILE *fp));
-extern int   _mail_close_ __((FILE *fp, long *, time_t *));
-extern int    mail_close  __((FILE *fp));
-extern int    mail_close_alternate __((FILE *fp, const char *where, const char *suffix));
-
-/* mail_alloc.c */
-extern void *mail_alloc   __((unsigned int nbytes));
-extern void *mail_realloc __((void *ptr, unsigned int nbytes));
-extern void  mail_free    __((void *s));
-
-/* mail_host.c */
-extern const char *mail_host __((void));
-
 /* myhostname.c */
 extern int getmyhostname __((char *namebuf, int len));
 

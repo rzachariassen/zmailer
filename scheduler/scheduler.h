@@ -210,6 +210,9 @@ struct procinfo {
 	char	*cmdbuf;	/* outgoing pipe leftovers..		*/
 	char	*cmdline;	/* Approximation of the execl() params	*/
 	int	cmdlspc;	/* cmdline buffer size			*/
+
+	struct zmpollfd *fdpfrom;
+	struct zmpollfd *fdpto;
 };
 
 /* Stores the offset indices of all addresses that have same channel and host*/
@@ -281,6 +284,7 @@ struct mailq {
 	struct mailq	*nextmailq;
 	int		auth;		/* what can do */
 	int		fd;		/* FD for I/O (nonblocking-IO) */
+	struct zmpollfd	*fds;
 #ifdef HAVE_SELECT
 	Usockaddr	qaddr;
 #endif /* HAVE_SOCKET */

@@ -415,16 +415,16 @@ sfmail_abort(fp)
 int sfmail_close(fp)
 	Sfio_t *fp;
 {
-	return _sfmail_close_(fp, NULL, NULL);
+	return _sfmail_close_(fp, NULL, NULL, NULL);
 }
 
 
 static int routersubdirhash = -1;
 
 static int
-_sfmail_close__(fp,inop, mtimep, async)
+_sfmail_close__(fp,inop, mtimep, mtimensp, async)
 	Sfio_t *fp;
-	long *inop;
+	long *inop, *mtimensp;
 	time_t *mtimep;
 	int async;
 {
@@ -727,7 +727,21 @@ _sfmail_close__(fp,inop, mtimep, async)
 	  *inop   = (long) stb.st_ino;
 	if (mtimep != NULL)
 	  *mtimep = (time_t) stb.st_mtime;
-
+	if (mtimensp != NULL) {
+#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+	  * mtimensp = stb.st_mtim.tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIM___TV_NSEC
+	  * mtimensp = stb.st_mtim.__tv_nsec;
+#else
+#ifdef HAVE_STRUCT_STAT_ST_ATIMENSEC
+	  * mtimensp = stb.st_mtimensec;
+#else
+	  * mtimensp = 0;
+#endif
+#endif
+#endif
+	}
 
 	return 0;
 }
@@ -735,22 +749,22 @@ _sfmail_close__(fp,inop, mtimep, async)
 
 
 int
-_sfmail_close_(fp,inop, mtimep)
+_sfmail_close_(fp,inop, mtimep, mtimensp)
 	Sfio_t *fp;
-	long *inop;
+	long *inop, *mtimensp;
 	time_t *mtimep;
 {
-	return _sfmail_close__(fp, inop, mtimep, 0);
+	return _sfmail_close__(fp, inop, mtimep, mtimensp, 0);
 }
 
  int
-_sfmail_close_async(fp,inop, mtimep, async)
+ _sfmail_close_async(fp,inop, mtimep, mtimensp, async)
 	Sfio_t *fp;
-	long *inop;
+	long *inop, *mtimensp;
 	time_t *mtimep;
 	int async;
 {
-	return _sfmail_close__(fp, inop, mtimep, async);
+	return _sfmail_close__(fp, inop, mtimep, mtimensp, async);
 }
 
 

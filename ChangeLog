@@ -1,3 +1,24 @@
+2006-10-23  Matti Aarnio  <mea@zmailer.org>
+
+	* include/libc.h, include/mail.h.in, libc/mail.c, libc/sfmail.c,
+	  scheduler/msgerror.c, transports/errormail/errormail.c,
+	  transports/reroute/reroute.c:
+	    Use nanosecond resolution file timestampts at spoolid,
+	    if available
+
+	* libc/inet_ntop.c, lib/killprev.c, smtpserver/policytest.c,
+	  smtpserver/zpwmatch-pipe.c:
+	    Appeace compiler
+
+	* proto/cf/aliases.cf:
+	    Move interactivity shortcut test into proper place.
+
+	* scheduler/scheduler.h, scheduler/mq2.c, scheduler/prototypes.h,
+	  scheduler/transport.c:
+	    Use  zmpoll()  in scheduler properly.
+	    Dawid Kuroczko wrote first version, Matti completed things to
+	    include mailq support subsystem.
+
 2006-07-10  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/zgetbindaddr.c, transports/smtp/smtp.c, smtpserver/cfgread.c,

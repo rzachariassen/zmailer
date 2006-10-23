@@ -521,10 +521,10 @@ routeuser (quad, plustail, domain) {
 	ssift "$lcuser" in
 	(.+)-owner
 		a="$MAILVAR/lists/\1"
-		$(isinteractive) && returns $quad;
 		if  $(didexpand listowner) ; then
 		  if [ -f "$a" ] ; then
 		    db add expansions "$key.listowner" 1
+		    $(isinteractive) && returns $quad;
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
