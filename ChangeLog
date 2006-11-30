@@ -1,17 +1,32 @@
+2006-11-30  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/mxverify.c, smtpserver/smtptls.c,
+	  smtpserver/subdaemons.c, smtpserver/subdaemon-rtr.c,
+	  smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-trk.c:
+	    Reworked things to use  zmpoll()  API in place of old
+	    select() API.
+
+	* lib/zmpoll.c:
+	    Mistake in the  zmpoll_addfd():  didn't add fd=0 cases
+	    into poll datasets!
+
 2006-10-23  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libc.h, include/mail.h.in, libc/mail.c, libc/sfmail.c,
 	  scheduler/msgerror.c, transports/errormail/errormail.c,
 	  transports/reroute/reroute.c:
-	    Use nanosecond resolution file timestampts at spoolid,
-	    if available
+	    Use nanosecond resolution file timestamps at spoolid,
+	    if available.
 
 	* libc/inet_ntop.c, lib/killprev.c, smtpserver/policytest.c,
 	  smtpserver/zpwmatch-pipe.c:
-	    Appeace compiler
+	    Appeace compiler.
 
 	* proto/cf/aliases.cf:
 	    Move interactivity shortcut test into proper place.
+	    ( this permitted every sort of *-owner@domain  addresses
+	      as valid ones..  after the fix, only existing ones. )
 
 	* scheduler/scheduler.h, scheduler/mq2.c, scheduler/prototypes.h,
 	  scheduler/transport.c:

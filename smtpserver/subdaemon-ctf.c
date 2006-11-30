@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2006.
  */
 
 /*  SMTPSERVER  CONTENT-FILTER MULTIPLEXER-SERVER  SUBDAEMON    */
@@ -46,12 +46,6 @@
  *
  */
 
-
-/* FIXME: auto-detect when the thing pointed by  'contentpath' 
-          has become obsolete!  ( = needs restart of the server..
-	  or reconnect, or ...)
-*/
-
 #include "smtpserver.h"
 
 char *contentfilter;
@@ -60,16 +54,16 @@ static const char *Hungry = "#hungry\n";
 
 static int subdaemon_handler_ctf_init  __((struct subdaemon_state **));
 static int subdaemon_handler_ctf_input __((struct subdaemon_state *, struct peerdata*));
-static int subdaemon_handler_ctf_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
-static int subdaemon_handler_ctf_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
+static int subdaemon_handler_ctf_prepoll  __((struct subdaemon_state *, struct zmpollfd **, int *));
+static int subdaemon_handler_ctf_postpoll __((struct subdaemon_state *, struct zmpollfd *, int));
 static int subdaemon_handler_ctf_shutdown   __((struct subdaemon_state *));
 static int subdaemon_handler_ctf_killpeer __((struct subdaemon_state *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_init,
 	subdaemon_handler_ctf_input,
-	subdaemon_handler_ctf_preselect,
-	subdaemon_handler_ctf_postselect,
+	subdaemon_handler_ctf_prepoll,
+	subdaemon_handler_ctf_postpoll,
 	subdaemon_handler_ctf_shutdown,
 	subdaemon_handler_ctf_killpeer
 };
@@ -79,40 +73,46 @@ struct subdaemon_handler subdaemon_handler_contentfilter = {
 static int MaxCtfs = 2;
 int contentfilter_maxctfs;
 
+struct ctf_peerstate {
+	time_t last_cmd_time;
+	struct peerdata *replypeer;
+	int   contentfilterpid;
+	FILE *tofp;
+	int   fromfd;
+	struct zmpollfd *pollfd;
+	char *buf;
+	int   inlen;
+	int   bufsize;
+	int   sawhungry;
+	struct fdgets_fdbuf fdb;
+};
+
 typedef struct state_ctf {
 	long proc_ino;
 	time_t proc_mtime, proc_ctime;
-	time_t last_cmd_time[MAXCTFS];
-	struct peerdata *replypeer[MAXCTFS];
-	int   contentfilterpid[MAXCTFS];
-	FILE *tofp[MAXCTFS];
-	int   fromfd[MAXCTFS];
-	char *buf[MAXCTFS];
-	int   inlen[MAXCTFS];
-	int   bufsize[MAXCTFS];
-	int   sawhungry[MAXCTFS];
-	struct fdgets_fdbuf fdb[MAXCTFS];
+	struct ctf_peerstate peers[MAXCTFS];
 } Ctfstate;
 
 
-static void subdaemon_killctf __(( Ctfstate * CTF, int idx ));
+static void subdaemon_killctf __(( struct ctf_peerstate * CTFp ));
 
 static void
-subdaemon_killctf(CTF, idx)
-     Ctfstate *CTF;
-     int idx;
+subdaemon_killctf(CTFp)
+     struct ctf_peerstate *CTFp;
 {
-	if (CTF->tofp[idx] != NULL)
-	  fclose(CTF->tofp[idx]);
-	CTF->tofp[idx] = NULL;
+	if (CTFp->tofp != NULL)
+	  fclose(CTFp->tofp);
+	CTFp->tofp = NULL;
 
-	if (CTF->fromfd[idx] >= 0)
-	  close(CTF->fromfd[idx]);
-	CTF->fromfd[idx] = -1;
+	if (CTFp->fromfd >= 0)
+	  close(CTFp->fromfd);
+	CTFp->fromfd = -1;
 
-	if (CTF->contentfilterpid[idx] > 1)
-	  kill(CTF->contentfilterpid[idx], SIGKILL);
-	CTF->contentfilterpid[idx] = 0;
+	if (CTFp->contentfilterpid > 1)
+	  kill(CTFp->contentfilterpid, SIGKILL);
+	CTFp->contentfilterpid = 0;
+
+	CTFp->pollfd = NULL;
 }
 
 
@@ -120,11 +120,10 @@ subdaemon_killctf(CTF, idx)
 /* Eugene Crosser reported that this code is broken..
    .. changed things to do socket calls from client side,  */
 
-static int subdaemon_ctf_sock __((Ctfstate * CTF, int idx));
+static int subdaemon_ctf_sock __((struct ctf_peerstate * CTFp));
 static int
-subdaemon_ctf_sock(CTF, idx)
-     Ctfstate *CTF;
-     int idx;
+subdaemon_ctf_sock(CTFp)
+     struct ctf_peerstate *CTFp;
 {
 	int msgsock;
 	struct sockaddr_un server;
@@ -149,10 +148,10 @@ subdaemon_ctf_sock(CTF, idx)
 	  return 0;
 	}
 
-	CTF->tofp[idx]   = fdopen(msgsock, "w");
-	CTF->fromfd[idx] = msgsock;
+	CTFp->tofp   = fdopen(msgsock, "w");
+	CTFp->fromfd = msgsock;
 
-	CTF->contentfilterpid[idx] = 0;
+	CTFp->contentfilterpid = 0;
 
 	return 3;
 }
@@ -163,10 +162,9 @@ static const char *newenviron[] =
   { "SMTPSERVER=y", NULL };
 #endif
 
-static int subdaemon_ctf_proc __((Ctfstate * CTF, int idx));
-static int subdaemon_ctf_proc (CTF, idx)
-     Ctfstate *CTF;
-     int idx;
+static int subdaemon_ctf_proc __((struct ctf_peerstate * CTFp));
+static int subdaemon_ctf_proc (CTFp)
+     struct ctf_peerstate *CTFp;
 {
 	int rpid = 0, to[2], from[2], rc;
 
@@ -221,56 +219,56 @@ static int subdaemon_ctf_proc (CTF, idx)
 	  return -1;
 	}
 
-	CTF->contentfilterpid[idx] = rpid;
+	CTFp->contentfilterpid = rpid;
 
 	close(to[0]);
 	close(from[1]);
 
-	CTF->tofp[idx]   = fdopen(to[1], "w");
+	CTFp->tofp   = fdopen(to[1], "w");
 	fd_blockingmode(to[1]);
-	if (! CTF->tofp[idx] ) {
+	if (! CTFp->tofp ) {
 	  close(to[1]);
 	  close(from[0]);
 	  return -1; /* BAD BAD! */
 	}
 
-	CTF->fromfd[idx] = from[0];
-	fd_blockingmode(CTF->fromfd[idx]);
+	CTFp->fromfd = from[0];
+	fd_blockingmode(CTFp->fromfd);
 	
 	for (;;) {
-	  rc = fdgets( & CTF->buf[idx], 0, & CTF->bufsize[idx], &CTF->fdb[idx], CTF->fromfd[idx], 10);
-	  if ( rc < 1 || ! CTF->buf[idx] ) {
+	  rc = fdgets( & CTFp->buf, 0, & CTFp->bufsize, &CTFp->fdb, CTFp->fromfd, 10);
+	  if ( rc < 1 || ! CTFp->buf ) {
 	    /* FIXME: ERROR PROCESSING ! */
 	    if (rc == 0 || rc == -1) {
 	      /* EOF! */
-	      subdaemon_killctf(CTF, idx);
+	      subdaemon_killctf(CTFp);
 	    }
 	    close(to[1]);
 	    close(from[0]);
 	    return -1;
 	  }
-	  if (strncmp( CTF->buf[idx], BADEXEC, sizeof(BADEXEC) - 3) == 0) {
-	    subdaemon_killctf(CTF, idx);
+	  if (strncmp( CTFp->buf, BADEXEC, sizeof(BADEXEC) - 3) == 0) {
+	    subdaemon_killctf(CTFp);
 	    close(to[1]);
 	    close(from[0]);
 	    return -1;
 	  }
 
-	  if (strcmp( CTF->buf[idx], Hungry ) == 0) {
-	    CTF->sawhungry[idx] = 1;
+	  if (strcmp( CTFp->buf, Hungry ) == 0) {
+	    CTFp->sawhungry = 1;
 	    break;
 	  }
 	}
-	fd_nonblockingmode(CTF->fromfd[idx]);
-
+	fd_nonblockingmode(CTFp->fromfd);
+	
 	return rpid;
 }
 
 static int subdaemon_ctf_start __((Ctfstate * CTF, int idx));
 static int
 subdaemon_ctf_start __((CTF, idx))
-     Ctfstate * CTF;
-     int idx;
+    Ctfstate * CTF;
+    int idx;
 {
 	struct stat stbuf;
 
@@ -287,9 +285,9 @@ subdaemon_ctf_start __((CTF, idx))
 	CTF->proc_mtime = stbuf.st_mtime;
 
 	if (S_ISREG(stbuf.st_mode))
-	  return subdaemon_ctf_proc(CTF, idx);
+	  return subdaemon_ctf_proc( & CTF->peers[idx] );
 	else
-	  return subdaemon_ctf_sock(CTF, idx);
+	  return subdaemon_ctf_sock( & CTF->peers[idx] );
 }
 
 
@@ -312,7 +310,8 @@ subdaemon_handler_ctf_init (statep)
 	  int idx;
 	  for (idx = 0; idx < MaxCtfs; ++idx) {
 	    /* state->contentfilterpid[idx] = 0; */
-	    state->fromfd[idx] = -1;
+	    state->peers[idx].fromfd = -1;
+	    state->peers[idx].pollfd = NULL;
 	  }
 	}
 
@@ -349,11 +348,12 @@ subdaemon_handler_ctf_input (state, peerdata)
 	/* FIXME:FIXME: don't start more than necessary! */
 
 	for (idx = 0; idx < MaxCtfs; ++idx) {
+	  struct ctf_peerstate *CTFp = & CTF->peers[idx];
 
-	  if (CTF->replypeer[idx])
+	  if (CTFp->replypeer)
 	    continue;
 
-	  if (CTF->fromfd[idx] < 0) {
+	  if (CTFp->fromfd < 0) {
 	    rc = subdaemon_ctf_start(CTF, idx);
 	    if (rc < 2) {
 	      /* FIXME: error processing! */
@@ -364,25 +364,25 @@ subdaemon_handler_ctf_input (state, peerdata)
 	      return 1;
 	    }
 
-	    /* Now   CTF->fromfd[idx]   is in NON-BLOCKING MODE!
-	       However  CTF->tofp[idx]  is definitely in blocking! */
+	    /* Now   CTFp->fromfd   is in NON-BLOCKING MODE!
+	       However  CTFp->tofp  is definitely in blocking! */
 	  }
 
-	  if (CTF->tofp[idx] == NULL)
+	  if (CTFp->tofp == NULL)
 	    continue; /* Next! (recently killed, fromfd not yet EOFed ?) */
 
-	  if (!CTF->sawhungry[idx])
+	  if (!CTFp->sawhungry)
 	    continue; /* Next! (no liveness reply yet) */
 
-	  CTF->replypeer[idx] = peerdata;
+	  CTFp->replypeer = peerdata;
 
-	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, CTF->tofp[idx]);
-	  fflush(CTF->tofp[idx]);
+	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, CTFp->tofp);
+	  fflush(CTFp->tofp);
 
-	  time( &CTF->last_cmd_time[idx] );
+	  time( &CTFp->last_cmd_time );
 
-	  CTF->bufsize[idx]    = 0;
-	  CTF->sawhungry[idx]  = 0;
+	  CTFp->bufsize    = 0;
+	  CTFp->sawhungry  = 0;
 	  peerdata->inlen = 0;
 
 	  return 0;
@@ -398,17 +398,17 @@ subdaemon_handler_ctf_killpeer (state, peerdata)
 	Ctfstate *CTF = (Ctfstate*)state;
 	int idx;
 
-	/* FIXME:FIXME: don't start more than necessary! */
-
 	for (idx = 0; idx < MaxCtfs; ++idx) {
 
-	  if (CTF->replypeer[idx] != peerdata)
+	  struct ctf_peerstate *CTFp = & CTF->peers[idx];
+
+	  if (CTFp->replypeer != peerdata)
 	    continue;
 
-	  CTF->replypeer[idx] = NULL;
+	  CTFp->replypeer = NULL;
 
-	  CTF->bufsize[idx]    = 0;
-	  CTF->sawhungry[idx]  = 0;
+	  CTFp->bufsize    = 0;
+	  CTFp->sawhungry  = 0;
 	  peerdata->inlen = 0;
 
 	  break;
@@ -418,10 +418,10 @@ subdaemon_handler_ctf_killpeer (state, peerdata)
 
 
 static int
-subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
+subdaemon_handler_ctf_prepoll (state, fdsp, fdscountp)
      struct subdaemon_state *state;
-     fd_set *rdset, *wrset;
-     int *topfdp;
+     struct zmpollfd **fdsp;
+     int *fdscountp;
 {
 	Ctfstate *CTF = (Ctfstate*)state;
 	int idx;
@@ -448,18 +448,19 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 	  CTF->proc_mtime = stbuf.st_mtime;
 
 	  for (idx = 0; idx < MaxCtfs; ++idx) {
-	    if (CTF->tofp[idx])
-	      fclose(CTF->tofp[idx]);
-	    CTF->tofp[idx] = NULL;
+	    struct ctf_peerstate *CTFp = & CTF->peers[idx];
+	    if (CTFp->tofp)
+	      fclose(CTFp->tofp);
+	    CTFp->tofp = NULL;
 	  }
 	}
  
 	for (idx = 0; idx < MaxCtfs; ++idx) {
-	  if (CTF->fromfd[idx] >= 0) {
-	    _Z_FD_SETp(CTF->fromfd[idx], rdset);
-	    if (*topfdp < CTF->fromfd[idx])
-	      *topfdp = CTF->fromfd[idx];
-	    if (CTF->fdb[idx].rdsize)
+	  struct ctf_peerstate *CTFp = & CTF->peers[idx];
+	  if (CTFp->fromfd >= 0) {
+	    zmpoll_addfd( fdsp, fdscountp,
+			  CTFp->fromfd, -1, &CTFp->pollfd );
+	    if (CTFp->fdb.rdsize)
 	      rc = 1;
 	  }
 	}
@@ -468,9 +469,10 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 }
 
 static int
-subdaemon_handler_ctf_postselect (state, rdset, wrset)
+subdaemon_handler_ctf_postpoll (state, fdsp, fdscount)
      struct subdaemon_state *state;
-     fd_set *rdset, *wrset;
+     struct zmpollfd *fdsp;
+     int fdscount;
 {
 	int rc = 0;
 	int idx;
@@ -480,42 +482,44 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 	if (! CTF) return -1; /* No state to monitor */
 
 	for (idx = 0; idx < MaxCtfs; ++idx) {
-	  if (CTF->fromfd[idx] < 0)
+	  struct ctf_peerstate *CTFp = &CTF->peers[idx];
+	  if (CTFp->fromfd < 0)
 	    continue; /* No contentfilter there.. */
 
-	  if ( _Z_FD_ISSETp(CTF->fromfd[idx], rdset) || CTF->fdb[idx].rdsize ) {
+	  if ( CTFp->fdb.rdsize ||
+	       (CTFp->pollfd->revents & ZM_POLLIN) ) {
 	    /* We have something to read ! */
 	    
-	    rc = fdgets( & CTF->buf[idx], CTF->inlen[idx],
-			 & CTF->bufsize[idx],
-			 & CTF->fdb[idx], CTF->fromfd[idx], -1);
+	    rc = fdgets( & CTFp->buf, CTFp->inlen,
+			 & CTFp->bufsize,
+			 & CTFp->fdb, CTFp->fromfd, -1);
 #if 0 /* Let the loop to spin... */
 	    if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
 #endif
 	    if (rc == 0 || rc == -1) { /* EOF */
-	      subdaemon_killctf(CTF, idx);
+	      subdaemon_killctf(CTFp);
 	      continue;
 	    }
 	    
 	    if (rc > 0) {
-	      CTF->inlen[idx] = rc;
-	      if (CTF->buf[idx][rc-1] == '\n') {
+	      CTFp->inlen = rc;
+	      if (CTFp->buf[rc-1] == '\n') {
 		/* Whole line accumulated, send it out! */
 		
-		subdaemon_send_to_peer(CTF->replypeer[idx], CTF->buf[idx], rc);
-		CTF->inlen[idx] = 0; /* Zap it.. */
+		subdaemon_send_to_peer(CTFp->replypeer, CTFp->buf, rc);
+		CTFp->inlen = 0; /* Zap it.. */
 	      }
 
-	      if (strcmp( CTF->buf[idx], Hungry ) == 0) {
-		CTF->sawhungry[idx] = 1;
+	      if (strcmp( CTFp->buf, Hungry ) == 0) {
+		CTFp->sawhungry = 1;
 		sawhungry = 1;
-		CTF->replypeer[idx] = NULL;
+		CTFp->replypeer = NULL;
 	      }
 	    }
 	  }
 
-	  if ((now - CTF->last_cmd_time[idx]) > SUBSERVER_IDLE_TIMEOUT) {
-	    subdaemon_killctf(CTF, idx);
+	  if ((now - CTFp->last_cmd_time) > SUBSERVER_IDLE_TIMEOUT) {
+	    subdaemon_killctf(CTFp);
 	    continue;
 	  }
 	}

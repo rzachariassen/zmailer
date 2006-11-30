@@ -405,10 +405,9 @@ void mq2_register(fd, addr)
 }
 
 /* EXTERNAL */
-int mq2add_to_poll(fds, highfd, maxfd)
+void mq2add_to_poll(fds, fdscountp)
      struct zmpollfd **fds;
-     int *highfd;
-     int maxfd;
+     int *fdscountp;
 {
   struct mailq *mq = mq2root;
 
@@ -423,15 +422,11 @@ int mq2add_to_poll(fds, highfd, maxfd)
        _Z_FD_SET(mq->fd, *wrmaskp);
     */
 
-    zmpoll_addfd(fds, highfd, mq->fd,
+    zmpoll_addfd(fds, fdscountp, mq->fd,
 		 (mq->outbufcount < mq->outbufsize ? mq->fd : -1),
 		 &mq->fds);
 
-    if (maxfd < mq->fd)
-      maxfd = mq->fd;
   }
-
-  return maxfd;
 }
 
 

@@ -4,7 +4,7 @@
  *
  *  Contains ALSO code for SMTP Transport Agent!
  *
- *  by Matti Aarnio <mea@nic.funet.fi> 1999, 2003-2005
+ *  by Matti Aarnio <mea@nic.funet.fi> 1999, 2003-2006
  *
  *  Reusing TLS code for POSTFIX by:
  *     Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
@@ -133,17 +133,15 @@ Z_pending(SS)
      SmtpState * SS;
 {
     int rc;
-    struct timeval tv;
-    fd_set rdset;
+    static struct zmpollfd *pollfds = NULL;
+    int fdcount = 0;
 
     if (SS->sslmode)
       return SSL_pending(SS->TLS.ssl);
 
-    _Z_FD_ZERO(rdset);
-    _Z_FD_SET(SS->inputfd, rdset);
-    tv.tv_sec = tv.tv_usec = 0;
+    zmpoll_addfd( &pollfds, &fdcount, SS->inputfd, -1, NULL);
 
-    rc = select(SS->inputfd+1, &rdset, NULL, NULL, &tv);
+    rc = zmpoll( pollfds, fdcount, 0 );
 
     if (rc > 0) return 1;
 
@@ -1425,8 +1423,8 @@ tls_start_servertls(SS)
      */
     for (;;) {
 	int sslerr, rc, i;
-	fd_set rdset, wrset;
-	struct timeval tv;
+	static struct zmpollfd *fds = NULL;
+	int fdscount = 0;
 	int wantreadwrite = 0;
 
     ssl_accept_retry:;
@@ -1488,18 +1486,17 @@ tls_start_servertls(SS)
 	}
 
 	i = SSL_get_fd(SS->TLS.ssl);
-	_Z_FD_ZERO(wrset);
-	_Z_FD_ZERO(rdset);
+	fdscount = 0;
 
 	if (wantreadwrite < 0)
-	  _Z_FD_SET(i, rdset); /* READ WANTED */
+	  zmpoll_addfd(&fds, &fdscount, i, -1, NULL); /* WANT READ */
 	else if (wantreadwrite > 0)
-	  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+	  zmpoll_addfd(&fds, &fdscount, -1, i, NULL); /* WANT WRITE */
+	else
+	  ; /* FIXME! What???  No reading, nor writing ??? */
 
-	tv.tv_sec = 300;
-	tv.tv_usec = 0;
 
-	rc = select(i+1, &rdset, &wrset, NULL, &tv);
+	rc = zmpoll( fds, fdscount, 300 * 1000 ); /* 300 seconds */
 	sslerr = errno;
 
 	if (rc == 0) {

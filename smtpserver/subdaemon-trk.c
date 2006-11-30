@@ -68,17 +68,17 @@ extern int ratetracker_server_pid;
 
 static int subdaemon_handler_trk_init  __((struct subdaemon_state **));
 static int subdaemon_handler_trk_input __((struct subdaemon_state *, struct peerdata*));
-static int subdaemon_handler_trk_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
-static int subdaemon_handler_trk_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
-static int subdaemon_handler_trk_shutdown   __((struct subdaemon_state *));
-static int subdaemon_handler_trk_sigusr2    __((struct subdaemon_state *));
+static int subdaemon_handler_trk_prepoll  __((struct subdaemon_state *, struct zmpollfd **, int *));
+static int subdaemon_handler_trk_postpoll __((struct subdaemon_state *, struct zmpollfd *, int));
+static int subdaemon_handler_trk_shutdown __((struct subdaemon_state *));
+static int subdaemon_handler_trk_sigusr2  __((struct subdaemon_state *));
 
 
 struct subdaemon_handler subdaemon_handler_ratetracker = {
 	subdaemon_handler_trk_init,
 	subdaemon_handler_trk_input,
-	subdaemon_handler_trk_preselect,
-	subdaemon_handler_trk_postselect,
+	subdaemon_handler_trk_prepoll,
+	subdaemon_handler_trk_postpoll,
 	subdaemon_handler_trk_shutdown,
 	NULL, /* killpeer */
 	NULL, /* reaper */
@@ -145,6 +145,7 @@ struct ipv6_regs_head {
 
 struct cluster_trk_peer {
 	int  fd;
+	struct zmpollfd *pollfd; /* matching poll pointer */
 	Usockaddr addr;		/* cluster peer address */
 	char *secret;		/* secret for outbound sockets */
 
@@ -209,6 +210,7 @@ struct cluster_trk_peer {
 };
 struct cluster_trk_peers {
 	int	listenfd;	/* Our listen fd              */
+	struct zmpollfd *pollfd; /* matching poll pointer */
 	Usockaddr addr;		/* Our listen IP-address+port */
 	char	*secret;	/* Our node specific secret   */
 	time_t	next_bind_time;
@@ -1177,10 +1179,10 @@ static void cluster_trk_opeer_setup(peers)
 /* pre-select() and post-select() process  cluster peer communication */
 
 static int
-subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
+subdaemon_handler_trk_prepoll (statep, fdsp, fdscountp)
      struct subdaemon_state *statep;
-     fd_set *rdset, *wrset;
-     int *topfd;
+     struct zmpollfd **fdsp;
+     int *fdscountp;
 {
 	int i;
 	struct trk_state *state = (struct trk_state *)statep;
@@ -1200,9 +1202,7 @@ subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
 	  }
 	  if (cp->listenfd >= 0) {
 	    /* Listen-socket exists for peer acceptances */
-	    _Z_FD_SETp(cp->listenfd, rdset);
-	    if (*topfd < cp->listenfd)
-	      *topfd = cp->listenfd;
+	    zmpoll_addfd( fdsp, fdscountp, cp->listenfd, -1, &cp->pollfd );
 	  }
 
 	  /* Peer connection setups ! */
@@ -1217,10 +1217,7 @@ subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
 	    if (ctp->fd >= 0 && ctp->state == 0) {
 	      /* Outbound peer socket in select-for-write wait...
 		 That is, connect(2) in non-blocking mode... */
-	      _Z_FD_SETp(ctp->fd, wrset);
-	      _Z_FD_SETp(ctp->fd, rdset); /* it may EOF and whatever.. */
-	      if (*topfd < ctp->fd)
-		*topfd = ctp->fd;
+	      zmpoll_addfd( fdsp, fdscountp, ctp->fd, ctp->fd, &ctp->pollfd );
 	    }
 	    if (ctp->fd >= 0 && ctp->outlen) {
 	      /* Things to write! */
@@ -1236,10 +1233,7 @@ subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
 	      /* Outbound cluster peer socket can also read!
 		 which is used in early stages of connection
 		 authentication, and in EOF detection */
-	      _Z_FD_SETp(ctp->fd, wrset);
-	      _Z_FD_SETp(ctp->fd, rdset);
-	      if (*topfd < ctp->fd)
-		*topfd = ctp->fd;
+	      zmpoll_addfd( fdsp, fdscountp, ctp->fd, ctp->fd, &ctp->pollfd );
 	    }
 	  }
 
@@ -1250,14 +1244,16 @@ subdaemon_handler_trk_preselect (statep, rdset, wrset, topfd)
 
 	    if (cp->inpeers[i].fd >= 0) {
 	      /* Socket to read from! */
-	      _Z_FD_SETp(cp->inpeers[i].fd, rdset);
+	      int fd1 = cp->inpeers[i].fd;
+	      int fd2 = -1;
 
 	      if (cp->inpeers[i].outlen > 0)
 		/* Something to write! */
-		_Z_FD_SETp(cp->inpeers[i].fd, wrset);
+		fd2 = fd1;
 
-	      if (*topfd < cp->inpeers[i].fd)
-		*topfd = cp->inpeers[i].fd;
+	      zmpoll_addfd( fdsp, fdscountp,
+			    fd1, fd2, &cp->inpeers[i].pollfd );
+
 	    }
 	  }
 
@@ -1391,6 +1387,7 @@ static void cluster_trk_opeer_input(opeer, inpbuf, len)
      int len;
 {
 	int i;
+#warning "FIXME: actual cluster peer authentication code is missing!"
 	/*  FIXME: outbound peer received something -- a challenge,
 	    most likely..  This does also state-machine processing !
 	*/
@@ -1615,9 +1612,10 @@ static void cluster_trk_ipeer_output(ipeer, inpbuf, len)
 
 
 static int
-subdaemon_handler_trk_postselect (statep, rdset, wrset)
+subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
      struct subdaemon_state *statep;
-     fd_set *rdset, *wrset;
+     struct zmpollfd *fdsp;
+     int fdscount;
 {
 	struct trk_state *state = (struct trk_state *)statep;
 
@@ -1638,8 +1636,8 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 	  int i;
 
 	  /* Listen-socket exists for peer acceptances */
-	  if (cp->listenfd >= 0 &&
-	      _Z_FD_ISSETp(cp->listenfd, rdset)) {
+	  if ( cp->listenfd >= 0 && cp->pollfd &&
+	       (cp->pollfd->revents & ZM_POLLIN) ) {
 	    cluster_trk_accept(cp);
 	  }
 
@@ -1653,7 +1651,8 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 
 	    struct cluster_trk_peer *opeer = & cp->outpeers[i];
 
-	    if (opeer->fd >= 0  &&  _Z_FD_ISSETp(opeer->fd, rdset)) {
+	    if (opeer->fd >= 0  &&  opeer->pollfd &&
+		(opeer->pollfd->revents & ZM_POLLIN)) {
 	      /* Socket is ready for reading!
 		 For outbound peer sockets (initiated by ourselves)
 		 this happens during connection authentication -- and
@@ -1713,7 +1712,8 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 	      } /* ... for(;;) */
 	    } /* Socket was ready for reading */
 
-	    if (opeer->fd >= 0  &&  _Z_FD_ISSETp(opeer->fd, wrset)) {
+	    if (opeer->fd >= 0  && opeer->pollfd &&
+		(opeer->pollfd->revents & ZM_POLLOUT)) {
 	      /* Things to write and can write! */
 
 	      int rc = 0;
@@ -1760,7 +1760,8 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 
 	    struct cluster_trk_peer *ipeer = & cp->inpeers[i];
 
-	    if (ipeer->fd >= 0  &&  _Z_FD_ISSETp(ipeer->fd, rdset)) {
+	    if ( ipeer->fd >= 0  && ipeer->pollfd &&
+		 (ipeer->pollfd->revents & ZM_POLLIN) ) {
 	      /* Socket is ready to read from! */
 
 	      int rc;
@@ -1822,7 +1823,8 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 	      } /* ... for(;;) */
 	    } /* Socket was ready for read */
 
-	    if (ipeer->fd >= 0  &&  _Z_FD_ISSETp(ipeer->fd, wrset)) {
+	    if (ipeer->fd >= 0  &&  ipeer->pollfd &&
+		(ipeer->pollfd->revents & ZM_POLLOUT)) {
 	      /* Things to write and can write! */
 
 	      int rc;

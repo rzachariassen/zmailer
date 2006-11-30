@@ -1,7 +1,7 @@
 /*
  *   mx_client_verify() -- subroutine for ZMailer smtpserver
  *
- *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002-2004
+ *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002-2004,2006
  */
 
 #include "smtpserver.h"
@@ -21,12 +21,95 @@ struct mxset {
   char *mx;
 };
 
+static int validatev4address __(( const Usockaddr *usap ));
+static int validatev4address(usap)
+     const Usockaddr *usap;
+{
+	/* we validate only ipv4 addresses, ipv6 we let pass as "ok" */
+	if (usap->v4.sin_family == AF_INET) {
+	  unsigned long ipv4addr = ntohl(usap->v4.sin_addr.s_addr);
+
+	  /* Things rejected at this test:
+
+	     - 10.0.0.0 to 10.255.255.255
+	     - 172.16.0.0 to 172.31.255.255
+	     - 192.168.0.0 to 192.168.255.255
+	     - Loopback
+	     - Local-link for auto-DHCP
+	     - IPv4 multicast
+	     - Class E ("Don't Use")
+	     - 0.0.0.0 and 255.255.255.255 are bogus
+	  */
+
+#ifndef IN_CLASSA
+#define IN_CLASSA(a)            ((((unsigned long)(a)) & 0x80000000) == 0)
+#define IN_CLASSB(a)            ((((unsigned long)(a)) & 0xc0000000) == 0x80000000)
+#define IN_CLASSC(a)            ((((unsigned long)(a)) & 0xe0000000) == 0xc0000000)
+#endif
+
+
+	  unsigned int octet1, octet2;
+
+	  if ((! IN_CLASSA(ipv4addr)) &&
+	      (! IN_CLASSB(ipv4addr)) &&
+	      (! IN_CLASSC(ipv4addr)))
+	    return 1; /* Not unicast address classes */
+
+	  octet1 = ( ipv4addr >> 24 ) & 255U;
+	  octet2 = ( ipv4addr >> 16 ) & 255U;
+
+
+	  if ((! IN_CLASSA(ipv4addr)) &&
+	      (! IN_CLASSB(ipv4addr)) &&
+	      (! IN_CLASSC(ipv4addr)))
+	    return 1; /* Not unicast address classes */
+
+	  if (octet1 ==   0 ||
+	      octet1 ==  10 ||
+	      octet1 == 127 ||
+	      octet1 == 255   ) return 1; /* Some of "bad ones" */ 
+	  if (octet1 == 172 &&
+	      (octet2 >= 16 && octet2 <= 31))
+	    return 1; /* private internets, class B */
+
+	  if (octet1 == 192 && octet2 == 168)
+	    return 1; /* private internets, class C */
+
+	  if (octet1 == 169 && octet2 == 254)
+	    return 1; /* Automatic private IP address */
+
+	}
+
+#if defined(AF_INET6) && defined(INET6)
+	if (usap->v6.sin6_family == AF_INET6) {
+	  /* loopback is forbidden, also anything but unicast */
+	}
+#endif
+
+	/* No rejects so far, so we did accept it! */
+	return 0;
+}
+
+static int validatev4addresses __(( const struct addrinfo *aip ));
+static int validatev4addresses(aip)
+     const struct addrinfo *aip;
+{
+	int i;
+
+	for (; aip ; aip = aip->ai_next ) {
+	  i = validatev4address( (Usockaddr *)(aip->ai_addr) );
+	  if (i) return i;
+	}
+	return 0;
+}
+
 /*
  * return values:
  *   state->islocaldomain
  *   ret: 0 = not found ( = reject )
  *   ret: 1 = FOUND MX MATCH ( = ACCEPT )
  *   ret: 2 = reject by MX rule
+ *   ret: negatives are EX_**** values.
  */
 
 static int
@@ -47,6 +130,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 #define MAXMX 128
 	struct mxset mxs[MAXMX];
 	int mxcount, mxislocal = 0;
+	int mx_ip_is_invalid = 0;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
 
@@ -341,6 +425,12 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		}
 #endif
 
+		j = validatev4address( &usa );
+		if (j) {
+		  /* Address is not valid, */
+		  mx_ip_is_invalid = 1;
+		}
+
 		j = matchmyaddress( &usa );
 		if (j == 1) {
 		  if (debug)
@@ -448,7 +538,14 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		       mxs[n].mx, usa->v4.sin_family);
 	    }
 #endif
-	    rc = matchmyaddress((Usockaddr *)ai2->ai_addr);
+
+	    rc = validatev4address( (Usockaddr *)ai2->ai_addr );
+	    if (rc) {
+	      /* Address is not valid, */
+	      mx_ip_is_invalid = 1;
+	    }
+
+	    rc = matchmyaddress( (Usockaddr *)ai2->ai_addr );
 	    if (rc == 1) {
 	      if (debug)
 		printf("000-   ADDRESS MATCH!\n");
@@ -482,6 +579,8 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	      if (mxs[i].mx)
 		free(mxs[i].mx);
 
+	    if (mx_ip_is_invalid) return -EX_TEMPFAIL;
+
 	    return 1;
 	  }
 	} /* Thru all MXS[] ... */
@@ -494,8 +593,11 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	}
 
 	if (debug)
-	  printf("000-   saw_cname=%d  had_mx_record=%d  mxmode=%d  mxislocal=%d\n",
-		 saw_cname, had_mx_record, mxmode, mxislocal);
+	  printf("000-   saw_cname=%d  had_mx_record=%d  mxmode=%d  mxislocal=%d mx_ip_is_invalid=%d\n",
+		 saw_cname, had_mx_record, mxmode, mxislocal, mx_ip_is_invalid);
+
+	if (mx_ip_is_invalid) return -EX_TEMPFAIL;
+
 
 	/* Didn't find any, but saw CNAME ? Recurse with the real name */
 	if (saw_cname)
@@ -575,7 +677,14 @@ perhaps_address_record:
 #endif
 
 	  if (i)
-	    return 0; /* Bad lookup result -> no match */
+	    return -EX_TEMPFAIL; /* Bad lookup result -> no match */
+
+	  i = validatev4addresses( ai );
+	  if (i) {
+	    /* Address is not valid, */
+	    freeaddrinfo(ai);
+	    return -EX_TEMPFAIL;
+	  }
 
 	  i = matchmyaddresses(ai);
 
@@ -632,6 +741,9 @@ perhaps_address_record:
 	  if (mxs[n].mx)
 	    free(mxs[n].mx);
 	}
+
+	/* If it was determined to be invalid... */
+	if (mx_ip_is_invalid) return -EX_TEMPFAIL;
 
 	/* Report as successfull match, didn't set  'state->islocaldomain' */
 	return 1;

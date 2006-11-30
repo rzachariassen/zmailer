@@ -127,11 +127,11 @@ int zmpoll_addfd(fdsp, nfdsp, rdfd, wrfd, backptr)
 	if (backptr)
 	  *backptr = & fdp[nfds-1];
 
-	if (rdfd > 0){
+	if (rdfd >= 0){
 	  fdp[nfds-1].fd      = rdfd;
 	  fdp[nfds-1].events |= ZM_POLLIN;
 	}
-	if (wrfd > 0){
+	if (wrfd >= 0){
 	  fdp[nfds-1].fd      = wrfd;
 	  fdp[nfds-1].events |= ZM_POLLOUT;
 	}

@@ -25,16 +25,16 @@ static const char *Hungry = "#hungry\n";
 
 static int subdaemon_handler_rtr_init  __((struct subdaemon_state **));
 static int subdaemon_handler_rtr_input __((struct subdaemon_state *, struct peerdata*));
-static int subdaemon_handler_rtr_preselect  __((struct subdaemon_state *, fd_set *, fd_set *, int *));
-static int subdaemon_handler_rtr_postselect __((struct subdaemon_state *, fd_set *, fd_set *));
+static int subdaemon_handler_rtr_prepoll  __((struct subdaemon_state *, struct zmpollfd **, int *));
+static int subdaemon_handler_rtr_postpoll __((struct subdaemon_state *, struct zmpollfd *, int));
 static int subdaemon_handler_rtr_shutdown   __((struct subdaemon_state *));
 static int subdaemon_handler_rtr_killpeer __((struct subdaemon_state *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_init,
 	subdaemon_handler_rtr_input,
-	subdaemon_handler_rtr_preselect,
-	subdaemon_handler_rtr_postselect,
+	subdaemon_handler_rtr_prepoll,
+	subdaemon_handler_rtr_postpoll,
 	subdaemon_handler_rtr_shutdown,
 	subdaemon_handler_rtr_killpeer,
 	NULL, /* reaper */
@@ -54,6 +54,7 @@ typedef struct state_rtr {
 	int   routerpid;
 	FILE *tofp;
 	int   fromfd;
+	struct zmpollfd *pollfd;
 	char *buf;
 	int   inlen;
 	int   bufsize;
@@ -366,10 +367,10 @@ subdaemon_handler_rtr_killpeer (state, peerdata)
 
 
 static int
-subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
+subdaemon_handler_rtr_prepoll (state, fdsp, fdscountp)
      struct subdaemon_state *state;
-     fd_set *rdset, *wrset;
-     int *topfdp;
+     struct zmpollfd **fdsp;
+     int *fdscountp;
 {
 	int rc = -1;
 	int idx;
@@ -384,9 +385,7 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 	  RtState *RTR = & RTstate[idx];
 
 	  if (RTR->fromfd >= 0) {
-	    _Z_FD_SETp(RTR->fromfd, rdset);
-	    if (*topfdp < RTR->fromfd)
-	      *topfdp = RTR->fromfd;
+	    zmpoll_addfd( fdsp, fdscountp, RTR->fromfd, -1, &(RTR->pollfd) );
 	    if (RTR->fdb.rdsize)
 	      rc = 1;
 	  }
@@ -396,16 +395,17 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 }
 
 static int
-subdaemon_handler_rtr_postselect (state, rdset, wrset)
-     struct subdaemon_state *state;
-     fd_set *rdset, *wrset;
+subdaemon_handler_rtr_postpoll (statep, fdsp, fdscount)
+     struct subdaemon_state *statep;
+     struct zmpollfd *fdsp;
+     int fdscount;
 {
 	int rc = 0;
 	int idx;
 	int sawhungry = 0;
-	RtState *RTstate = (RtState *)state;
+	RtState *RTstate = (RtState *)statep;
 
-	if (! state) return -1; /* No state to monitor */
+	if (! statep) return -1; /* No state to monitor */
 
 	for (idx = 0; idx < MaxRtrs; ++idx) {
 
@@ -414,7 +414,7 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	  if (RTR->fromfd < 0)
 	    continue; /* No router at this slot */
 
-	  if ( _Z_FD_ISSETp(RTR->fromfd, rdset) ||
+	  if ( (RTR->pollfd && (RTR->pollfd->revents & ZM_POLLIN)) ||
 	       RTR->fdb.rdsize ) {
 	    /* We have something to read ! */
 

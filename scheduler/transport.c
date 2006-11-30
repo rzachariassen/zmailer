@@ -1051,10 +1051,10 @@ time_t timeout;
 	int wait_secs;
 	struct procinfo *proc = cpids;
 
-	int highfd, maxf;
-	struct zmpollfd *fds = NULL;
+	int fdscount = 0;
+	static struct zmpollfd *fds = NULL;
 
-	struct zmpollfd *queryfds = NULL;
+	struct zmpollfd *queryfds  = NULL;
 	struct zmpollfd *query6fds = NULL;
 	struct zmpollfd *notifyfds = NULL;
 
@@ -1071,8 +1071,7 @@ time_t timeout;
 	if (timeout < now)
 	  wait_secs = 0;
 
-	maxf = -1;
-	highfd = 0;
+	fdscount = 0;
 	readsockcnt = 0;
 	if (cpids != NULL)
 	  for (proc = cpids,i = 0; i < scheduler_nofiles ; ++i,++proc) {
@@ -1080,18 +1079,14 @@ time_t timeout;
 
 	    if (proc->pid != 0) {
 	      /* Something can be read ? */
-	      zmpoll_addfd(&fds, &highfd, i, -1, &(proc->fdpfrom));
-	      /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpfrom) QX ***\n", highfd, i, -1); */
-	      if (maxf < i)
-		maxf = i;
+	      zmpoll_addfd(&fds, &fdscount, i, -1, &(proc->fdpfrom));
+	      /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpfrom) QX ***\n", fdscount, i, -1); */
 
 	      ++readsockcnt;
 	      /* Something to write ? */
 	      if (proc->cmdlen > 0 && proc->tofd >= 0) {
-	        zmpoll_addfd(&fds, &highfd, -1,  proc->tofd, &(proc->fdpto));
-	        /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpto) QX ***\n", highfd, -1, proc->tofd); */
-		if (maxf < proc->tofd)
-		  maxf = proc->tofd;
+	        zmpoll_addfd(&fds, &fdscount, -1,  proc->tofd, &(proc->fdpto));
+	        /* sfprintf(sfstderr,"**** QX zmpoll_addfd(fds, %d, %d, %d, fdpto) QX ***\n", fdscount, -1, proc->tofd); */
 	      } else {
 		proc->fdpto = NULL;
 	      }
@@ -1099,31 +1094,23 @@ time_t timeout;
 	    }
 	  }
 
-	if (querysocket >= 0) {
-	  zmpoll_addfd(&fds, &highfd, querysocket, -1, &queryfds);
-	  if (maxf < querysocket)
-	    maxf = querysocket;
-	}
-	if (querysocket6 >= 0) {
-	  zmpoll_addfd(&fds, &highfd, querysocket6, -1, &query6fds);
-	  if (maxf < querysocket6)
-	    maxf = querysocket6;
-	}
-	if (notifysocket >= 0) {
-	  zmpoll_addfd(&fds, &highfd, notifysocket, -1, &notifyfds);
-	  if (maxf < notifysocket)
-	    maxf = notifysocket;
-	}
+	if (querysocket >= 0)
+	  zmpoll_addfd(&fds, &fdscount, querysocket,  -1, &queryfds);
+
+	if (querysocket6 >= 0)
+	  zmpoll_addfd(&fds, &fdscount, querysocket6, -1, &query6fds);
+
+	if (notifysocket >= 0)
+	  zmpoll_addfd(&fds, &fdscount, notifysocket, -1, &notifyfds);
 
 	/* Although we don't react on the results of these MQ2 fd's
 	   here in main loop, getting them to break timeouts is
 	   important for MAILQv2 responsiveness. ! */
 
 	if (mailqmode == 2)
-	  maxf = mq2add_to_poll(&fds, &highfd, maxf);
+	  mq2add_to_poll(&fds, &fdscount);
 
-	if (highfd == 0) {
-	  if (fds) free(fds);
+	if (fdscount == 0) {
 	  return -1;
 	}
 
@@ -1133,9 +1120,9 @@ time_t timeout;
 	in_poll = 1;
 
 	/* n = select(maxf, &rdmask, &wrmask, NULL, &tv); */
-	n = zmpoll(fds, highfd, wait_secs * 1000);
+	n = zmpoll(fds, fdscount, wait_secs * 1000);
 	if (verbose)
-	  sfprintf(sfstderr,"**** QX zmpoll(fds, %d, %d * 1000) = %d; maxf = %d; QX ***\n", highfd, wait_secs, n, maxf);
+	  sfprintf(sfstderr,"**** QX zmpoll(fds, %d, %d * 1000) = %d; QX ***\n", fdscount, wait_secs, n);
 
 
 	if (n < 0) {
@@ -1146,19 +1133,17 @@ time_t timeout;
 	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
 	  in_poll = 0;
 	  if (err == EINTR || err == EAGAIN) {
-	    if (fds) free(fds);
 	    return 0;
 	  }
 	  if (err == EINVAL || err == EBADF) {
 	    sfprintf(sfstderr, "** select() returned errno=%d\n", err);
-	    for (i = 0; i < highfd; ++i) {
+	    for (i = 0; i < fdscount; ++i) {
 	      if (fds[i].events & ZM_POLLIN && fcntl(fds[i].fd,F_GETFL,0) < 0)
 		sfprintf(sfstderr,"** Invalid fd on a zmpoll() ZM_POLLIN fds: %d\n", fds[i].fd);
 	      if (fds[i].events & ZM_POLLOUT && fcntl(fds[i].fd,F_GETFL,0) < 0)
 		sfprintf(sfstderr,"** Invalid fd on a zmpoll() ZM_POLLOUT fds: %d\n", fds[i].fd);
 	    }
 	    sfsync(sfstderr);
-	    if (fds) free(fds);
 	    abort(); /* mux() select() error EINVAL or EBADF !? */
 	  }
 	  perror("poll() returned unknown error ");
@@ -1172,7 +1157,6 @@ time_t timeout;
 	  /* -- just a timeout -- fast or long */
 	  timed_log_reinit();
 	  in_poll = 0;
-	  if (fds) free(fds);
 	  return 1;
 	} else {
 	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
@@ -1191,13 +1175,15 @@ time_t timeout;
 
 	  if (cpids != NULL) {
 
-	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
+	    for (proc = cpids, i = 0; i < scheduler_nofiles; ++i, ++proc) {
 	      /* sfprintf(sfstderr,"**** QX i = %d QX ***\n", i); */
 	      
 	      timed_log_reinit();
 
 	      if (proc->pid < 0 ||
-	          (proc->pid > 0 && proc->fdpfrom && proc->fdpfrom->revents & ZM_POLLIN)) {
+	          (proc->pid > 0 && proc->fdpfrom &&
+		   proc->fdpfrom->revents & ZM_POLLIN)) {
+
 		/* _Z_FD_CLR(i, rdmask); */
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */
@@ -1206,7 +1192,8 @@ time_t timeout;
 
 	      /* In case we have non-completed 'feeds', try feeding them */
 	      if (proc->pid > 0    &&  proc->tofd >= 0   &&
-		  proc->cmdlen > 0 && proc->fdpto && proc->fdpto->revents & ZM_POLLOUT)
+		  proc->cmdlen > 0 &&
+		  proc->fdpto && proc->fdpto->revents & ZM_POLLOUT)
 		flush_child(proc);
 
 	      /* Because this loop might take a while ... */
@@ -1220,7 +1207,6 @@ time_t timeout;
 	  in_poll = 0;
 	}
 	/* sfprintf(sfstderr, "return from mux\n"); */
-	if (fds) free(fds);
 	return 0;
 }
 
@@ -1253,41 +1239,39 @@ queryipccheck()
 	     (querysocket6 >= 0) ||
 	     (notifysocket >= 0)    ) {
 
-	  int highfd, maxfd;
+	  int fdscount;
 	  struct zmpollfd *fds = NULL;
 
 	  struct zmpollfd *queryfds = NULL;
 	  struct zmpollfd *query6fds = NULL;
 	  struct zmpollfd *notifyfds = NULL;
 
-	  maxfd = -1;
-
-	  highfd = 0;
+	  fdscount = 0;
 
 	  if (querysocket >= 0)
-	    zmpoll_addfd( &fds, &highfd, querysocket, -1, &queryfds);
+	    zmpoll_addfd( &fds, &fdscount, querysocket,  -1, &queryfds);
 
 	  if (querysocket6 >= 0)
-	    zmpoll_addfd( &fds, &highfd, querysocket6, -1, &query6fds);
+	    zmpoll_addfd( &fds, &fdscount, querysocket6, -1, &query6fds);
 
 	  if (notifysocket >= 0)
-	    zmpoll_addfd( &fds, &highfd, notifysocket, -1, &notifyfds);
+	    zmpoll_addfd( &fds, &fdscount, notifysocket, -1, &notifyfds);
 
 
 	  if (mailqmode == 2) {
-	    maxfd = mq2add_to_poll(&fds, &highfd, maxfd);
+	    mq2add_to_poll(&fds, &fdscount);
 
-	    n = zmpoll(fds, highfd, /* wait: */ 0 /* ms */ );
+	    n = zmpoll(fds, fdscount, /* wait: */ 0 /* ms */ );
 
 	    if (n > 0)
 	      mq2_areinsets(fds);
 
 	  } else 
-	    n = zmpoll(fds, highfd, /* wait: */ 0 /* ms */ );
+	    n = zmpoll(fds, fdscount, /* wait: */ 0 /* ms */ );
 
 	  if (notifyfds && (notifyfds->revents & ZM_POLLIN))
 	    receive_notify(notifysocket);
-
+	  if (notifyfds) notifyfds->revents = 0;
 
 	  if (query6fds && (query6fds->revents & ZM_POLLIN)) {
 
@@ -1353,6 +1337,7 @@ queryipccheck()
 	      }
 	    }
 	  }
+	  if (query6fds) query6fds->revents = 0;
 
 	  if (queryfds && (queryfds->revents & ZM_POLLIN)) {
 
@@ -1404,6 +1389,8 @@ queryipccheck()
 	      }
 	    }
 	  }
+	  if (queryfds) queryfds->revents = 0;
+
 	}
 }
 
@@ -1824,6 +1811,7 @@ static void readfrom(fd)
 	free(buf);
 }
 
+#if 0 /* System does not use MKDIR/RMDIR anymore.. */
 #if defined(USE_BINMKDIR) || defined(USE_BINRMDIR)
 
 /*
@@ -1886,6 +1874,7 @@ system(name)
 	   }
 }
 
+#endif
 #endif
 
 

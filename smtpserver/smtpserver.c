@@ -612,6 +612,8 @@ int main(argc, argv, envp)
 
 	SmtpState SS;
 
+	struct zmpollfd *pollfds = NULL;
+
 	progname = argv[0] ? argv[0] : "smtpserver";
 	cmdline = &argv[0][0];
 	eocmdline = argv[argc-1] + strlen(argv[argc-1]) + 1;
@@ -1430,28 +1432,23 @@ int main(argc, argv, envp)
 	  SIGNAL_HANDLE(SIGTERM, sigterminator);
 
 	  while (!mustexit) {
-	    fd_set rdset;
 	    int n;
 	    int socktag;
+	    int socketcount = 0;
 	    
 	    if (sawsigchld) {
 	      reaper(0);
 	      continue;
 	    }
 
-	    _Z_FD_ZERO(rdset);
 
-	    n = 0;
 
 	    for (i = 0; i < listensocks_count; ++i) {
-	      _Z_FD_SET(listensocks[i],rdset);
-	      if (n < listensocks[i])
-		n = listensocks[i];
+	      zmpoll_addfd(&pollfds, &socketcount, listensocks[i], -1, NULL);
 	    }
-	    ++n;
-	    n = select(n, &rdset, NULL, NULL, NULL);
+	    n = zmpoll(pollfds, socketcount, 10000 /* milliseconds */);
 
-	    if (n == 0) /* Timeout can't really happen here.. */
+	    if (n == 0) /* Timeout is just to keep the loop alive... */
 	      continue;
 
 	    if (n < 0) {
@@ -1464,10 +1461,11 @@ int main(argc, argv, envp)
 	    /* Ok, here the  select()  has reported that we have something
 	       appearing in the listening socket(s).
 	       We are simple, and try them in order.. */
-	      
-	    for (i = 0; i < listensocks_count; ++i) {
 
-	      if (_Z_FD_ISSET(listensocks[i],rdset)) {
+	    for (i = 0; i < socketcount; ++i) {
+
+	      if (pollfds[i].revents & ZM_POLLIN) {
+
 		n = listensocks[i];
 		socktag = listensocks_types[i];
 		OCP     = listensocks_CPs[i];
@@ -2084,31 +2082,29 @@ SmtpState *SS;
       if (rc < 0 && (errno == EAGAIN || errno == EINTR)) {
 	/* Wait for write-space, or timeout! */
 
-	fd_set wrset;
-	fd_set rdset;
-	struct timeval tv;
+	struct zmpollfd *fds = NULL;
 	time_t now;
 	int fd = SS->outputfd;
+	int n = 0;
+	int tv_sec;
 
-	_Z_FD_ZERO(rdset);
-	_Z_FD_ZERO(wrset);
 	time(&now);
 
 	if (expiry_epoch <= now)
-	  tv.tv_sec = 1;
+	  tv_sec = 1;
 	else
-	  tv.tv_sec = expiry_epoch - now;
-	tv.tv_usec = 0;
+	  tv_sec = expiry_epoch - now;
 
 	if (rc == -1)
-	  _Z_FD_SET(fd, wrset);
+	  zmpoll_addfd(&fds, &n, -1, fd, NULL);
 	else
-	  _Z_FD_SET(SS->inputfd, rdset);  /* SSL Want Read! */
+	  zmpoll_addfd(&fds, &n, SS->inputfd, -1, NULL);  /* SSL Want Read! */
 
-	if (SS->inputfd > fd)
-	  fd = SS->inputfd;
+	rc = zmpoll( fds, 1, tv_sec * 1000 );
 
-	rc = select(fd+1, &rdset, &wrset, NULL, &tv);
+	if (fds)
+	  free(fds);
+
 	if (rc == 0) {
 	  /* TIMEOUT! */
 	  gotalarm = 1;
@@ -2145,14 +2141,16 @@ Z_pending(SS)
      SmtpState * SS;
 {
     int rc;
-    struct timeval tv;
-    fd_set rdset;
 
-    _Z_FD_ZERO(rdset);
-    _Z_FD_SET(SS->inputfd, rdset);
-    tv.tv_sec = tv.tv_usec = 0;
+    struct zmpollfd *fds = NULL;
+    int fdcount = 0;
 
-    rc = select(SS->inputfd+1, &rdset, NULL, NULL, &tv);
+    zmpoll_addfd(&fds, &fdcount, SS->inputfd, -1, NULL);
+
+    rc = zmpoll(fds, fdcount, 0);
+
+    if (fds) free(fds);
+
 
     if (rc > 0) return 1;
 
@@ -2183,6 +2181,7 @@ int s_getc(SS, timeout_is_fatal)
      int timeout_is_fatal;
 {
     int rc = 0;
+    struct zmpollfd *fds = NULL;
 
     if (SS->s_ungetcbuf >= 0) {
       rc = SS->s_ungetcbuf;
@@ -2205,31 +2204,26 @@ int s_getc(SS, timeout_is_fatal)
 
 	if (rc < 0 && SS->inputfd >= 0) {
 	
-	  fd_set rdset;
-	  fd_set wrset;
-	  struct timeval tv;
-	  time_t now;
-	  int fd = SS->inputfd;
+	  int pollfds = 0;
 
-	  _Z_FD_ZERO(rdset);
-	  _Z_FD_ZERO(wrset);
+	  int tv_sec = 1;
+	  time_t now;
+
 	  time(&now);
 
-	  if (expiry_epoch <= now)
-	    tv.tv_sec = 1;
-	  else
-	    tv.tv_sec = expiry_epoch - now;
-	  tv.tv_usec = 0;
+	  if (expiry_epoch > now)
+	    tv_sec = expiry_epoch - now;
 
 	  if (rc == -2) /* SSL Want Write ! */
-	    _Z_FD_SET(SS->outputfd, wrset);
+	    zmpoll_addfd(&fds, &pollfds, -1, SS->outputfd, NULL);
 	  else
-	    _Z_FD_SET(SS->inputfd, rdset);
+	    zmpoll_addfd(&fds, &pollfds, SS->inputfd, -1, NULL);
 
-	  if (SS->outputfd > fd)
-	    fd = SS->outputfd;
 
-	  rc = select(fd+1, &rdset, &wrset, NULL, &tv);
+	  rc = zmpoll( fds, 1, tv_sec * 1000 );
+
+	  if (fds) free(fds);
+	  fds = NULL;
 
 	  if (rc == 0) {
 	    /* TIMEOUT! */

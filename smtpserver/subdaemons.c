@@ -363,16 +363,17 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
      int rendezvous_socket;
      struct subdaemon_handler *subdaemon_handler;
 {
-	int n, rc;
-	struct peerdata *peers, *peer;
-	struct peerhead job_head;
-	struct subdaemon_state *statep = NULL;
+	int n, rc, tv_sec;
+	static struct peerdata *peers, *peer;
+	static struct peerhead job_head;
+	static struct subdaemon_state *statep = NULL;
 	/* int ppid; */
-	int top_peer = 0, top_peer2, topfd;
+	static int top_peer = 0, top_peer2;
 	/* int last_peer_index = 0; */
 
-	fd_set rdset, wrset;
-	struct timeval tv;
+	static struct zmpollfd *pollfds = NULL;
+	static int fdcount = 0;
+	static struct zmpollfd *rendezvous_cbp = NULL;
 
 	SIGNAL_HANDLE(SIGCHLD, sigchld);
 	SIGNAL_RELEASE(SIGCHLD);
@@ -443,45 +444,44 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
 					  -> kill self! */
 
-	  _Z_FD_ZERO(rdset);
-	  _Z_FD_ZERO(wrset);
 
-	  tv.tv_sec  = 10; /* 10 second tick.. */
-	  tv.tv_usec =  0;
+	  tv_sec  = 10; /* 10 second tick.. */
 
-	  topfd = -1;
-	  if (rendezvous_socket >= 0) {
-	    _Z_FD_SET(rendezvous_socket, rdset);
-	    topfd = rendezvous_socket;
-	  }
+	  fdcount = 0;
+	  rendezvous_cbp = NULL;
+
+	  if (rendezvous_socket >= 0)
+	    zmpoll_addfd( &pollfds, &fdcount,
+			  rendezvous_socket, -1, &rendezvous_cbp);
 
 	  top_peer2 = 0;
 	  for (n = 0; n < top_peer; ++n) {
 	    if (peers[n].fd >= 0) {
 	      top_peer2 = n+1;
-	      if (topfd < peers[n].fd)
-		topfd = peers[n].fd;
 	      /* if (peers[n].inlen == 0) */
 	      /* Always check for readability:
 		 There might have been timeout and connection close! */
-	      _Z_FD_SET(peers[n].fd, rdset);
 	      if (peers[n].outlen > 0)
-		_Z_FD_SET(peers[n].fd, wrset);
+		zmpoll_addfd( &pollfds, &fdcount,
+			      peers[n].fd, peers[n].fd, &peers[n].pollfd );
+	      else
+		zmpoll_addfd( &pollfds, &fdcount,
+			      peers[n].fd, -1, &peers[n].pollfd );
 	    }
 	  }
 	  top_peer = top_peer2; /* New topmost peer index */
 
 	  time(&now);
 
-	  rc = (subdaemon_handler->preselect)( statep, & rdset, & wrset, &topfd );
-	  if (rc > 0) tv.tv_sec = 0; /* RAPID select */
+	  rc = (subdaemon_handler->prepoll)( statep, & pollfds, & fdcount );
+	  if (rc > 0) tv_sec = 0; /* RAPID select */
 
-	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
+	  rc = zmpoll( pollfds, fdcount, tv_sec * 1000 );
 	  time(&now);
 
 	  if (rc == 0) {
 	    /* Select timeout.. */
-	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+	    rc = (subdaemon_handler->postpoll)( statep, pollfds, fdcount );
 	    if (rc > 0) {
 	      /* The subprocess became HUNGRY! */
 	      goto talk_with_subprocesses;
@@ -491,7 +491,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	  if (rc > 0) { /* Things have been read or written.. */
 
-	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+	    rc = (subdaemon_handler->postpoll)( statep, pollfds, fdcount );
 #if 0 /* No need to do anything more in here.. */
 	    if (rc > 0) {
 	      /* The subprocess became HUNGRY! */
@@ -502,7 +502,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    /* The rendezvous socket ?? */
 
 	    if (rendezvous_socket >= 0 &&
-		_Z_FD_ISSET(rendezvous_socket, rdset)) {
+		rendezvous_cbp && (rendezvous_cbp->revents & ZM_POLLIN)) {
 
 	      /* We have (possibly) something to receive.. */
 	      int newfd = -1;
@@ -549,7 +549,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    peer->fd = newfd;
 		    fd_nonblockingmode(newfd);
 		    /* We write our greeting right away .. semi fake state! */
-		    _Z_FD_SET(peer->fd, wrset);
+		    if (peer->pollfd)
+		      peer->pollfd->revents |= ZM_POLLOUT;
 
 		    memcpy(peer->outbuf, "#hungry\n", 8);
 		    peer->outlen = 8;
@@ -574,7 +575,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	      if (peer->fd >= 0) {
 
 		/* If we have things to output, and write is doable ? */
-		if (peer->outlen > 0 && _Z_FD_ISSET(peer->fd, wrset)) {
+		if (peer->outlen > 0 && peer->pollfd &&
+		    (peer->pollfd->revents & ZM_POLLOUT)) {
+
 		  rc = 0;
 		  for (;;) {
 #ifdef DEBUG_WITH_UNLINK
@@ -617,7 +620,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		} /* ... Writability testing */
 
 		/* Now if we have something to read ?? */
-		if (peer->fd >= 0 && _Z_FD_ISSET(peer->fd, rdset)) {
+		if (peer->fd >= 0 &&
+		    peer->pollfd && (peer->pollfd->revents & ZM_POLLIN)) {
 		  for (;;) {
 		    if ((peer->inpspace - peer->inlen) < 32) {
 		      /* Enlarge the buffer! */
@@ -845,13 +849,13 @@ subdaemon_send_to_peer(peer, buf, len)
 	  if ((len > 0) && (rc < 0) && (errno == EAGAIN)) {
 	    /* Select on it, if there is still unprocessed input left! */
 
-	    struct timeval tv;
-	    fd_set wrset;
-	    _Z_FD_ZERO(wrset);
-	    _Z_FD_SET(peer->fd, wrset);
-	    tv.tv_sec = 10; /* FIXME: 10 seconds ?? */
-	    tv.tv_usec = 0;
-	    rc = select ( peer->fd+1, NULL, &wrset, NULL, &tv );
+	    static struct zmpollfd *pollfds = NULL;
+	    long tv_msec = 10*1000; /* 10 000 milliseconds */
+	    int fdcount = 0;
+
+	    zmpoll_addfd( &pollfds, &fdcount, -1, peer->fd, NULL);
+	    rc = zmpoll( pollfds, fdcount, tv_msec );
+
 	    if ((rc < 0) && (errno == EINTR)) continue;
 	    if (rc < 0) {
 	      /* ???? What ?????   FIXME:  */
@@ -976,19 +980,18 @@ fdgetc(fdp, fd, timeout)
 #endif
 	    if (errno == EINTR) continue;
 	    if (errno == EAGAIN) {
-		fd_set rdset;
-		struct timeval tv;
+
+	        static struct zmpollfd *pollfds = NULL;
+		int fdcount = 0;
 
 		if (timeout < 0) {
 		  errno = EAGAIN;
 		  return -2; /* EAGAIN.. */
 		}
 
-		_Z_FD_ZERO(rdset);
-		tv.tv_sec = timeout;
-		tv.tv_usec = 0;
-		_Z_FD_SET(fd, rdset);
-		rc = select( fd+1, &rdset, NULL, NULL, &tv );
+		zmpoll_addfd( &pollfds, &fdcount, fd, -1, NULL );
+
+		rc = zmpoll( pollfds, fdcount, timeout * 1000 );
 		if (rc == 0) {
 		  errno = EBUSY;
 		  return -3; /* TIMEOUT!  D'UH! */
