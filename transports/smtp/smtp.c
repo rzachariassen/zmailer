@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2005 by Matti Aarnio -- modifications, including
+ *	Copyright 1991-2006 by Matti Aarnio -- modifications, including
  *	MIME things...
  */
 
@@ -176,11 +176,12 @@ int *bufsizp;
 int infd;
 SmtpState *SS;
 {
-	struct timeval tv;
-	fd_set rdset;
 	int rc, i, buflen, bufsiz;
+	long tv;
 	time_t tmout;
 	char *s;
+	static struct zmpollfd *fds = NULL;
+	int fdscount;
 
 	time(&now);
 
@@ -229,15 +230,14 @@ outbuf_fillup:
 
 	  time(&now);
 	  if (now < tmout)
-	    tv.tv_sec = tmout - now;
+	    tv = tmout - now;
 	  else
-	    tv.tv_sec = 0;
-	  tv.tv_usec = 0;
-	  _Z_FD_ZERO(rdset);
-	  if (infd >= 0)
-	    _Z_FD_SET(infd,rdset);
+	    tv = 0;
 
-	  rc = select(infd+1, &rdset, NULL, NULL, &tv);
+	  fdscount = 0;
+	  zmpoll_addfd(&fds, &fdscount, infd, -1, NULL);
+
+	  rc = zmpoll(fds, fdscount, tv * 1000);
 	  time(&now);
 
 	  if (now >= tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
@@ -3610,8 +3610,9 @@ abort();
 
 	  /* Wait for the connection -- or timeout.. */
 
-	  struct timeval tv;
-	  fd_set wrset;
+	  long tv;
+	  static struct zmpollfd *fds = NULL;
+	  int fdscount = 0;
 	  int rc;
 
 	  errno = 0;
@@ -3628,12 +3629,10 @@ abort();
 
 	  /* Select for the establishment, or for the timeout */
 
-	  tv.tv_sec = timeout_conn;
-	  tv.tv_usec = 0;
-	  _Z_FD_ZERO(wrset);
-	  _Z_FD_SET(sk, wrset);
+	  tv = timeout_conn;
 
-	  rc = select(sk+1, NULL, &wrset, NULL, &tv);
+	  zmpoll_addfd(&fds, &fdscount, -1, sk, NULL); /* FOR WRITE */
+	  rc = zmpoll(fds, fdscount, tv * 1000);
 
 	  errno = 0; /* All fine ? */
 	  if (rc == 0) {
@@ -3936,33 +3935,30 @@ int bdat_flush(SS, lastflg)
 
 extern int select_sleep __((int fd, time_t when_tout, int waitwr));
 
-#ifdef	HAVE_SELECT
 
 int select_sleep(fd, when_tout, waitwr)
      int fd;
      time_t when_tout;
      int waitwr;
 {
-	struct timeval tv;
+	long tv;
 	int rc;
-	fd_set rdmask;
-	fd_set wrmask;
+	int fdscount = 0;
+	static struct zmpollfd *fds = NULL;
 
 	time(&now);
 
-	tv.tv_sec = when_tout - now;
+	tv = when_tout - now;
 	if (when_tout < now)
-	  tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	_Z_FD_ZERO(rdmask);
-	_Z_FD_ZERO(wrmask);
+	  tv = 0;
 
 	if (waitwr)
-	  _Z_FD_SET(fd,wrmask);
+	  zmpoll_addfd(&fds, &fdscount, -1, fd, NULL);
 	else
-	  _Z_FD_SET(fd,rdmask);
+	  zmpoll_addfd(&fds, &fdscount, fd, -1, NULL);
 
-	rc = select(fd+1, &rdmask, &wrmask, NULL, &tv);
+	rc = zmpoll( fds, fdscount, tv * 1000 );
+
 	if (rc == 0) /* Timeout w/o input */
 	  return -1;
 	if (rc == 1) /* There is something to read (or write)! */
@@ -3977,37 +3973,19 @@ int select_sleep(fd, when_tout, waitwr)
 int has_readable(fd)
 int fd;
 {
-	struct timeval tv;
 	int rc;
-	fd_set rdmask;
 
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	_Z_FD_ZERO(rdmask);
-	_Z_FD_SET(fd,rdmask);
+	static struct zmpollfd *fds = NULL;
+	int fdscount = 0;
 
-	rc = select(fd+1,&rdmask,NULL,NULL,&tv);
+	zmpoll_addfd(&fds, &fdscount, fd, -1, NULL);
+
+	rc = zmpoll( fds, fdscount, 0 );
+
 	if (rc > 0) /* There is something to read! */
 	  return 1;
 	return 0;    /* interrupt or timeout, or some such.. */
 }
-#else /* not HAVE_SELECT */
-int select_sleep(fd, when_tout, waitwr)
-     int fd;
-     time_t when_tout;
-     int waitwr;
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-int has_readable(fd)
-int fd;
-{
-	errno = ENOSYS;
-	return 1;
-}
-#endif
 
 static int code_to_status(code,statusp)
 int code;

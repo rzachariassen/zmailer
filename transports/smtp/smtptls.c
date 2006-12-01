@@ -5,7 +5,7 @@
  *	Universitaetsplatz 3-4
  *	D-03044 Cottbus, Germany
  *
- * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2003
+ * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2006
  */
 
 #include "smtp.h"
@@ -208,9 +208,10 @@ static int do_tls_operation( SmtpState *SS, int timeout,
 
     while (!done) {
 
+	static struct zmpollfd *fds = NULL;
+	int fdscount;
+
 	int rc, i;
-	fd_set rdset, wrset;
-	struct timeval tv;
 	int wantread, wantwrit;
 
     ssl_connect_retry:;
@@ -289,18 +290,16 @@ static int do_tls_operation( SmtpState *SS, int timeout,
 	}
 
 	i = SSL_get_fd(SS->TLS.ssl);
-	_Z_FD_ZERO(wrset);
-	_Z_FD_ZERO(rdset);
+
+	fdscount = 0;
 
 	if (wantread)
-	  _Z_FD_SET(i, rdset); /* READ WANTED */
+	  zmpoll_addfd(&fds, &fdscount, i, -1, NULL);
+
 	if (wantwrit)
-	  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+	  zmpoll_addfd(&fds, &fdscount, -1, i, NULL);
 
-	tv.tv_sec = timeout;
-	tv.tv_usec = 0;
-
-	rc = select(i+1, &rdset, &wrset, NULL, &tv);
+	rc = zmpoll( fds, fdscount, timeout * 1000 );
 	sslerr = errno;
 
 	if (rc == 0) {
@@ -1904,8 +1903,9 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 #endif
 	    {
 	      /* Write blocked, lets select (and sleep) for write.. */
+	      static struct zmpollfd *fds = NULL;
+	      int fdscount = 0;
 	      struct timeval tv, t0;
-	      fd_set wrset, rdset;
 
 #if 1 /* Remove after debug tests */
 	      if (SS->verboselog)
@@ -1913,28 +1913,25 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 #endif
 
 	      i = sffileno(sfp);
-	      _Z_FD_ZERO(wrset);
-	      _Z_FD_ZERO(rdset);
 
 #ifdef HAVE_OPENSSL
 	      if (SS->TLS.sslmode) {
 		if (SS->TLS.wantreadwrite < 0)
-		  _Z_FD_SET(i, rdset); /* READ WANTED */
+		  zmpoll_addfd(&fds, &fdscount, i, -1, NULL); /* WANT READ */
 		else if (SS->TLS.wantreadwrite > 0)
-		  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+		  zmpoll_addfd(&fds, &fdscount, -1, i, NULL); /* WANT WRITE */
 		else
 		  ; /* FIXME! What???  No reading, nor writing ??? */
 	      } else
 #endif /* - HAVE_OPENSSL */
 		{
-		  _Z_FD_SET(i, wrset);
+		  zmpoll_addfd(&fds, &fdscount, -1, i, NULL); /* WANT WRITE */
 		}
 
 	      tv.tv_sec = timeout_tcpw;
-	      tv.tv_usec = 0;
 
 	      errno = 0;
-	      r = select(i+1, &rdset, &wrset, NULL, &tv);
+	      r = zmpoll(fds, fdscount, tv.tv_sec * 1000);
 	      e = errno;
 
 #if 1 /* Remove after debug tests */

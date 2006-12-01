@@ -55,10 +55,6 @@
 #include <sys/types.h>
 #endif
 
-#ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
-
 #include <sys/time.h>
 
 #ifdef HAVE_LOCALE_H
@@ -69,48 +65,7 @@
 #include <netinet/tcp.h>
 #endif
 
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-/* #error "FDSET macro susceptible" */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-/* #warning "_Z_FD_SET[1]" */
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-/* #warning "_Z_FD_SET[2]" */
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-/* #warning "_Z_FD_SET[3]" */
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
+#include "zmpoll.h"
 
 #undef string
 #undef cstring
