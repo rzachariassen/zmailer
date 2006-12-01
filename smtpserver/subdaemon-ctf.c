@@ -487,7 +487,7 @@ subdaemon_handler_ctf_postpoll (state, fdsp, fdscount)
 	    continue; /* No contentfilter there.. */
 
 	  if ( CTFp->fdb.rdsize ||
-	       (CTFp->pollfd->revents & ZM_POLLIN) ) {
+	       (CTFp->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)) ) {
 	    /* We have something to read ! */
 	    
 	    rc = fdgets( & CTFp->buf, CTFp->inlen,

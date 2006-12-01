@@ -3,6 +3,8 @@
  *	This will be free software, but only when it is finished.
  */
 
+#define _SYS_STREAM_H /* Block inclusion of Solaris 10 <sys/stream.h> */
+
 #include "hostenv.h"
 
 #include <stdio.h>

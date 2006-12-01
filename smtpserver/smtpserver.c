@@ -1464,7 +1464,7 @@ int main(argc, argv, envp)
 
 	    for (i = 0; i < socketcount; ++i) {
 
-	      if (pollfds[i].revents & ZM_POLLIN) {
+	      if (pollfds[i].revents & ZM_POLLIN) { /* NO HUP or ERR here ? */
 
 		n = listensocks[i];
 		socktag = listensocks_types[i];

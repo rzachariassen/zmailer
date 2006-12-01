@@ -462,7 +462,8 @@ void mq2_areinsets(fds)
     mq = mq2root;
     while ( mq ) {
       struct mailq *mq2 = mq->nextmailq;
-      if ( mq->fds && (mq->fds->revents & ZM_POLLIN) ) {
+      if ( mq->fds &&
+	   (mq->fds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)) ) {
 	mq->fds = NULL;
 	mq2_read(mq);
       }

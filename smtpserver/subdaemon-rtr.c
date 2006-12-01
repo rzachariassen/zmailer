@@ -414,8 +414,9 @@ subdaemon_handler_rtr_postpoll (statep, fdsp, fdscount)
 	  if (RTR->fromfd < 0)
 	    continue; /* No router at this slot */
 
-	  if ( (RTR->pollfd && (RTR->pollfd->revents & ZM_POLLIN)) ||
-	       RTR->fdb.rdsize ) {
+	  if ( RTR->fdb.rdsize ||
+	       (RTR->pollfd &&
+		(RTR->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) ) {
 	    /* We have something to read ! */
 
 	    rc = fdgets( & RTR->buf, RTR->inlen,

@@ -610,7 +610,7 @@ static int parent_reader(waittime)
 
   /* Ok, zmpoll() gave indication of *something* being ready for read */
 
-  if (notifyfdp  &&  (notifyfdp->revents & ZM_POLLIN))
+  if (notifyfdp  &&  (notifyfdp->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)))
     notify_reader(notifysocket);
 
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
@@ -618,7 +618,7 @@ static int parent_reader(waittime)
 
     if (r->fdpto && r->fdpto->revents & ZM_POLLOUT)
       _parent_writer(&routerchilds[i]);
-    if (r->fdpfrom && r->fdpfrom->revents & ZM_POLLIN)
+    if (r->fdpfrom && r->fdpfrom->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))
       _parent_reader(&routerchilds[i]);
   }
 

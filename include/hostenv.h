@@ -5,6 +5,9 @@
 #include "config.h" /* We have this always.. */
 /* #endif */
 
+#define _SYS_STREAM_H /* Block inclusion of Solaris 10 <sys/stream.h> */
+
+
 #ifdef HAVE_FCNTL_H
 # define FCNTL_H <fcntl.h>
 #endif

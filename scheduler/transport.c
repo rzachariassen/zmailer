@@ -1162,15 +1162,15 @@ time_t timeout;
 	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
 
 	  /* In case we really should react.. */
-	  if (querysocket >= 0 &&
-	      queryfds && queryfds->revents & ZM_POLLIN)
+	  if (querysocket >= 0 && queryfds &&
+	      queryfds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))
 	    queryipccheck();
-	  if (querysocket6 >= 0 &&
-	      query6fds && query6fds->revents & ZM_POLLIN)
+	  if (querysocket6 >= 0 && query6fds &&
+	      query6fds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))
 	    queryipccheck();
 	  
-	  if (notifysocket >= 0 &&
-	      notifyfds && notifyfds->revents & ZM_POLLIN)
+	  if (notifysocket >= 0 && notifyfds &&
+	      notifyfds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))
 	    receive_notify(notifysocket);
 
 	  if (cpids != NULL) {
@@ -1182,7 +1182,7 @@ time_t timeout;
 
 	      if (proc->pid < 0 ||
 	          (proc->pid > 0 && proc->fdpfrom &&
-		   proc->fdpfrom->revents & ZM_POLLIN)) {
+		   proc->fdpfrom->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 
 		/* _Z_FD_CLR(i, rdmask); */
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
@@ -1269,11 +1269,13 @@ queryipccheck()
 	  } else 
 	    n = zmpoll(fds, fdscount, /* wait: */ 0 /* ms */ );
 
-	  if (notifyfds && (notifyfds->revents & ZM_POLLIN))
+	  if (notifyfds &&
+	      (notifyfds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)))
 	    receive_notify(notifysocket);
 	  if (notifyfds) notifyfds->revents = 0;
 
-	  if (query6fds && (query6fds->revents & ZM_POLLIN)) {
+	  if (query6fds &&
+	      (query6fds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
@@ -1339,7 +1341,8 @@ queryipccheck()
 	  }
 	  if (query6fds) query6fds->revents = 0;
 
-	  if (queryfds && (queryfds->revents & ZM_POLLIN)) {
+	  if (queryfds &&
+	      (queryfds->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);

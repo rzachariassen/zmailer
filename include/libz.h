@@ -3,6 +3,8 @@
  *  Written by Matti Aarnio <mea@utu.fi> for Zmailer 2.2	    *
  * **************************************************************** */
 
+#define _SYS_STREAM_H /* Block inclusion of Solaris 10 <sys/stream.h> */
+
 #ifndef __
 # ifdef __STDC__
 #  define __(x) x

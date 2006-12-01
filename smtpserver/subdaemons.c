@@ -501,8 +501,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	    /* The rendezvous socket ?? */
 
-	    if (rendezvous_socket >= 0 &&
-		rendezvous_cbp && (rendezvous_cbp->revents & ZM_POLLIN)) {
+	    if (rendezvous_socket >= 0 && rendezvous_cbp &&
+		(rendezvous_cbp->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 
 	      /* We have (possibly) something to receive.. */
 	      int newfd = -1;
@@ -620,8 +620,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		} /* ... Writability testing */
 
 		/* Now if we have something to read ?? */
-		if (peer->fd >= 0 &&
-		    peer->pollfd && (peer->pollfd->revents & ZM_POLLIN)) {
+		if (peer->fd >= 0 && peer->pollfd &&
+		    (peer->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 		  for (;;) {
 		    if ((peer->inpspace - peer->inlen) < 32) {
 		      /* Enlarge the buffer! */

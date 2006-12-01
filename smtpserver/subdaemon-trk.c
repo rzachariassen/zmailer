@@ -1637,7 +1637,7 @@ subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
 
 	  /* Listen-socket exists for peer acceptances */
 	  if ( cp->listenfd >= 0 && cp->pollfd &&
-	       (cp->pollfd->revents & ZM_POLLIN) ) {
+	       (cp->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)) ) {
 	    cluster_trk_accept(cp);
 	  }
 
@@ -1652,7 +1652,7 @@ subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
 	    struct cluster_trk_peer *opeer = & cp->outpeers[i];
 
 	    if (opeer->fd >= 0  &&  opeer->pollfd &&
-		(opeer->pollfd->revents & ZM_POLLIN)) {
+		(opeer->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP))) {
 	      /* Socket is ready for reading!
 		 For outbound peer sockets (initiated by ourselves)
 		 this happens during connection authentication -- and
@@ -1761,7 +1761,7 @@ subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
 	    struct cluster_trk_peer *ipeer = & cp->inpeers[i];
 
 	    if ( ipeer->fd >= 0  && ipeer->pollfd &&
-		 (ipeer->pollfd->revents & ZM_POLLIN) ) {
+		 (ipeer->pollfd->revents & (ZM_POLLIN|ZM_POLLERR|ZM_POLLHUP)) ) {
 	      /* Socket is ready to read from! */
 
 	      int rc;
