@@ -1,9 +1,15 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	Header rewriting extended by Daniel Kiper <dkiper@netspace.com.pl>.
  */
 
 #include "router.h"
+#include "vis.h"
+
+#define HRR_VIS_DISABLE		"hrr_vis_disable"
+#define HRR_UNVIS_DISABLE	"hrr_unvis_disable"
 
 conscell **return_valuep;
 conscell *s_value;
@@ -64,6 +70,28 @@ n_apply(cpp, argc, argv)
 	retval = apply(argc, argv);
 	*cpp = sb_retrieve(FILENO(stdout));	/* safe alloc'ed memory */
 	return retval;
+}
+
+static int
+get_hrr_vis_flag(var_hrr_vis_name, name, stage_name)
+	const char *var_hrr_vis_name;
+	const char *name;
+	const char *stage_name;
+{
+	char *endptr;
+	long int tmp;
+	conscell *var_hrr_vis;
+
+	if ((var_hrr_vis = v_find(var_hrr_vis_name)) != NULL) {
+		if (cdr(var_hrr_vis) != NULL && !LIST(cdr(var_hrr_vis))) {
+			tmp = strtol(cdr(var_hrr_vis)->string, &endptr, 10);
+			if (cdr(var_hrr_vis)->string != '\0' && *endptr == '\0' &&
+			    (tmp != LONG_MAX || errno != ERANGE) && tmp >= 0)
+				return tmp ? 1 : 0;
+		}
+		fprintf(stderr, "%s(%s): invalid %s - ignored\n", name, stage_name, var_hrr_vis_name);
+	}
+	return 0;
 }
 
 /*
@@ -289,6 +317,117 @@ hdr_rewrite(name, h)
 		dumpHeader(nh);
 		hdr_print(nh, stdout);
 	}
+	return nh;
+}
+
+struct header *
+header_rewrite(name, h, fp, stage)
+	const char *name;
+	struct header *h;
+	FILE *fp;
+	int stage;
+{
+	const char *av[5], *stage_name[] = {"hrr_ab", "hrr_rr", "hrr_ae"};
+	const char *tmp, *token;
+	token822 *t;
+	struct header *nh = NULL, *th;
+
+	av[0] = name;
+	av[1] = stage_name[stage];
+	av[4] = NULL;
+
+	if (stage == HRR_RR) {
+		sb_external(FILENO(fp));
+		hdr_print(h, fp);
+		if ((tmp = sb_retrieve(FILENO(fp))) == NULL
+		    || (tmp = strchr(tmp, ':')) == NULL)
+			return h;
+		*(char *)(++tmp + strlen(tmp) - 1) = '\0';
+		av[2] = h->h_pname;
+		if (get_hrr_vis_flag(HRR_VIS_DISABLE, name, stage_name[stage]))
+			av[3] = tmp;
+		else {
+			av[3] = tmalloc(strlen(tmp) * 4 + 1);
+			strvis((char *)av[3], tmp, VIS_OCTAL | VIS_GLOB | VIS_WHITE);
+		}
+	} else
+		av[2] = av[3] = "";
+
+	if (s_apply(4, av) == -1 || s_value == NULL)
+		return h;
+
+	if (!LIST(s_value) || car(s_value) == NULL || !LIST(car(s_value))) {
+		fprintf(stderr, "%s(%s): returned value is invalid\n", name, stage_name[stage]);
+		return h;
+	}
+
+	if (stage == HRR_RR && caar(s_value) == NULL)
+		return NULL;
+
+	for (s_value = car(s_value); s_value != NULL; s_value = cdr(s_value)) {
+
+		if (!LIST(s_value) || car(s_value) == NULL || LIST(car(s_value))
+		    || cdar(s_value) == NULL || LIST(cdar(s_value))) {
+			fprintf(stderr, "%s(%s): returned value is invalid\n", name, stage_name[stage]);
+			return h;
+		}
+
+		if (get_hrr_vis_flag(HRR_UNVIS_DISABLE, name, stage_name[stage]))
+			tmp = cdar(s_value)->string;
+		else {
+			tmp = tmalloc(strlen(cdar(s_value)->string) + 1);
+			if (strunvis((char *)tmp, cdar(s_value)->string) == -1) {
+				fprintf(stderr, "%s(%s): invalid escape sequence\n", name, stage_name[stage]);
+				return h;
+			}
+		}
+
+		if (nh == NULL)
+			nh = th = makeHeader(spt_headers, car(s_value)->string, strlen(car(s_value)->string));
+		else {
+			th->h_next = makeHeader(spt_headers, car(s_value)->string, strlen(car(s_value)->string));
+			th = th->h_next;
+		}
+
+		th->h_descriptor = &nullhdr;
+		th->h_lines = NULL;
+
+		t = NULL;
+
+		while (1) {
+			while (*tmp == '\n' || *tmp == '\r' && *(tmp + 1) == '\n') {
+				if (*tmp == '\r')
+					++tmp;
+				++tmp;
+			}
+			if (*tmp == '\0')
+				break;
+			if ((tmp = strpbrk(token = tmp, "\n")) == NULL) {
+				if (t == NULL) {
+					th->h_lines = makeToken(token, strlen(token));
+					th->h_lines->t_type = Line;
+				} else {
+					t->t_next = makeToken(token, strlen(token));
+					t->t_next->t_type = Line;
+				}
+				break;
+			}
+			if (t == NULL) {
+				th->h_lines = t = makeToken(token, *(tmp - 1) == '\r' ? tmp - token - 1 : tmp - token);
+				th->h_lines->t_type = Line;
+			} else {
+				t->t_next = makeToken(token, *(tmp - 1) == '\r' ? tmp - token - 1 : tmp - token);
+				t->t_next->t_type = Line;
+				t = t->t_next;
+			}
+		}
+
+		if (th->h_lines == NULL) {
+			fprintf(stderr, "%s(%s): returned value is invalid\n", name, stage_name[stage]);
+			return h;
+		}
+	}
+
 	return nh;
 }
 

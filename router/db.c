@@ -5,6 +5,7 @@
  *	Modifications/maintance, Matti Aarnio, over years 1990-2004
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
+ *	'pathalias.at' driver added by Daniel Kiper <dkiper@netspace.com.pl>.
  */
 
 /*
@@ -155,6 +156,7 @@ struct db_kind {
 
 /* drivers */
 static conscell	*find_domain       __((conscell *DBFUNC(lookupfn), search_info *sip));
+static conscell	*find_at_domain    __((conscell *DBFUNC(lookupfn), search_info *sip));
 static conscell	*find_nodot_domain __((conscell *DBFUNC(lookupfn), search_info *sip));
 static conscell *find_longest_match __((conscell *DBFUNC(lookupfn), search_info *sip));
 /* others.. */
@@ -248,6 +250,8 @@ run_relation(argc, argv)
 		case 'd':	/* driver routine */
 			if (STREQ(zoptarg, "pathalias.nodot"))
 				proto_config.driver = find_nodot_domain;
+			else if (STREQ(zoptarg, "pathalias.at"))
+				proto_config.driver = find_at_domain;
 			else if (STREQ(zoptarg, "pathalias"))
 				proto_config.driver = find_domain;
 			else if (STREQ(zoptarg, "longestmatch"))
@@ -542,6 +546,8 @@ iclistdbs(p, spl)
 	  printf("{pa}");  i += 4;
 	} else if (dbip->driver == find_domain) {
 	  printf("{pa.}"); i += 5;
+	} else if (dbip->driver == find_at_domain) {
+	  printf("{pa.at}"); i += 7;
 	} else if (dbip->driver == find_longest_match) {
 	  printf("{lm}");  i += 4;
 	}
@@ -1385,6 +1391,54 @@ find_domain(lookupfn, sip)
 	}
 
 	return l;
+}
+
+/*
+ * The lookup sequence for user@ is:
+ *
+ *	user@
+ *	@LOCAL@
+ *
+ * The lookup sequence for user@foo.bar.edu is:
+ *
+ *	user@foo.bar.edu
+ *	foo.bar.edu
+ *	.foo.bar.edu
+ *	.bar.edu
+ *	.edu
+ *	.
+ *
+ * The lookup sequence for foo.bar.edu is:
+ *
+ *	foo.bar.edu
+ *	.foo.bar.edu
+ *	.bar.edu
+ *	.edu
+ *	.
+ */
+
+static conscell *
+find_at_domain(lookupfn, sip)
+	conscell *DBFUNC(lookupfn);
+	search_info *sip;
+{
+	register const char *cp;
+	conscell *l;
+
+	if ((cp = strchr(sip->key, '@')) == NULL)
+		return find_domain(lookupfn, sip);
+
+	if ((l = (*lookupfn)(sip)) != NULL)
+		return l;
+
+	if (*(cp + 1) == '\0') {
+		sip->key = sip->flags & DB_MAPTOLOWER ? "@local@" : "@LOCAL@";
+		return (*lookupfn)(sip);
+	}
+
+	sip->key = cp + 1;
+
+	return find_domain(lookupfn, sip);
 }
 
 /*

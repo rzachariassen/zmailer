@@ -1,3 +1,11 @@
+2006-12-02  Matti Aarnio  <mea@zmailer.org>
+
+	* router/Makefile.in, router/db.c, router/functions.c,
+	  router/prototypes.h, router/rfc822.c, router/shliaise.c,
+	  router/unvis.c, router/vis.c, include/vis.h:
+	    Bit by bit feeding in  SRS support written by
+	    Daniel Kiper <dkiper@netspace.com.pl>
+
 2006-12-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.h, transports/smtp/smtp.c,
@@ -24,6 +32,13 @@
 	  smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-trk.c:
 	    Reworked things to use  zmpoll()  API in place of old
 	    select() API.
+
+	* smtpserver/mxverify.c:
+	    Verify MX target IP addresses to be in A/B/C classes, and
+	    not 0/8, 10/8, 127/8, 169.254/16, 172.16/12, 192.168/16 nets.
+	    This blocks some subsets of spammers quite nicely, when
+	    claimed message source address routes emails to loopback,
+	    and some such cases...
 
 	* lib/zmpoll.c:
 	    Mistake in the  zmpoll_addfd():  didn't add fd=0 cases

@@ -15,8 +15,8 @@ TOPDIR=		..
 MAILBIN=	$(DESTDIR)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-ROUTER_INCL=	@GENINCL@ @INCLRESOLV@
-ROUTER_LIB=	@GENLIB@ @GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@
+ROUTER_INCL=	@GENINCL@ @INCLRESOLV@ @INCLSRS@
+ROUTER_LIB=	@GENLIB@ @GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@ @LIBSRS@
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
@@ -36,11 +36,11 @@ RUNSSL=	rm -f $(TOPDIR)/include/rfc822.entry rfc822.sst.? ; \
 
 OBJS=	router.o dateparse.o conf.o functions.o db.o \
 	shliaise.o rfc822.o rfc822hdrs.o rfc822walk.o \
-	daemonsub.o rtsyslog.o
+	daemonsub.o rtsyslog.o unvis.o vis.o
 
 SOURCE=	router.c dateparse.c conf.c functions.c db.c \
 	shliaise.c rfc822.c rfc822hdrs.c rfc822walk.c \
-	rtsyslog.c daemonsub.c
+	rtsyslog.c daemonsub.c unvis.c vis.c
 
 RFC822OBJS= rfc822walk.o rfc822test.o dateparse.o
 

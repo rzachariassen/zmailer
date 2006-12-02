@@ -118,6 +118,7 @@ extern conscell	*makequad __((void));
 extern int	sequencer __((struct envelope *e, const char *file));
 
 /* File: rfc822hdrs.c */
+extern struct headerinfo nullhdr;
 extern int do_hdr_warning; /* If set, headers with errors in them are
 			      printed "as is" -- h_line */
 extern union misc	 hdr_scanparse __((struct envelope *e, struct header *h, int no_line_crossing));
@@ -174,10 +175,14 @@ extern int	isgoodguy __((int uid));
 extern void	logmessage __((struct envelope *e));
 
 /* File: shliase.c */
+#define HRR_AB	0
+#define HRR_RR	1
+#define HRR_AE	2
 extern int	l_apply __((const char *fname, conscell *l));
 extern int	s_apply __((int argc, const char *argv[]));
 extern int	n_apply __((char **cpp, int argc, const char *argv[]));
 extern struct header *hdr_rewrite __((const char *name, struct header *h));
+extern struct header *header_rewrite __((const char *name, struct header *h, FILE *fp, int stage));
 extern void	setenvinfo __((struct envelope *e));
 extern conscell *router __((struct address *a, int uid, const char *type, const char *senderstr));
 extern conscell *crossbar __((conscell *from, conscell *to));

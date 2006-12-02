@@ -2,6 +2,9 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *	Some functions Copyright 1991-2006 Matti Aarnio.
+ *
+ *
+ *	SRS support added by Daniel Kiper <dkiper@netspace.com.pl>.
  */
 
 /*
@@ -10,6 +13,34 @@
  */
 
 #include "router.h"
+
+#ifdef HAVE_SRS2_H
+
+#include <srs2.h>
+
+#define VAR_SRS_ALWAYSREWRITE	"srs_alwaysrewrite"
+#define VAR_SRS_DOMAIN		"srs_domain"
+#define VAR_SRS_HASHLENGTH	"srs_hashlength"
+#define VAR_SRS_HASHMIN		"srs_hashmin"
+#define VAR_SRS_MAXAGE		"srs_maxage"
+#define VAR_SRS_NOFORWARD	"srs_noforward"
+#define VAR_SRS_NOREVERSE	"srs_noreverse"
+#define VAR_SRS_SECRETS		"srs_secrets"
+#define VAR_SRS_SEPARATOR	"srs_separator"
+
+#define MIN_SRS_HASHLENGTH	1
+#define MAX_SRS_HASHLENGTH	4096
+
+#define MIN_SRS_HASHMIN		1
+
+#define MIN_SRS_MAXAGE		1
+#define MAX_SRS_MAXAGE		4096
+
+#define LIMIT_SIZE		2
+#define LIMIT_MIN		0
+#define LIMIT_MAX		1
+
+#endif
 
 /* The builtin functions are declared and initialized here.  */
 
@@ -25,6 +56,10 @@ static conscell *run_cadr     __((conscell *avl, conscell *il));
 static conscell *run_caddr    __((conscell *avl, conscell *il));
 static conscell *run_cadddr   __((conscell *avl, conscell *il));
 static conscell *run_listexpand   __((conscell *avl, conscell *il));
+#ifdef HAVE_SRS2_H
+static conscell *run_srs_forward   __((conscell *avl, conscell *il));
+static conscell *run_srs_reverse   __((conscell *avl, conscell *il));
+#endif
 #if 0
 static conscell *run_newattribute __((conscell *avl, conscell *il));
 #endif
@@ -106,6 +141,10 @@ struct shCmd fnctns[] = {
 #if	defined(XMEM) && defined(CSRIMALLOC)
 {	"malcontents",	run_malcontents,NULL,	NULL,	0	},
 #endif	/* CSRIMALLOC */
+#ifdef HAVE_SRS2_H
+{	"srs_forward",	NULL,	run_srs_forward, NULL,	SH_ARGV	},
+{	"srs_reverse",	NULL,	run_srs_reverse, NULL,	SH_ARGV	},
+#endif
 /* The rest have been added locally */
 { NULL, NULL, NULL, NULL, 0 }
 };
@@ -2215,3 +2254,194 @@ run_dequote(argc, argv)
 {
   return run_condquote_(argc,argv,0);
 }
+
+#ifdef HAVE_SRS2_H
+
+static void
+zmailer_srs_set_bool(srs, var_srs_name, srs_set_func)
+	srs_t *srs;
+	char *var_srs_name;
+	int (*srs_set_func)(srs_t *, srs_bool);
+{
+	char *endptr;
+	long int tmp;
+	conscell *var_srs;
+	srs_bool invalid_var_srs = TRUE;
+
+	if ((var_srs = v_find(var_srs_name)) != NULL) {
+		if (cdr(var_srs) != NULL && !LIST(cdr(var_srs))) {
+			tmp = strtol(cdr(var_srs)->string, &endptr, 10);
+			if (cdr(var_srs)->string != '\0' && *endptr == '\0' &&
+			    (tmp != LONG_MAX || errno != ERANGE) && tmp >= 0) {
+				invalid_var_srs = FALSE;
+				srs_set_func(srs, tmp ? TRUE : FALSE);
+			}
+		}
+		if (invalid_var_srs == TRUE)
+			fprintf(stderr, "SRS: invalid %s - ignored\n", var_srs_name);
+	}
+}
+
+static void
+zmailer_srs_set_int(srs, var_srs_name, limit, srs_set_func)
+	srs_t *srs;
+	char *var_srs_name;
+	long int limit[LIMIT_SIZE];
+	int (*srs_set_func)(srs_t *, int);
+{
+	char *endptr;
+	long int tmp;
+	conscell *var_srs;
+	srs_bool invalid_var_srs = TRUE;
+
+	if ((var_srs = v_find(var_srs_name)) != NULL) {
+		if (cdr(var_srs) != NULL && !LIST(cdr(var_srs))) {
+			tmp = strtol(cdr(var_srs)->string, &endptr, 10);
+			if (cdr(var_srs)->string != '\0' && *endptr == '\0' &&
+			    (tmp != LONG_MIN && tmp != LONG_MAX || errno != ERANGE) &&
+			    tmp >= limit[LIMIT_MIN] && tmp <= limit[LIMIT_MAX]) {
+				invalid_var_srs = FALSE;
+				srs_set_func(srs, (int)tmp);
+			}
+		}
+		if (invalid_var_srs == TRUE)
+			fprintf(stderr, "SRS: invalid %s - ignored\n", var_srs_name);
+	}
+}
+
+static srs_t *
+zmailer_srs_init(void)
+{
+	int ret_srs;
+	long int limit[LIMIT_SIZE] = {MIN_SRS_HASHLENGTH, MAX_SRS_HASHLENGTH};
+	conscell *var_srs;
+	srs_t *srs;
+
+	if ((srs = srs_new()) == NULL)
+		return NULL;
+
+	if ((var_srs = v_find(VAR_SRS_SECRETS)) == NULL || cdr(var_srs) == NULL
+	    || !LIST(cdr(var_srs)) || (var_srs = cadr(var_srs)) == NULL) {
+		fprintf(stderr, "SRS: invalid " VAR_SRS_SECRETS "\nSRS: SRS disabled\n");
+		srs_free(srs);
+		return NULL;
+	}
+
+	while (var_srs != NULL) {
+		if (LIST(var_srs)) {
+			fprintf(stderr, "SRS: invalid " VAR_SRS_SECRETS "\nSRS: SRS disabled\n");
+			srs_free(srs);
+			return NULL;
+		}
+		if ((ret_srs = srs_add_secret(srs, var_srs->string)) != SRS_SUCCESS) {
+			fprintf(stderr, "SRS: %s\nSRS: SRS disabled\n", srs_strerror(ret_srs));
+			srs_free(srs);
+			return NULL;
+		}
+		var_srs = cdr(var_srs);
+	}
+
+	zmailer_srs_set_int(srs, VAR_SRS_HASHLENGTH, limit, srs_set_hashlength);
+
+	return srs;
+}
+
+static conscell *
+run_srs_forward(avl, il)
+	conscell *avl, *il;
+{
+	void *tmp;
+	int ret_srs;
+	conscell *var_srs, *var_srs_domain;
+	size_t tmp_len;
+	srs_t *srs;
+
+	if ((il = cdar(avl)) == NULL)
+		return NULL;
+
+	if (LIST(il) || (srs = zmailer_srs_init()) == NULL)
+		return copycell(il);
+
+	if ((var_srs_domain = v_find(VAR_SRS_DOMAIN)) == NULL || cdr(var_srs_domain) == NULL
+	    || LIST(cdr(var_srs_domain))) {
+		fprintf(stderr, "SRS: invalid " VAR_SRS_DOMAIN "\nSRS: SRS disabled\n");
+		srs_free(srs);
+		return copycell(il);
+	}
+
+	if ((var_srs = v_find(VAR_SRS_SEPARATOR)) != NULL)
+		if (cdr(var_srs) == NULL || LIST(cdr(var_srs))
+		    || strlen(cdr(var_srs)->string) > 1
+		    || srs_set_separator(srs, (char)*cdr(var_srs)->string) != SRS_SUCCESS)
+			fprintf(stderr, "SRS: invalid " VAR_SRS_SEPARATOR " - ignored\n");
+
+	zmailer_srs_set_bool(srs, VAR_SRS_ALWAYSREWRITE, srs_set_alwaysrewrite);
+	zmailer_srs_set_bool(srs, VAR_SRS_NOFORWARD, srs_set_noforward);
+
+	tmp_len = strlen(il->string) + strlen(cdr(var_srs_domain)->string) + srs_get_hashlength(srs) + 66;
+	tmp = tmalloc(tmp_len);
+
+	ret_srs = srs_forward(srs, tmp, tmp_len, il->string, cdr(var_srs_domain)->string);
+
+	switch (ret_srs) {
+		case SRS_SUCCESS:
+			srs_free(srs);
+			tmp_len = strlen(tmp);
+			return newstring(dupnstr(tmp, tmp_len), tmp_len);
+		case SRS_ENOTREWRITTEN:
+			if (srs_get_noforward(srs) == TRUE)
+				break;
+		default:
+			fprintf(stderr, "SRS: %s\n", srs_strerror(ret_srs));
+	}
+	srs_free(srs);
+	return copycell(il);
+}
+
+static conscell *
+run_srs_reverse(avl, il)
+	conscell *avl, *il;
+{
+	void *tmp;
+	int ret_srs;
+	long int limit[LIMIT_SIZE];
+	size_t tmp_len;
+	srs_t *srs;
+
+	if ((il = cdar(avl)) == NULL)
+		return NULL;
+
+	if (LIST(il) || !SRS_IS_SRS_ADDRESS(il->string)
+	    || (srs = zmailer_srs_init()) == NULL)
+		return copycell(il);
+
+	limit[LIMIT_MIN] = MIN_SRS_HASHMIN;
+	limit[LIMIT_MAX] = srs_get_hashlength(srs);
+	zmailer_srs_set_int(srs, VAR_SRS_HASHMIN, limit, srs_set_hashmin);
+
+	limit[LIMIT_MIN] = MIN_SRS_MAXAGE;
+	limit[LIMIT_MAX] = MAX_SRS_MAXAGE;
+	zmailer_srs_set_int(srs, VAR_SRS_MAXAGE, limit, srs_set_maxage);
+
+	zmailer_srs_set_bool(srs, VAR_SRS_NOREVERSE, srs_set_noreverse);
+
+	tmp = tmalloc(tmp_len = strlen(il->string) + 1);
+
+	ret_srs = srs_reverse(srs, tmp, tmp_len, il->string);
+
+	switch (ret_srs) {
+		case SRS_SUCCESS:
+			srs_free(srs);
+			tmp_len = strlen(tmp);
+			return newstring(dupnstr(tmp, tmp_len), tmp_len);
+		case SRS_ENOTREWRITTEN:
+			if (srs_get_noreverse(srs) == TRUE)
+				break;
+		default:
+			fprintf(stderr, "SRS: %s\n", srs_strerror(ret_srs));
+	}
+	srs_free(srs);
+	return copycell(il);
+}
+
+#endif

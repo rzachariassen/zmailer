@@ -1,6 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	Header rewriting extended by Daniel Kiper <dkiper@netspace.com.pl>.
  */
 /*
  *	Some modifications  by
@@ -1231,7 +1233,7 @@ sequencer(e, file)
 	struct envelope *e;
 	const char *file;
 {
-	struct header  *h, *ph, *nh = NULL, *oh, *msgidh, **hp;
+	struct header  *h, *ph, *nh = NULL, *oh, *rh, *msgidh, **hp;
 	struct header  *rcvdhdr;
 	struct address *a, *ap;
 	struct addr    *p = NULL;
@@ -2212,8 +2214,11 @@ sequencer(e, file)
 			isSenderAddr = h->h_descriptor->user_type == Sender;
 			isRecpntAddr = h->h_descriptor->user_type == Recipient;
 			if (isSenderAddr || isRecpntAddr) {
-				if (!STRING(rwp->info))	/* just addresses */
+				if (LIST(rwp->info)) {
+					if (car(rwp->info) == NULL)
 					continue;
+					*hp = hdr_rewrite(car(rwp->info)->string, h);
+				} else
 				*hp = hdr_rewrite(rwp->info->string, h);
 				hp = &(*hp)->h_next;
 			}
@@ -2456,8 +2461,26 @@ sequencer(e, file)
 		putc(_CF_MSGHEADERS, ofp);
 		putc('\n', ofp);
 		if (vfp)
+			if (LIST(rwp->info)) {
+				if (car(rwp->info) != NULL)
+					if (cdar(rwp->info) != NULL)
+						fprintf(vfp, "headers rewritten using '%s' and '%s' function:\n",
+							car(rwp->info)->string, cdar(rwp->info)->string);
+					else
+						fprintf(vfp, "headers rewritten using '%s' function:\n",
+							car(rwp->info)->string);
+			} else
 		  fprintf(vfp, "headers rewritten using '%s' function:\n",
 			  rwp->info->string);
+
+		if (LIST(rwp->info) && car(rwp->info) != NULL && cdar(rwp->info) != NULL) {
+			rh = header_rewrite(cdar(rwp->info)->string, NULL, NULL, HRR_AB);
+			for (; rh != NULL; rh = rh->h_next) {
+				hdr_print(rh, ofp);
+				if (vfp)
+					hdr_print(rh, vfp);
+			}
+		}
 
 		/* print the header, replacing all To:, Cc:, fields with
 		   the corresponding fields as stored with the rewrite set. */
@@ -2475,9 +2498,26 @@ sequencer(e, file)
 				  hdr_print(nh, vfp);
 				nh = nh->h_next;
 			} else {
-				hdr_print(h, ofp);
+				if (LIST(rwp->info) && car(rwp->info) != NULL && cdar(rwp->info) != NULL) {
+					if ((rh = header_rewrite(cdar(rwp->info)->string, h, ofp, HRR_RR)) == NULL)
+						continue;
+				} else
+					rh = h;
+				for (; rh != NULL; rh = rh->h_next) {
+					hdr_print(rh, ofp);
+					if (vfp)
+						hdr_print(rh, vfp);
+					if (rh == h)
+						break;
+				}
+			}
+		}
+		if (LIST(rwp->info) && car(rwp->info) != NULL && cdar(rwp->info) != NULL) {
+			rh = header_rewrite(cdar(rwp->info)->string, NULL, NULL, HRR_AE);
+			for (; rh != NULL; rh = rh->h_next) {
+				hdr_print(rh, ofp);
 				if (vfp)
-				  hdr_print(h, vfp);
+					hdr_print(rh, vfp);
 			}
 		}
 		putc('\n', ofp);
