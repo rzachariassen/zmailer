@@ -144,7 +144,14 @@ pick_secrets(SS, ru, ruspace, rs, rsspace)
 	      (SS->sel_channel && strcmp(chp, SS->sel_channel) == 0)) {
 	    /* Have matching Channel Selector */
 
-	    if (! CISTREQ(SS->remotehost, rhp))
+	    if (
+#if 0
+		/* Actually matching 'sel_host' is not a good idea.
+		   The authentication DB is supposed to be BY THE TARGET
+		   SERVER, not domain that it happens to serve!   */
+		(! CISTREQ(SS->sel_host, rhp)) &&
+#endif
+		(! CISTREQ(SS->remotehost, rhp)))
 	      continue; /* Not matching host */
 
 	    /* Ok, we have it! lets publish it! */

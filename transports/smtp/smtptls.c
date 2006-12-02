@@ -1865,6 +1865,10 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	    r = SSL_write(SS->TLS.ssl, p, len);
 	    e = SSL_get_error(SS->TLS.ssl, r);
 	    switch (e) {
+	    case SSL_ERROR_NONE:
+	      SS->TLS.wantreadwrite =  0;
+	      e = 0;
+	      break;
 	    case SSL_ERROR_WANT_READ:
 	      SS->TLS.wantreadwrite = -1;
 	      e = EAGAIN;
@@ -1873,6 +1877,8 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	      SS->TLS.wantreadwrite = 1;
 	      e = EAGAIN;
 	      break;
+	    case SSL_ERROR_SSL:
+	      e = EPROTO;
 	    default:
 	      SS->TLS.wantreadwrite = 0;
 	      break;
@@ -2037,6 +2043,10 @@ int smtp_nbread(SS, buf, spc)
 	  r = SSL_read(SS->TLS.ssl, buf, spc);
 	  e = SSL_get_error(SS->TLS.ssl, r);
 	  switch (e) {
+	  case SSL_ERROR_NONE:
+	    SS->TLS.wantreadwrite =  0;
+	    e = 0;
+	    break;
 	  case SSL_ERROR_WANT_READ:
 	    SS->TLS.wantreadwrite = -1;
 	    e = EAGAIN;
@@ -2045,6 +2055,8 @@ int smtp_nbread(SS, buf, spc)
 	    SS->TLS.wantreadwrite =  1;
 	    e = EAGAIN;
 	    break;
+	  case SSL_ERROR_SSL:
+	    e = EPROTO;
 	  default:
 	    SS->TLS.wantreadwrite =  0;
 	    break;

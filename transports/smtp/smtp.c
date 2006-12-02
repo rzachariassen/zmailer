@@ -4203,12 +4203,16 @@ smtp_sync(SS, r, nonblocking)
 	    len = smtp_nbread(SS, buf, sizeof(buf));
 	    waitwr = 0;
 
-#ifdef HAVE_OPENSSL
-	    if (SS->TLS.sslmode && SS->TLS.wantreadwrite > 0) waitwr = 1;
-#endif /* - HAVE_OPENSSL */
-
 	    if (len < 0)
 	      err = errno;
+
+
+#ifdef HAVE_OPENSSL
+	    if (SS->TLS.sslmode && err == EPROTO)
+	      break;
+
+	    if (SS->TLS.sslmode && SS->TLS.wantreadwrite > 0) waitwr = 1;
+#endif /* - HAVE_OPENSSL */
 
 	    if (!nonblocking && len < 0) {
 
