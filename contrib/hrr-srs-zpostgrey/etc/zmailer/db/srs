@@ -1,0 +1,11 @@
+#
+# /etc/zmailer/db/srs
+#
+# [ Modified - 18/07/2006 ]
+#
+
+user-0@				no_srs
+user-1@example-1.com		no_srs
+example-0.com			no_srs
+.example-2.com			no_srs
+.				srs

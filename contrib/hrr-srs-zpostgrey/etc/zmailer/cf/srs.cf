@@ -1,0 +1,17 @@
+#
+# /etc/zmailer/cf/srs.cf
+#
+# [ Modified - 17/07/2006 ]
+#
+
+srs_domain=example.com
+srs_secrets=(password-0 password-1)
+
+srs_alwaysrewrite=0
+srs_noforward=0
+srs_noreverse=0
+
+srs_hashlength=4
+srs_hashmin=4
+srs_maxage=21
+srs_separator='='

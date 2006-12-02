@@ -1,0 +1,11 @@
+#
+# /etc/zmailer/db/hrrfrom
+#
+# [ Modified - 17/07/2006 ]
+#
+
+user-0@				hrr_ae
+user-1@example-1.com		no_hrr
+example-0.com			no_hrr
+.example-2.com			hrr_ae
+.				hrr_full

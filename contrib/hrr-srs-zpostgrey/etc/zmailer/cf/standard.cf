@@ -1,0 +1,364 @@
+#
+# [ Modified - 03/02/2006 ]
+#
+
+#|
+#|  I kept typing in this trace command so frequently, that eventually
+#|  I just had to make for it into a single command... /Matti Aarnio
+#|
+
+rtrace () {
+	trace all except rfc822 regexp
+}
+
+
+# set up output to log file (stdout) independent of current output redirection
+log () {
+	case "$LOGLEVEL" in
+#| The LOGLEVEL variable is typically set in the $(ZCONFIG) file, usually
+#| /etc/zmailer.conf.  If set, it will restrict log output to messages that
+#| begin with tags in the string value of the variable.
+	''|*"$1"*)
+		echo -- "$(get envelopeinfo spoolid):" "$@"  ;;
+	*)	# We want to log anything that doesn't have a tag!
+		case "$1" in
+		*[^:])	echo -- "$(get envelopeinfo spoolid):" "$@" ;;
+		esac ;;
+	esac
+}
+##exec 3>&1
+
+#| The log function defined here will be used whenever the configuration
+#| code wants to put something in the log.
+
+
+# what to do to roll the log
+
+##dribble (file) {
+##	exec 3>&- 2>&- 1>&- 1>>$file 2>&1 3>&1
+##}
+
+#| The dribble function ensures that all output filedescriptors append to
+#| the (log) file.
+
+# We roll the log by sending a SIGHUP to the router; to avoid problems caused
+# by the I/O state while processing a message, the SIGHUP handler is always
+# invoked synchronously when the router is NOT processing a message.  HUP is
+# the only signal handled in this way.
+
+##trap "dribble $LOGDIR/router" 1
+
+case "$-" in
+*i*)	case "x$SMTPSERVER" in
+	xy*)	# invoked from SMTP server, redirect stderr
+		exec 2>&1
+		;;
+	esac
+	exec 3>&1	# always redirect log
+	;;
+*)	# daemon
+	##dribble $LOGDIR/router
+	;;
+esac
+
+#| Logging is set up differently depending on the context.  If running as
+#| a daemon, all output should go to the log file.  Otherwise, stdout or
+#| stderr.  If invoked from the SMTP server, all output goes to stdout.
+
+# set up the alias expansions table
+# NOTE: the key hashing mechanism used presently (with symbol()), won't scale
+# well if you alias expand arbitrary off-site addresses; they will all be
+# stored in memory for the life of the process.  This will be fixed, later.
+#
+relation -lt incore expansions
+
+# set up the host expansions cache -- same cavet as above, but probably can
+# live with it [mea] 94-Aug-04
+relation -lt incore hostexpansions
+
+# count recipients (and do (perhaps) expansions match too ?)
+relation -lt incore recipients
+
+if [ -f $MAILVAR/db/thishost.zmsh ]; then
+  . $MAILVAR/db/thishost.zmsh
+else
+  # We do local delivery, more or less, of mail arriving for these hostnames
+  if [ -f $MAILVAR/db/localnames ]; then
+    if [ -f $MAILVAR/db/localnames.zmsh ]; then
+        if [ $MAILVAR/db/localnames -nt $MAILVAR/db/localnames.zmsh ]; then
+	    local cmd
+	    cmd="$MAILBIN/make-incore.sh"
+	    "$cmd" thishost $MAILVAR/db/localnames $MAILVAR/db/localnames.zmsh
+        fi
+        . "$MAILVAR/db/localnames.zmsh"
+    elif [ -f $MAILVAR/db/localnames$DBEXTtest ]; then
+	if [ $MAILVAR/db/localnames -nt $MAILVAR/db/localnames$DBEXTtest ]; then
+	    $MAILBIN/newdb -l $MAILVAR/db/localnames
+	fi
+	relation -lmt $DBTYPE -f $MAILVAR/db/localnames$DBEXT -d pathalias thishost
+    else
+        relation -lmt unordered -f $MAILVAR/db/localnames -d pathalias thishost
+    fi
+  else
+	# The default set of hostnames is:
+	#	$rawhostname - system hostname, from /bin/hostname (or whatever)
+	#	$hostname - the canonicalized version of $rawhostname
+	#	$rawhostname.X, where X is a member of the set of organizational
+	#	domains in $orgdomains.
+	# We use a function and an incore relation, because this
+	# file is loaded before the siteinfo stuff.
+	relation -lt incore -b thishostdb
+	thishost(name) {
+		local oldifs tmp
+		# If the relation hasn't been initialized, do so.
+		if [ $(thishostdb "$hostname") ]; then :; else
+			db add thishostdb "$hostname" ""
+			if [ "$rawhostname" ]; then
+				db add thishostdb "$rawhostname" ""
+				oldifs="$IFS"
+				IFS="|"
+				for org in $orgdomains; do
+					db add thishostdb "$rawhostname.$org" "$rawhostname.$org"
+				done
+				IFS="$oldifs"
+			fi
+		fi
+		# XX: Will the  thishostdb   work, and produce
+		# the canonic name/err ?
+		tmp$(thishostdb "$name") && returns $tmp
+		return $tmp # error code return
+	}
+  fi
+fi
+
+#| If the localnames file does not exist, assume we must do local
+#| delivery for our own hostname.  If the localnames file does exist,
+#| it must contain a simple list of (domain)names we should deliver
+#| locally.  One per line.  Case is ignored.
+#|
+#| In some situations (a cluster of mail servers) it is prudent to be able
+#| to have exclusions in the localnames file.  If we do this through
+#| another file containing the names of the other mail servers, we can keep
+#| the localnames file the same on all intimate mail servers.  It
+#| describes the service domains.
+
+if [ -f $MAILVAR/db/otherservers.zmsh ]; then
+    . $MAILVAR/db/otherservers.zmsh
+else
+    if [ -f $MAILVAR/db/otherservers ]; then
+	relation -lmt unordered -f $MAILVAR/db/otherservers -d pathalias otherservers
+    else
+	otherservers (name) { return 1 }
+    fi
+fi
+
+#|  deliver(name) -> name'
+#|
+#|  Canonize our local hostname via  localnames  database
+#|
+
+deliver (name) {	# Produce rc=0 and output our CANONIC hostname
+	local dtmp
+	if dtmp="$(thishost "$name")" ; then
+		if [ -z "$dtmp" ]; then
+			dtmp="$name"	# Its blank -> its the original $name.
+		fi
+		$(otherservers "$name") || { echo -- "$dtmp" ; return 0 }
+	fi
+	return 1 # error code return
+}
+
+
+#| The code to use this is disabled in the rrouter function.  This
+#| illustrates a possible mechanism.
+
+# optional: uucp neighbours from L.sys
+#relation -t unordered -f /usr/lib/uucp/L.sys -b ldotsys
+
+#| Same comment.  Typically we do not wish to use all our UUCP
+#| connections for mail, so this relation is useless to determine how a
+#| message should be sent.  UUCP neighbours are specified in the
+#| routes database using lines of the form:
+
+#| neighbour    uucp!neighbour
+
+default_attributes=(privilege ${NOBODY:-29999} type recipient)
+
+#| This is the default attributes parameter to the router function
+#| below.  It is typically used when doing interactive queries.  The
+#| value of the type property indicates whether or not alias expansion
+#| should be done.  If it is 'sender', no alias expansion is done.
+
+#| We may decide that some combination of addresses, and message ids
+#| is sure sign of SPAMs, and when we return non zero respose, the
+#| main routine can return 'bitbucket' channel.
+
+if [ -f $MAILVAR/db/msgidfilter.zmsh ]; then
+  # This included source defines routine:
+  #   msgidfilter(address, attributes) {
+  #     local messageid
+  #     messageid = $(get envelopeinfo message-id)
+  #     ssift "$messageid" in
+  #      <some-pattern@some\.where>
+  #         return 1 ;;
+  #     tfiss
+  #     return 0
+  #   }
+  #
+  . $MAILVAR/db/msgidfilter.zmsh
+else
+  msgidfilter () { return 0 }
+fi
+
+
+
+router (address, attributes) {
+
+#| This is the address routing entry point.  The function name "router"
+#| is known by the router program.
+
+	local res tmp
+	# set up default attributes for casual interactive use.  Any
+	# privilege set here is only important when router is run as root,
+	# otherwise it won't matter.
+	: ${attributes:=default_attributes}
+	defer=""
+
+#| The defer variable is set to a deferral reason by the router internals
+#| in case of database lookup timeouts or other problems.  We null it
+#| here, and test it later to check for problems.
+
+	log address: "$address"
+
+#| A gratuitous log entry so we can later on tell the exact addresses
+#| that were routed.  This could be removed if you like terse logs.
+
+	#grind ${$attributes} 1>&3
+
+	# If you want to do address expansion loop-prevention per-message,
+	# instead of per-address, null the expansions list in the process()
+	# function instead of here.
+
+	if [ "$loop_prev_per_message" != 1 ]; then
+		db flush expansions
+	fi
+
+	tmp=$(msgidfilter "$address" $attributes) || \
+		returns ((( bitbucket - "$address" $attributes)))
+
+	tmp="$(get $attributes type)" && [ "$tmp" = recipient ] &&
+		address="$(srs_reverse "$address")"
+
+#| Now call the actual address routing functions
+
+	if res=$(rrouter "$address" "$address" $attributes "") ; then
+
+#| The rrouter function does the real work of routing.  It should return
+#| a list of addresses in the normal AND-XOR tree form.
+
+	    if [ "$defer" ]; then
+		log deferred: $defer: "$address"
+		returns (((hold "$defer" "$address" $attributes)))
+	    fi
+
+#| Real successfull result received!
+	    returns $res
+	fi
+
+#| If an internal problem was detected during the routing, we ignore the
+#| results of routing and redirect this address to the hold transport
+#| queue for later resubmission.
+
+	return $res  # This MAY carry error code!  (put it: WILL)
+}
+
+header_defer (address) {
+	log header_defer: "$address"
+	returns "\"$address\""@$hostname
+}
+
+#| In case of internal problems during header address rewriting, this
+#| function will determine the result of rewriting.  It should just quote
+#| the original address and make it relative to the current host.  The
+#| alternative is to delay the message until rewriting can be done
+#| properly, however this is a very unpopular action.  The router program
+#| does not give a choice.  The name "header_defer" is known by the
+#| program.
+
+
+
+#| Lets see if our main  router.cf  defines the preferred list outlook.
+#| That is, for a  MAILVAR/lists/listname  we can have sender either as
+#| "listname-owner", or "owner-listname".  Which it is ?  If neither is
+#| set (or both are set!) then we set our default:
+
+if [ -z "$preowner" -a -z "$postowner" ]; then
+	preowner=""
+	postowner="-owner"
+elif [ ! -z "$preowner" -a ! -z "$postowner" ]; then
+	preowner=""
+	postowner="-owner"
+fi
+
+#| Domains with these toplevels will not be canonicalized via DNS lookup
+#| This is updated per   http://www.icann.org/tlds/  and per
+#| http://www.iso.org/iso/en/prods-services/iso3166ma/index.html
+#| plus pseudo-TLD ".uucp", plus soon to appear: "eu".
+
+toplevels=(ad ae af ag ai al am an ao aq ar as at au aw az ba
+	bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz
+	ca cc cd cf cg ch ci ck cl cm cn co cr cu cv cx cy cz
+	de dj dk dm do dz ec ee eg eh er es et fi fj fk fm fo
+	fr ga gb gd ge gf gh gi gl gm gn gp gq gr gs gt gu gw
+	gy hk hm hn hr ht hu id ie il in io iq ir is it jm jo
+	jp ke kg kh ki km kn kp kr kw ky kz la lb lc li lk lr
+	ls lt lu lv ly ma mc md mg mh mk ml mm mn mo mp mq mr
+	ms mt mu mv mw mx my mz na nc ne nf ng ni nl no np nr
+	nu nz om pa pe pf pg ph pk pl pm pn pr ps pt pw py qa
+	re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so
+	sr st sv sy sz tc td tf tg th tj tk tl tm tn to tr tt
+	tv tw tz ua ug um us uy uz va vc ve vg vi vn vu wf ws
+	ye yt yu za zm zw
+	com edu gov int mil net org
+	aero biz coop info museum name pro
+	eu uucp )
+
+relation -lbt incore istoplevel
+for x in $(elements $toplevels)
+do
+	db add istoplevel $x 1
+done
+
+toplevels=""
+unset toplevels # No need for that variable anymore..
+
+#| Kill certain RFC-822 envelope headers traveling thru this system
+#| Commented ones are built-in, there is special treatment for Bcc
+#| as that one requires internal semantics, and still must be killed!
+
+#db add headers return-path		-:kill:-
+#db add headers resent-return-path	-:kill:-
+#db add headers x-orcpt			-:kill:-
+#db add headers resent-x-orcpt		-:kill:-
+#db add headers original-recipient	-:kill:-
+#db add headers resent-original-recipient -:kill:-
+#db add headers x-envid			-:kill:-
+#db add headers envelope-id		-:kill:-
+#db add headers resent-x-envid		-:kill:-
+#db add headers resent-envelope-id	-:kill:-
+#db add headers x-envelope-to		-:kill:-
+
+if [ -r $MAILVAR/db/kill-headers ]
+then
+  . $MAILVAR/db/kill-headers
+fi
+
+if nobodypriv=$(login2uid nobody) ; then
+ # Curiously, this is what nonexistent user should return for
+ # the login2uid function as well :)
+ :
+else
+  echo "nobodypriv (uid)  IS BAD ??  No 'nobody' user ???"
+fi
+
+provide standard

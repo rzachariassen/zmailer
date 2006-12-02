@@ -1,0 +1,7 @@
+#
+# /etc/zmailer/db/kill-headers
+#
+# [ Modified - 03/02/2006 ]
+#
+
+db add headers x-bogosity		-:kill:-

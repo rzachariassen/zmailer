@@ -1,0 +1,105 @@
+#
+# /etc/zmailer/cf/process.cf
+#
+# This is the protocol switch function. It keys off a form of the filename
+# to determine how to process a particular class of messages. It is expected
+# that an internal function will be called to orchestrate the processing of
+# the message and enforce proper semantics. The "file" argument is the name of
+# a file in the "$POSTOFFICE/router" directory.
+#
+# [ Modified - 18/07/2006 ]
+#
+
+provide process
+
+process (file) {
+  local i
+
+  #
+  # Since we can't detect that the password database has been updated under
+  # our feet, we flush the cached information every once in a while (in this
+  # case, before every message).
+  #
+
+  db flush expansions
+  db flush fullname
+  db flush hostexpansions
+  db flush pwnam
+  db flush pwuid
+  db flush recipients
+
+  #
+  # The "LOGMSG" variable is used by the intercept facility (in
+  # "$MAILSHARE/cf/crossbar.cf") to make sure only a single copy of
+  # a message is saved when required. Each sender - recipient address
+  # pair can cause an intercept which can specify a file to save
+  # the message to. This variable is appended to elsewhere,
+  # and processed at the end of this function.
+  #
+
+  LOGMSG=''
+
+  #
+  # The file names in the "$POSTOFFICE/router" directory are determined by
+  # the parameter to the "mail_open" C library routine. This "case"
+  # statement knows about the various message file types needed on your
+  # system, and arranges appropriate processing of each. The internal
+  # function "rfc822" expects a file name as argument, and determines the
+  # semantics of the message and of the configuration code. For example,
+  # the "router", "crossbar", and "header_defer" functions have semantics
+  # only because the "rfc822" function knows about them. There are no other
+  # message formats supported in this distribution.
+  #
+
+  case $file in
+    [A-Z]/[0-9]*)
+      "$LMAILBIN/amavis" "$file"
+      if [ $? -ne 0 ]; then
+	"$LMAILBIN/amavis-cleaner" "$file"
+	return
+      fi
+      bogo_head=`"$MAILBIN/zrfilter" -lm "$file" -qve $BOGOFILTERPATH -- -lvc "$MAILSHARE/bogofilter.conf" 2> /dev/null`
+      bogo_ret=$?
+      rfc822 "$file"
+      ;;
+    [0-9]*)
+      "$LMAILBIN/amavis" "$file"
+      if [ $? -ne 0 ]; then
+	"$LMAILBIN/amavis-cleaner" "$file"
+	return
+      fi
+      bogo_head=`"$MAILBIN/zrfilter" -lm "$file" -qve $BOGOFILTERPATH -- -lvc "$MAILSHARE/bogofilter.conf" 2> /dev/null`
+      bogo_ret=$?
+      rfc822 "$file"
+      ;;
+    core*)
+      /bin/mv "$file" "../$file.router.$$"
+      return
+      ;;
+    *)
+      /bin/mv "$file" "../postman/rtr.$file.$$"
+      return
+      ;;
+  esac
+
+  #
+  # For statistics gathering we print out the envelope information property
+  # list in its entirety, except for the file name, and the message id, both
+  # of which were logged earlier (in C code).
+  #
+
+  log info: "recipients $(db count recipients)" \
+    $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo)))))
+
+  #
+  # This does the saving of intercepted messages into archive files.
+  #
+
+  for i in $(elements $LOGMSG); do
+    log info: "saving $file in $i"
+    {
+      echo "==$file==$(rfc822date)=="
+      /bin/cat "../queue/$file"
+    } >> "$i"
+  done
+}

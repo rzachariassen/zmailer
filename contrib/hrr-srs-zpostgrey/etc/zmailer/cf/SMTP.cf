@@ -1,0 +1,65 @@
+#!/usr/lib/zmailer/router -dfk
+#
+# /etc/zmailer/cf/SMTP.cf - ZMailer configuration file for generic SMTP host.
+#
+# [ Modified - 06/02/2006 ]
+#
+
+ZCONFIG=/etc/zmailer/zmailer.conf
+
+. $ZCONFIG
+
+PATH="$MAILSHARE/cf:$MAILBIN/bin"
+PS1="z$PS1"
+
+export PATH
+
+squirrel -breakin
+squirrel badheader
+
+hrr_vis_disable=0
+hrr_unvis_disable=0
+
+loop_prev_per_message=0
+
+protocols=('routes' 'smtp')
+private=('.forward' 'maillist')
+
+preowner=''
+postowner='-owner'
+
+. consist.cf
+
+require crossbar process rrouter server siteinfo
+
+. standard.cf
+. trusted.cf
+
+for method in $(elements $protocols); do
+  [ -f "$MAILSHARE/cf/i-$method.cf" ] && . "$MAILSHARE/cf/i-$method.cf"
+done
+
+. aliases.cf
+. canon.cf
+. rrouter.cf
+. crossbar.cf
+. srs.cf
+
+for method in $(elements $protocols); do
+  [ -f "$MAILSHARE/cf/p-$method.cf" ] && . "$MAILSHARE/cf/p-$method.cf"
+done
+
+. process.cf
+. server.cf
+
+. "$MAILCONF"
+
+orgdomains="$orgdomain"
+
+provide siteinfo
+
+hostname "$hostname"
+
+/bin/chmod 0600 /etc/zmailer/cf/fc/srs.fc
+
+consist || exit 1

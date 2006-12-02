@@ -1,0 +1,194 @@
+#!/usr/bin/perl -T
+#
+# zpostgrey - postgrey interface for ZMailer.
+#
+# Version: 1.0.0
+#
+# Written by Daniel Kiper.
+#
+# E-mail: dkiper@netspace.com.pl
+#
+# DONE:
+#   - 24/07/2006 - version 1.0.0 - first release.
+#
+# TODO:
+#   - ???
+#
+# [ Modified - 24/07/2006 ]
+#
+
+#******************************************************************************
+
+#
+# Import some semantics.
+#
+
+package ZSMTP::hook;
+
+use strict;
+use warnings;
+use FileHandle;
+use Socket ':all';
+
+#******************************************************************************
+
+#
+# Define constants.
+#
+
+use constant PG_SOCK	=> '/var/spool/postgrey/pg-sock';
+
+use constant PG_ADDR	=> '';
+use constant PG_PORT	=> 0;
+
+use constant BUFF_SIZE	=> 4096;
+use constant TIMEOUT	=> 60;
+
+#******************************************************************************
+
+#
+# Global variables.
+#
+
+my %req = ();
+
+my $seqno = 0;
+
+#******************************************************************************
+
+sub set_ipaddress(@) {
+  my ($rhostaddr, undef, $rhostname) = @_;
+
+  return unless defined($rhostaddr) && defined($rhostname);
+
+  if ($rhostname ne $rhostaddr) {
+    $req{'client_name'} = $rhostname
+  } else {
+    $req{'client_name'} = 'unknown'
+  }
+
+  $rhostaddr =~ s/^\[(IPv6:)?(.+)\]$/$2/;
+  $req{'client_address'} = $rhostaddr
+}
+
+#******************************************************************************
+
+sub helo(@) {
+  return (0, 0, undef, undef)
+}
+
+#******************************************************************************
+
+sub set_user(@) {
+}
+
+#******************************************************************************
+
+sub mailfrom(@) {
+  my ($mailfrom) = @_;
+
+  $req{'instance'} = sprintf('%x.%lx.%x', $$, time(), $seqno++);
+  $req{'sender'} = $mailfrom if defined($mailfrom);
+  return (0, 0, undef, undef)
+}
+
+#******************************************************************************
+
+sub rcptto(@) {
+  my ($rcptto) = @_;
+  my $boff = 0;
+  my (@addrs, $bits, $blen, $buff, $bwr);
+  my ($err, $flags, $i, $nfds);
+
+  exists($req{'client_address'}) and exists($req{'client_name'}) and
+    exists($req{'sender'}) and exists($req{'instance'}) and defined($rcptto) or
+      return (0, 0, undef, undef);
+
+  $req{'recipient'} = $rcptto;
+
+  if (PG_SOCK ne '') {
+    socket(SOCK, PF_UNIX, SOCK_STREAM, 0) or
+      return (1, -100, "zpostgrey: socket: $!", undef);
+    connect(SOCK, sockaddr_un(PG_SOCK)) or
+      return (1, -100, "zpostgrey: connect: $!", undef)
+  } elsif (PG_ADDR ne '' && PG_PORT > 0 && PG_PORT < 65536) {
+    (undef, undef, undef, undef, @addrs) = gethostbyname(PG_ADDR);
+    @addrs or return (1, -100, 'zpostgrey: Host not found !!!', undef);
+    foreach $i (@addrs) {
+      socket(SOCK, PF_INET, SOCK_STREAM, 0) or
+	return (1, -100, "zpostgrey: socket: $!", undef);
+      $err = undef;
+      last if connect(SOCK, sockaddr_in(PG_PORT, $i));
+      $err = $!;
+      close(SOCK)
+    }
+    return (1, -100, "zpostgrey: connect: $err", undef) if defined($err)
+  } else {
+    return (1, -99, 'zpostgrey is not configured !!!', undef)
+  }
+
+  SOCK->autoflush(1);
+
+  unless ($flags = fcntl(SOCK, F_GETFL, 0)) {
+    close(SOCK);
+    return (1, -100, "zpostgrey: fcntl: F_GETFL: $!", undef)
+  }
+  unless (fcntl(SOCK, F_SETFL, $flags | O_NONBLOCK)) {
+    close(SOCK);
+    return (1, -100, "zpostgrey: fcntl: F_SETFL: $!", undef)
+  }
+
+  vec($bits, fileno(SOCK), 1) = 1;
+
+  $buff = "request=smtpd_access_policy@{[CRLF]}" .
+	  "client_address=$req{'client_address'}@{[CRLF]}" .
+	  "client_name=$req{'client_name'}@{[CRLF]}" .
+	  "sender=$req{'sender'}@{[CRLF]}" .
+	  "recipient=$req{'recipient'}@{[CRLF]}" .
+	  "instance=$req{'instance'}@{[CRLF]}@{[CRLF]}";
+  $blen = length($buff);
+
+  while (1) {
+    if (($nfds = select(undef, $bits, undef, TIMEOUT)) <= 0) {
+      close(SOCK);
+      $err = $nfds ? "zpostgrey: select: $!" : 'zpostgrey: Write timed out !!!';
+      return (1, -100, $err, undef)
+    }
+    unless (defined($bwr = syswrite(SOCK, $buff, $blen, $boff))) {
+      close(SOCK);
+      return (1, -100, "zpostgrey: syswrite: $!", undef)
+    }
+    $blen -= $bwr;
+    $boff += $bwr;
+    last unless $blen
+  }
+
+  if (($nfds = select($bits, undef, undef, TIMEOUT)) <= 0) {
+    close(SOCK);
+    $err = $nfds ? "zpostgrey: select: $!" : 'zpostgrey: Read timed out !!!';
+    return (1, -100, $err, undef)
+  }
+
+  unless (defined(sysread(SOCK, $buff, BUFF_SIZE))) {
+    close(SOCK);
+    return (1, -100, "zpostgrey: sysread: $!", undef)
+  }
+
+  close(SOCK);
+
+  $buff =~ s/@{[CRLF]}/@{[LF]}/g;
+
+  foreach $i (split(/@{[LF]}/, $buff)) {
+    if ($i =~ /^action=DEFER_IF_PERMIT\s*(.*)$/i) {
+      return (1, -100, $1 ne '' ? $1 : undef, undef)
+    } elsif ($i =~ /^action=PREPEND\s*(.*)$/i) {
+      return (-1, 0, undef, $1 ne '' ? $1 : undef)
+    } elsif ($i =~ /^action=DUNNO$/i) {
+      return (0, 0, undef, undef)
+    }
+  }
+
+  return (1, -100, 'zpostgrey: Protocol error !!!', undef)
+}
+
+#******************************************************************************
