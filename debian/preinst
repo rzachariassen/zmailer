@@ -1,5 +1,5 @@
 #! /bin/sh
-# preinst script for zmailer
+# preinst script for zmailer-ssl
 #
 # see: dh_installdeb(1)
 
@@ -32,10 +32,10 @@ esac
 
 # Diversion for bsdmainutils
 if [ install = "$1" ]; then
-    dpkg-divert --package zmailer --add --rename \
+    dpkg-divert --package zmailer-ssl --add --rename \
         --divert /usr/man/man1/vacation.bsd.1.gz \
                  /usr/man/man1/vacation.1.gz
-    dpkg-divert --package zmailer --add --rename \
+    dpkg-divert --package zmailer-ssl --add --rename \
         --divert /usr/bin/vacation.bsd \
                  /usr/bin/vacation
 fi
@@ -47,5 +47,3 @@ fi
 #DEBHELPER#
 
 exit 0
-
-

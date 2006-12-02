@@ -1,24 +1,18 @@
 #!/usr/bin/make -f
 # Sample debian/rules that uses debhelper.
 # GNU copyright 1997 to 1999 by Joey Hess.
-
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+#
+# [ Modified - 06/07/2006 ]
+#
 
 # This is the debhelper compatibility version to use.
 export DH_COMPAT=3
 
-#Not yet
-#CFLAGS = -O2 -Wall
-#ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
-#	CFLAGS += -g
-#endif
-      
 build: build-stamp
 build-stamp:
 	dh_testdir
 
-	./configure --prefix=/usr/lib/zmailer \
+	CC=cc CFLAGS=-O2 ./configure --prefix=/usr/lib/zmailer \
 		--with-postoffice=/var/spool/postoffice \
 		--with-system-malloc \
 		--with-mailshare=/etc/zmailer \
@@ -28,14 +22,15 @@ build-stamp:
 		--includedir=/usr/lib/zmailer \
 		--with-sendmailpath=/usr/sbin/sendmail \
 		--with-logdir=/var/log/zmailer \
-		--with-rmailpath=/usr/sbin/rmail 
-
-	# --with-openssl-include=/usr/include/openssl 
-	# --with-openssl-lib=/usr/lib
+		--with-rmailpath=/usr/sbin/rmail \
+		--with-openssl-include=/usr/include/openssl \
+		--with-openssl-lib=/usr/lib \
+		--with-embed-perl \
+		--with-spf \
+		--with-srs
 
 	# Add here commands to compile the package.
 	$(MAKE) 
-	# CFLAGS="$(CFLAGS)"
 
 	touch build-stamp
 
@@ -56,8 +51,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/zmailer.
-	$(MAKE) install prefix=`pwd`/debian/zmailer
+	# Add here commands to install the package into debian/zmailer-ssl.
+	$(MAKE) install DESTDIR=`pwd`/debian/zmailer-ssl
 
 	touch install-stamp
 
@@ -67,15 +62,11 @@ binary-indep: build install
 
 # Build architecture-dependent files here.
 binary-arch: build install
-#	dh_testversion
 	dh_testdir
 	dh_testroot
-#	dh_installdebconf	
 	dh_installdocs
 	dh_installexamples
 	dh_installmenu
-#	dh_installemacsen
-#	dh_installpam
 	dh_installinit
 	dh_installcron
 	dh_installmanpages
@@ -86,37 +77,24 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	# You may want to make some executables suid here.
-	dh_suidregister
 
-	rm -f debian/zmailer/etc/zmailer/ChangeLog
-#	rm -f debian/zmailer/usr/usr/lib/zmailer/rmail \
-#		debian/zmailer/usr/usr/sbin/rmail
-	rm -f debian/zmailer/etc/zmailer/config.status
+	rm -f debian/zmailer-ssl/etc/zmailer/ChangeLog
+	rm -f debian/zmailer-ssl/etc/zmailer/config.status
 
-	(cd debian/zmailer/usr/sbin && rm -f rmail ; \
+	(cd debian/zmailer-ssl/usr/sbin && rm -f rmail ; \
 		ln -s ../lib/zmailer/rmail)
-	(cd debian/zmailer/usr/sbin && rm -f sendmail ; \
+	(cd debian/zmailer-ssl/usr/sbin && rm -f sendmail ; \
 		ln -s ../lib/zmailer/sendmail)
-	(cd debian/zmailer/usr/bin && rm -f newaliases ; \
+	(cd debian/zmailer-ssl/usr/bin && rm -f newaliases ; \
 		ln -s ../lib/zmailer/newaliases)
-	(cd debian/zmailer/usr/bin && rm -f mailq ; \
+	(cd debian/zmailer-ssl/usr/bin && rm -f mailq ; \
 		ln -s ../lib/zmailer/mailq)
-	(cd debian/zmailer/usr/bin && rm -f vacation ; \
+	(cd debian/zmailer-ssl/usr/bin && rm -f vacation ; \
 		ln -s ../lib/zmailer/vacation.sh vacation)
-#	(cd debian/zmailer/etc/zmailer && ln -s proto/sm.conf)
-#	(cd debian/zmailer/etc/zmailer && ln -s proto/scheduler.conf)
-#	(cd debian/zmailer/etc/zmailer && ln -s proto/smtpserver.conf)
-#	(cd debian/zmailer/etc/zmailer && ln -s cf/TELE-FI.cf router.cf)
-#	(cd debian/zmailer/etc/zmailer/db && ln -s proto/fqdnaliases)
-#	(cd debian/zmailer/etc/zmailer/db && ln -s proto/localnames)
-#	(cd debian/zmailer/etc/zmailer/db && ln -s proto/routes)
-#	(cd debian/zmailer/etc/zmailer/db && ln -s proto/smtp-policy.relay)
-#	(cd debian/zmailer/etc/zmailer/db && ln -s proto/smtp-policy.src)
-	(cd debian/zmailer/etc/zmailer/cf/ && cp proto/* ./)
+	(cd debian/zmailer-ssl/etc/zmailer/cf/ && cp proto/* ./)
+
 	dh_makeshlibs
 	dh_installdeb
-	dh_perl
 	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums

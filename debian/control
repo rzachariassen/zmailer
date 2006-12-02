@@ -1,13 +1,13 @@
-Source: zmailer
+Source: zmailer-ssl
 Section: mail
-Priority: extra
-Maintainer: Hector Garcia <hector@debian.org>
-Build-Depends: binutils, cpp, debhelper (>= 3), libdb2-dev, libgdbm-dev, libwrap0, libwrap0-dev, locales, libpam0g-dev, ed
+Maintainer: Daniel Kiper <dkiper@netspace.com.pl>
+Build-Depends: binutils, cpp, debhelper, ed, libdb3-dev, libgdbmg1-dev, libpam0g-dev, libperl-dev, libspf2-dev, libsrs2-dev, libssl-dev, libwrap0-dev, locales
 Standards-Version: 3.2.1
+Priority: extra
 
-Package: zmailer
+Package: zmailer-ssl
 Architecture: any
-Depends: ${shlibs:Depends}, ${perl:Depends}, netbase
+Depends: ${shlibs:Depends}, netbase
 Provides: mail-transport-agent
 Suggests: mail-reader, metamail
 Conflicts: mail-transport-agent
@@ -19,6 +19,9 @@ Description: Mailer for Extreme Performance Demands
  in such situations. ZMailer is one of the mailers able to deal with
  huge quantities of mail and is more efficient any other mailer, qmail
  included, mostly due to its excellent queueing algorithms.
+ .
+ This package uses OpenSSL to enable encryption over the SMTP channel. For
+ a zmailer package without this feature, go to the main archive.
  .
  Most users don't need this package -- for most users, sendmail or exim or
  smail will suffice.

@@ -188,7 +188,7 @@ do
 			;;
 	unfr*|thaw)	rm -f $POSTOFFICE/.freeze
 			;;
-	restart)	/etc/init.d/zmailer stop && echo "Sleeping 5 seconds...." && sleep 5 && /etc/init.d/zmailer start
+	restart)	/etc/init.d/zmailer-ssl stop && echo "Sleeping 5 seconds...." && sleep 5 && /etc/init.d/zmailer-ssl start
 			;;
 	*)		echo $0: unknown option: $op
 			errflg=1

@@ -11,4 +11,3 @@ var/spool/postoffice/public
 var/spool/postoffice/queue
 var/spool/postoffice/router
 var/spool/postoffice/transport
-

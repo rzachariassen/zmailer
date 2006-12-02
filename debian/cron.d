@@ -4,10 +4,10 @@
 
 
 # Resubmit deferred messages
-28 0,8,16 * * *	root	/etc/init.d/zmailer resubmit >/dev/null
+28 0,8,16 * * *	root	/etc/init.d/zmailer-ssl resubmit >/dev/null
 
 # Cleanout public and postman directories
-7 4 * * *	root	/etc/init.d/zmailer cleanup >/dev/null
+7 4 * * *	root	/etc/init.d/zmailer-ssl cleanup >/dev/null
 
 # Check if services still work
 #11 6,12,18,0	root	zmailcheck
