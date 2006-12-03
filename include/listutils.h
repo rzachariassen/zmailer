@@ -102,6 +102,43 @@ EXTINLINE int ISELEMENT(conscell *C) { return ((C)->flags & ELEMENT); }
 #define	cddar(X)	cdr(cdr(car(X)))
 
 #define grindef(T,L)	(fprintf(stderr, T), s_grind(L,stderr), putc('\n', stderr))
+#define vgrindef(T,L)	(fprintf(stderr, T), v_grind(L,stderr), putc('\n', stderr))
+
+
+struct _envarscope; /* Fwd declarator */
+
+#define ENVARHASHSIZE 32
+
+typedef struct _envariable {
+	conscell *name;		/* cell is name,
+				   cdr() is a list in which car() has data chain! */
+	struct _envariable *hash_next;
+	struct _envariable **hash_pprev;
+
+	struct _envariable *ichain_next;
+
+	struct _envarscope *scope;
+} envariable;
+
+typedef struct _envarscope {
+	struct _envarscope *down;
+	int		  hashsize; /* Initially 16-1, then 32-1, 64-1, ... */
+	int		  varcount;
+
+  envariable *varmeter;
+	
+	envariable	 *insertchain; /* Local loop variables, etc.. */
+	envariable	**hashtble;	/* NULL unless allocated and used! */
+	envariable	 *hashtbl16[ENVARHASHSIZE];
+					/* Fixed size initial table, will
+					   grow to dynamically allocated
+					   larger table, if really necessery */
+} envarscope;
+
+#define VARSCOPETBLE(scope,idx) ( *(scope->hashtble ? &scope->hashtble[idx] : &scope->hashtbl16[idx] ))
+#define ENVARCEL(envar) (envar->name)
+#define ENVARVAL(envar) (cdr(envar->name))
+
 
 /*
  * These macros make it easier to maintain the illusion of dealing with lists.

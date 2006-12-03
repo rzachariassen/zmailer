@@ -127,8 +127,10 @@ extern int  sh_trap  __((int argc, const char *argv[]));
 extern void v_written __((conscell *));
 extern void v_touched __((void));
 #endif
-extern conscell *envarlist;
+extern envarscope *envarlist;
 extern void v_envinit __((void));
+extern envariable *_v_find __((const char *sname));
+extern envariable *v_new __((const conscell *cname));
 extern conscell *v_find __((const char *sname));
 #ifdef Z_SH_H
 extern conscell *v_expand __((const char *, struct osCmd *, int));
@@ -140,6 +142,11 @@ extern void v_set     __((const char *, const char *));
 extern void v_setl    __((const char *, conscell *));
 extern void v_export  __((const char *name));
 extern void v_purge   __((const char *name));
+extern void v_insert  __((envarscope *, conscell *));
+extern void v_discard __((envariable *));
+extern void v_drop_top_scope __((void));
+extern void v_new_scope __((void));
+extern void v_grind __((envarscope *, FILE*));
 
 /* libsh/version.c */
 extern const char *Version;
