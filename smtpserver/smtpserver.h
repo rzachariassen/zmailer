@@ -786,11 +786,14 @@ extern int rbl_dns_test __((struct policystate *, const int, const u_char *, cha
 /* smtphook.c */
 #ifdef DO_PERL_EMBED
 
-extern int ZSMTP_hook_init          __((const int, char **, const char **, const char *));
-extern void ZSMTP_hook_atexit       __((void));
-extern int ZSMTP_hook_set_ipaddress __((const char *, int, int *));
-extern int ZSMTP_hook_set_user      __((const char *, const char *, int *));
-extern int ZSMTP_hook_mailfrom      __((struct policystate *, const char *, const int, int *));
-extern int ZSMTP_hook_rcptto        __((struct policystate *, const char *, const int, int *));
+#define ZSMTP_HOOK_HELO        "ZSMTP::hook::helo"
+#define ZSMTP_HOOK_MAILFROM    "ZSMTP::hook::mailfrom"
+#define ZSMTP_HOOK_RCPTTO      "ZSMTP::hook::rcptto"
+
+extern void ZSMTP_hook_init          __((void));
+extern void ZSMTP_hook_atexit        __((void));
+extern void ZSMTP_hook_set_ipaddress __((const char *, int, const char *, const char *, int, const char *));
+extern void ZSMTP_hook_set_user      __((const char *, const char *));
+extern int ZSMTP_hook_univ           __((const char *, struct policystate *, const unsigned char *, const int, int *));
 
 #endif

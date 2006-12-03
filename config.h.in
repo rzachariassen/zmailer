@@ -440,6 +440,9 @@
 /* Define to 1 if you have the <shadow.h> header file. */
 #undef HAVE_SHADOW_H
 
+/* Define to 1 if the system has the type `sighandler_t'. */
+#undef HAVE_SIGHANDLER_T
+
 /* Define to 1 if you have the `sigpending' function. */
 #undef HAVE_SIGPENDING
 
@@ -469,6 +472,9 @@
 
 /* Using spf includes at directory: $withval */
 #undef HAVE_SPF_H
+
+/* Define to 1 if you have the <srs2.h> header file. */
+#undef HAVE_SRS2_H
 
 /* Define to 1 if you have the `statvfs' function. */
 #undef HAVE_STATVFS

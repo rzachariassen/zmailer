@@ -26,13 +26,13 @@ NEWS configure configure.in config.h.in mkinstalldirs install-sh \
 stamp-h.in acconfig.h
 
 # Redundant stuff for making only selected programs.
-PROGS	= router/router scheduler/scheduler			\
+PROGS	= router/router router/zrfilter/zrfilter scheduler/scheduler	\
 	scheduler/mailq smtpserver/smtpserver transports/-ok	\
 	compat/rmail/rmail compat/sendmail/sendmail		\
 	utils/vacation/vacation utils/makedb/makedb
 
 # Subdirectories to run make in for the primary targets.
-SUBDIRS =  smtpserver router scheduler transports compat utils
+SUBDIRS =  smtpserver router router/zrfilter scheduler transports compat utils
 # Subdirectories where to run 'make clean'
 MOREDIRS = libs lib libc libsh libident libmalloc libresolv ssl \
 	   proto doc man
@@ -99,6 +99,7 @@ install-bin:	# all
 	cd proto ;      $(MAKE) $(MFLAGS) install-bin  PZCONFIG="../$(ZCONF)"
 	cd compat ;     $(MAKE) $(MFLAGS) install
 	cd router ;     $(MAKE) $(MFLAGS) install
+	cd router/zrfilter ;     $(MAKE) $(MFLAGS) install
 	cd scheduler ;  $(MAKE) $(MFLAGS) install
 	cd smtpserver ; $(MAKE) $(MFLAGS) install
 	cd transports ; $(MAKE) $(MFLAGS) install
@@ -125,6 +126,7 @@ install:
 	@cd proto ;      $(MAKE) $(MFLAGS) install  PZCONFIG="../$(ZCONF)"
 	@cd compat ;     $(MAKE) $(MFLAGS) install
 	@cd router ;     $(MAKE) $(MFLAGS) install
+	@cd router/zrfilter ;     $(MAKE) $(MFLAGS) install
 	@cd scheduler ;  $(MAKE) $(MFLAGS) install
 	@cd smtpserver ; $(MAKE) $(MFLAGS) install
 	@cd transports ; $(MAKE) $(MFLAGS) install
@@ -147,6 +149,9 @@ post-install-text-dd:
 
 router/router:
 	cd router ; $(MAKE) $(MFLAGS) router-a
+
+router/zrfilter/zrfilter:
+	cd router/zrfilter ; $(MAKE) $(MFLAGS) zrfilter-a
 
 scheduler/scheduler:
 	cd scheduler ; $(MAKE) $(MFLAGS) all

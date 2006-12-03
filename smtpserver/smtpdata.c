@@ -190,6 +190,11 @@ const char *buf, *cp;
     }
 #endif
 
+#ifdef DO_PERL_EMBED
+    if (perlhookpath && SS->policystate.ZSMTP_hook_hdr)
+      fprintf(SS->mfp, "%s\n", SS->policystate.ZSMTP_hook_hdr);
+#endif
+
     /* We set alarm()s inside the mvdata() */
     *msg = 0;
     filsiz = mvdata(SS, msg);
@@ -534,6 +539,10 @@ const char *buf, *cp;
 	if (OCP->spf_received && policyspfhdr(&SS->policystate)) {
 	  fprintf(SS->mfp,"%s\n", policyspfhdr(&SS->policystate));
 	}
+#endif
+#ifdef DO_PERL_EMBED
+	if (perlhookpath && SS->policystate.ZSMTP_hook_hdr)
+	  fprintf(SS->mfp, "%s\n", SS->policystate.ZSMTP_hook_hdr);
 #endif
     }
     /* We set alarm()s inside the mvbdata() */

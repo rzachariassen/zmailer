@@ -432,10 +432,7 @@ void smtp_auth(SS,buf,cp)
 	      type(SS, 235, NULL, "Authentication successful.");
 	      SS->with_protocol_set |= WITH_AUTH;
 #if DO_PERL_EMBED
-	      {
-		int rc;
-		ZSMTP_hook_set_user(SS->authuser, "login", &rc);
-	      }
+	      ZSMTP_hook_set_user(SS->authuser, "login");
 #endif
 	    } else {
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,

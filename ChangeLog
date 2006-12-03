@@ -1,8 +1,25 @@
+2006-12-03  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, Makefile.in:
+	    More feeding of Daniel Kiper's bits.
+	    SRS related configuration environment bits
+	
+	* smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/smtpauth.c, smtpserver/smtpdata.c,
+	  smtpserver/smtphook.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h:
+	    More feeding of Daniel Kiper's bits.
+	    These rewrite (in a big way) the external perl hook
+	    mechanism, and with supplied sample elsewere, can
+	    be used to implement hookup to e.g. PostGrey server.
+
 2006-12-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  transports/smtp/smtpauth.c:
 	    More feeding of Daniel Kiper's bits.
+	    This might actually fix one of the occasionally observed
+	    busyloops of the SMTP TA program.
 
 	* router/Makefile.in, router/db.c, router/functions.c,
 	  router/prototypes.h, router/rfc822.c, router/shliaise.c,

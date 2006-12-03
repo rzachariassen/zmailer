@@ -1,6 +1,6 @@
 /*
  *  policytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997-2005
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-2006
  *
  */
 
@@ -43,8 +43,8 @@
 	state->message = state->messages[(attrib)];	\
 	state->messages[(attrib)] = NULL
 
-int use_spf;
-int spf_received;
+int use_spf;			/* These are in UNIX rss segment, and  */
+int spf_received;		/* they will be set zero at program load */
 int spf_threshold;
 char *spf_localpolicy;
 int spf_whitelist_use_default;
@@ -205,6 +205,7 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 {
     int openok;
     char *dbname;
+    char *myhostname;
 
     if (rel == NULL)
       return 1;  /* Not defined! */
@@ -213,7 +214,9 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 	type(NULL,0,NULL,"Policyinit call starts: submission mode: %d, valid whoson: %d",
 	       submission_mode_flags, valid_whoson);
 
+    myhostname = state->myhostname;
     memset(state, 0, sizeof(*state));
+    state->myhostname = myhostname;
 
     /*
      * state->implied_submission_mode = (submission_mode_flags & 1); ???
@@ -415,7 +418,8 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 #endif
 
 #ifdef Z_CHECK_SPF_DATA
-    state->check_spf=0;
+    state->check_spf  = 0;
+    state->spf_passed = 0;
 #endif
     state->maxsameiplimit = -1;
     return 0;
@@ -1127,7 +1131,9 @@ static int _addrtest_(state, pbuf, sourceaddr)
 	type(NULL,0,NULL,"RBL_DNS_TEST() TOOK %d SECONDS!",
 	     (int)(now - then));
 
-      if (!state->message){ PICK_PA_MSG(P_A_TestDnsRBL); }
+      if (rc < 0 && !state->message) {
+	PICK_PA_MSG(P_A_TestDnsRBL);
+      }
 
       if (debug)
 	type(NULL,0,NULL,"  rc=%d; msg='%s'",
@@ -1150,7 +1156,7 @@ static int _addrtest_(state, pbuf, sourceaddr)
 	state->rblmsg = strdup(state->values[P_A_RcptDnsRBL] + 1);
 	rc = 0;
       }
-      if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
+      /* if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); } */
       if (debug)
 	type(NULL,0,NULL,"  rc=%d", rc);
       return 0; /* We report error LATER */
@@ -1172,13 +1178,21 @@ static int _addrtest_(state, pbuf, sourceaddr)
 	type(NULL,0,NULL,"RBL_DNS_TEST() TOOK %d SECONDS!",
 	     (int)(now - then));
 
+      if (rc <0 &&  !state->rblmsg) {
+	if (state->messages[P_A_RcptDnsRBL]) {
+	  state->rblmsg = strdup(state->messages[P_A_RcptDnsRBL]);
+	  state->messages[P_A_RcptDnsRBL] = NULL;
+	} else {
+	  state->rblmsg = strdup("You are on our reject-IP-address -list, GO AWAY!");
+	}
+      }
+
       if (debug)
 	type(NULL, 0, NULL, "rcpt-dns-rbl test yields: rc=%d rblmsg='%s'", rc,
 	     state->rblmsg ? state->rblmsg : "<none>");
 
-      if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
-      if (debug)
-	type(NULL,0,NULL,"  rc=%d", rc);
+      /* if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); } */
+      /* if (debug) type(NULL,0,NULL,"  rc=%d", rc); */
       return 0; /* We report error LATER */
     }
     return 0;
@@ -1490,6 +1504,10 @@ static int pt_heloname(state, str, len)
      const unsigned char *str;
      const int len;
 {
+#ifdef DO_PERL_EMBED
+    int rc;
+#endif
+
     if (state->always_reject)
 	return -1;
     if (state->always_freeze)
@@ -1524,6 +1542,11 @@ static int pt_heloname(state, str, len)
 	  state->check_spf=0;
       }
     }
+#endif
+
+#ifdef DO_PERL_EMBED
+    if (ZSMTP_hook_univ(ZSMTP_HOOK_HELO, state, str, len, &rc))
+      return rc;
 #endif
 
     if (*str != '[') { /* Don't test address literals! */
@@ -1685,12 +1708,8 @@ static int pt_mailfrom(state, str, len)
 	return 0;
 
 #ifdef DO_PERL_EMBED
-    {
-      int i;
-      rc = 0;
-      i = ZSMTP_hook_mailfrom(state, (const char *)str, len, &rc);
-      if (i) return rc;
-    }
+    if (ZSMTP_hook_univ(ZSMTP_HOOK_MAILFROM, state, str, len, &rc))
+      return rc;
 #endif
 
     if (len > 0) { /* Non-box address.. */
@@ -1976,6 +1995,9 @@ static int pt_rcptto(state, str, len)
     const unsigned char *at;
     int localdom, relayable = 0;
     int loopbreak = 20;
+#ifdef DO_PERL_EMBED
+    int rc;
+#endif
 
     if (state->always_reject) return -1;
     if (state->sender_reject) return -2;
@@ -1986,12 +2008,8 @@ static int pt_rcptto(state, str, len)
     if (state->trust_recipients) return 0;
 
 #ifdef DO_PERL_EMBED
-    {
-      int i;
-      int rc = 0;
-      i = ZSMTP_hook_rcptto(state, (const char *)str, len, &rc);
-      if (i) return rc;
-    }
+    if (ZSMTP_hook_univ(ZSMTP_HOOK_RCPTTO, state, str, len, &rc))
+      return rc;
 #endif
 
     /* rcptfreeze even for 'rcpt-nocheck' ? */

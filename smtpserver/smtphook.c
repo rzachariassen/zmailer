@@ -1,7 +1,7 @@
 /*
  *  smtphook.c -- module for ZMailer's smtpserver
  *  By Matti Aarnio <mea@nic.funet.fi> 2004
- *
+ *  Perl support extended by Daniel Kiper <dkiper@netspace.com.pl>.
  */
 
 /*
@@ -12,14 +12,9 @@
  *
  */
 
-/* TODO:
- *  - Testing (1st write-thru is done; 2004-Jul-13)
- *  - Profiling (should this be in a subserver of its own ?)
- */
-
 #include "hostenv.h"
 
-char *perlhookpath; /* for cfgread() use in every case.. */
+char *perlhookpath = NULL; /* for cfgread() use in every case.. */
 
 #ifdef DO_PERL_EMBED
 
@@ -45,7 +40,7 @@ char *perlhookpath; /* for cfgread() use in every case.. */
 #include <EXTERN.h>
 #include <perl.h>
 
-static PerlInterpreter *my_perl; /* = NULL */
+static PerlInterpreter *my_perl = NULL;
 static void xs_init (pTHX);
 
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
@@ -65,73 +60,49 @@ xs_init(pTHX)
    and said stuff is NOT allowed to make e.g. network socket
    connections, or open databases, or ... */
 
-int ZSMTP_hook_init(argc, argv, env, filename)
-     const int argc;
-     char **argv;
-     const char **env;
-     const char *filename;
+void ZSMTP_hook_init()
 {
-	int exitstatus = 0;
-	char * embedding[2];
-	const char *zconf = getzenv("ZCONFIG");
-	const char **envp, **pp;
-	int i;
+	const char *smtpperl5opt;
+	char *argv[] = {"", perlhookpath};
+	int argc = sizeof(argv) / sizeof(char *), exitstatus;
 
+#ifdef HAVE_PUTENV
+	if ((smtpperl5opt = getzenv("SMTPPERL5OPT")) != NULL)
+		if (putenv((char *)smtpperl5opt - 9) == -1)
+			type(NULL , 0, NULL, "Can not set PERL5OPT environment variable !!!");
+#endif
 
-	/* Modify environment data so that ZCONFIG will
-	   be first env variable to be given to the perl
-	   environment! */
+	PERL_SYS_INIT3(&argc, &argv, NULL);
 
-	if (zconf) zconf -= 8;
-
-	for (i = 0, pp=env; *pp; ++i, ++pp) ;
-
-	envp = malloc((sizeof(char *) * (i+3)));
-	if (!envp) return -1; /* OOPS! */
-
-	envp[0] = zconf;
-	for (i = 1, pp=env; *pp; ++i, ++pp)
-	  envp[i] = *pp;
-	envp[i] = NULL;
-
-	/* Now setup perl environment */
-
-	PERL_SYS_INIT3(&argc, &argv, &envp);
-
-	my_perl = perl_alloc();
-	if (!my_perl) {
-	  /* FIXME: FIXME: error processing */
+	if ((my_perl = perl_alloc()) == NULL) {
+		type(NULL , 0, NULL, "Can not alocate memory for perl !!!");
+		return;
 	}
+
 	perl_construct(my_perl);
 
-	embedding[0] = "";
-	embedding[1] = (char*)filename;
+	exitstatus = perl_parse(my_perl, xs_init, argc, argv, NULL);
 
-	exitstatus = perl_parse( my_perl, xs_init, 2, embedding, NULL);
+#if PERL_REVISION >= 5 && PERL_VERSION >= 7 && PERL_SUBVERSION >= 2
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
+#endif
 
 	if (!exitstatus) {
-
 	  perl_run(my_perl);
-
 	} else {
-
-	  type(NULL,0,NULL,"Failed to parse perlhook script: '%s'",
-	       filename);
-
+		type(NULL, 0, NULL, "Failed to parse perlhook script: '%s'", perlhookpath);
 	  PL_perl_destruct_level = 0;
 	  perl_destruct(my_perl);
 	  perl_free(my_perl);
 	  PERL_SYS_TERM();
 	  my_perl = NULL;
 	}
-
-	return 0;
 }
 
 void ZSMTP_hook_atexit()
 {
-	if (!my_perl) return;
+	if (my_perl == NULL)
+		return;
 
 	PL_perl_destruct_level = 0;
 	perl_destruct(my_perl);
@@ -140,205 +111,142 @@ void ZSMTP_hook_atexit()
 	my_perl = NULL;
 }
 
-
-/* Funcions used in actual processing of things */
-
-/* return value !0: formed an opinnion */
-int ZSMTP_hook_set_ipaddress(ipaddrstr, localportnum, retp)
-     const char *ipaddrstr;
-     int localportnum;
-     int *retp;
+void ZSMTP_hook_set_ipaddress(rhostaddr, rport, rhostname, lhostaddr, lport, lhostname)
+	const char *rhostaddr;
+	int rport;
+	const char *rhostname;
+	const char *lhostaddr;
+	int lport;
+	const char *lhostname;
 {
-	if (!my_perl)
-	  return 0;
-	else {
+	dSP;
 
-	  dSP;
-	  int count;
-	  int rc = 0;
+	if (my_perl == NULL)
+		return;
 
-	  ENTER;
-	  SAVETMPS;
-
-	  PUSHMARK(SP) ;
-	  XPUSHs(sv_2mortal(newSVpv(ipaddrstr,0)));
-	  XPUSHs(sv_2mortal(newSViv(localportnum)));
-	  PUTBACK ;
-
-	  count = call_pv("ZSMTP::hook::set_ipaddress",G_ARRAY|G_EVAL);
-
-	  SPAGAIN;
-
-	  if (count != 2) {
-	    type(NULL,0,NULL,"ZSMTP::hook::set_ipaddress() perl call returned %d results, not 2!", count);
-	  } else {
-	    /* Result vector is:
-	       (0,  ii)  -> no opinnion, no returned value
-	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	    */
-	    int result = POPi;
-	    rc         = POPi;
-
-	    if (rc) {
-	      if (retp)
-		*retp = result;
-	    }
-	  }
-
-	  PUTBACK;
-	  FREETMPS;
-	  LEAVE;
-
-	  return rc;
-	}
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	if (rhostaddr != NULL && strlen(rhostaddr) > 0)
+		XPUSHs(sv_2mortal(newSVpv(rhostaddr, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	XPUSHs(sv_2mortal(newSViv(rport)));
+	if (rhostname != NULL && strlen(rhostname) > 0)
+		XPUSHs(sv_2mortal(newSVpv(rhostname, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	if (lhostaddr != NULL && strlen(lhostaddr) > 0)
+		XPUSHs(sv_2mortal(newSVpv(lhostaddr, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	XPUSHs(sv_2mortal(newSViv(lport)));
+	if (lhostname != NULL && strlen(lhostname) > 0)
+		XPUSHs(sv_2mortal(newSVpv(lhostname, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	PUTBACK;
+	call_pv("ZSMTP::hook::set_ipaddress", G_DISCARD | G_EVAL);
+	FREETMPS;
+	LEAVE;
 }
 
-/* return value !0: formed an opinnion */
-int ZSMTP_hook_set_user(user, kind, retp)
+void ZSMTP_hook_set_user(user, kind)
      const char *user, *kind;
-     int *retp;
 {
-	if (!my_perl)
-	  return 0;
-	else {
+	dSP;
 
-	  dSP;
-	  int count;
-	  int rc = 0;
+	if (my_perl == NULL)
+		return;
 
-	  ENTER;
-	  SAVETMPS;
-
-	  PUSHMARK(SP) ;
-	  XPUSHs(sv_2mortal(newSVpv(user,0)));
-	  XPUSHs(sv_2mortal(newSVpv(kind,0)));
-	  PUTBACK ;
-
-	  count = call_pv("ZSMTP::hook::set_user",G_ARRAY|G_EVAL);
-
-	  SPAGAIN;
-
-	  if (count != 2) {
-	    type(NULL,0,NULL,"ZSMTP::hook::set_user() perl call returned %d results, not 2!", count);
-	  } else {
-	    /* Result vector is:
-	       (0,  ii)  -> no opinnion, no returned value
-	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	    */
-	    int result = POPi;
-	    rc         = POPi;
-
-	    if (rc) {
-	      if (retp)
-		*retp = result;
-	    }
-	  }
-	  
-	  PUTBACK;
-	  FREETMPS;
-	  LEAVE;
-
-	  return rc;
-	}
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	if (user != NULL && strlen(user) > 0)
+		XPUSHs(sv_2mortal(newSVpv(user, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	if (kind != NULL && strlen(kind) > 0)
+		XPUSHs(sv_2mortal(newSVpv(kind, 0)));
+	else
+		XPUSHs(&PL_sv_undef);
+	PUTBACK;
+	call_pv("ZSMTP::hook::set_user", G_DISCARD | G_EVAL);
+	FREETMPS;
+	LEAVE;
 }
 
-/* return value !0: formed an opinnion */
-int ZSMTP_hook_mailfrom(state, str, len, retp)
+int ZSMTP_hook_univ(hook, state, str, len, retp)
+	const char *hook;
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
      int *retp;
 {
-	if (!my_perl)
-	  return 0;
-	else {
+	int count;
+	SV *ZSMTP_hook_hdr, *message, *rc, *result;
+	dSP;
 
-	  dSP;
-	  int count;
-	  int rc = 0;
+	if (my_perl == NULL)
+		return 0;
 
-	  ENTER;
-	  SAVETMPS;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	if (str != NULL && len > 0)
+		XPUSHs(sv_2mortal(newSVpvn(str, len)));
+	else
+		XPUSHs(&PL_sv_undef);
+	PUTBACK;
+	count = call_pv(hook, G_ARRAY | G_EVAL);
+	SPAGAIN;
 
-	  PUSHMARK(SP) ;
-	  XPUSHs(sv_2mortal(newSVpvn(str,len)));
-	  PUTBACK ;
-
-	  count = call_pv("ZSMTP::hook::mailfrom",G_ARRAY|G_EVAL);
-
-	  SPAGAIN;
-
-	  if (count != 2) {
-	    type(NULL,0,NULL,"ZSMTP::hook::mailfrom() perl call returned %d results, not 2!", count);
-	  } else {
-	    /* Result vector is:
-	       (0,  ii)  -> no opinnion, no returned value
-	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	    */
-	    int result = POPi;
-	    rc         = POPi;
-
-	    if (rc) {
-	      if (retp)
-		*retp = result;
-	    }
-	  }
-	  
-	  PUTBACK;
-	  FREETMPS;
-	  LEAVE;
-
-	  return rc;
+	if (count != 4) {
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+		type(NULL, 0, NULL, "%s perl call returned %d results, not 4!", hook, count);
+		return 0;
 	}
+
+	ZSMTP_hook_hdr = POPs;
+	message = POPs;
+	result = POPs;
+	rc = POPs;
+
+	if (!SvIOK(rc) || !SvIVX(rc)) {
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		return 0;
+	}
+
+	if (SvPOK(ZSMTP_hook_hdr)) {
+		if (state->ZSMTP_hook_hdr != NULL)
+			free(state->ZSMTP_hook_hdr);
+		state->ZSMTP_hook_hdr = strdup(SvPVX(ZSMTP_hook_hdr));
+	}
+
+	if (SvIVX(rc) < 0) {
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		return 0;
+	}
+
+	if (retp != NULL)
+		*retp = SvIOK(result) ? SvIVX(result) : 0;
+
+	if (SvPOK(message)) {
+		if (state->message != NULL)
+			free(state->message);
+		state->message = strdup(SvPVX(message));
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+	return 1;
 }
 
-/* return value !0: formed an opinnion */
-int ZSMTP_hook_rcptto(state, str, len, retp)
-     struct policystate *state;
-     const char *str;
-     const int len;
-     int *retp;
-{
-	if (!my_perl)
-	  return 0;
-	else {
-
-	  dSP;
-	  int count;
-	  int rc = 0;
-
-	  ENTER;
-	  SAVETMPS;
-
-	  PUSHMARK(SP) ;
-	  XPUSHs(sv_2mortal(newSVpvn(str,len)));
-	  PUTBACK ;
-
-	  count = call_pv("ZSMTP::hook::rcptto",G_ARRAY|G_EVAL);
-
-	  SPAGAIN;
-
-	  if (count != 2) {
-	    type(NULL,0,NULL,"ZSMTP::hook::rcptto() perl call returned %d results, not 2!", count);
-	  } else {
-	    /* Result vector is:
-	       (0,  ii)  -> no opinnion, no returned value
-	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	    */
-	    int result = POPi;
-	    rc         = POPi;
-	    
-	    if (rc) {
-	      if (retp)
-		*retp = result;
-	    }
-	  }
-
-	  PUTBACK;
-	  FREETMPS;
-	  LEAVE;
-
-	  return rc;
-	}
-}
 #endif

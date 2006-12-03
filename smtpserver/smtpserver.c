@@ -962,7 +962,7 @@ int main(argc, argv, envp)
 #ifdef DO_PERL_EMBED
 	if (perlhookpath) {
 	  atexit(ZSMTP_hook_atexit);
-	  ZSMTP_hook_init(argc, argv, envp, perlhookpath);
+	  ZSMTP_hook_init();
 	}
 #endif
 
@@ -1078,10 +1078,10 @@ int main(argc, argv, envp)
 
 #if defined(AF_INET6) && defined(INET6)
 	  if (SS.raddr.v6.sin6_family == AF_INET6)
-	    SS.rport = SS.raddr.v6.sin6_port;
+	    SS.rport = ntohs(SS.raddr.v6.sin6_port);
 	  else
 #endif
-	    SS.rport = SS.raddr.v4.sin_port;
+	    SS.rport = ntohs(SS.raddr.v4.sin_port);
 
 	  setrhostname(&SS);
 
@@ -1624,10 +1624,10 @@ int main(argc, argv, envp)
 		    
 #if defined(AF_INET6) && defined(INET6)
 		  if (SS.raddr.v6.sin6_family == AF_INET6)
-		    SS.rport = SS.raddr.v6.sin6_port;
+		    SS.rport = ntohs(SS.raddr.v6.sin6_port);
 		  else
 #endif
-		    SS.rport = SS.raddr.v4.sin_port;
+		    SS.rport = ntohs(SS.raddr.v4.sin_port);
 
 		  setrhostname(&SS);
 
@@ -1680,8 +1680,7 @@ int main(argc, argv, envp)
 		    }
 #if DO_PERL_EMBED
 		    else {
-		      int rc;
-		      ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
+		      ZSMTP_hook_set_user(SS.whoson_data, "whoson");
 		    }
 #endif
 		  } else {
@@ -2404,6 +2403,10 @@ int insecure;
     struct hostent *hostent;
     int localport;
     long maxsameip = 0;
+#ifdef DO_PERL_EMBED
+    char localaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
+#endif
+
 
 #ifdef USE_TRANSLATION
     char lang[4];
@@ -2477,6 +2480,10 @@ int insecure;
     if (SS->localsock.v6.sin6_family == AF_INET6) {
 	struct in6_addr *ip6 = &SS->localsock.v6.sin6_addr;
 
+#ifdef DO_PERL_EMBED
+	strcpy(localaddr + 1, "IPv6:");
+	inet_ntop(AF_INET6, (void *) ip6, localaddr + 6, sizeof(localaddr) - 7);
+#endif
 	localport = ntohs(SS->localsock.v6.sin6_port);
 
 	/* If it is IPv4 mapped address to IPv6, then resolve
@@ -2489,10 +2496,19 @@ int insecure;
     } else
 #endif
       {
+#ifdef DO_PERL_EMBED
+	inet_ntop(AF_INET, (void *) &SS->localsock.v4.sin_addr,
+		  localaddr + 1, sizeof(localaddr) - 2);
+#endif
 	localport = ntohs(SS->localsock.v4.sin_port);
 
 	hostent = gethostbyaddr((void *) &SS->localsock.v4.sin_addr, 4, AF_INET);
       }
+
+#ifdef DO_PERL_EMBED
+    localaddr[0] = '[';
+    sprintf(localaddr + strlen(localaddr), "]");
+#endif
 
     if (hostent) {
 	strcpy(SS->myhostname, hostent->h_name);
@@ -2514,8 +2530,9 @@ int insecure;
 
     smtpauth_init(SS);
 
-#if DO_PERL_EMBED
-    ZSMTP_hook_set_ipaddress(SS->rhostaddr, localport, &rc);
+#ifdef DO_PERL_EMBED
+    ZSMTP_hook_set_ipaddress(SS->rhostaddr, SS->rport, SS->rhostname,
+			     localaddr, localport, SS->myhostname);
 #endif
 
 #ifdef HAVE_OPENSSL
