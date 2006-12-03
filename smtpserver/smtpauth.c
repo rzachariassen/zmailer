@@ -634,12 +634,11 @@ void smtp_auth(SS,buf,cp)
 				    (const void **)&SS->authuser); 
 	      /* XX: check result == SASL_OK ?? */
 	      SS->with_protocol_set |= WITH_AUTH;
-	      if (result == SASL_OK) {
 #if DO_PERL_EMBED
-		int rc;
-		ZSMTP_hook_set_user(SS->authuser, "saslauth", &rc);
-#endif
+	      if (result == SASL_OK) {
+		ZSMTP_hook_set_user(SS->authuser, "saslauth");
 	      }
+#endif
 
 # if 0
 	      /* get realm? */
