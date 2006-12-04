@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2005.
+ *      Copyright 1991-2006.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -74,12 +74,14 @@ static int partridge(SS, s)
 SmtpState *SS;
 const char *s;
 {
-    const char *p = rfc821_domain(s, STYLE(SS->cfinfo, 'R'));
+  const char *p = rfc821_domain(s, 1 /* STYLE(SS->cfinfo, 'R') */ );
     if (p == s)
 	return 1;
+#if 0
     if (strict_protocol < 1)
       while (*p == ' ' || *p == '\n')
 	++p;
+#endif
     if (*p == 0)
 	return 0;
 
@@ -144,6 +146,7 @@ void smtp_helo(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
 {
+    int rc;
 
     switch (SS->carp->cmd) {
     case Hello2:
@@ -165,15 +168,92 @@ const char *buf, *cp;
       SS->mfp = NULL;
     }
 
+
+    if (*cp == ' ') ++cp;
+
+    if (debug) typeflush(SS);
+
+    SS->cfinfo = findcf(cp); /* Find the CFINFO data for this value */
+
     strncpy(SS->helobuf, buf, sizeof(SS->helobuf));
     SS->helobuf[sizeof(SS->helobuf)-1] = 0;
 
-    if ((strict_protocol > 0) && *cp == ' ')
-      ++cp;
+    /* actually we accept here about anything, and mark
+       our decissions up into the 'policystate' variables */
+
+
+    /*
+     * Craig P. says we have to spit back syntactically
+     * invalid helo parameters at this stage, which is
+     * hard to do right since it requires a full '822
+     * tokenizer.  We do a half-hearted attempt here.
+     */
+    /*
+     * Matti A. says we have a more-than-half-hearted
+     * tokenizer -- RFC821SCN.C, lets use it :)
+     * We need it for proper handling of ESMTP anyway
+     */
+    rc = partridge(SS, cp);
+    if (rc)
+      SS->rhostflags |= RHOST_HELO_SYNTAX_FAIL;
     else
+      SS->rhostflags |= RHOST_HELO_SYNTAX_OK;
+
+    {
+      struct addrinfo req, *ai, *aip;
+      int i;
+      Usockaddr *saup;
+      
+      memset(&req, 0, sizeof(req));
+      req.ai_socktype = SOCK_STREAM;
+      req.ai_protocol = IPPROTO_TCP;
+      req.ai_flags    = AI_CANONNAME;
+      req.ai_family   = SS->raddr.v4.sin_family;
+      ai = NULL;
+
+      i = getaddrinfo((const char *) cp, "0", &req, &ai);
+      if ( rc != 0 ) {
+	SS->rhostflags |= RHOST_HELO_VERIFY_FAIL;
+      } else {
+	/* Ok, we have something, lets scan the result.. */
+	i = 0; /* Setting this if match is found */
+	
+	aip = ai;
+	for (aip = ai; aip; aip = aip->ai_next) {
+	  if (aip->ai_family != req.ai_family)
+	    continue; /* Eh ? */
+	  saup = (Usockaddr *)aip->ai_addr;
+	  if (aip->ai_family == AF_INET) {
+	    if (memcmp( &SS->raddr.v4.sin_addr, &saup->v4.sin_addr, 4 ) == 0) {
+	      i = 1;
+	      break;
+	    }
+	  }
+#if defined(AF_INET6) && defined(INET6)
+	  if (aip->ai_family == AF_INET6) {
+	    if (memcmp( &SS->raddr.v6.sin6_addr, &saup->v6.sin6_addr, 16 ) == 0) {
+	      i = 1;
+	      break;
+	    }
+	  }
+#endif
+
+	}
+
+	if (i)
+	  SS->rhostflags |= RHOST_HELO_VERIFY_OK;
+	else
+	  SS->rhostflags |= RHOST_HELO_VERIFY_FAIL;
+      }
+      if (debug)
+	type(NULL,0,NULL,
+	     " Partridge: %s,   Param Match to remote host: %s",
+	     rc ? "FAIL":"OK", i ? "OK":"FAIL");
+    }
+
+    if (strict_protocol < 1)
       while (*cp == ' ' || *cp == '\t') ++cp;
 
-    if (debug) typeflush(SS);
     if (SS->netconnected_flg)
       SS->policyresult = policytest(&SS->policystate,
 				    POLICY_HELONAME, cp, strlen(cp),
@@ -201,22 +281,7 @@ const char *buf, *cp;
       }
     }
 
-    /* actually we accept here about anything, and mark
-       our decissions up into the 'policystate' variables */
-
-
-    /*
-     * Craig P. says we have to spit back syntactically
-     * invalid helo parameters at this stage, which is
-     * hard to do right since it requires a full '822
-     * tokenizer.  We do a half-hearted attempt here.
-     */
-    /*
-     * Matti A. says we have a more-than-half-hearted
-     * tokenizer -- RFC821SCN.C, lets use it :)
-     * We need it for proper handling of ESMTP anyway
-     */
-    if (checkhelo && skeptical && partridge(SS, cp)) {
+    if (checkhelo && skeptical && rc) {
 	smtp_tarpit(SS);
 	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
 	type(SS, 501, m571, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
@@ -225,7 +290,7 @@ const char *buf, *cp;
     }
     /* At least check the input, though say "Ok, Master" while
        complaining.. */
-    if (!checkhelo && partridge(SS, cp)) {
+    if (!checkhelo && rc) {
 	if (SS->carp->cmd != Hello) {
 	    type821err(SS, -250, "", buf, "Invalid `%.200s' parameter!", buf);
 	    type(SS, -250, m571, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
@@ -962,6 +1027,35 @@ int insecure;
 	  fprintf(SS->mfp, " TLS-PEER-CN1: <none>");
       }
 #endif /* - HAVE_OPENSSL */
+      fprintf(SS->mfp, " rhost-flags-");
+      if (SS->rhostflags & RHOST_REVERSED_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_REVERSED_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, "-");
+      if (SS->rhostflags & RHOST_VERIFIED_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_VERIFIED_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, "-");
+      if (SS->rhostflags & RHOST_HELO_SYNTAX_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_HELO_SYNTAX_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, "-");
+      if (SS->rhostflags & RHOST_HELO_VERIFY_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_HELO_VERIFY_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+
       fprintf(SS->mfp, ")\n");
 
       /* COMMENT SECTION GETTING IT ALL IN EVERY CASE! */
@@ -1004,8 +1098,36 @@ int insecure;
 	fprintf(SS->mfp, " TLS-PEER: <none>");
       }
 #endif /* - HAVE_OPENSSL */
-      fprintf(SS->mfp, ")\n");
+      fprintf(SS->mfp, " host-ip-reverse-");
+      if (SS->rhostflags & RHOST_REVERSED_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_REVERSED_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, " host-reverse-verify-");
+      if (SS->rhostflags & RHOST_VERIFIED_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_VERIFIED_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, " helo-syntax-");
+      if (SS->rhostflags & RHOST_HELO_SYNTAX_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_HELO_SYNTAX_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
+      fprintf(SS->mfp, " helo-verify-");
+      if (SS->rhostflags & RHOST_HELO_VERIFY_OK)
+	fprintf(SS->mfp, "OK");
+      else if (SS->rhostflags & RHOST_HELO_VERIFY_FAIL)
+	fprintf(SS->mfp, "FAIL");
+      else
+	fprintf(SS->mfp, "??");
 
+      fprintf(SS->mfp, ")\n");
     }
 
     if (bodytype != NULL)

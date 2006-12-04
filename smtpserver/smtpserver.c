@@ -294,7 +294,7 @@ const char *contact_pointer_message="Ask HELP for our contact information.";
 #define LSOCKTYPE_SSMTP 1
 #define LSOCKTYPE_SUBMIT 2
 
-
+int use_perlhook;
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -961,8 +961,9 @@ int main(argc, argv, envp)
 
 #ifdef DO_PERL_EMBED
 	if (perlhookpath) {
-	  atexit(ZSMTP_hook_atexit);
-	  ZSMTP_hook_init();
+	  use_perlhook = ZSMTP_hook_init();
+	  if (use_perlhook)
+	    atexit(ZSMTP_hook_atexit);
 	}
 #endif
 
@@ -998,10 +999,11 @@ int main(argc, argv, envp)
 						    sizeof(SS.whoson_data)))) {
 	            strcpy(SS.whoson_data,"-unregistered-");
 	          }
-#if DO_PERL_EMBED
+#ifdef DO_PERL_EMBED
 		  else {
 		    int rc;
-		    ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
+		    if (use_perlhook)
+		      ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
 		  }
 #endif
 		} else {
@@ -1678,9 +1680,10 @@ int main(argc, argv, envp)
 						      sizeof(SS.whoson_data)))) {
 		      strcpy(SS.whoson_data,"-unregistered-");
 		    }
-#if DO_PERL_EMBED
+#ifdef DO_PERL_EMBED
 		    else {
-		      ZSMTP_hook_set_user(SS.whoson_data, "whoson");
+		      if (use_perlhook)
+			ZSMTP_hook_set_user(SS.whoson_data, "whoson");
 		    }
 #endif
 		  } else {
@@ -1834,6 +1837,8 @@ static void setrhostname(SS)
 {
     struct hostent *hp = NULL;
 
+    SS->rhostflags = 0;
+
     if (SS->raddr.v4.sin_family == AF_INET)
 	inet_ntop(AF_INET, (void *) &SS->raddr.v4.sin_addr,	/* IPv4 */
 		  SS->rhostaddr + 1, sizeof(SS->rhostaddr) - 2);
@@ -1850,32 +1855,81 @@ static void setrhostname(SS)
     SS->rhostaddr[0] = '[';
     sprintf(SS->rhostaddr + strlen(SS->rhostaddr), "]");
 
-    if (skeptical) {
-	if (SS->raddr.v4.sin_family == AF_INET)
-	    hp = gethostbyaddr((char *) &SS->raddr.v4.sin_addr, 4, AF_INET);
+    if (SS->raddr.v4.sin_family == AF_INET)
+      hp = gethostbyaddr((char *) &SS->raddr.v4.sin_addr, 4, AF_INET);
 #if defined(AF_INET6) && defined(INET6)
-	else if (SS->raddr.v6.sin6_family == AF_INET6) {
-	    struct in6_addr *ip6 = &SS->raddr.v6.sin6_addr;
+    else if (SS->raddr.v6.sin6_family == AF_INET6) {
+      struct in6_addr *ip6 = &SS->raddr.v6.sin6_addr;
 
-	    /* If it is IPv4 mapped address to IPv6, then resolve
-	       the IPv4 address... */
+      /* If it is IPv4 mapped address to IPv6, then resolve
+	 the IPv4 address... */
 
-	    if (memcmp((void *) ip6, zv4mapprefix, 12) == 0)
-		hp = gethostbyaddr(((char *) ip6) + 12, 4, AF_INET);
-	    else
-		hp = gethostbyaddr((char *) ip6, 16, AF_INET6);
-	}
+      if (memcmp((void *) ip6, zv4mapprefix, 12) == 0)
+	hp = gethostbyaddr(((char *) ip6) + 12, 4, AF_INET);
+      else
+	hp = gethostbyaddr((char *) ip6, 16, AF_INET6);
+    }
 #endif
-	else {
-	    ;			/* XX: ??? Not AF_INET, nor AF_INET6 ??? */
+    else {
+      ;			/* XX: ??? Not AF_INET, nor AF_INET6 ??? */
+      SS->rhostflags |= RHOST_REVERSED_FAIL;
+    }
+
+    if (hp != NULL) {
+      struct addrinfo req, *ai, *aip;
+      int rc;
+      Usockaddr *saup;
+
+      strcpy(SS->rhostname, hp->h_name);
+      SS->rhostflags |= RHOST_REVERSED_OK;
+
+      memset(&req, 0, sizeof(req));
+      req.ai_socktype = SOCK_STREAM;
+      req.ai_protocol = IPPROTO_TCP;
+      req.ai_flags    = AI_CANONNAME;
+      req.ai_family   = SS->raddr.v4.sin_family;
+      ai = NULL;
+
+      rc = getaddrinfo((const char *)hp->h_name, "0", &req, &ai);
+
+      if ( rc != 0 ) {
+	SS->rhostflags |= RHOST_VERIFIED_FAIL;
+      } else {
+	/* Ok, we have something, lets scan the result.. */
+	rc = 0; /* Setting this if match is found */
+
+	aip = ai;
+	for (aip = ai; aip; aip = aip->ai_next) {
+	  if (aip->ai_family != req.ai_family)
+	    continue; /* Eh ? */
+	  saup = (Usockaddr *)aip->ai_addr;
+	  if (aip->ai_family == AF_INET) {
+	    if (memcmp( &SS->raddr.v4.sin_addr, &saup->v4.sin_addr, 4 ) == 0) {
+	      rc = 1;
+	      break;
+	    }
+	  }
+#if defined(AF_INET6) && defined(INET6)
+	  if (aip->ai_family == AF_INET6) {
+	    if (memcmp( &SS->raddr.v6.sin6_addr, &saup->v6.sin6_addr, 16 ) == 0) {
+	      rc = 1;
+	      break;
+	    }
+	  }
+#endif
 	}
 
-	if (hp != NULL)
-	    strcpy(SS->rhostname, hp->h_name);
+	if (rc)
+	  SS->rhostflags |= RHOST_VERIFIED_OK;
 	else
-	    strcpy(SS->rhostname, SS->rhostaddr);
+	  SS->rhostflags |= RHOST_VERIFIED_FAIL;
+      }
+
+      if (ai) freeaddrinfo(ai);
+
     } else {
-	strcpy(SS->rhostname, SS->rhostaddr);
+      strcpy(SS->rhostname, SS->rhostaddr);
+      SS->rhostflags |= RHOST_REVERSED_FAIL;
     }
 }
 
@@ -2531,8 +2585,9 @@ int insecure;
     smtpauth_init(SS);
 
 #ifdef DO_PERL_EMBED
-    ZSMTP_hook_set_ipaddress(SS->rhostaddr, SS->rport, SS->rhostname,
-			     localaddr, localport, SS->myhostname);
+    if (use_perlhook)
+      ZSMTP_hook_set_ipaddress(SS->rhostaddr, SS->rport, SS->rhostname,
+			       localaddr, localport, SS->myhostname);
 #endif
 
 #ifdef HAVE_OPENSSL

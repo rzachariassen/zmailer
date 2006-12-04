@@ -431,8 +431,9 @@ void smtp_auth(SS,buf,cp)
 	      SS->authuser = uname;
 	      type(SS, 235, NULL, "Authentication successful.");
 	      SS->with_protocol_set |= WITH_AUTH;
-#if DO_PERL_EMBED
-	      ZSMTP_hook_set_user(SS->authuser, "login");
+#ifdef DO_PERL_EMBED
+	      if (use_perlhook)
+		ZSMTP_hook_set_user(SS->authuser, "login");
 #endif
 	    } else {
 	      policytest(&SS->policystate, POLICY_AUTHFAIL,
@@ -634,9 +635,10 @@ void smtp_auth(SS,buf,cp)
 				    (const void **)&SS->authuser); 
 	      /* XX: check result == SASL_OK ?? */
 	      SS->with_protocol_set |= WITH_AUTH;
-#if DO_PERL_EMBED
+#ifdef DO_PERL_EMBED
 	      if (result == SASL_OK) {
-		ZSMTP_hook_set_user(SS->authuser, "saslauth");
+		if (use_perlhook)
+		  ZSMTP_hook_set_user(SS->authuser, "saslauth");
 	      }
 #endif
 

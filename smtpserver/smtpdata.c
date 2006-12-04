@@ -191,7 +191,7 @@ const char *buf, *cp;
 #endif
 
 #ifdef DO_PERL_EMBED
-    if (perlhookpath && SS->policystate.ZSMTP_hook_hdr)
+    if (use_perlhook && SS->policystate.ZSMTP_hook_hdr)
       fprintf(SS->mfp, "%s\n", SS->policystate.ZSMTP_hook_hdr);
 #endif
 
@@ -541,7 +541,7 @@ const char *buf, *cp;
 	}
 #endif
 #ifdef DO_PERL_EMBED
-	if (perlhookpath && SS->policystate.ZSMTP_hook_hdr)
+	if (use_perlhook && SS->policystate.ZSMTP_hook_hdr)
 	  fprintf(SS->mfp, "%s\n", SS->policystate.ZSMTP_hook_hdr);
 #endif
     }

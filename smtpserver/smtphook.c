@@ -14,7 +14,7 @@
 
 #include "hostenv.h"
 
-char *perlhookpath = NULL; /* for cfgread() use in every case.. */
+char *perlhookpath; /* for cfgread() use in every case.. */
 
 #ifdef DO_PERL_EMBED
 
@@ -40,7 +40,7 @@ char *perlhookpath = NULL; /* for cfgread() use in every case.. */
 #include <EXTERN.h>
 #include <perl.h>
 
-static PerlInterpreter *my_perl = NULL;
+static PerlInterpreter *my_perl;
 static void xs_init (pTHX);
 
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
@@ -60,7 +60,7 @@ xs_init(pTHX)
    and said stuff is NOT allowed to make e.g. network socket
    connections, or open databases, or ... */
 
-void ZSMTP_hook_init()
+int ZSMTP_hook_init()
 {
 	const char *smtpperl5opt;
 	char *argv[] = {"", perlhookpath};
@@ -76,7 +76,7 @@ void ZSMTP_hook_init()
 
 	if ((my_perl = perl_alloc()) == NULL) {
 		type(NULL , 0, NULL, "Can not alocate memory for perl !!!");
-		return;
+		return 0;
 	}
 
 	perl_construct(my_perl);
@@ -89,6 +89,7 @@ void ZSMTP_hook_init()
 
 	if (!exitstatus) {
 	  perl_run(my_perl);
+	  return 1; /*  OK! */
 	} else {
 		type(NULL, 0, NULL, "Failed to parse perlhook script: '%s'", perlhookpath);
 	  PL_perl_destruct_level = 0;
@@ -97,6 +98,7 @@ void ZSMTP_hook_init()
 	  PERL_SYS_TERM();
 	  my_perl = NULL;
 	}
+	return 0;
 }
 
 void ZSMTP_hook_atexit()
@@ -121,8 +123,13 @@ void ZSMTP_hook_set_ipaddress(rhostaddr, rport, rhostname, lhostaddr, lport, lho
 {
 	dSP;
 
-	if (my_perl == NULL)
-		return;
+	/* Testing this is TOO LATE!
+	   This must not be called at all !
+
+	   if (my_perl == NULL)
+	      return;
+
+	*/
 
 	ENTER;
 	SAVETMPS;

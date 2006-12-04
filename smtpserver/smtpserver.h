@@ -251,8 +251,7 @@ typedef struct SmtpState {
     long messagesize;		/* Reset at MAIL, add at BDATs / DATA */
     long sizeoptval;		/* "MAIL FROM:<xxx> SIZE=nnn" -value    */
     long sizeoptsum;
-    char myhostname[MAXHOSTNAMELEN + 1];
-    char rhostname[MAXHOSTNAMELEN + 1];
+
     int  with_protocol_set;	/* = WITH_SMTP */
 #define WITH_HELO		0x0001
 #define WITH_EHLO		0x0002
@@ -274,6 +273,19 @@ typedef struct SmtpState {
     int  netconnected_flg;
     double  tarpit;
     double  tarpit_cval;		/* current tarpit value */
+
+    char myhostname[MAXHOSTNAMELEN + 1];
+    char rhostname[MAXHOSTNAMELEN + 1];
+    int  rhostflags;
+#define RHOST_REVERSED_OK	0x0001
+#define RHOST_REVERSED_FAIL	0x0002
+#define RHOST_VERIFIED_OK	0x0010
+#define RHOST_VERIFIED_FAIL	0x0020
+#define RHOST_HELO_SYNTAX_OK	0x0100
+#define RHOST_HELO_SYNTAX_FAIL	0x0200
+#define RHOST_HELO_VERIFY_OK	0x1000
+#define RHOST_HELO_VERIFY_FAIL	0x2000
+
     char rhostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     int  rport;
     int  lport;
@@ -366,6 +378,7 @@ extern int allow_source_route;
 extern char *contentfilter;
 extern int debug_content_filter;
 extern char *perlhookpath;
+extern int use_perlhook;
 
 extern int enable_router;
 extern int enable_router_maxpar;
@@ -790,7 +803,7 @@ extern int rbl_dns_test __((struct policystate *, const int, const u_char *, cha
 #define ZSMTP_HOOK_MAILFROM    "ZSMTP::hook::mailfrom"
 #define ZSMTP_HOOK_RCPTTO      "ZSMTP::hook::rcptto"
 
-extern void ZSMTP_hook_init          __((void));
+extern int  ZSMTP_hook_init          __((void));
 extern void ZSMTP_hook_atexit        __((void));
 extern void ZSMTP_hook_set_ipaddress __((const char *, int, const char *, const char *, int, const char *));
 extern void ZSMTP_hook_set_user      __((const char *, const char *));

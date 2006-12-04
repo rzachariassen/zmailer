@@ -1545,7 +1545,7 @@ static int pt_heloname(state, str, len)
 #endif
 
 #ifdef DO_PERL_EMBED
-    if (ZSMTP_hook_univ(ZSMTP_HOOK_HELO, state, str, len, &rc))
+    if (use_perlhook && ZSMTP_hook_univ(ZSMTP_HOOK_HELO, state, str, len, &rc))
       return rc;
 #endif
 
@@ -1708,7 +1708,8 @@ static int pt_mailfrom(state, str, len)
 	return 0;
 
 #ifdef DO_PERL_EMBED
-    if (ZSMTP_hook_univ(ZSMTP_HOOK_MAILFROM, state, str, len, &rc))
+    if (use_perlhook &&
+	ZSMTP_hook_univ(ZSMTP_HOOK_MAILFROM, state, str, len, &rc))
       return rc;
 #endif
 
@@ -2008,7 +2009,8 @@ static int pt_rcptto(state, str, len)
     if (state->trust_recipients) return 0;
 
 #ifdef DO_PERL_EMBED
-    if (ZSMTP_hook_univ(ZSMTP_HOOK_RCPTTO, state, str, len, &rc))
+    if (use_perlhook &&
+	ZSMTP_hook_univ(ZSMTP_HOOK_RCPTTO, state, str, len, &rc))
       return rc;
 #endif
 
