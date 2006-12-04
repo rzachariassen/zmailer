@@ -75,8 +75,8 @@ struct policystate {		/* Part of SmtpState structure */
     SPF_dns_config_t spfdcid;
     SPF_c_results_t local_policy;
     int spf_passed;
-    char *myhostname;
 #endif
+    char *myhostname;
 #ifdef DO_PERL_EMBED
     char *ZSMTP_hook_hdr;
 #endif
