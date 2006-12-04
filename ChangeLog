@@ -18,7 +18,7 @@
 	    (in strict sense!), and that given parameter yields
 	    same IP address as remote host has.
 	    This may end up in policy controls, or possibly not.
-	
+
 2006-12-03  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, Makefile.in:

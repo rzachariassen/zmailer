@@ -1040,7 +1040,7 @@ int insecure;
       else if (SS->rhostflags & RHOST_VERIFIED_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
-	fprintf(SS->mfp, "??");
+	fprintf(SS->mfp, "FAIL");
       fprintf(SS->mfp, "-");
       if (SS->rhostflags & RHOST_HELO_SYNTAX_OK)
 	fprintf(SS->mfp, "OK");
@@ -1054,7 +1054,7 @@ int insecure;
       else if (SS->rhostflags & RHOST_HELO_VERIFY_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
-	fprintf(SS->mfp, "??");
+	fprintf(SS->mfp, "FAIL");
 
       fprintf(SS->mfp, ")\n");
 
@@ -1111,7 +1111,7 @@ int insecure;
       else if (SS->rhostflags & RHOST_VERIFIED_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
-	fprintf(SS->mfp, "??");
+	fprintf(SS->mfp, "FAIL");
       fprintf(SS->mfp, " helo-syntax-");
       if (SS->rhostflags & RHOST_HELO_SYNTAX_OK)
 	fprintf(SS->mfp, "OK");
