@@ -1,6 +1,10 @@
 2006-12-06  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
+	    To polish a very fine point, SMTP reply for MAIL FROM
+	    does not allow "450", but "451" is acceptable.
+
+	* smtpserver/smtpserver.c:
 	    Feed a NUL-byte on ARGV-overwrite simulation of  setproctitle()
 	    in systems that have to do that..
 

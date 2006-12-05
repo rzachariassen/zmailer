@@ -877,7 +877,7 @@ int insecure;
     if (SS->policyresult < 0) {
       char *ss = policymsg(&SS->policystate);
       if (ss != NULL) {
-	int code = 450;
+	int code = 451;
 	const char *mcode = m471;
 	if (SS->policyresult >= -99) {
 	  code = 553;
@@ -889,13 +889,13 @@ int insecure;
       } else if (SS->policyresult < -99) {
 	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
-	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports temporary DNS error with your source domain.",
+	  type(SS,451,m443, "Hello %s, for your input: <%.*s> policy analysis reports temporary DNS error with your source domain.",
 	       SS->rhostaddr, addrlen, cp);
 	} else if (SS->policyresult < -100) {
-	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports DNS error with your source domain.",
+	  type(SS,451,m443, "Hello %s, for your input: <%.*s> policy analysis reports DNS error with your source domain.",
 	       SS->rhostaddr, addrlen, cp);
 	} else {
-	  type(SS,450,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->rhostaddr, addrlen, cp);
+	  type(SS,451,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->rhostaddr, addrlen, cp);
 	}
       } else {
 	char *ss = policymsg(&SS->policystate);
@@ -1622,22 +1622,22 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
-	    type(SS, 450, m471, "Hello %s, for recipient address <%.*s> the policy analysis reported: %s", SS->rhostaddr, addrlen, cp, ss);
+	    type(SS, 451, m471, "Hello %s, for recipient address <%.*s> the policy analysis reported: %s", SS->rhostaddr, addrlen, cp, ss);
 
 	  } else if (SS->policyresult < -103) { /* -104 */
-	    type(SS, 450, m443, "Hello %s, policy analysis reports temporary DNS error with the target domain: <%.*s>", SS->rhostaddr, addrlen, cp);
+	    type(SS, 451, m443, "Hello %s, policy analysis reports temporary DNS error with the target domain: <%.*s>", SS->rhostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
-	    type(SS,450, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
+	    type(SS,451, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
 		 SS->rhostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
-	    type(SS, 450, m443, "Hello %s, Policy analysis found DNS error on the target address: <%.*s>", SS->rhostaddr, addrlen, cp);
+	    type(SS, 451, m443, "Hello %s, Policy analysis found DNS error on the target address: <%.*s>", SS->rhostaddr, addrlen, cp);
 
 	  } else {
-	    type(SS,450,m443, "Hello %s, Policy rejection on the target address: <%.*s>",
+	    type(SS,451,m443, "Hello %s, Policy rejection on the target address: <%.*s>",
 		 SS->rhostaddr, addrlen, cp);
 	  }
 	} else {
