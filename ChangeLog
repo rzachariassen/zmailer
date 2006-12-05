@@ -1,3 +1,16 @@
+2006-12-06  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Feed a NUL-byte on ARGV-overwrite simulation of  setproctitle()
+	    in systems that have to do that..
+
+	* smtpserver/subdaemon-rtr.c:
+	    Pass  -Z zconf  -option for the called execl()s.
+
+	* smtpserver/subdaemons.c:
+	    Pass  -R  routerprog   option to called sub-instance
+	    of the smtpserver.
+
 2006-12-04  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c, smtpserver/smtpauth.c,

@@ -1098,34 +1098,34 @@ int insecure;
 	fprintf(SS->mfp, " TLS-PEER: <none>");
       }
 #endif /* - HAVE_OPENSSL */
-      fprintf(SS->mfp, " host-ip-reverse-");
+      fprintf(SS->mfp, " rhost-flags-");
       if (SS->rhostflags & RHOST_REVERSED_OK)
 	fprintf(SS->mfp, "OK");
       else if (SS->rhostflags & RHOST_REVERSED_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
 	fprintf(SS->mfp, "??");
-      fprintf(SS->mfp, " host-reverse-verify-");
+      fprintf(SS->mfp, "-");
       if (SS->rhostflags & RHOST_VERIFIED_OK)
 	fprintf(SS->mfp, "OK");
       else if (SS->rhostflags & RHOST_VERIFIED_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
 	fprintf(SS->mfp, "FAIL");
-      fprintf(SS->mfp, " helo-syntax-");
+      fprintf(SS->mfp, "-");
       if (SS->rhostflags & RHOST_HELO_SYNTAX_OK)
 	fprintf(SS->mfp, "OK");
       else if (SS->rhostflags & RHOST_HELO_SYNTAX_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
 	fprintf(SS->mfp, "??");
-      fprintf(SS->mfp, " helo-verify-");
+      fprintf(SS->mfp, "-");
       if (SS->rhostflags & RHOST_HELO_VERIFY_OK)
 	fprintf(SS->mfp, "OK");
       else if (SS->rhostflags & RHOST_HELO_VERIFY_FAIL)
 	fprintf(SS->mfp, "FAIL");
       else
-	fprintf(SS->mfp, "??");
+	fprintf(SS->mfp, "FAIL");
 
       fprintf(SS->mfp, ")\n");
     }

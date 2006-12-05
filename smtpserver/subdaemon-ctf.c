@@ -188,6 +188,8 @@ static int subdaemon_ctf_proc (CTFp)
 
 	rpid = fork();
 	if (rpid == 0) {	/* child */
+	  const char *zconf = getzenv("ZCONFIG"); /* this is pretty much guaranteed to exist.. */
+
 	  rpid = getpid();
 	  if (to[0] != 0)
 	    dup2(to[0], 0);
@@ -203,7 +205,7 @@ static int subdaemon_ctf_proc (CTFp)
 #else
 	  environ = (char **) newenviron;
 #endif
-	  execl(contentfilter, contentfilter, NULL);
+	  execl(contentfilter, contentfilter, "-Z", zconf, NULL);
 
 #define	BADEXEC	"#BADEXEC\n\n"
 	  write(1, BADEXEC, sizeof(BADEXEC)-1);

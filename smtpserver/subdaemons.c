@@ -94,7 +94,7 @@ int subdaemons_init_router __((void))
 {
 	int rc;
 	int to[2];
-	const char *zconf = getzenv("ZCONFIG");
+	const char *zconf = getzenv("ZCONFIG"); /* this is pretty much guaranteed to exist.. */
 	const char *mailbin = getzenv("MAILBIN");
 	char *smtpserver = NULL;
 
@@ -128,7 +128,7 @@ int subdaemons_init_router __((void))
 	      /* exec here ??? */
 	      if (smtpserver)
 		execl(smtpserver, "smtpserver", "-I", "sub-router",
-		      "-Z", zconf, NULL);
+		      "-Z", zconf, routerprog ? "-R" : NULL, routerprog, NULL);
 	      subdaemon_router(0);
 	      /* never reached */
 	    }

@@ -146,6 +146,8 @@ static int subdaemon_callr (RTR)
 
 	rpid = fork();
 	if (rpid == 0) {	/* child */
+	  const char *zconf = getzenv("ZCONFIG"); /* this is pretty much guaranteed to exist.. */
+
 	  rpid = getpid();
 	  if (to[0] != 0)
 	    dup2(to[0], 0);
@@ -156,12 +158,15 @@ static int subdaemon_callr (RTR)
 	  if (from[1] > 2) close(from[1]);
 
 	  runasrootuser();	/* XXX: security alert! */
+
 #ifdef HAVE_PUTENV
 	  putenv("SMTPSERVER=y");
 #else
 	  environ = (char **) newenviron;
 #endif
-	  execl(routerprog, "router", "-io-i", "-Ismtpserver", NULL);
+
+	  execl(routerprog,
+		"router", "-Z", zconf, "-io-i", "-Ismtpserver", NULL);
 
 #define	BADEXEC	"#BADEXEC\n\n"
 	  write(1, BADEXEC, sizeof(BADEXEC)-1);
