@@ -3262,8 +3262,8 @@ va_dcl
     cmdlen = (eocmdline - cmdline);
     buf[sizeof(buf)-1] = '\0';
 
-    strncpy((char *) cmdline, buf, cmdlen+1);
-    *(char*)eocmdline = 0;
+    strncpy((char *) cmdline, buf, cmdlen);
+    ((char*)eocmdline)[-1] = 0;
 #endif /* HAVE_SETPROCTITLE */
     va_end(ap);
 }
