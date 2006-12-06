@@ -3243,27 +3243,34 @@ va_dcl
     s = buf + strlen(buf);
     bufspace = sizeof(buf) - (s - buf) - 2;
 
-#ifdef	HAVE_VSPRINTF
-# ifdef HAVE_VSNPRINTF
+#ifdef HAVE_VSNPRINTF
     vsnprintf(s, bufspace, cp, ap);
-# else
-    vsprintf(s, cp, ap);
-# endif
-#else				/* !HAVE_VSPRINTF */
+#else
 # ifdef HAVE_SNPRINTF
     snprintf(s, bufspace, cp, va_arg(ap, char *));
 # else
+#  ifdef HAVE_VSPRINTF
+    vsprintf(s, cp, ap);
+#  else
     sprintf(s, cp, va_arg(ap, char *));
+#  endif
+# endif
 #endif
-#endif				/* HAVE_VPRINTF */
+
 #ifdef HAVE_SETPROCTITLE
     setproctitle("%s", buf);
 #else
     cmdlen = (eocmdline - cmdline);
-    buf[sizeof(buf)-1] = '\0';
+    if (cmdlen >= sizeof(buf))
+      cmdlen = sizeof(buf) - 1;
 
-    strncpy((char *) cmdline, buf, cmdlen);
-    ((char*)eocmdline)[-1] = 0;
+    bufspace = strlen(buf); /* recycle the variable */
+    s = buf+bufspace;
+    if (cmdlen > bufspace) {
+      memset(s, 0, cmdlen-bufspace);
+    }
+    buf[cmdlen] = '\0';
+    memcpy((char*)cmdline, buf, cmdlen); /* Overwrite it! */
 #endif /* HAVE_SETPROCTITLE */
     va_end(ap);
 }
