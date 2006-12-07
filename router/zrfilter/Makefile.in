@@ -6,26 +6,24 @@
 
 #******************************************************************************
 
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir =	@srcdir@
+VPATH =		@srcdir@
 @SET_MAKE@
 
-TOPDIR=../..
-MAILBIN=$(DESTDIR)@MAILBIN@
+TOPDIR=		../..
+MAILBIN=	$(DESTDIR)@MAILBIN@
 
-CC=@CC@
-INSTALL=@INSTALL@
+CC=		@CC@
+INSTALL=	@INSTALL@
 
-INCL=-I$(TOPDIR) -I$(TOPDIR)/include -I$(TOPDIR)/libsh
-LIB=-L$(TOPDIR)/libs -lsfio -lsh -lzc -lzm -lzmdb
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(TOPDIR)/libsh
+LIB=		-L$(TOPDIR)/libs -lsfio -lsh -lzc -lzm -lzmdb
+CFLAGS=		@CFLAGS@ $(INCL)
 
-CFLAGS=@CFLAGS@ $(INCL)
+OBJS=		vis.o zrfilter.o
 
-OBJS=vis.o zrfilter.o
-
-PROGRAM=zrfilter
-
-PROGRAM_MODE=0755
+PROGRAM=	zrfilter
+PROGRAM_MODE=	0755
 
 #******************************************************************************
 
