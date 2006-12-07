@@ -19,11 +19,14 @@
 
 %RFC822 = ();
 
+# TODO: Pick "-Z zconf" argument supplied to this program,
+# then spin around reading input, and doing decissions..
+
 select(STDOUT); $| = 1;
 
 printf "#hungry\n";
 
-while (<>) {
+while (<STDIN>) {
 	chomp;
 	$fname = $_;
 
