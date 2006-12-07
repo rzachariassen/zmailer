@@ -1058,6 +1058,10 @@ int main(argc, argv, envp)
 	  Z_init(); /* Some things for private processors */
 #endif /* - HAVE_OPENSSL */
 
+	  pid = getpid();
+	  if (!logfp)
+	    openlogfp(&SS, 0);
+
 	  s_setup(&SS, FILENO(stdin), FILENO(stdout));
 	  smtpserver(&SS, 0);
 
@@ -1084,6 +1088,10 @@ int main(argc, argv, envp)
 	  else
 #endif
 	    SS.rport = ntohs(SS.raddr.v4.sin_port);
+
+	  pid = getpid();
+	  if (!logfp)
+	    openlogfp(&SS, 1);
 
 	  setrhostname(&SS);
 
@@ -1129,7 +1137,6 @@ int main(argc, argv, envp)
 
 	  pid = getpid();
 	  settrusteduser();	/* dig out the trusted user ID */
-	  openlogfp(NULL, daemon_flg);
 
 	  type(NULL,0,NULL,"connection from %s:%d on port %d pid %d ident: %s",
 	       SS.rhostname, SS.rport, SS.lport, pid, SS.ident_username);
@@ -1631,11 +1638,15 @@ int main(argc, argv, envp)
 #endif
 		    SS.rport = ntohs(SS.raddr.v4.sin_port);
 
+		  pid = getpid();
+		  openlogfp(&SS, daemon_flg);
+
 		  setrhostname(&SS);
 
-		  /* Lets figure-out who we are this time around -- we may be on
-		     a machine with multiple identities per multiple interfaces,
-		     or via virtual IP-numbers, or ... */
+		  /* Lets figure-out who we are this time around -- we may
+		     be on a machine with multiple identities per multiple
+		     interfaces, or via virtual IP-numbers, or ... */
+
 		  localsocksize = sizeof(SS.localsock);
 		  if (getsockname(msgfd, &SS.localsock.sa,
 				  &localsocksize) != 0) {
@@ -1702,9 +1713,7 @@ int main(argc, argv, envp)
 			     SS.ident_username, SS.rhostname, SS.lport));
 #endif
 		  }
-		  pid = getpid();
 
-		  openlogfp(&SS, daemon_flg);
 #ifdef HAVE_WHOSON_H
 		  type(NULL,0,NULL,
 		       "connection from %s %s:%d on port %d ipcnt %d childs %d pid %d ident: %s whoson: %s",
@@ -1855,6 +1864,11 @@ static void setrhostname(SS)
     SS->rhostaddr[0] = '[';
     sprintf(SS->rhostaddr + strlen(SS->rhostaddr), "]");
 
+    /* Copy the initial value of textual address literal to
+       remote host name... */
+    strcpy(SS->rhostname, SS->rhostaddr);
+    report(SS, "(connected - resolving remote address)");
+
     if (SS->raddr.v4.sin_family == AF_INET)
       hp = gethostbyaddr((char *) &SS->raddr.v4.sin_addr, 4, AF_INET);
 #if defined(AF_INET6) && defined(INET6)
@@ -1928,9 +1942,11 @@ static void setrhostname(SS)
       if (ai) freeaddrinfo(ai);
 
     } else {
-      strcpy(SS->rhostname, SS->rhostaddr);
       SS->rhostflags |= RHOST_REVERSED_FAIL;
     }
+
+    report(SS, "(connected)");
+
 }
 
 static RETSIGTYPE
@@ -2477,10 +2493,6 @@ int insecure;
 
     stashmyaddresses(NULL);
 
-    pid = getpid();
-    if (!logfp)
-	openlogfp(SS, insecure);
-
     runastrusteduser();
 
     if (!SS->netconnected_flg)
@@ -2522,7 +2534,6 @@ int insecure;
 	killcfilter(SS);
 	exit(0);
     }
-    report(SS, "(connected)");
     now = time((time_t *) 0);
     cp = (char *) rfc822date(&now);
 

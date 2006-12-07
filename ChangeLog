@@ -1,5 +1,13 @@
 2006-12-07  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c:
+	    Sometimes there is a long delay from incoming connection
+	    to its IP address' proper resolving.  Report at first
+	    arriving connection with IP literal, and latter with
+	    resolved reverser.  Also, start session specific log
+	    delta-timer right at the connection time, not way latter
+	    eg after resolving incoming connection IP address reversers.
+
 	* utils/smtp-contentfilter.in:
 	    The perl prototype of content filter service didn't
 	    like at all when I force-fed it the '-Z zconf' parameter.
