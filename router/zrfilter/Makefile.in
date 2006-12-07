@@ -1,0 +1,55 @@
+#
+# Makefile.in for "zrfilter" tool.
+#
+# [ Modified - 06/01/2006 ]
+#
+
+#******************************************************************************
+
+TOPDIR=../..
+MAILBIN=$(DESTDIR)@MAILBIN@
+
+CC=@CC@
+INSTALL=@INSTALL@
+
+INCL=-I$(TOPDIR) -I$(TOPDIR)/include -I$(TOPDIR)/libsh
+LIB=-L$(TOPDIR)/libs -lsfio -lsh -lzc -lzm -lzmdb
+
+CFLAGS=@CFLAGS@ $(INCL)
+
+OBJS=vis.o zrfilter.o
+
+PROGRAM=zrfilter
+
+PROGRAM_MODE=0755
+
+#******************************************************************************
+
+all:	$(PROGRAM)
+
+#******************************************************************************
+
+$(PROGRAM):	$(OBJS)
+		$(CC) $(CFLAGS) -o $(PROGRAM) $(OBJS) $(LIB)
+
+#******************************************************************************
+
+.c.o:
+	$(CC) $(CFLAGS) -c $(<) -o $(@)
+
+#******************************************************************************
+
+install:	all
+		$(INSTALL) -m $(PROGRAM_MODE) $(PROGRAM) $(MAILBIN)
+
+#******************************************************************************
+
+clean mostlyclean:
+	rm -fr core $(OBJS) $(PROGRAM)
+
+#******************************************************************************
+
+distclean:	clean
+	rm -fr Makefile
+
+#******************************************************************************

@@ -1,5 +1,9 @@
 2006-12-07  Matti Aarnio  <mea@zmailer.org>
 
+	* router/zrfilter/Makefile.in, router/zrfilter/vis.c,
+	  router/zrfilter/zrfilter.c:
+	    More feeding of Daniel Kiper's bits.
+
 	* smtpserver/smtpserver.c:
 	    Sometimes there is a long delay from incoming connection
 	    to its IP address' proper resolving.  Report at first
