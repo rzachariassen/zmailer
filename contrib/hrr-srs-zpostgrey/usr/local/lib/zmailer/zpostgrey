@@ -1,8 +1,9 @@
-#!/usr/bin/perl -T
+# #!/usr/bin/perl -T
+# Embedding doesn't like  #!  for some reason [mea]
 #
 # zpostgrey - postgrey interface for ZMailer.
 #
-# Version: 1.0.0
+# Version: 1.1.0
 #
 # Written by Daniel Kiper.
 #
@@ -10,6 +11,7 @@
 #
 # DONE:
 #   - 24/07/2006 - version 1.0.0 - first release.
+#   - 2006-12-13 - version 1.1.0 - function interface changes
 #
 # TODO:
 #   - ???
@@ -80,6 +82,11 @@ sub helo(@) {
 #******************************************************************************
 
 sub set_user(@) {
+}
+
+#******************************************************************************
+
+sub rset(@) {
 }
 
 #******************************************************************************
@@ -189,6 +196,11 @@ sub rcptto(@) {
   }
 
   return (1, -100, 'zpostgrey: Protocol error !!!', undef)
+}
+
+#******************************************************************************
+
+sub data {
 }
 
 #******************************************************************************
