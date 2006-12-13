@@ -89,15 +89,25 @@ groff -t -man -Tascii "$1" | \
 	# Ordinary PERL PODs
         s{<I>([-.0-9a-zA-Z_]+::[-.0-9a-zA-Z_]+)</I>\((\d\w+)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	print;' | \
-    perl -ne '
-	if (m{^<B>(.*)</B>$}o) {
+    perl -e '
+	@labels=();
+	while (<STDIN>) {
+	  if (m{^<B>(.*)</B>$}o) {
 	    my $n = $1; $n =~ s/ /_/g;
 	    printf "<A NAME=\"%s\"></A>",$n;
-	}
-	if (m{^   <B>(.*)</B>$}o) {
+	    push @labels, $n;
+	  }
+	  if (m{^   <B>(.*)</B>$}o) {
 	    my $n = $1; $n =~ s/ /_/g;
 	    printf "<A NAME=\"%s\"></A>",$n;
+	    push @labels, $n;
+	  }
+	  print;
 	}
-	print;
+	printf "<p><p>\n<ul></n";
+	foreach $n (@labels) {
+	    printf "<li> <A HREF=\"#%s\">%s</A>\n",$n,$n;
+	}
+	printf "</ul>\n";
 	'
 echo "</PRE></BODY></HTML>"

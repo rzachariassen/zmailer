@@ -764,6 +764,11 @@ Default is 2, and internal hard limit is 20.
 Sends some debug-data of the content-filter interface
 into the smtpserver protocol log file.
 .RE
+.IP "PARAM perl-hook path..."
+.RS
+Most important email address and content related events have
+perl hooks that permit easily customizable policy processing.
+.RE
 .IP "PARAM tarpit initial exponent toplimit"
 .RS
 .I (group)
@@ -976,9 +981,6 @@ PARAM  enable-router-maxpar 2
 #       # routers, if such are needed. The value range
 #       # is 1 thru 20 ...
 #
-#PARAM perl-hook  /path/to/smtpserver-perl-hook.pl  # (still experimental)
-#
-#
 # HDR220 metatags:
 #  %%  =  '%' character
 #  %H  =  myhostname
@@ -1169,6 +1171,8 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 #PARAM  contentfilter-maxpar 2  # Max parallel content filters; 1 .. 20
 #PARAM  debug-contentfilter # Debug the content-filter interface protocol
 
+#PARAM perl-hook  $MAILBIN/smtpserver-perl-hook.pl  # (still experimental)
+#
 #
 #PARAM  tarpit 0 0 0   # No "tarpit" for 4XX/5XX reply codes (default)
 #PARAM  tarpit 20 0.1 300  # Initial delay: 20 secs, next = prev + (prev * 0.1)
@@ -1397,6 +1401,46 @@ produce multi-line replies to the message originator.
 Keep always in mind, that SMTP protocol (and thus the message texts here)
 are presumed to be plain 7-bit US-ASCII!
 However: You may (most of the time) get away with 8-bit chars in the texts...
+.PP
+.SH PERL-HOOK INTERFACE
+.PP
+System is able to use perl embedding (when compiled with
+\fC\-\-with\-embed\-perl\R) and that can be used to make
+quite versatile policy processing.
+.PP
+An example of this is "\fCzpostgrey\fR" which does call
+.I Postgrey
+server to do
+.I Greyfiltering.
+.PP
+The interface consists of following callable functions:
+.nf
+\fC
+ ...
+package ZSMTP::hook;
+ ...
+sub set_ipaddress(@) {
+}
+sub helo(@) {
+}
+sub set_user(@) {
+}
+sub rset(@) {
+}
+sub mailfrom(@) {
+}
+sub rcptto(@) {
+}
+sub data {
+}
+.fi
+.PP
+Details of the API are not fixed as of this writing.
+Some details are being altered to better support
+paradigm of "report as late as possible".
+(To let e.g. postmaster be posted to, while policy codes
+otherwise reject postings.)
+.PP
 .SH TCP-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with \fItcp-wrapper\fR code,
 and ``PARAM use-tcp-wrapper'' is active in configuration,
