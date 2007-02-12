@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2006 by Matti Aarnio -- modifications, including
+ *	Copyright 1991-2007 by Matti Aarnio -- modifications, including
  *	MIME things...
  */
 
@@ -1048,6 +1048,12 @@ process(SS, dp, smtpstatus, host, noMX)
 		
 		/* Report (and unlock) all those recipients which aren't
 		   otherwise diagnosed.. */
+
+		/* This "not otherwise reported" status is
+		   ALWAYS EX_TEMPFAIL;
+		   Anything else is incorrect when the recipient
+		   has not been processed at all.   */
+		smtpstatus = EX_TEMPFAIL;
 
 		for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		  if (rphead->lockoffset) {
@@ -4877,9 +4883,9 @@ report(va_alist)
 	memset(buf, 0, sizeof(buf));
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
-	  sprintf(buf, ">%.200s ", SS->remotehost);
+	  sprintf(buf, ">%.30s %.30s", SS->ipaddress, SS->sel_host);
 	else
-	  sprintf(buf, ">[%.200s] ", SS->remotehost);
+	  sprintf(buf, ">[%.30s] %.30s ", SS->ipaddress, SS->sel_host);
 #ifdef	notdef
 	if (logfp)
 	  sprintf(buf+strlen(buf), ">>%s ", logfile);

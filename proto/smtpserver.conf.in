@@ -31,9 +31,6 @@ PARAM  enable-router-maxpar 2
 #       # routers, if such are needed. The value range
 #       # is 1 thru 20 ...
 #
-#PARAM perl-hook  /path/to/smtpserver-perl-hook.pl  # (still experimental)
-#
-#
 # HDR220 metatags:
 #  %%  =  '%' character
 #  %H  =  myhostname
@@ -224,6 +221,8 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 #PARAM  contentfilter-maxpar 2  # Max parallel content filters; 1 .. 20
 #PARAM  debug-contentfilter # Debug the content-filter interface protocol
 
+#PARAM perl-hook  $MAILBIN/smtpserver-perl-hook.pl  # (still experimental)
+#
 #
 #PARAM  tarpit 0 0 0   # No "tarpit" for 4XX/5XX reply codes (default)
 #PARAM  tarpit 20 0.1 300  # Initial delay: 20 secs, next = prev + (prev * 0.1)

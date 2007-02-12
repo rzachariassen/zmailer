@@ -965,6 +965,9 @@ int main(argc, argv, envp)
 	  if (use_perlhook)
 	    atexit(ZSMTP_hook_atexit);
 	}
+	if (debug)
+	  type(NULL,0,NULL," perlhookpath='%s',   use_perlhook=%d",
+	       perlhookpath, use_perlhook);
 #endif
 
 	if (!allow_source_route)
@@ -3060,10 +3063,6 @@ int insecure;
 
 	    MIBMtaEntry->ss.IncomingSMTP_RSET ++;
 
-	    if (*cp != 0 && (strict_protocol > 0)) {
-	      type(SS, 501, m554, "Extra junk after 'RSET' verb");
-	      break;
-	    }
 	    if (SS->mfp != NULL) {
 		clearerr(SS->mfp);
 		mail_abort(SS->mfp);
@@ -3073,7 +3072,17 @@ int insecure;
 	    }
 	    if (SS->state != Hello)
 		SS->state = MailOrHello;
-	    type(SS, 250, m200, "Reset processed, now waiting for MAIL command");
+#ifdef DO_PERL_EMBED
+	    if (use_perlhook) {
+	      int rc;
+	      /* Now we are not interesed in result, it happens or not.. */
+	      ZSMTP_hook_univ(ZSMTP_HOOK_RSET, state, str, len, &rc);
+	    }
+#endif
+	    if (*cp != 0 && (strict_protocol > 0)) {
+	      type(SS, 501, m554, "Extra junk after 'RSET' verb; RSET processed anyway");
+	    } else
+	      type(SS, 250, m200, "Reset processed, now waiting for MAIL command");
 	    SS->policyresult = 0; /* Clear this state too */
 	    typeflush(SS);
 	    break;

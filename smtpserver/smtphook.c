@@ -58,7 +58,10 @@ xs_init(pTHX)
 
 /* Called at master server start to load in necessary stuff,
    and said stuff is NOT allowed to make e.g. network socket
-   connections, or open databases, or ... */
+   connections, or open databases, or ... anything permanent
+   creating new file descriptors that will live beyond fork()
+   on arriving connection.
+*/
 
 int ZSMTP_hook_init()
 {
@@ -69,13 +72,13 @@ int ZSMTP_hook_init()
 #ifdef HAVE_PUTENV
 	if ((smtpperl5opt = getzenv("SMTPPERL5OPT")) != NULL)
 		if (putenv((char *)smtpperl5opt - 9) == -1)
-			type(NULL , 0, NULL, "Can not set PERL5OPT environment variable !!!");
+			type(NULL , 0, NULL, "Can not set PERL5OPT environment variable !");
 #endif
 
 	PERL_SYS_INIT3(&argc, &argv, NULL);
 
 	if ((my_perl = perl_alloc()) == NULL) {
-		type(NULL , 0, NULL, "Can not alocate memory for perl !!!");
+		type(NULL , 0, NULL, "Can not allocate memory for perl !");
 		return 0;
 	}
 
@@ -90,8 +93,11 @@ int ZSMTP_hook_init()
 	if (!exitstatus) {
 	  perl_run(my_perl);
 	  return 1; /*  OK! */
+
 	} else {
-		type(NULL, 0, NULL, "Failed to parse perlhook script: '%s'", perlhookpath);
+	  type(NULL, 0, NULL,
+	       "Failed to parse perlhook script: '%s'", perlhookpath);
+
 	  PL_perl_destruct_level = 0;
 	  perl_destruct(my_perl);
 	  perl_free(my_perl);

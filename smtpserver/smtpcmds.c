@@ -167,6 +167,13 @@ const char *buf, *cp;
 		 NULL, SS->rcpt_count, NULL);
       SS->mfp = NULL;
     }
+#ifdef DO_PERL_EMBED
+    if (use_perlhook) {
+      int rc;
+      /* Now we are not interesed in result, it happens or not.. */
+      ZSMTP_hook_univ(ZSMTP_HOOK_RSET, state, str, len, &rc);
+    }
+#endif
 
 
     if (*cp == ' ') ++cp;

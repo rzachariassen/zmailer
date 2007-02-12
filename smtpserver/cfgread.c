@@ -467,6 +467,10 @@ static void cfparam(str, size, cfgfilename, linenum)
     else if (cistrcmp(name, "perl-hook") == 0 && param1) {
       if (access(param1, X_OK) == 0)
 	perlhookpath = strdup(param1);
+      else {
+	if (debug)
+	  type(NULL,0,NULL,"perl-hook defined: '%s' but not accessible executable, or some such..",perlhookpath);
+      }
 
     } else if (cistrcmp(name, "enable-router") == 0) {
       enable_router = 1;

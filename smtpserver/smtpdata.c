@@ -176,6 +176,20 @@ const char *buf, *cp;
 	SS->mfp = NULL;
 	return 0;
     }
+#ifdef DO_PERL_EMBED
+    if (use_perlhook) {
+      int rc;
+
+      if (ZSMTP_hook_univ(ZSMTP_HOOK_DATA, state, str, len, &rc)) {
+	if (rc < 0) {
+	  /* 400-series response */
+	} else if (rc > 0) {
+	  /* 500-series response */
+	}
+      }
+    }
+#endif
+
     type(SS, 354, NULL, (char *) NULL);
     typeflush(SS);
     fputs("env-end\n", SS->mfp);
