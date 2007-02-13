@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2006.
+ *      Copyright 1991-2007.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -171,7 +171,7 @@ const char *buf, *cp;
     if (use_perlhook) {
       int rc;
       /* Now we are not interesed in result, it happens or not.. */
-      ZSMTP_hook_univ(ZSMTP_HOOK_RSET, state, str, len, &rc);
+      ZSMTP_hook_univ(ZSMTP_HOOK_RSET, &SS->policystate, buf, cp-buf, &rc);
     }
 #endif
 

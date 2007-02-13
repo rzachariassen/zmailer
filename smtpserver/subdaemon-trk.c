@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2006.
+ *      Copyright 1991-2007.
  */
 
 /*  SMTPSERVER RATE-TRACKER SUBDAEMON    */
@@ -894,10 +894,24 @@ subdaemon_handler_trk_init (statep)
 static void cluster_trk_opeers_output __((struct cluster_trk_peers *cpeer, const char *inpbuf, int len));
 
 
+
+/* Common code for internal clients and cluster inputs */
+
 static int
-subdaemon_handler_trk_input (statep, peerdata)
+subdaemon_handler_trk_input_ __((struct subdaemon_state *statep,
+				 struct peerdata *peerdata,
+				 char *inpbuf,
+				 int inplen,
+				 int clusterflag));
+
+
+static int
+subdaemon_handler_trk_input_ (statep, peerdata, inpbuf, inplen, clusterflag)
      struct subdaemon_state *statep;
      struct peerdata *peerdata;
+     char *inpbuf;
+     int inplen;
+     int clusterflag;
 {
 	char actionlabel[8], iplabel[40], typelabel[10];
 	char lastlimits[20], countstr[20], *s1, *s2, *s3, *s4, *s5;
@@ -908,7 +922,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	subdaemon_trk_checksigusr1(state);
 	if (state->cpeers)
 	  cluster_trk_opeers_output(state->cpeers,
-				    peerdata->inpbuf, peerdata->inlen);
+				    inpbuf, inplen);
 
 	/* If it is about time to handle next slot, we flip to it,
 	   and run garbage collect run on system. */
@@ -933,7 +947,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	actionlabel[0] = iplabel[0] = lastlimits[0] = typelabel[0] = 0;
 	countstr[0] = 0;
 
-	s1 = strtok(peerdata->inpbuf, " \n");
+	s1 = strtok(inpbuf, " \n");
 	s2 = strtok(NULL, " \n");
 	s3 = strtok(NULL, " \n");
 	s4 = strtok(NULL, " \n");
@@ -970,20 +984,25 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    int sum1 = 0, sum2 = 0; /* We query here! so this is really
 				       counting zero to the values.. */
 	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, 0, 0, &sum1, &sum2 );
-	    sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2);
+	    if (peerdata)
+	      sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2);
 
 	  } else if (STREQ(actionlabel,"RATES")) {
-	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
+	    if (peerdata)
+	      slot_ipv4_data(state, peerdata->outbuf, ipv4addr);
 
 	  } else if (STREQ(actionlabel,"AGES")) {
-	    slot_ages(statep, peerdata->outbuf);
+	    if (peerdata)
+	      slot_ages(state, peerdata->outbuf);
 
 	  } else if (STREQ(actionlabel,"EXCESS")) {
 	    i = count_excess_ipv4( state, ipv4addr );
-	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	    if (peerdata)
+	      sprintf(peerdata->outbuf, "200 %d\n", i);
 
 	  } else if (STREQ(actionlabel,"DUMP")) {
-	    dump_trk( state, peerdata );
+	    if (peerdata)
+	      dump_trk( state, peerdata );
 
 	  } else if (STREQ(actionlabel,"RCPT")) {
 	    int sum1 = 0, sum2 = 0;
@@ -993,36 +1012,59 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	    /* Do actual accounting */
 	    i = count_rcpts_ipv4( state, ipv4addr, count2 );
-	    sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2);
+	    if (peerdata)
+	      sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2);
 
 	  } else if (STREQ(actionlabel,"AUTHF")) {
 	    i = count_authfails_ipv4( state, ipv4addr, count1 );
 	    if (i > auth_failrate) i = -999;
-	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	    if (peerdata)
+	      sprintf(peerdata->outbuf, "200 %d\n", i);
 
 	  } else if (STREQ(actionlabel,"DABORT")) {
 	    i = count_daborts_ipv4( state, ipv4addr, count1 );
-	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	    if (peerdata)
+	      sprintf(peerdata->outbuf, "200 %d\n", i);
 
 	  } else
 	    goto bad_input;
 
-	  peerdata->outlen = strlen(peerdata->outbuf);
+	  if (peerdata) {
+	    peerdata->outlen = strlen(peerdata->outbuf);
+	  }
 
 	} else
 	  goto bad_input;
 
 	if (0) {
 	bad_input:
-	  sprintf(peerdata->outbuf,
-		  "500 bad input; unsupported mode; act='%s', ip='%s' i=%d\n",
-		  actionlabel, iplabel, i);
-	  peerdata->outlen = strlen(peerdata->outbuf);
+	  if (peerdata) {
+	    sprintf(peerdata->outbuf,
+		    "500 bad input; unsupported mode; act='%s', ip='%s' i=%d\n",
+		    actionlabel, iplabel, i);
+	    peerdata->outlen = strlen(peerdata->outbuf);
+	  }
 	}
+	if (peerdata)
+	  peerdata->inlen = 0;
 
-	peerdata->inlen = 0;
 	return 0;
 }
+
+
+static int
+subdaemon_handler_trk_input (statep, peerdata)
+     struct subdaemon_state *statep;
+     struct peerdata *peerdata;
+{
+	return subdaemon_handler_trk_input_ ( statep, peerdata,
+					      peerdata->inpbuf,
+					      peerdata->inlen,
+					      0 );
+}
+
+
+
 
 /* Things that pre-select uses ... */
 static void cluster_trk_bind_self __((struct cluster_trk_peers *cp));
@@ -1386,21 +1428,30 @@ static void cluster_trk_opeer_input(opeer, inpbuf, len)
      const char *inpbuf;
      int len;
 {
-	int i;
+	if (opeer->state == 0) {
+
 #warning "FIXME: actual cluster peer authentication code is missing!"
-	/*  FIXME: outbound peer received something -- a challenge,
-	    most likely..  This does also state-machine processing !
-	*/
+	  /*  FIXME: outbound peer received something -- a challenge,
+	      most likely..  This does also state-machine processing !
+	  */
 
-	/* We use that 'most likely' and equally sloppy processing
-	   in  ipeer_input  to just send a dummy message, and
-	   be done with it..   */
+	  /* We use that 'most likely' and equally sloppy processing
+	     in  ipeer_input  to just send a dummy message, and
+	     be done with it..   */
 
-	sprintf( opeer->outbuf, "Auth: 0123456789abcdef\n" );
-	opeer->outlen = strlen( opeer->outbuf );
-	opeer->outptr = 0;
+	  /* HOWEVER:  We can (and SHOULD) check that the received
+	     "Challenge: ..." isn't something that we did ourselves
+	     generate !   If it is, a self-talker was formed, and
+	     that should be removed... */
 
-	opeer->state = 1; /* No longer in authentication state.. */
+
+	  sprintf( opeer->outbuf, "Auth: 0123456789abcdef\n" );
+	  opeer->outlen = strlen( opeer->outbuf );
+	  opeer->outptr = 0;
+
+	  opeer->state = 1; /* No longer in authentication state.. */
+	  return;
+	}
 }
 
 static void cluster_trk_opeers_output(cpeers, inpbuf, len)
@@ -1460,19 +1511,14 @@ static void cluster_trk_ipeer_input(statep, ipeer, inpbuf, inplen)
      char *inpbuf;
      int inplen;
 {
-	struct trk_state *state = statep;
-
-	char actionlabel[8], iplabel[40], typelabel[10];
-	char lastlimits[20], countstr[20], *s1, *s2, *s3, *s4, *s5;
-	int i, llv1, llv2, llv3, llv4, count1, count2;
-	long ipv4addr;
-
 	/*  FIXME: inbound peer received something -- many things are
 	    possible..   This does also state-machine processing!
 	*/
 
-
+#warning "FIXME: Actual cluster peer challence response processing is missing"
 	if (ipeer->state == 0) {
+	  /* struct trk_state *state = statep; */
+	  
 	  /* Expected a Reply on Challenge... */
 	  /* FIXME: Challenge Reply Prosessing ! */
 
@@ -1482,123 +1528,10 @@ static void cluster_trk_ipeer_input(statep, ipeer, inpbuf, inplen)
 	}
 
 
-	inpbuf[inplen] = 0; /* Zap the trailing newline */
-
-	/* If it is about time to handle next slot, we flip to it,
-	   and run garbage collect run on system. */
-
-	new_ipv4_timeslot( state );
-
-	/*
-	 * Protocol:
-	 *
-	 * C: <actionlabel> <ipaddrlabel> <lastlimit> <typelabel> <count> [<data>]
-	 * S: 200 <value>
-	 *
-	 * Where:
-	 *  <actionlabel>: "RATE", "MSGS", "RATES", "AGES"
-	 *  <ipaddrlabel>: "4:12345678", or "6:123456789abcdef0"
-	 *                 or "u:userid"
-	 *  <typelabel>:   "CONNECT" or "MAIL" ?   (ignored)
-	 *                 or ???  (HELO, MAILFROM -- to track changes
-	 *                 of their parameters / origination addresses  )
-	 *  <count>:       integer ( ',' integer )
-	 *  <data>:        any sort of string value (for HELO and MAILFROM)
-	 *
-	 */
-
-	actionlabel[0] = iplabel[0] = lastlimits[0] = typelabel[0] = 0;
-	countstr[0] = 0;
-
-	s1 = strtok(inpbuf, " \n");
-	s2 = strtok(NULL, " \n");
-	s3 = strtok(NULL, " \n");
-	s4 = strtok(NULL, " \n");
-	s5 = strtok(NULL, " \n");
-
-	if (s1) strncpy(actionlabel, s1, sizeof(actionlabel));
-	if (s2) strncpy(iplabel,     s2, sizeof(iplabel));
-	if (s3) strncpy(lastlimits,  s3, sizeof(lastlimits));
-	if (s4) strncpy(typelabel,   s4, sizeof(typelabel));
-	if (s5) strncpy(countstr,    s5, sizeof(countstr));
-
-	actionlabel[sizeof(actionlabel)-1] = 0;
-	lastlimits[sizeof(lastlimits)-1] = 0;
-	typelabel[sizeof(typelabel)-1] = 0;
-	countstr[sizeof(countstr)-1] = 0;
-	iplabel[sizeof(iplabel)-1] = 0;
-
-	llv1 = llv2 = llv3 = llv4 = 0;
-	i = sscanf(lastlimits, "%d,%d,%d,%d", &llv1, &llv2, &llv3, &llv4);
-
-	count1 = count2 = 0;
-	i = sscanf(countstr, "%d,%d", &count1, &count2);
-
-	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'=%d '%s'", 
-	   actionlabel, iplabel, lastlimits,lastlimitval, typelabel); */
-
-	if (iplabel[0] == '4' && iplabel[1] == ':') {
-
-	  ipv4addr = strtoul( iplabel+2, NULL, 16);
-	  /* FIXME ? - htonl() ???  */
-
-
-	  if (STREQ(actionlabel,"MSGS")) {
-	    int sum1 = 0, sum2 = 0; /* We query here! so this is really
-				       counting zero to the values.. */
-	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, 0, 0, &sum1, &sum2 );
-	    /* sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2); */
-
-	  } else if (STREQ(actionlabel,"RATES")) {
-	    /* slot_ipv4_data(statep, peerdata->outbuf, ipv4addr); */
-
-	  } else if (STREQ(actionlabel,"AGES")) {
-	    /* slot_ages(statep, peerdata->outbuf); */
-
-	  } else if (STREQ(actionlabel,"EXCESS")) {
-	    i = count_excess_ipv4( state, ipv4addr );
-	    /* sprintf(peerdata->outbuf, "200 %d\n", i); */
-
-	  } else if (STREQ(actionlabel,"DUMP")) {
-	    /* dump_trk( state, peerdata ); */
-
-	  } else if (STREQ(actionlabel,"RCPT")) {
-	    int sum1 = 0, sum2 = 0;
-
-	    /* Set last limitvalues.. */
-	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, 0, 0, &sum1, &sum2 );
-
-	    /* Do actual accounting */
-	    i = count_rcpts_ipv4( state, ipv4addr, count2 );
-	    /* sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2); */
-
-	  } else if (STREQ(actionlabel,"AUTHF")) {
-	    i = count_authfails_ipv4( state, ipv4addr, count1 );
-	    if (i > auth_failrate) i = -999;
-	    /* sprintf(peerdata->outbuf, "200 %d\n", i);*/
-
-	  } else if (STREQ(actionlabel,"DABORT")) {
-	    i = count_daborts_ipv4( state, ipv4addr, count1 );
-	    /* sprintf(peerdata->outbuf, "200 %d\n", i); */
-
-	  } else
-	    goto bad_input;
-
-	  /* peerdata->outlen = strlen(peerdata->outbuf); */
-
-	} else {
-	bad_input: ;
-	  /* sprintf(peerdata->outbuf,
-	     "500 bad input; unsupported mode; act='%s', ip='%s' i=%d\n",
-	     actionlabel, iplabel, i);
-	     peerdata->outlen = strlen(peerdata->outbuf);
-	  */
-	}
-
-	/* peerdata->inlen = 0; */
-
+	subdaemon_handler_trk_input_(statep, NULL, inpbuf, inplen, 1);
 }
 
+#if 0
 static void cluster_trk_ipeer_output __((struct cluster_trk_peer *ipeer, const char *inpbuf, int len));
 static void cluster_trk_ipeer_output(ipeer, inpbuf, len)
      struct cluster_trk_peer *ipeer;
@@ -1609,7 +1542,7 @@ static void cluster_trk_ipeer_output(ipeer, inpbuf, len)
       Challenge is sent by accpt() processing.
   */
 }
-
+#endif
 
 static int
 subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
@@ -1850,7 +1783,7 @@ subdaemon_handler_trk_postpoll (statep, fdsp, fdscount)
 		   to be half-closed..  */
 		ipeer->outlen = ipeer->outptr = 0;
 		shutdown(ipeer->fd, 2); /* Shut down both directions! */
-		/* Lets ignore it otehrwise for now, and reading from
+		/* Lets ignore it otherwise for now, and reading from
 		   the same socket will be EOF and do cleanup.. */
 	      }
 	      if (ipeer->outlen > 0)

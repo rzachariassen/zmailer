@@ -809,6 +809,6 @@ extern int  ZSMTP_hook_init          __((void));
 extern void ZSMTP_hook_atexit        __((void));
 extern void ZSMTP_hook_set_ipaddress __((const char *, int, const char *, const char *, int, const char *));
 extern void ZSMTP_hook_set_user      __((const char *, const char *));
-extern int  ZSMTP_hook_univ          __((const char *, struct policystate *, const unsigned char *, const int, int *));
+extern int  ZSMTP_hook_univ          __((const char *, struct policystate *, const char *, const int, int *));
 
 #endif

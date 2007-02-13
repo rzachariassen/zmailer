@@ -192,7 +192,7 @@ void ZSMTP_hook_set_user(user, kind)
 int ZSMTP_hook_univ(hook, state, str, len, retp)
 	const char *hook;
      struct policystate *state;
-     const unsigned char *str;
+     const char *str;
      const int len;
      int *retp;
 {
