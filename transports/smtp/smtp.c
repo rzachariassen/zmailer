@@ -4369,7 +4369,7 @@ smtp_sync(SS, r, nonblocking)
 
 	  if (SS->first_line)
 	    rmsgappend(SS, 0, "\r<<- %s",
-		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(null)");
+		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(connecting)");
 
 	  /* first_line is not exactly a complement of continuation_line,
 	     it is rather a more complex entity. */
@@ -4883,9 +4883,9 @@ report(va_alist)
 	memset(buf, 0, sizeof(buf));
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
-	  sprintf(buf, ">%.30s %.30s", SS->ipaddress, SS->sel_host);
+	  sprintf(buf, ">%.30s %.30s", SS->ipaddress, SS->sel_host ? SS->sel_host : "(nil)");
 	else
-	  sprintf(buf, ">[%.30s] %.30s ", SS->ipaddress, SS->sel_host);
+	  sprintf(buf, ">[%.30s] %.30s ", SS->ipaddress, SS->sel_host ? SS->sel_host : "(nil)");
 #ifdef	notdef
 	if (logfp)
 	  sprintf(buf+strlen(buf), ">>%s ", logfile);
