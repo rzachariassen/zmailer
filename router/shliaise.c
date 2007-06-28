@@ -347,7 +347,7 @@ header_rewrite(name, h, fp, stage)
 	const char *av[5], *stage_name[] = {"hrr_ab", "hrr_rr", "hrr_ae"};
 	const char *tmp, *token;
 	token822 *t;
-	struct header *nh = NULL, *th;
+	struct header *nh = NULL, *th = NULL;
 
 	av[0] = name;
 	av[1] = stage_name[stage];
@@ -359,7 +359,8 @@ header_rewrite(name, h, fp, stage)
 		if ((tmp = sb_retrieve(FILENO(fp))) == NULL
 		    || (tmp = strchr(tmp, ':')) == NULL)
 			return h;
-		*(char *)(++tmp + strlen(tmp) - 1) = '\0';
+		++tmp;
+		*(char *)(tmp + strlen(tmp) - 1) = '\0';
 		av[2] = h->h_pname;
 		if (get_hrr_vis_flag(HRR_VIS_DISABLE, name, stage_name[stage]))
 			av[3] = tmp;
@@ -412,7 +413,7 @@ header_rewrite(name, h, fp, stage)
 		t = NULL;
 
 		while (1) {
-			while (*tmp == '\n' || *tmp == '\r' && *(tmp + 1) == '\n') {
+			while ((*tmp == '\n') || ((*tmp == '\r') && (*(tmp + 1) == '\n'))) {
 				if (*tmp == '\r')
 					++tmp;
 				++tmp;

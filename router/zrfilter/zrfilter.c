@@ -28,6 +28,7 @@
 #include "mail.h"
 #include "vis.h"
 #include "zsyslog.h"
+#include "zmsignal.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -216,6 +217,8 @@ int main(argc, argv)
 		parent(&argv[zoptind]);
 	else
 		child(&argv[zoptind]);
+
+	return 0;
 }
 
 /****************************************************************************/
@@ -411,13 +414,17 @@ static int set_signals(handler)
 {
 	int i, signals[] = {SIGHUP, SIGINT, SIGQUIT, SIGPIPE, SIGTERM}, status = 0;
 
-	for (i = 0; i < sizeof(signals) / sizeof(int); ++i)
-		if (signal(signals[i], handler) == SIG_ERR) {
-			do_log(sfstderr, "\"signal\" function failed !!!\n  Error: %s\n",
-			       strerror(errno));
-			do_log(NULL, "\"signal\" function failed. Error: %s", strerror(errno));
-			status = -1;
-		}
+	for (i = 0; i < sizeof(signals) / sizeof(int); ++i) {
+		SIGNAL_HANDLE(signals[i], handler);
+	}
+#if 0  /* That wrapper-API does not handle return codes properly..  */
+	{
+	  do_log(sfstderr, "\"signal\" function failed !!!\n  Error: %s\n",
+		 strerror(errno));
+	  do_log(NULL, "\"signal\" function failed. Error: %s", strerror(errno));
+	  status = -1;
+	}
+#endif
 	return status;
 }
 
