@@ -1499,7 +1499,7 @@ AC_CHECK_HEADERS(string.h fcntl.h limits.h errno.h unistd.h stdlib.h \
 
 
 AC_HEADER_DIRENT
-AC_STRUCT_DIRENT_D_INO
+#AC_STRUCT_DIRENT_D_INO
 AC_FUNC_CLOSEDIR_VOID
 AC_CHECK_FUNCS(dirfd)
 
