@@ -1,3 +1,8 @@
+2007-06-29  Matti Aarnio  <mea@zmailer.org>
+
+	* ChangeLog, configure.in:
+	    Mark version as 2.99.57
+
 2007-06-28  Matti Aarnio  <mea@zmailer.org>
 
 	* include/vis.h, lib/fdstatfs.c, libc/getnameinfo.c, 
