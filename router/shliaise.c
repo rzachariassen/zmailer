@@ -8,6 +8,23 @@
 #include "router.h"
 #include "vis.h"
 
+#ifndef LONG_MAX
+#if SIZEOF_LONG == 4
+# define LONG_MAX 2147483647L /* For 32 bit machine! */
+#else
+# define LONG_MAX 9223372036854775807L /* For 64 bit machine! */
+#endif
+#endif
+
+#ifndef LONG_MIN
+#if SIZEOF_LONG == 4
+# define LONG_MIN -2147483648L /* For 32 bit machine! */
+#else
+# define LONG_MIN -9223372036854775808  /* For 64 bit machine! */
+#endif
+#endif
+
+
 #define HRR_VIS_DISABLE		"hrr_vis_disable"
 #define HRR_UNVIS_DISABLE	"hrr_unvis_disable"
 

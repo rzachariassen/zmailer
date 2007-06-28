@@ -29,6 +29,8 @@
  * 
  */
 
+#if 0
+
 /* The Inner Net License, Version 2.00
 
   The author(s) grant permission for redistribution and use in source and
@@ -315,3 +317,5 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
   errno = serrno;
   return 0;
 }
+
+#endif

@@ -586,7 +586,8 @@ static int do_fd_set(fd, fds, nfds)
 	if (fd == -1)
 		return nfds;
 	FD_SET(fd, fds);
-	return MAX(nfds, fd);
+	if (nfds > fd) return nfds;
+	return fd;
 }
 
 /****************************************************************************/

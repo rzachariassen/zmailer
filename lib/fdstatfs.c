@@ -19,7 +19,11 @@
 #include <limit.h>
 #endif
 #ifndef LONG_MAX
+#if SIZEOF_LONG == 4
 # define LONG_MAX 2147483647L /* For 32 bit machine! */
+#else
+# define LONG_MAX 9223372036854775807L /* For 64 bit machine! */
+#endif
 #endif
 
 #ifdef	HAVE_SYS_STATVFS_H

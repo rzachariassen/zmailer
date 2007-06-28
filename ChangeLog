@@ -1,3 +1,11 @@
+2007-06-28  Matti Aarnio  <mea@zmailer.org>
+
+	* include/vis.h, lib/fdstatfs.c, libc/getnameinfo.c, 
+	  router/functions.c, router/shliaise.c,
+	  router/zrfilter/zrfilter.c:
+	    Propitiating GCC on Solaris 10 (SPARC) to accept
+	    compilation..
+
 2007-02-13  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpdata.c,

@@ -14,6 +14,23 @@
 
 #include "router.h"
 
+#ifndef LONG_MAX
+#if SIZEOF_LONG == 4
+# define LONG_MAX 2147483647L /* For 32 bit machine! */
+#else
+# define LONG_MAX 9223372036854775807L /* For 64 bit machine! */
+#endif
+#endif
+
+#ifndef LONG_MIN
+#if SIZEOF_LONG == 4
+# define LONG_MIN -2147483648L /* For 32 bit machine! */
+#else
+# define LONG_MIN -9223372036854775808  /* For 64 bit machine! */
+#endif
+#endif
+
+
 #ifdef HAVE_SRS2_H
 
 #include <srs2.h>
