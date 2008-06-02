@@ -245,7 +245,7 @@ PARAM  policydb        $DBTYPE  $MAILVAR/db/smtp-policy
 #
 #  # If system default SSL-session-cache is to be used ?
 #PARAM  tls-use-scache
-#PARAM  tls-scache-name "zzz"
+#PARAM  tls-scache-name "ZMailer SMTP server"
 #PARAM  tls-scache-timeout 3600 # (cache timeout in seconds)
 #
 #  # Then some futher thoughs that may materialize some time..

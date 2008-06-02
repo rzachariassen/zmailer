@@ -184,9 +184,11 @@ static int cfg_add_bindaddr(CP, param1, use_ipv6, bindtype, bindport)
 	Usockaddr bindaddr;
 	int rc;
 	int af = AF_INET;
+#ifdef INET6
 	if (use_ipv6) {
 	  af = AF_INET6;
 	}
+#endif
 
 	called_getbindaddr=1;
 	rc = zgetbindaddr(param1, af, &bindaddr);

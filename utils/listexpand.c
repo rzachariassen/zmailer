@@ -19,7 +19,7 @@
 #include "ta.h"
 #include "libz.h"
 
-int bundlesize = 6000;
+int bundlesize = 500;
 
 char *progname = "listexpand";
 int D_alloc = 0;

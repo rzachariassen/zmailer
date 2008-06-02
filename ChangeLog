@@ -1,3 +1,14 @@
+2008-06-02  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/cfgread.c:
+	    Conditionalize AF_INET6 object reference
+
+	* util/listexpand.c:
+	    Smaller default output bundle sizes
+
+	* proto/smtpserver.conf.in:
+	    Change of tls-scache database name
+
 2007-06-29  Matti Aarnio  <mea@zmailer.org>
 
 	* ChangeLog, configure.in:
