@@ -1,3 +1,13 @@
+2011-01-27  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtptls.c:
+	    Report an error, if the plain-text SMTP read-ahead buffer has
+	    received something after the STARTTLS command, and before its
+	    execution.
+
+	* smtpserver/smtpserver.h:
+	    Autoconf header test typo fixed
+
 2008-06-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/cfgread.c:
