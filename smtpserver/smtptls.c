@@ -71,6 +71,12 @@ smtp_starttls(SS, buf, cp)
       MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
       return;
     }
+    if (s_hasinput(SS)) {
+      /* The STARTTLS command-line must not be followed by anything  */
+      type(SS, 501, m513, "Extra junk following 'STARTTLS' command!");
+      MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
+      return;
+    }
     /* XX: engine ok ?? */
     type(SS, 220, NULL, "Ready to start TLS");
     typeflush(SS);

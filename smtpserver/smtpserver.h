@@ -49,7 +49,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sysexits.h>
-#ifdef HAVE_UNIDSTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
