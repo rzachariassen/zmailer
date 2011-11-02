@@ -164,7 +164,7 @@ static void dollarexpand(s0, space)
 	  memcpy(s0, s, len);
 	if (s0+len < str)
 	  /* Copy down */
-	  strcpy((char*)(s0+len), (const char *)str);
+	  memmove(s0 + len, str, strlen((char *)str) + 1);
 	str = s0 + len;
 	str[taillen] = 0; /* Chop the possible old junk from the tail */
 
