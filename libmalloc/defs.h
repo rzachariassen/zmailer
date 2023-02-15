@@ -1,5 +1,5 @@
 /*  Author: Mark Moraes <moraes@csri.toronto.edu> */
-/* $Id$ */
+/* $Id: defs.h,v 1.3 1999/12/30 03:26:07 mea Exp $ */
 #ifndef __DEFS_H__
 #define __DEFS_H__
 /* 

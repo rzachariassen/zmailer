@@ -1,5 +1,5 @@
 #ifndef lint
-static	char *RCSid = "$Header$";
+static	char *RCSid = "$Header: /home/mea/src/CVSROOT/zmailer/support/nfslock/nfslock.c,v 1.1.1.1 1998/02/10 21:01:55 mea Exp $";
 #endif
 
 /*

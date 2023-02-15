@@ -1,6 +1,6 @@
 #!/usr/local/bin/router -f
 #
-# $Id$
+# $Id: canonicalize,v 1.1.1.1 1998/02/10 21:01:44 mea Exp $
 #
 # Testing canonicalize routine
 #

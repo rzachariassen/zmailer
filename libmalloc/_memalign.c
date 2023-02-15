@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "trace.h"
 
-RCSID("$Id$")
+RCSID("$Id: _memalign.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 univptr_t
 __memalign(alignment, size, fname, linenum)

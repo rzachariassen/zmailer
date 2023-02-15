@@ -1,5 +1,5 @@
 /*  Author: Mark Moraes <moraes@csri.toronto.edu> */
-/* $Header$ */
+/* $Header: /home/mea/src/CVSROOT/zmailer/libmalloc/arena/arena.h,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $ */
 #ifndef __ARENA_H__
 #define __ARENA_H__
 

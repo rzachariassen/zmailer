@@ -1,5 +1,5 @@
 '\" t
-.\" $Header$
+.\" $Header: /home/mea/src/CVSROOT/zmailer/man/smtpserver.8.in,v 1.90 2006/12/13 19:45:07 mea Exp $
 .ds ]W "ZMailer 2.99"
 .TH SMTPSERVER 8zm "2006-Apr-7"
 .SH NAME

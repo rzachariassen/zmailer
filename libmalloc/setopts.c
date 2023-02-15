@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id$")
+RCSID("$Id: setopts.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 /* 
  *  Sets debugging level - level 0 and 1 both perform normal checking -

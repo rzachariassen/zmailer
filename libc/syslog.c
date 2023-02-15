@@ -1,4 +1,4 @@
-/*  $Revision$
+/*  $Revision: 1.1.1.1 $
 **  Modified by Rich $alz <rsalz@osf.org> to be more portable to older
 **  systems.
 */

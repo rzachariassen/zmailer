@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "trace.h"
 
-RCSID("$Id$")
+RCSID("$Id: _strdup.c,v 1.2 1999/12/29 19:37:35 mea Exp $")
 
 #ifdef __strdup
 #undef __strdup

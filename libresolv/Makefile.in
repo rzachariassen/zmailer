@@ -5,7 +5,7 @@
 
 #
 #	from @(#)Makefile	5.16 (Berkeley) 3/14/88
-#	$Id$
+#	$Id: Makefile.in,v 1.9 2003/08/20 18:57:45 mea Exp $
 #
 
 ## ++Copyright++ 1988, 1995

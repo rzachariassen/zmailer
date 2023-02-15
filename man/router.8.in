@@ -1,5 +1,5 @@
 '\" t
-.\" $Header$
+.\" $Header: /home/mea/src/CVSROOT/zmailer/man/router.8.in,v 1.16 2005/06/07 00:27:56 mea Exp $
 .ds ]W ZMailer 2.99
 .TH ROUTER 8zm "2005-Jun-07"
 .SH NAME

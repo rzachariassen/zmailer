@@ -55,7 +55,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id$
+ *	$Id: netdb.h,v 1.3 2001/01/24 13:58:09 mea Exp $
  */
 
 #ifndef _NETDB_H_

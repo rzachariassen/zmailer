@@ -309,7 +309,7 @@ zmcast_delete(zmc)
 
 /**********************************************************************
  *
- * $Id$
+ * $Id: zmclib.c,v 1.3 2004/04/05 05:29:30 mea Exp $
  *
  *
  * This program is free software; you can redistribute it and/or

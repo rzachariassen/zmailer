@@ -15,7 +15,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id$";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.2 2006/10/23 21:36:28 mea Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "hostenv.h"

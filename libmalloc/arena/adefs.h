@@ -1,6 +1,6 @@
 /*  This file should be edited with 4-column tabs! */
 /*  Author: Mark Moraes <moraes@csri.toronto.edu> */
-/* $Header$ */
+/* $Header: /home/mea/src/CVSROOT/zmailer/libmalloc/arena/adefs.h,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $ */
 #ifndef __ADEFS_H__
 #define __ADEFS_H__
 /*

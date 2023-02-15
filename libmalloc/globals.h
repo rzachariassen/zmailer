@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: globals.h,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $ */
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 /*

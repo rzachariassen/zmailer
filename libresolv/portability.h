@@ -1,7 +1,7 @@
 /* portability.h - include or define things that aren't present on all systems
  * vixie@decwrl 26dec92 [new]
  *
- * $Id$
+ * $Id: portability.h,v 1.4 2000/03/24 11:39:12 mea Exp $
  */
 
 /*

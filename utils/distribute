@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header$
+# $Header: /home/mea/src/CVSROOT/zmailer/utils/distribute,v 1.1.1.1 1998/02/10 21:01:55 mea Exp $
 #
 # Distribute stdin (presumed to be a digest or direct-mail article from
 # a mailing list) according to the following flags

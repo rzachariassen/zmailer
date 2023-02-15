@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: globrename.h,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $ */
 #ifndef __GLOBALRENAME_H__
 #define __GLOBALRENAME_H__
 /*

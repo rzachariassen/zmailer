@@ -1,4 +1,4 @@
-.\" $Header$
+.\" $Header: /home/mea/src/CVSROOT/zmailer/man/ssl.1.in,v 1.2 2003/08/28 15:12:40 mea Exp $
 .ds ]W ZMailer 2.0
 .TH SSL 1zm "2 June 1990"
 .SH NAME

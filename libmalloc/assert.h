@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: assert.h,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $ */
 #ifndef __ASSERT_H__
 #define __ASSERT_H__
 #ifdef DEBUG

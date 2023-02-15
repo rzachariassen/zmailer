@@ -1,5 +1,5 @@
 /*  Author: Mark Moraes <moraes@csri.toronto.edu> */
-/* $Id$ */
+/* $Id: malloc.h,v 1.2 1999/12/29 19:37:35 mea Exp $ */
 #ifndef __XMALLOC_H__
 #define __XMALLOC_H__
 

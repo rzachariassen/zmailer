@@ -28,7 +28,7 @@
 # define const
 #endif
 
-static const char rcsid[] = "$Header$ SPRITE (Berkeley)";
+static const char rcsid[] = "$Header: /home/mea/src/CVSROOT/zmailer/libc/strtoul.c,v 1.2 1998/08/02 23:24:45 mea Exp $ SPRITE (Berkeley)";
 
 #include <ctype.h>
 

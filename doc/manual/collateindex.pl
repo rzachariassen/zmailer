@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 # -*- Perl -*-
 #
-# $Id$
+# $Id: collateindex.pl,v 1.2 2001/03/07 22:31:29 mea Exp $
 
 use Getopt::Std;
 

@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id$")
+RCSID("$Id: emalloc.c,v 1.2 1999/12/29 19:37:35 mea Exp $")
 
 /*
  *  malloc which dies if it can't allocate enough storage.

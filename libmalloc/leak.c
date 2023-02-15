@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "sptree.h"
 
-RCSID("$Id$")
+RCSID("$Id: leak.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 /* 
  *  These routines provide an interface for tracing memory leaks. The

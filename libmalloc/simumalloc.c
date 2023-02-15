@@ -8,7 +8,7 @@
  */
 /* Mark Moraes, CSRI, University of Toronto */
 #ifndef lint
-static char rcsid[] = "$Id$";
+static char rcsid[] = "$Id: simumalloc.c,v 1.2 1999/06/26 13:23:25 mea Exp $";
 #endif /*lint*/
 
 #include <stdio.h>

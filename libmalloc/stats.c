@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id$")
+RCSID("$Id: stats.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 /*
  *  Dumps the distribution of allocated sizes we've gathered so far

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: align.h,v 1.2 1999/12/29 19:37:35 mea Exp $ */
 #ifndef __ALIGN_H__
 #define __ALIGN_H__
 /* 

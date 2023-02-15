@@ -4,7 +4,7 @@
 
 #include "defs.h"
 
-RCSID("$Id$")
+RCSID("$Id: strsave.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 /* 
  *  makes a copy of a null terminated string in malloc'ed storage. Dies

@@ -55,7 +55,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
-static char rcsid[] = "$Id$";
+static char rcsid[] = "$Id: gethnamaddr.c,v 1.3 2001/01/30 07:58:15 mea Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "hostenv.h"

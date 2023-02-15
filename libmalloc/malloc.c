@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "globals.c"
 
-RCSID("$Id$")
+RCSID("$Id: malloc.c,v 1.4 1999/12/30 05:29:12 mea Exp $")
 
 #ifdef malloc
 # undef malloc	/* Linux <stdlib.h> ... */

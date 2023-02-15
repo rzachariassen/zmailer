@@ -13,7 +13,7 @@
 #include "globals.h"
 #include "trace.h"
 
-RCSID("$Id$")
+RCSID("$Id: _malloc.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 univptr_t
 __malloc(nbytes, fname, linenum)

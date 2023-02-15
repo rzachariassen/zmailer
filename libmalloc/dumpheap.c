@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id$")
+RCSID("$Id: dumpheap.c,v 1.2 1999/12/30 03:26:07 mea Exp $")
 
 int
 __m_prblock(p, is_end_ptr, fp)

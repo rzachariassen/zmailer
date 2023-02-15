@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "trace.h"
 
-RCSID("$Id$")
+RCSID("$Id: _strsave.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $")
 
 char *
 __strsave(s, fname, linenum)

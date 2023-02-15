@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id$
+# $Id: eps2epdf,v 1.1 2001/02/01 02:15:49 mea Exp $
 # Convert Encapsulated PostScript to EncapsulatedPDF.
 
 OPTIONS=""

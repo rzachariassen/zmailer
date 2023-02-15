@@ -6,7 +6,7 @@
 #include "adefs.h"
 #include "arena.h"
 
-RCSID("$Header$");
+RCSID("$Header: /home/mea/src/CVSROOT/zmailer/libmalloc/arena/amalloc.c,v 1.1.1.1 1998/02/10 21:01:46 mea Exp $");
 
 static Arena colosseum = AINIT;
 
