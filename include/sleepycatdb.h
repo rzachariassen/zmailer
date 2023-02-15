@@ -7,9 +7,7 @@
 
 #if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
     defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H) || \
-    defined(HAVE_DB4_DB_H)
-
-
+    defined(HAVE_DB4_DB_H) || defined(HAVE_DB4)
 
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
     !defined(HAVE_DB_CREATE)

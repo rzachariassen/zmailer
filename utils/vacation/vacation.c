@@ -303,7 +303,7 @@ main(argc, argv)
 #endif
 	  if (ret == 0)
 	    ret = db->open(db,
-#if (DB_VERSION_MAJOR > 4) || (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+#if (DB_VERSION_MAJOR > 4) || ((DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1))
 			    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 			   VDB ".db", NULL, DB_BTREE,

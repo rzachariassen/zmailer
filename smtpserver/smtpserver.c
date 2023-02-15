@@ -728,7 +728,7 @@ int main(argc, argv, envp)
 	    }
 
 	    logfile = strdup(optarg); /* We MAY overwrite argv[] data
-					 latter!  Make safe copy now! */
+					 later!  Make safe copy now! */
 
 	    break;
 	  case 'L':		/* Max LoadAverage */
@@ -2712,7 +2712,7 @@ int insecure;
 
     } else if ((maxsameip >= 0) && (SS->sameipcount > maxsameip)) {
 	smtp_tarpit(SS);
-	type(SS, 450, NULL, "%s - Come again latter, too many simultaneous connections from this IP address /ms(%li of %li)",
+	type(SS, 450, NULL, "%s - Come again later, too many simultaneous connections from this IP address /ms(%li of %li)",
 	       SS->myhostname, SS->sameipcount, maxsameip);
 	MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
     } else {

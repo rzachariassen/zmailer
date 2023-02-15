@@ -211,8 +211,8 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
       return 1;  /* Not defined! */
 
     if (debug) 
-	type(NULL,0,NULL,"Policyinit call starts: submission mode: %d, valid whoson: %d",
-	       submission_mode_flags, valid_whoson);
+	type(NULL,0,NULL,"Policyinit call starts: submission mode: %d, valid whoson: %d, dbpath: %s",
+	       submission_mode_flags, valid_whoson, rel->dbpath);
 
     myhostname = state->myhostname;
     memset(state, 0, sizeof(*state));
@@ -310,7 +310,7 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 	sprintf(dbname, "%s.db", rel->dbpath);
 
 	openok = rel->sleepyrpc->open(rel->sleepyrpc,
-#if (DB_VERSION_MAJOR > 4) || (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+#if (DB_VERSION_MAJOR > 4) || ((DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1))
 				      NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 				      dbname, NULL,  DB_BTREE,
@@ -323,6 +323,8 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);
+	if (debug)
+	  type(NULL,0,NULL," dbpath is '%s' dbname is '%s'",rel->dbpath, dbname);
 
 #if defined(HAVE_DB3) || defined(HAVE_DB4)
 
@@ -330,7 +332,7 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 	openok = db_create(&rel->btree, NULL, 0);
 	if (openok == 0)
 	  openok = rel->btree->open(rel->btree,
-#if (DB_VERSION_MAJOR > 4) || (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+#if (DB_VERSION_MAJOR > 4) || ((DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1))
 				    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 				    dbname, NULL,  DB_BTREE,
@@ -366,7 +368,7 @@ int policyinit(state, rel, submission_mode_flags, valid_whoson)
 	openok = db_create(&rel->bhash, NULL, 0);
 	if (openok == 0)
 	  openok = rel->bhash->open(rel->bhash,
-#if (DB_VERSION_MAJOR > 4) || (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+#if (DB_VERSION_MAJOR > 4) || ((DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1))
 				    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 				    dbname, NULL, DB_HASH,
@@ -1704,7 +1706,7 @@ static int pt_mailfrom(state, str, len)
 	return -1;
     if (state->always_freeze)
 	return 1;
-    if (state->full_trust)
+    if (state->full_trust || state->authuser)
 	return 0;
 
 #ifdef DO_PERL_EMBED
@@ -1794,8 +1796,8 @@ static int pt_mailfrom(state, str, len)
     }
 
     if (debug)
-      type(NULL,0,NULL,"mailfrom; always_accept=%d ratelimitmsgsvalue='%s'",
-	   state->always_accept,
+      type(NULL,0,NULL,"mailfrom; authuser=%s always_accept=%d ratelimitmsgsvalue='%s'",
+	   state->authuser == NULL ? "" : state->authuser, state->always_accept,
 	   (state->ratelimitmsgsvalue ? state->ratelimitmsgsvalue : "<nil>"));
 
     if (state->always_accept && state->ratelimitmsgsvalue) {
@@ -1845,7 +1847,7 @@ static int pt_mailfrom(state, str, len)
 	  }
 
 	  if ((rc != 0)  && (! state->message))
-	    state->message = strdup("You are sending too much mail/rcpts per time interval.  Try again latter.");
+	    state->message = strdup("You are sending too much mail/rcpts per time interval.  Try again later.");
 	  if (rc != 0) {
 	    /* register the excess! */
 	    call_rate_counter(state, 1, POLICY_EXCESS, &count, NULL);

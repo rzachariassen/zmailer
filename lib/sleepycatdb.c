@@ -11,7 +11,7 @@
 
 #if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
     defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H) || \
-    defined(HAVE_DB4_DB_H)
+    defined(HAVE_DB4_DB_H) || defined(HAVE_DB4)
 
 #include <sys/types.h>
 #if (defined(__svr4__) || defined(__SVR4)) && defined(__sun)
@@ -331,7 +331,7 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 	err = db_create(&db, prv->ZSE ? prv->ZSE->env : NULL, 0);
 	if (err == 0 && db != NULL) {
 	    err = db->open( db,
-#if (DB_VERSION_MAJOR > 4) || (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+#if (DB_VERSION_MAJOR > 4) || ((DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1))
 			    NULL, /* TXN id was added at SleepyDB 4.1 */
 #endif
 			    prv->filename, NULL, prv->dbtype,
