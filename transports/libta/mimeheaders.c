@@ -948,6 +948,8 @@ check_conv_prohibit(rp)
 	if (!hdrs) return 0;
 
 	while (*hdrs) {
+	  if (CISTREQN(*hdrs,"DKIM-Signature:", 15))
+	    return -2; /* prohibited */
 	  if (CISTREQN(*hdrs,"Content-conversion:", 19)) {
 	    const char *s = *hdrs + 19;
 	    const char *p = skip_822linearcomments(s);
