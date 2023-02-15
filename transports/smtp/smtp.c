@@ -2171,6 +2171,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	if (r != EX_OK) {
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
+	  if (r == EX_TEMPFAIL)
+	    r = EX_zm_DEFERBACK;
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
 	    if (rp->lockoffset) {
 	      notaryreport(rp->addr->user, FAILED,

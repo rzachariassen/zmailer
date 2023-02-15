@@ -389,6 +389,10 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 		mark = _CFTAG_NOTOK;
 		logreport = ta_logs_diagnostics;
 		break;
+	case EX_zm_DEFERBACK:
+		statmsg = "deferback";
+		mark = _CFTAG_DEFER;
+		break;
 	default:
 		sprintf(statmsgbuf,"error Unknown sysexits error code %d!",
 			rp->status);

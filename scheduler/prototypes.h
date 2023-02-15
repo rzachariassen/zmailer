@@ -148,6 +148,7 @@ extern void queryipcinit __((void));
 extern int system __((char*));
 #endif
 extern void receive_notify __((int fd));
+extern void move_vertex_to_thread_tail __((struct vertex *vp));
 
 /* update.c */
 extern void update __((int, char *));

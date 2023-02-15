@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2008
  */
 
 #include "hostenv.h"
@@ -47,14 +47,15 @@ extern char *procselect;
 
 #define DARGS __((struct procinfo *, struct vertex *, long, long, long, const char*, const char*))
 
-static int u_ok       DARGS ;
-static int u_ok2      DARGS ;
-static int u_ok3      DARGS ;
-static int u_deferred DARGS ;
-static int u_deferall DARGS ;
-static int u_error    DARGS ;
-static int u_error2   DARGS ;
-static int u_retryat  DARGS ;
+static int u_ok        DARGS ;
+static int u_ok2       DARGS ;
+static int u_ok3       DARGS ;
+static int u_deferred  DARGS ;
+static int u_deferback DARGS ;
+static int u_deferall  DARGS ;
+static int u_error     DARGS ;
+static int u_error2    DARGS ;
+static int u_retryat   DARGS ;
 
 static struct diagcodes {
 	const char	*name;
@@ -65,6 +66,7 @@ static struct diagcodes {
 		{	"ok3",		u_ok3		},
 		{	"deferred",	u_deferred	},
 		{	"deferall",	u_deferall	},
+		{	"deferback",	u_deferback	},
 		{	"error",	u_error		},
 		{	"error2",	u_error2	},
 		{	"retryat",	u_retryat	},
@@ -446,10 +448,12 @@ deletemsg(msgid, curcfp)
 	 */
 	while (cfp->head->next[L_CTLFILE] != NULL) {
 	  MIBMtaEntry->sc.StoredRecipientsSc -= cfp->head->ngroup;
+	  cfp->head->thread->rcpts -= cfp->head->ngroup;
 	  cfp->head->ngroup = 0;
 	  unvertex(cfp->head,0,1);
 	}
 	MIBMtaEntry->sc.StoredRecipientsSc -= cfp->head->ngroup;
+	cfp->head->thread->rcpts -= cfp->head->ngroup;
 	cfp->head->ngroup = 0;
 	unvertex(cfp->head,0,1);
 }
@@ -550,6 +554,7 @@ static void vtxupdate(vp, index, ok)
 	    /* remove us from the vertex indices */
 
 	    vp->ngroup -= 1;
+	    vp->thread->rcpts -= 1;
 	    MIBMtaEntry->sc.StoredRecipientsSc -= 1;
 
 	    /* compact the index array */
@@ -869,6 +874,54 @@ static int u_deferall(proc, vp, index, inum, offset, notary, message)
 
 	return 1;
 }
+
+
+/*
+ *  The  u_deferback()  moves reported item to the tail of the task queue.
+ *
+ *
+ */
+
+static int u_deferback(proc, vp, index, inum, offset, notary, message)
+     struct procinfo *proc;
+     struct vertex *vp;
+     long   index, inum, offset;
+     const char	*notary;
+     const char	*message;
+{
+	/* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferback %s\n", vp->cfp->spoolid,
+	   inum, offset, notary, message ? message : "-"); */
+	if (message != NULL) {
+	  if (vp->message != NULL)
+	    free(vp->message);
+	  /* sfprintf(sfstderr, "add message '%s' to node %s/%s\n",
+	     message, vp->orig[L_CHANNEL]->name,
+	     vp->orig[L_HOST]->name); */
+	  vp->message = strsave(message);
+	}
+#if 0
+	if (vp->cfp->contents != NULL) {
+	  Sfio_t *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    sfprintf(vfp, "%s: deferback %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
+	  }
+	}
+#endif
+	/*
+	 * Even though we may get several of these per web entry,
+	 * the heuristic in reschedule() to ignore the request if
+	 * the time is already in the future should help out.
+	 */
+
+//	move_vertex_to_thread_tail(vp);
+	reschedule(vp, -1, index);
+	return 1;
+}
+
+
 
 static int u_error(proc, vp, index, inum, offset, notary, message)
      struct procinfo *proc;

@@ -83,3 +83,6 @@
 # define EX_TEMPFAIL	75	/* temp failure; user is invited to retry */
 # define EX_PROTOCOL	76	/* remote error in protocol */
 # define EX_NOPERM	77	/* permission denied */
+
+
+# define EX_zm_DEFERBACK 90     /* Defer the message so that it is placed on the TAIL of the job queue..  pick next job. */

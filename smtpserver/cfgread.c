@@ -694,11 +694,9 @@ static void cfparam(str, size, cfgfilename, linenum)
       int rc;
       int port;
       int af = AF_INET;
-#ifdef INET6
       if (use_ipv6) {
 	af = AF_INET6;
       }
-#endif
 
       rc = zgetbindaddr(param1, af, &addr);
       port = atoi(param2);
