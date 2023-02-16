@@ -1,3 +1,4 @@
+autoconf
 ./configure --prefix=/usr/local/zmailer	\
 		--with-postoffice=/var/spool/postoffice		\
 		--with-mailbox=/var/mail			\

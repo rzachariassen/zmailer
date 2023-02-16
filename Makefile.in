@@ -40,12 +40,7 @@ MOREDIRS2 = sfio
 # Files to remove in cleanup
 CLEANFILES = include/rfc822.entry $(ZCONF) version.c
 
-DISTCLEANFILES = include/mail.h SiteConfig bin/mklibdeb bin/mkdeb	\
-		utils/zmailer.init.sh	proto/cf/SMTP+UUCP.cf	\
-		proto/cf/TELE-FI.cf	proto/cf/UTdefault.cf	\
-		proto/db/aliases				\
-		man/Makefile		proto/db/Makefile	\
-		bin/mkdep		bin/mklibdep
+DISTCLEANFILES = 
 
 #.SUFFIXES:
 
@@ -226,7 +221,10 @@ clean-version:
 distclean-local: clean-local clean-version
 	rm -f config.cache config.h config.log stamp-h distname
 	rm -rf autom4te.cache
-	rm -f $(DISTCLEANFILES)
+	-find . -name '*.in' -print | sed -e 's/\.in$$/\x0/' | tr -d '\n' | xargs -0 rm -f
+	-for file in $(DISTCLEANFILES); do \
+	  test -f "$${file}" && { rm "$${file}" ; echo "Cleaned $${file}"; } || echo "Already cleaned $${file}" ;\
+	done
 
 realclean-local: distclean-local
 

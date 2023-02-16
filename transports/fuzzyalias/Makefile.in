@@ -45,6 +45,7 @@ install:	$(PROGRAM)
 
 clean:
 	-rm -f $(PROGRAM) *.o *.out make.log *~
+
 distclean: clean
 	rm -f Makefile
 
