@@ -5,7 +5,7 @@
 */
 
 #if __STD_C
-int snprintf(char* s, int n,  const char* form, ...)
+int snprintf(char* s, long unsigned int n,  const char* form, ...)
 #else
 int snprintf(va_alist)
 va_dcl

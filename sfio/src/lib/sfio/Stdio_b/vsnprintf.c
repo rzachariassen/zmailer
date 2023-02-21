@@ -5,7 +5,7 @@
 */
 
 #if __STD_C
-int vsnprintf(char* s, int n, const char* form, va_list args)
+int vsnprintf(char* s, long unsigned int n, const char* form, va_list args)
 #else
 int vsnprintf(s,n,form,args)
 reg char*	s;

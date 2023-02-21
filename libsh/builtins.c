@@ -1297,7 +1297,7 @@ sh_type(argc, argv)
 	u_int pathlen;
 
 	for (--argc, ++argv; argc-- > 0 ; ++argv) {
-		if (*argv == '\0') {
+		if (*argv == 0) {
 			printf(NULL_NAME);
 			continue;
 		}

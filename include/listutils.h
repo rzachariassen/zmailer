@@ -67,7 +67,7 @@ typedef struct _conscell {
 #if defined(__GNUC__) && !defined(PROFILING) && defined(__OPTIMIZE__)
 
 #ifndef EXTINLINE
-#define EXTINLINE extern __inline__
+#define EXTINLINE inline
 #endif
 
 EXTINLINE int LIST(conscell *C)   { return ((~(_DSW_MASK|ELEMENT) & (C)->flags) == 0); }

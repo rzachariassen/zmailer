@@ -102,7 +102,7 @@ get_hrr_vis_flag(var_hrr_vis_name, name, stage_name)
 	if ((var_hrr_vis = v_find(var_hrr_vis_name)) != NULL) {
 		if (cdr(var_hrr_vis) != NULL && !LIST(cdr(var_hrr_vis))) {
 			tmp = strtol(cdr(var_hrr_vis)->string, &endptr, 10);
-			if (cdr(var_hrr_vis)->string != '\0' && *endptr == '\0' &&
+			if (cdr(var_hrr_vis)->string != 0 && *endptr == '\0' &&
 			    (tmp != LONG_MAX || errno != ERANGE) && tmp >= 0)
 				return tmp ? 1 : 0;
 		}

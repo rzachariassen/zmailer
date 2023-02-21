@@ -90,7 +90,7 @@ typedef char msgdata;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
 #if	defined(BIND_VER) && (BIND_VER >= 473)
-const char * conffile;
+extern const char * conffile;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
 

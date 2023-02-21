@@ -298,7 +298,7 @@ main(argc, argv)
 
 	  sad.sun_family = AF_UNIX;
 	  strncpy(sad.sun_path, port, sizeof(sad.sun_path));
-	  sad.sun_path[ sizeof(sad.sun_path) ] = 0;
+	  sad.sun_path[ sizeof(sad.sun_path) - 1 ] = 0;
 
 	  if (connect(fd, (void*)&sad, sizeof sad) < 0) {
 	    fprintf(stderr,"%s: connect failed to path: '%s'\n",progname,sad.sun_path);

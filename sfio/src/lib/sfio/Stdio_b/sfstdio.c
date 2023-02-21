@@ -297,21 +297,25 @@ int main()
 #endif
 
 #ifdef NAME_srget
+	printf("#ifndef FILBUF\n");
 	if(strcmp(NAME_srget,"_srget") != 0 )
 		printf("#define _srget	%s\n",NAME_srget);
 	if(__STD_C)
 		printf("#define FILBUF(f)	int _srget(FILE* f)\n");
 	else	printf("#define FILBUF(f)	int _srget(f) FILE* f;\n");
 	printf("#define _do_srget      1\n\n");
+	printf("#endif /* FILBUF */\n");
 #endif
 
 #ifdef NAME_swbuf
+	printf("#ifndef FLSBUF\n");
 	if(strcmp(NAME_swbuf,"_swbuf") != 0)
 		printf("#define _swbuf	%s\n",NAME_swbuf);
 	if(__STD_C)
 		printf("#define FLSBUF(c,f)	int _swbuf(int c, FILE* f)\n");
 	else	printf("#define FLSBUF(c,f)	int _swbuf(c,f) int c; FILE* f;\n");
 	printf("#define _do_swbuf       1\n\n");
+	printf("#endif /* FLSBUF */\n");
 #endif
 
 #if _pragma_weak

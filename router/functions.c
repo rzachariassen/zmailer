@@ -500,7 +500,7 @@ run_grpmems(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	const char **cpp;
+	char **cpp;
 	struct Zgroup *grp;
 
 	if (argc != 2) {

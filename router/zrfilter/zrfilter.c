@@ -24,6 +24,7 @@
 
 #include "mailer.h"
 #include "libc.h"
+#include "libsh.h"
 #include "libz.h"
 #include "mail.h"
 #include "vis.h"
@@ -41,7 +42,7 @@
 #define EXIT_SIGNAL	60
 #define EXIT_FATAL	61
 
-#define ZROPENLOG	openlog(progname, LOG_PID, LOG_MAIL)
+#define ZROPENLOG	openlog(zrprogname, LOG_PID, LOG_MAIL)
 #define ZRCLOSELOG	closelog()
 
 /****************************************************************************/
@@ -53,7 +54,7 @@ typedef void (*sighandler_t)(int);
 /****************************************************************************/
 
 const char *VersionNumb = "1.0.1";
-const char *progname = "zrfilter";
+const char *zrprogname = "zrfilter";
 int D_alloc = 0, D_assign = 0, D_compare = 0, D_functions = 0;
 int D_matched = 0, D_regnarrate = 0, funclevel = 0;
 conscell **return_valuep;
@@ -486,7 +487,7 @@ static void usage(status)
 		"  -v - visually encode special characters,\n"
 		"  -- - all arguments given after that one will be\n"
 		"       passed unmodified to the filter program.\n\n",
-		progname, VersionNumb, progname);
+		zrprogname, VersionNumb, zrprogname);
 	exit(status);
 }
 

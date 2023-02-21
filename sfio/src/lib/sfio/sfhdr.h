@@ -871,6 +871,9 @@ _astimport int		errno;
 #if !__STDC__
 extern double	frexp _ARG_((double, int*));
 extern double	ldexp _ARG_((double,int));
+#else
+extern double	frexp _ARG_((double, int*));
+extern double	ldexp _ARG_((double,int));
 #endif
 
 #if !_hdr_mman && !_sys_mman

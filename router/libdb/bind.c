@@ -30,6 +30,7 @@
  */
 
 
+const char *conffile;
 
 extern int D_bind, D_resolv;
 

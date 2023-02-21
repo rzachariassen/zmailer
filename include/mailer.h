@@ -271,7 +271,7 @@ struct Zgroup {
   const char *gr_name;
   const char *gr_passwd;
   gid_t gr_gid;
-  const char **gr_mem;
+  char **gr_mem;
 };
 
 /* lib/allocate.c: */

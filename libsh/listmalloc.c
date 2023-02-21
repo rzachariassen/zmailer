@@ -539,9 +539,9 @@ char *argv[];
 }
 #endif
 
+#if !(defined(__GNUC__) && !defined(PROFILING) && defined(__OPTIMIZE__))
 #ifndef copycell
-conscell *copycell(X)
-     conscell *X;
+conscell *copycell(conscell *X)
 {
   conscell *tmp = newcell();
   *tmp = *X;
@@ -556,8 +556,7 @@ conscell *copycell(X)
 #endif
 #ifndef nconc
 /* nconc(list, list) -> old (,@list ,@list) */
-conscell *nconc(X, Y)
-     conscell *X, *Y;
+conscell *nconc(conscell *X, conscell *Y)
 {
   return ((car(X) != NULL) ?
 	  cdr(s_last(car(X))) = Y :
@@ -565,8 +564,7 @@ conscell *nconc(X, Y)
 }
 #endif
 #ifndef ncons
-conscell *ncons(X)
-     conscell *X;
+conscell *ncons(conscell *X)
 {
   conscell *tmp = newcell();
   car(tmp) = X;
@@ -577,8 +575,7 @@ conscell *ncons(X)
 #endif
 #ifndef cons
 /* cons(s-expr, list) -> new (s-expr ,@list) */
-conscell *cons(X, Y)
-     conscell *X, *Y;
+conscell *cons(conscell *X, conscell *Y)
 {
   conscell *tmp = ncons(X);
   cdar(tmp) = Y;
@@ -587,8 +584,7 @@ conscell *cons(X, Y)
 #endif
 #ifndef s_push
 /* s_push(s-expr, list) -> old (s-expr ,@list) */
-conscell *s_push(X, Y)
-     conscell *X, *Y;
+conscell *s_push(conscell *X, conscell *Y)
 {
   cdr(X) = car(Y);
   car(Y) = X;
@@ -620,6 +616,7 @@ conscell *conststring(s, slen)
   cdr(tmp) = NULL;
   return tmp;
 }
+#endif
 #endif
 
 

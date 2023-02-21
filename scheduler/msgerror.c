@@ -91,13 +91,15 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 {
 	char *rcpt, *action, *status, *diagstr, *wtt;
 	char *taid;
-	char *cp;
+	char *rcpt_end, *action_end, *status_end, *diagstr_end, *wtt_end, *taid_end;
+	char *cp, *prespace, *postspace;
 	const char *typetag;
 
 	static char const *type_rfc   = "RFC822";
 	static char const *type_local = "X-LOCAL";
 
 	/* NOTARY: addres / action / status / diagstr / wtt */
+	/* NOTARY: addres / action / diagstr */
 
 	if (notary == NULL) {
 	  return; /* XX: ?? call into here should not happen.. */
@@ -112,9 +114,11 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 	  return;	/* XX: ?? eh, well.. we should not be called.. */
 
 	cp     = strchr(rcpt,'\001');
+	rcpt_end = cp;
 	*cp++  = 0;
 	action = cp;
 	cp     = strchr(action,'\001');
+	action_end = cp;
 	*cp++  = 0;
 	status = cp;
 	cp     = strchr(status,'\001');
@@ -123,19 +127,26 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 	  diagstr = status;
 	  status = NULL;
 	  wtt    = NULL;
+	  diagstr_end = NULL;
+	  status_end = NULL;
+	  wtt_end = NULL;
 	} else {
+	  status_end = cp;
 	  *cp++  = 0;
 	  diagstr = cp;
 	  cp    = strchr(diagstr,'\001');
-	  if (cp) *cp++    = 0;
+	  diagstr_end = cp;
+	  if (cp) { *cp++ = 0; }
 	  wtt = cp;
 	  if (cp)  cp   = strchr(cp,'\001');
-	  if (cp) *cp++ = 0;
+	  wtt_end = cp;
+	  if (cp) { *cp++ = 0; }
 	}
 	taid = cp;
 	if (taid) {
 	  cp = strchr(cp+1, '\001'); /* Chop it.. */
-	  if (cp) *cp++ = 0;
+	  taid_end = cp;
+	  if (cp) { *cp++ = 0; }
 	}
 
 	if (*rcpt == '\003' /* XX: MAGIC! */) {
@@ -156,6 +167,8 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 	  rcpt = s;
 	}
 
+	prespace = headstyle ? "  " : "";
+	postspace = headstyle ? "\n      " : " ";
 	if (strchr(rcpt,'@') != NULL) {
 	  typetag = type_rfc;
 	  if (strncmp(rcpt,"ns:",3)==0) /* 'hold'-channel stuff */
@@ -163,55 +176,34 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 	} else
 	  typetag = type_local;
 	if (notary->orcpt) {
-	  if (headstyle)
-	    sfprintf(errfp, "  Original Recipient:\n      ");
-	  else
-	    sfprintf(errfp, "Original-Recipient: ");
+	  sfprintf(errfp, "%sOriginal Recipient:%s", prespace, postspace);
 	  decodeXtext(errfp,notary->orcpt);
 	  sfputc(errfp,'\n');
 	}
-	if (headstyle) {
-	  sfprintf(errfp, "  Final Recipient:\n      %s;%s\n", typetag, rcpt);
-	} else {
-	  sfprintf(errfp, "Final-Recipient: %s;%s\n", typetag, rcpt);
-	  sfprintf(errfp, "Action: %s\n", action);
-	}
+	sfprintf(errfp, "%sFinal Recipient:%s%s;%s\n", prespace, postspace, typetag, rcpt);
+	if (headstyle)
+	  sfprintf(errfp, "%sAction:%s%s\n", prespace, postspace, action);
 	if (status) {
 	  if (*status == '4' || *status == '5')
 	    *haserrsp = 1;
-	  if (headstyle)
-	    sfprintf(errfp, "  Status:\n      %s\n", status);
-	  else
-	    sfprintf(errfp, "Status: %s\n", status);
+	  sfprintf(errfp, "%sStatus:%s%s\n", prespace, postspace, status);
 	}
 	if (wtt && wtt[0] != 0) {
-	  if (headstyle)
-	    sfprintf(errfp, "  Remote MTA:\n      %s\n", wtt);
-	  else
-	    sfprintf(errfp, "Remote-MTA: %s\n", wtt);
+	  sfprintf(errfp, "%sRemote-MTA:%s%s\n", prespace, postspace, wtt);
 	}
 	if (notary->tstamp != 0) {
-	  if (headstyle)
-	    sfprintf(errfp, "  Last Attempt Date:\n      %s",
-		     rfc822date(&notary->tstamp));
-	  else
-	    sfprintf(errfp, "Last-Attempt-Date: %s",
-		     rfc822date(&notary->tstamp));
+	  sfprintf(errfp, "%sLast-Attempt-Date:%s%s", prespace, postspace, rfc822date(&notary->tstamp));
 	}
 	if (taid && headstyle)
-	  sfprintf(errfp, "  X-ZTAID:\n      %s\n", taid);
-	if (headstyle)
-	  sfprintf(errfp, "  Diagnostic Code:\n      %s\n", diagstr);
-	else {
-	  sfprintf(errfp, "Diagnostic-Code: %s\n", diagstr);
-	  sfprintf(errfp, "\n");
-	}
+	  sfprintf(errfp, "%sX-ZTAID:%s%s\n", prespace, postspace, taid);
+	sfprintf(errfp, "%sDiagnostic-Code:%s%s\n\n", diagstr);
 
-	action[-1] = '\001';
-	if (status) status[-1] = '\001';
-	diagstr[-1] = '\001';
-	if (wtt)  wtt[-1]  = '\001';
-	if (taid) taid[-1] = '\001';
+	if (rcpt_end) *rcpt_end = '\001';
+	if (action_end) *action_end = '\001';
+	if (status_end) *status_end = '\001';
+	if (diagstr_end) *diagstr_end = '\001';
+	if (wtt_end)  *wtt_end  = '\001';
+	if (taid_end) *taid_end = '\001';
 }
 
 

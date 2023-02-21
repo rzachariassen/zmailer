@@ -6,3 +6,7 @@ autoconf
 		--with-zconfig=/etc/zmailer.conf		\
 		--mandir=/usr/share/man
 
+# On Rocky Linux 9 also need to do:
+# dnf groupinstall "Development Tools"
+# dnf --enablerepo=devel install gdbm-devel
+# dnf install perl-ExtUtils-MakeMaker

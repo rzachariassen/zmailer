@@ -2738,8 +2738,8 @@ smtpconn(SS, host, noMX)
 #if HAVE_SA_LEN
 	    su->sun_len = sizeof(su);
 #endif
-	    strncpy(su->sun_path, host+5, 256);
-	    su->sun_path[255] = 0;
+	    strncpy(su->sun_path, host+5, sizeof su->sun_path);
+	    su->sun_path[(sizeof su->sun_path) - 1] = 0;
 
 	    SS->mxcount = 0;
 	    retval = makeconn(SS, host, ai, -2);
@@ -3122,7 +3122,7 @@ deducemyifname(SS)
 	SmtpState *SS;
 {
 	Usockaddr laddr;
-	size_t laddrsize;
+	socklen_t laddrsize;
 	struct hostent *hp;
 
 	if (SS->myhostname != NULL)
@@ -3419,7 +3419,7 @@ vcsetup(SS, sa, fdp, hostname)
 	Usockaddr sad;
 	int wantbindaddr = 0;
 	Usockaddr upeername;
-	size_t upeernamelen = 0;
+	socklen_t upeernamelen = 0;
 
 	u_short p;
 	int errnosave, flg;
@@ -3656,7 +3656,7 @@ abort();
 #ifdef SO_ERROR
 	flg = 0;
 	if (errnosave == 0) {
-	  size_t flglen = sizeof(flg);
+	  socklen_t flglen = sizeof(flg);
 	  getsockopt(sk, SOL_SOCKET, SO_ERROR, (void*)&flg, &flglen);
 	}
 	if (flg != 0 && errnosave == 0)
